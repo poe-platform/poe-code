@@ -1,0 +1,450 @@
+[
+  {
+    "id": "language/expressions/async-generator/generator-created-after-decl-inst.js#sloppy",
+    "filename": "language/expressions/async-generator/generator-created-after-decl-inst.js",
+    "sourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf",
+    "variantSourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf",
+    "flags": [],
+    "features": [
+      "async-iteration"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "31250-31499.jsonl",
+    "reportSha256": "4cd35598c4b5ee77583598d19b4d2a4ff224a2ddc93f7726eb2f64ece88baca3",
+    "esid": "sec-asyncgenerator-definitions-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/async-generator/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/async-generator/expression-yield-star-before-newline.js#sloppy",
+      "sourceHash": "132be8c5e0a2cb71ea0002aea93800829ce5487e4717a215b66bf9ac87240ab2",
+      "variantSourceHash": "132be8c5e0a2cb71ea0002aea93800829ce5487e4717a215b66bf9ac87240ab2",
+      "report": "31000-31249.jsonl",
+      "reportSha256": "f1fcd740fb5b7c72713683245b3af11f179b73eb896e90ce4b0e938759913a8d"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/async-generator/generator-created-after-decl-inst.js#strict",
+    "filename": "language/expressions/async-generator/generator-created-after-decl-inst.js",
+    "sourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf",
+    "variantSourceHash": "46aa4baf864cbba67d41744a38168d1371766ac6f0308728bf4221d6640c5fe1",
+    "flags": [],
+    "features": [
+      "async-iteration"
+    ],
+    "mode": "strict",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "31250-31499.jsonl",
+    "reportSha256": "4cd35598c4b5ee77583598d19b4d2a4ff224a2ddc93f7726eb2f64ece88baca3",
+    "esid": "sec-asyncgenerator-definitions-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/async-generator/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/async-generator/expression-yield-star-before-newline.js#strict",
+      "sourceHash": "132be8c5e0a2cb71ea0002aea93800829ce5487e4717a215b66bf9ac87240ab2",
+      "variantSourceHash": "a9f78c9853260f8d6d48f843cb4850a7bd94342ec6b1c29d5a097439640621da",
+      "report": "31000-31249.jsonl",
+      "reportSha256": "f1fcd740fb5b7c72713683245b3af11f179b73eb896e90ce4b0e938759913a8d"
+    },
+    "current": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf"
+    },
+    "delivered": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/generators/generator-created-after-decl-inst.js#sloppy",
+    "filename": "language/expressions/generators/generator-created-after-decl-inst.js",
+    "sourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770",
+    "variantSourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770",
+    "flags": [],
+    "features": [
+      "generators"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "38000-38249.jsonl",
+    "reportSha256": "59f257aaaf2732d69182e91f772c3deec93f8b7b9624f45951400378a5308b4c",
+    "esid": "sec-generator-function-definitions-runtime-semantics-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/generators/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/generators/eval-var-scope-syntax-err.js#sloppy",
+      "sourceHash": "55f96bc7485c947506b3aa75f8218dec5f1782cbaa8e6e641d3506319cd7c69c",
+      "variantSourceHash": "55f96bc7485c947506b3aa75f8218dec5f1782cbaa8e6e641d3506319cd7c69c",
+      "report": "38000-38249.jsonl",
+      "reportSha256": "59f257aaaf2732d69182e91f772c3deec93f8b7b9624f45951400378a5308b4c"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/expressions/generators/generator-created-after-decl-inst.js#strict",
+    "filename": "language/expressions/generators/generator-created-after-decl-inst.js",
+    "sourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770",
+    "variantSourceHash": "808c89ce562b34d5444a196292d5f3edf95180ea69e898b61b12167ada7b3b27",
+    "flags": [],
+    "features": [
+      "generators"
+    ],
+    "mode": "strict",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "38000-38249.jsonl",
+    "reportSha256": "59f257aaaf2732d69182e91f772c3deec93f8b7b9624f45951400378a5308b4c",
+    "esid": "sec-generator-function-definitions-runtime-semantics-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/generators/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "expressions semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/expressions/generators/eval-body-proto-realm.js#strict",
+      "sourceHash": "7d6320e7ec53e14dc44e685a92fb89685168ce5fb61b96b6a95652735f6bf5c4",
+      "variantSourceHash": "ef607bbca5adbe5dfd32c0a1e7c17a92ebd39f5afc8f8bc21aa5c9d7ad9c9995",
+      "report": "38000-38249.jsonl",
+      "reportSha256": "59f257aaaf2732d69182e91f772c3deec93f8b7b9624f45951400378a5308b4c"
+    },
+    "current": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770"
+    },
+    "delivered": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/async-generator/generator-created-after-decl-inst.js#sloppy",
+    "filename": "language/statements/async-generator/generator-created-after-decl-inst.js",
+    "sourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4",
+    "variantSourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4",
+    "flags": [],
+    "features": [
+      "async-iteration"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "43000-43249.jsonl",
+    "reportSha256": "54a897e8f85ec6996309245ac75df6e7fd4b0fed6dd4528d25c960d711144783",
+    "esid": "sec-asyncgenerator-definitions-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/async-generator/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/async-generator/eval-var-scope-syntax-err.js#sloppy",
+      "sourceHash": "313142a9d1d12bf4155928aaf6e5ef7771a7a39b0070caf4903f44d31d3b9599",
+      "variantSourceHash": "313142a9d1d12bf4155928aaf6e5ef7771a7a39b0070caf4903f44d31d3b9599",
+      "report": "43000-43249.jsonl",
+      "reportSha256": "54a897e8f85ec6996309245ac75df6e7fd4b0fed6dd4528d25c960d711144783"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/async-generator/generator-created-after-decl-inst.js#strict",
+    "filename": "language/statements/async-generator/generator-created-after-decl-inst.js",
+    "sourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4",
+    "variantSourceHash": "b67656c713592848843839e3ddd598bae692626249e29efe82b6a973a0b3c7d9",
+    "flags": [],
+    "features": [
+      "async-iteration"
+    ],
+    "mode": "strict",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "43000-43249.jsonl",
+    "reportSha256": "54a897e8f85ec6996309245ac75df6e7fd4b0fed6dd4528d25c960d711144783",
+    "esid": "sec-asyncgenerator-definitions-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/async-generator/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/async-generator/escaped-async.js#strict",
+      "sourceHash": "9d2e5c938320d3e54dd01f4eaa36fabc9628f42990f9aab400af484e9107ec9c",
+      "variantSourceHash": "40e207c2d667f6bdf0394cf24f7cc5c5bf8efd8e47dd7176e571023a85dc9266",
+      "report": "43000-43249.jsonl",
+      "reportSha256": "54a897e8f85ec6996309245ac75df6e7fd4b0fed6dd4528d25c960d711144783"
+    },
+    "current": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4"
+    },
+    "delivered": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object AsyncGenerator]\u00bb, \u00ab[object AsyncGenerator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/generators/generator-created-after-decl-inst.js#sloppy",
+    "filename": "language/statements/generators/generator-created-after-decl-inst.js",
+    "sourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a",
+    "variantSourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a",
+    "flags": [],
+    "features": [
+      "generators"
+    ],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "51000-51249.jsonl",
+    "reportSha256": "516adebc24c1be44544f398f551abbe7975fc11c3e488a30b5a7c99566d92692",
+    "esid": "sec-generator-function-definitions-runtime-semantics-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/generators/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/generators/eval-var-scope-syntax-err.js#sloppy",
+      "sourceHash": "68635098aab3060cec3a28b0409542a0360393a2b0aba6aedd7478f3a3897a07",
+      "variantSourceHash": "68635098aab3060cec3a28b0409542a0360393a2b0aba6aedd7478f3a3897a07",
+      "report": "51000-51249.jsonl",
+      "reportSha256": "516adebc24c1be44544f398f551abbe7975fc11c3e488a30b5a7c99566d92692"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  },
+  {
+    "id": "language/statements/generators/generator-created-after-decl-inst.js#strict",
+    "filename": "language/statements/generators/generator-created-after-decl-inst.js",
+    "sourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a",
+    "variantSourceHash": "51133b09914ad8d680defea9f7f2cf1f010f8c540c5684ebe36eeea71dd42bd9",
+    "flags": [],
+    "features": [
+      "generators"
+    ],
+    "mode": "strict",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+      "type": "Test262Error"
+    },
+    "report": "51000-51249.jsonl",
+    "reportSha256": "516adebc24c1be44544f398f551abbe7975fc11c3e488a30b5a7c99566d92692",
+    "esid": "sec-generator-function-definitions-runtime-semantics-evaluatebody",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/generators/generator-created-after-decl-inst.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "statements semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "language/statements/generators/dflt-params-trailing-comma.js#strict",
+      "sourceHash": "88b21e6094b79eb1150d3ba336b0f6ef88e126e31373141abeb769a6f9d96b35",
+      "variantSourceHash": "1c72972fbec5e77d824dc2f0fe3e2dba03b4c1421b6b42cd5d96800029e282cf",
+      "report": "50750-50999.jsonl",
+      "reportSha256": "587da8f40e18a6af5c8bdd19f30826a203e9482300faee706b8d82e09498f02b"
+    },
+    "current": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      },
+      "sourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a"
+    },
+    "delivered": {
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab[object Generator]\u00bb, \u00ab[object Generator]\u00bb) to be false",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+  }
+]

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { defineCommand, defineGroup, UserError } from "toolcraft";
 import { S, toJsonSchema } from "toolcraft-schema";
 
@@ -43,6 +43,74 @@ async function fixtureEntries() {
 }
 
 describe("makeGetSchemasCommand", () => {
+  describe.each([false, true])("custom paths with promised entries: %s", (promised) => {
+    it.each(["__proto__", "constructor", "toString", "ordinary"])(
+      "returns %s as an own serializable property without changing the result prototype",
+      async (path) => {
+        const handler = vi.fn(async () => null);
+        const leaf = defineCommand({
+          name: "ordinary",
+          description: "Custom path command.",
+          params: S.Object({ value: S.String() }),
+          handler
+        });
+        const entries = [{ path, name: path, groupPath: "", sdkPath: ["ordinary"], command: leaf }];
+        const command = makeGetSchemasCommand({
+          entries: promised ? Promise.resolve(entries) : entries
+        });
+        const expected = { description: leaf.description, params: toJsonSchema(leaf.params) };
+
+        const result = await command.handler({ params: { names: [path, path] } } as never);
+
+        expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+        expect(Object.getOwnPropertyDescriptor(result, path)).toEqual({
+          value: expected,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+        expect(Object.keys(result)).toEqual([path]);
+        expect(Object.getOwnPropertyDescriptor(JSON.parse(JSON.stringify(result)), path)?.value)
+          .toEqual(expected);
+        expect(handler).not.toHaveBeenCalled();
+      }
+    );
+
+    it("retains special paths alongside ordinary paths across repeated requests", async () => {
+      const paths = ["ordinary", "__proto__", "constructor", "toString"];
+      const entries = paths.map((path) => ({
+        path,
+        name: path,
+        groupPath: "",
+        sdkPath: ["ordinary"],
+        command: fixtureCommand("ordinary", `Description for ${path}.`)
+      }));
+      const command = makeGetSchemasCommand({
+        entries: promised ? Promise.resolve(entries) : entries
+      });
+
+      for (const names of [paths, [...paths].reverse()]) {
+        const result = await command.handler({ params: { names } } as never);
+
+        expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+        expect(Object.keys(result)).toEqual(names);
+        for (const path of names) {
+          expect(Object.getOwnPropertyDescriptor(result, path)?.value.description)
+            .toBe(`Description for ${path}.`);
+        }
+      }
+    });
+
+    it("does not mistake inherited object members for registered paths", async () => {
+      const command = makeGetSchemasCommand({
+        entries: promised ? Promise.resolve([]) : []
+      });
+
+      await expect(command.handler({ params: { names: ["__proto__", "toString"] } } as never))
+        .rejects.toThrow("Unknown command path(s): __proto__, toString");
+    });
+  });
+
   it("defines the get_schemas command with required names params", async () => {
     const command = makeGetSchemasCommand({
       entries: await fixtureEntries()

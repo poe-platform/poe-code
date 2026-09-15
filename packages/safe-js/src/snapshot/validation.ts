@@ -1,3 +1,4 @@
+import { retainedAccessorClosures } from "../interp/accessors.js";
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
 import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
@@ -16,7 +17,9 @@ import { validateDataViewStorage } from "./data-view.js";
 import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
-import { isSandboxClosure } from "../interp/values.js";
+import { getIntrinsicIdentity } from "../interp/intrinsics.js";
+import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
+import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
 import { validateTemplateObjects } from "./template-validation.js";
@@ -81,6 +84,7 @@ type ValidationState = {
   limits: ValidationLimits;
   validateTaggedPayloads: boolean;
   dataPropertiesOnly?: boolean;
+  dataPrototypes?: WeakSet<object>;
   allowHostFunctionState?: boolean;
   scopeResourceNodes?: ReadonlySet<unknown>;
 };
@@ -93,7 +97,8 @@ export function validateSnapshotData(value: unknown): void {
     dataSize: 0,
     limits: defaultLimits(),
     validateTaggedPayloads: false,
-    dataPropertiesOnly: true
+    dataPropertiesOnly: true,
+    dataPrototypes: new WeakSet()
   });
 }
 
@@ -103,6 +108,23 @@ export function validateDumpEnvelope(
 ): asserts snapshot is Record<string, unknown> {
   const limits = defaultLimits();
   const root = requireRecord(snapshot, "$");
+  const trusted = inMemoryRunSnapshots.has(root);
+  const state: ValidationState = {
+    allowHostFunctionState: trusted,
+    allowFunctions: trusted,
+    allowUndefined: true,
+    entries: 0,
+    dataSize: 0,
+    limits,
+    validateTaggedPayloads: false,
+    dataPropertiesOnly: !trusted,
+    dataPrototypes: new WeakSet()
+  };
+  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
+  // run() returns a mutable envelope. Its provenance permits runtime values,
+  // but cannot authorize accessors subsequently installed by its caller.
+  if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
+  snapshotDataEntries(root, "$", state.dataPrototypes);
   if (root.version !== 1 && root.version !== DUMP_FORMAT_VERSION) {
     fail("unsupportedVersion", "$.version", `expected ${DUMP_FORMAT_VERSION}`);
   }
@@ -119,7 +141,7 @@ export function validateDumpEnvelope(
   const semantics = semanticsDescriptor?.value;
   if (
     options.resume === true &&
-    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" &&
+    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" && semantics !== "jobs-v8" &&
     (semantics !== undefined || ["promiseReplay", "replay", "initialInputs"].some(key => {
       const descriptor = Object.getOwnPropertyDescriptor(root, key);
       return descriptor !== undefined && (!("value" in descriptor) || descriptor.value !== undefined);
@@ -128,16 +150,6 @@ export function validateDumpEnvelope(
     fail("unsupportedVersion", "$.executionSemantics",
       "incompatible execution semantics; resume with the SafeJS version that created this snapshot. Migration requires explicit reconciliation, not changing its version marker.");
   }
-  const state = {
-    allowHostFunctionState: inMemoryRunSnapshots.has(root),
-    allowFunctions: true,
-    allowUndefined: true,
-    entries: 0,
-    dataSize: 0,
-    limits,
-    validateTaggedPayloads: false
-  };
-  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
   validateGenericValue(root, "$", 0, state);
   validateRunSnapshotState(root, state);
   validateDumpHeap(root, state);
@@ -401,6 +413,23 @@ export function validateInterpreterSnapshot(
     limits,
     validateTaggedPayloads: true
   };
+  const dataState: ValidationState = {
+    ...state, allowUndefined: true, validateTaggedPayloads: false, dataPropertiesOnly: true,
+    dataPrototypes: new WeakSet()
+  };
+  let preflightBudgetError: SnapshotValidationError | undefined;
+  try {
+    validateGenericValue(snapshot, "$", 0, dataState);
+  } catch (error) {
+    if (!(error instanceof SnapshotValidationError) || error.code !== "budgetExceeded") throw error;
+    // Preserve semantic field diagnostics for small realm budgets without
+    // dropping the wire-budget rejection. Before inspecting those fields,
+    // complete a bounded, callback-free data-safety check.
+    validateGenericValue(snapshot, "$", 0, {
+      ...dataState, entries: 0, dataSize: 0, limits: defaultLimits(), dataPrototypes: new WeakSet()
+    });
+    preflightBudgetError = error;
+  }
   const root = requireRecord(snapshot, "$");
   requireNonEmptyString(root.sourceHash, "$.sourceHash", limits);
   requireNodeId(root.currentAstNodeId, "$.currentAstNodeId", nodeById);
@@ -503,6 +532,7 @@ export function validateInterpreterSnapshot(
   validateDumpReferences(root, "$", 0, state, heapIds, heap, "root");
   try { validateGuestHeapGraphs(heap); }
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
+  if (preflightBudgetError !== undefined) throw preflightBudgetError;
   for (const [key, value] of Object.entries(heap)) {
     const source = value as Record<string, unknown>;
     if (source.kind === "guest-source" || source.kind === "guest-script") {
@@ -570,6 +600,8 @@ export function validateSnapshotSourceHash(
   snapshot: unknown
 ): asserts snapshot is { sourceHash: string } {
   const root = requireRecord(snapshot, "$");
+  if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
+  snapshotDataEntries(root, "$");
   requireNonEmptyString(root.sourceHash, "$.sourceHash", defaultLimits());
 }
 
@@ -983,12 +1015,14 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
-      !(state.allowHostFunctionState && isSandboxClosure(value) && !isGuestClosure(value))) {
-    fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
-  }
-  if (state.dataPropertiesOnly && types.isProxy(value)) {
+  if (types.isProxy(value) && (state.dataPropertiesOnly ||
+      (getIntrinsicIdentity(value as object) === undefined && !isSandboxModuleNamespace(value)))) {
     fail("invalidType", path, "proxy objects are not snapshot data");
+  }
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
+      !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
+        (isSandboxClosure(value) && !isGuestClosure(value))))) {
+    fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
   }
   if (depth > state.limits.maxDepth)
     fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
@@ -1005,7 +1039,7 @@ function validateGenericValue(
   } else if (Array.isArray(value)) {
     if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
     if (state.dataPropertiesOnly) {
-      const entries = snapshotDataEntries(value, path).filter(([key]) => key !== "length");
+      const entries = snapshotDataEntries(value, path, state.dataPrototypes).filter(([key]) => key !== "length");
       if (entries.length !== value.length)
         fail("invalidType", path, "snapshot arrays must be dense");
       for (const [key, entry] of entries) {
@@ -1021,9 +1055,11 @@ function validateGenericValue(
         validateGenericValue(entry, `${path}[${key}]`, depth + 1, state);
       }
     } else {
-      value.forEach((entry, index) =>
-        validateGenericValue(entry, `${path}[${index}]`, depth + 1, state)
-      );
+      for (const [key, entry] of ownSnapshotDataEntries(value, path, true)) {
+        const index = Number(key);
+        if (Number.isInteger(index) && index >= 0 && index < value.length && String(index) === key)
+          validateGenericValue(entry, `${path}[${index}]`, depth + 1, state);
+      }
     }
   } else if (value !== null && typeof value === "object") {
     const record = value as Record<string, unknown>;
@@ -1031,8 +1067,18 @@ function validateGenericValue(
       validateTaggedValue(record, path, state);
     }
     const entries = state.dataPropertiesOnly
-      ? snapshotDataEntries(value, path)
-      : Object.entries(value);
+      ? snapshotDataEntries(value, path, state.dataPrototypes)
+      : ownSnapshotDataEntries(value, path, true);
+    if (state.dataPropertiesOnly) {
+      // Registered intrinsics carry realm state even when an earlier sibling
+      // is an ordinary runtime closure. Diagnose that state before rejecting
+      // the closure's transport shape; identity lookup never reads input keys.
+      for (const [key, entry] of entries) {
+        if (typeof entry === "object" && entry !== null &&
+            getIntrinsicIdentity(entry) !== undefined && hasGuestObjectState(entry))
+          fail("invalidState", `${path}${formatKey(key)}`, "mutated intrinsics require a serialized snapshot");
+      }
+    }
     for (const [key, entry] of entries) {
       const entryPath = `${path}${formatKey(key)}`;
       requireString(key, entryPath, state.limits);
@@ -1051,7 +1097,31 @@ function validateGenericValue(
     fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
 }
 
-function snapshotDataEntries(value: object, path: string): Array<[string, unknown]> {
+// A guest-state fallback must not discard active caller data that occurs after
+// the first value requiring portable serialization. Inspect descriptors without
+// following cycles or consulting caller Proxy traps before conversion begins.
+export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
+  const pending = [{ value: snapshot, path: "$", depth: 0 }];
+  const seen = new WeakSet<object>();
+  let entries = 0;
+  while (pending.length > 0) {
+    const { value, path, depth } = pending.pop()!;
+    if (types.isProxy(value) && getIntrinsicIdentity(value) === undefined && !isSandboxModuleNamespace(value))
+      fail("invalidType", path, "proxy objects are not snapshot data");
+    if (seen.has(value)) continue;
+    seen.add(value);
+    if (depth > MAX_DATA_DEPTH)
+      fail("budgetExceeded", path, `exceeds nesting limit ${MAX_DATA_DEPTH}`);
+    for (const [key, entry] of ownSnapshotDataEntries(value, path, true, true)) {
+      if (++entries > DEFAULT_MAX_ENTRIES)
+        fail("budgetExceeded", path, `exceeds aggregate entry limit ${DEFAULT_MAX_ENTRIES}`);
+      if (entry !== null && typeof entry === "object")
+        pending.push({ value: entry, path: `${path}${formatKey(key)}`, depth: depth + 1 });
+    }
+  }
+}
+
+function snapshotDataEntries(value: object, path: string, checkedPrototypes?: WeakSet<object>): Array<[string, unknown]> {
   const prototype = Object.getPrototypeOf(value);
   if (
     prototype !== null &&
@@ -1059,15 +1129,43 @@ function snapshotDataEntries(value: object, path: string): Array<[string, unknow
   ) {
     fail("invalidType", path, "snapshot data must not have a custom prototype");
   }
+  if (prototype !== null && !checkedPrototypes?.has(prototype)) {
+    for (const key of Object.getOwnPropertyNames(prototype)) {
+      if (key !== "__proto__" && !("value" in Object.getOwnPropertyDescriptor(prototype, key)!))
+        fail("invalidType", path, "snapshot data must not inherit accessors");
+    }
+    checkedPrototypes?.add(prototype);
+  }
   if (Object.getOwnPropertySymbols(value).length > 0) {
     fail("invalidType", path, "snapshot data must not have symbol properties");
   }
-  return Object.getOwnPropertyNames(value).map(key => {
+  return ownSnapshotDataEntries(value, path);
+}
+
+function ownSnapshotDataEntries(value: object, path: string, runtime = false, guestDescriptors = false): Array<[string, unknown]> {
+  const entries: Array<[string, unknown]> = [];
+  for (const key of Object.getOwnPropertyNames(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-    if (!("value" in descriptor))
-      fail("invalidType", `${path}${formatKey(key)}`, "snapshot data must not have accessors");
-    return [key, descriptor.value];
-  });
+    // Only engine-created wrapper getters may be read in runtime snapshots.
+    // Caller accessors, including non-enumerable ones, never gain that authority.
+    const runtimeGetter = runtime && descriptor.get !== undefined &&
+      descriptor.set === undefined && snapshotRuntimeGetters.has(descriptor.get);
+    if (guestDescriptors && !("value" in descriptor) && !runtimeGetter) {
+      const closures = retainedAccessorClosures(descriptor);
+      const adapters = [descriptor.get, descriptor.set].filter(adapter => adapter !== undefined);
+      if (closures.length > 0 && closures.length === adapters.length) {
+        // Only private engine-registered identities have this authority.
+        // Inspect retained closures without executing the accessor adapters.
+        closures.forEach((closure, index) => entries.push([`${key}.accessor${index}`, closure]));
+        continue;
+      }
+    }
+    if (!("value" in descriptor) && !runtimeGetter)
+      fail("invalidType", `${path}${formatKey(key)}`, "must be a data property; snapshot data must not have accessors");
+    if (!runtime || descriptor.enumerable)
+      entries.push([key, runtimeGetter ? Reflect.apply(descriptor.get!, value, []) : descriptor.value]);
+  }
+  return entries;
 }
 
 function validateScopeCycles(

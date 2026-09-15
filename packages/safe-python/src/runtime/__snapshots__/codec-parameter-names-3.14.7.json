@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "IncrementalEncoder",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is names[len(seen)]))\n        return str.__eq__(self, other)\nvalue = codecs.IncrementalEncoder(**{Key('errors'): 'replace'})\nassert seen == [('self', True), ('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('self', True), ('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalDecoder",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is names[len(seen)]))\n        return str.__eq__(self, other)\nvalue = codecs.IncrementalDecoder(**{Key('errors'): 'replace'})\nassert seen == [('self', True), ('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('self', True), ('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalEncoder",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is names[len(seen)]))\n        return str.__eq__(self, other)\nvalue = codecs.BufferedIncrementalEncoder(**{Key('errors'): 'replace'})\nassert seen == [('self', True), ('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('self', True), ('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalDecoder",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is names[len(seen)]))\n        return str.__eq__(self, other)\nvalue = codecs.BufferedIncrementalDecoder(**{Key('errors'): 'replace'})\nassert seen == [('self', True), ('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('self', True), ('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalEncoder defaults",
+      "source": "\nimport codecs\nseen = []\nexpected = 'errors'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is expected))\n        return str.__eq__(self, other)\nclass Custom(codecs.IncrementalEncoder):\n    def __init__(self, *, errors='strict'):\n        self.errors = errors\nCustom.__init__.__kwdefaults__ = {Key('errors'): 'replace'}\nvalue = Custom()\nassert seen == [('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalDecoder defaults",
+      "source": "\nimport codecs\nseen = []\nexpected = 'errors'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is expected))\n        return str.__eq__(self, other)\nclass Custom(codecs.IncrementalDecoder):\n    def __init__(self, *, errors='strict'):\n        self.errors = errors\nCustom.__init__.__kwdefaults__ = {Key('errors'): 'replace'}\nvalue = Custom()\nassert seen == [('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalEncoder defaults",
+      "source": "\nimport codecs\nseen = []\nexpected = 'errors'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is expected))\n        return str.__eq__(self, other)\nclass Custom(codecs.BufferedIncrementalEncoder):\n    def __init__(self, *, errors='strict'):\n        self.errors = errors\nCustom.__init__.__kwdefaults__ = {Key('errors'): 'replace'}\nvalue = Custom()\nassert seen == [('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalDecoder defaults",
+      "source": "\nimport codecs\nseen = []\nexpected = 'errors'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        seen.append((other, other is expected))\n        return str.__eq__(self, other)\nclass Custom(codecs.BufferedIncrementalDecoder):\n    def __init__(self, *, errors='strict'):\n        self.errors = errors\nCustom.__init__.__kwdefaults__ = {Key('errors'): 'replace'}\nvalue = Custom()\nassert seen == [('errors', True)], seen\nassert value.errors == 'replace'\nprint(seen, value.errors)\n",
+      "status": 0,
+      "stdout": "[('errors', True)] replace\n",
+      "stderr": ""
+    },
+    {
+      "name": "comparison 1",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nfailure = ValueError('keyword comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        assert other is names[len(seen)]\n        seen.append(other)\n        if len(seen) == 1:\n            assert input() == 'continue'\n            raise failure\n        return str.__eq__(self, other)\ntry:\n    codecs.IncrementalDecoder(**{Key('errors'): 'replace'})\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('keyword comparison',)\n    assert seen == list(names[:1])\nelse:\n    raise AssertionError('keyword callback failure lost')\nprint(seen)\n",
+      "status": 0,
+      "stdout": "['self']\n",
+      "stderr": ""
+    },
+    {
+      "name": "comparison 2",
+      "source": "\nimport codecs\nseen = []\nnames = ('self', 'errors')\nfailure = ValueError('keyword comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        assert other is names[len(seen)]\n        seen.append(other)\n        if len(seen) == 2:\n            assert input() == 'continue'\n            raise failure\n        return str.__eq__(self, other)\ntry:\n    codecs.IncrementalDecoder(**{Key('errors'): 'replace'})\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('keyword comparison',)\n    assert seen == list(names[:2])\nelse:\n    raise AssertionError('keyword callback failure lost')\nprint(seen)\n",
+      "status": 0,
+      "stdout": "['self', 'errors']\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,4660 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "source": "packages/safe-python/src/runtime/__snapshots__/codec-handler-retention-user-3.14.7.json",
+  "sourceSha256": "584c50419dadc3f50ffce7773a9c93e7e829d08ec12b09462b6c65173715a3bd",
+  "oracle": [
+    {
+      "name": "ascii encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "status": 0,
+      "stdout": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "stderr": "",
+      "match": true
+    }
+  ],
+  "results": [
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "persisted": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "persisted": "",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "persisted": "result",
+      "match": true
+    }
+  ],
+  "summary": {
+    "oracle": 32,
+    "oracleFailed": 0,
+    "runs": 320,
+    "failed": 0
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "baselineSha": "40b5ac20e91570772786e5f9cb961881b11d6692",
+  "workingTree": true,
+  "files": {
+    "packages/safe-js/src/core.ts": "88057a461abd95ffe1134bb550696ef5413ec06f97b3f060d3fc3bda11a61c9c",
+    "packages/safe-js/src/index.ts": "e11bbef038f2fdf323de00dfdbd24e34e96b2c59375f909d96eaca51afce9d5c",
+    "packages/safe-js/src/interp/host-bridge.ts": "56d2d8e7b5b3157e3388246e61f988b8358216256e979f074ec0f3f3fe06f4af",
+    "packages/safe-js/src/interp/host-call.ts": "7a7470b38c430a03d3ed86a74de30c507056c996a7876999f2fe3f800f455c44",
+    "packages/safe-js/src/interp/native-promise-properties.ts": "253b71f3de290adde74cfa1adcdd25fe1ec6cc39593277a209d70611a64027c0",
+    "packages/safe-js/src/interp/values.ts": "658799c537294a19aecce56e5e04dd1077e2bb970e35af32b71f3b880af02ebe",
+    "packages/safe-js/src/run.ts": "49e2aaa68d9476a9f11b84c833e6086b7d24fa333e0e2cb8acdda3309beb3421",
+    "packages/safe-js/src/snapshot/replay-data.ts": "d07c6eb8916a991dfc582d2ff97f185501fe14d585a07664c226593aa0e9a2b8",
+    "packages/safe-js/src/snapshot/replay-inputs.ts": "0bf06db00523ea8376e3554d6551c5dc0e1c71ccc3d89bc5ce5210b041c43124",
+    "packages/safe-js/src/workerd.ts": "4baf8934e99f10b8ee7896d81e4b456846cc30d5ba206b3263b70f09f5d826d9",
+    "packages/safe-js/src/interp/native-promise-admission.test.ts": "678b18fe29badbf41f5f438f3f8442fba92d072d9aa37f477804b577ff344bfb",
+    "packages/safe-js/src/interp/native-promise-admission-budgets.test.ts": "c303a8ce58c83c31a4304d8c031fab225c2cfa674b167bfee9501ccdac71c949",
+    "packages/safe-js/src/interp/promise-import-properties.test.ts": "059f80dfcf10177017912cc466dd66bed9b9f50636bbcf1b24e51e3cf8abff61",
+    "packages/safe-js/src/snapshot/input-symbol-references.test.ts": "6c91b86df9da500df0da47ac29d4a82fcfdda8dc41d18f2eaaab6afcdb03de0d"
+  },
+  "builtEntries": {
+    "packages/safe-js/dist/index.js": "7b6684a2ea070abeba74bc7e00dc4628a9efcfc905a92fbcde7a4786fb4087d1",
+    "packages/safe-js/dist/core.js": "4cc55346638c8794d1ccff4f2f670143a8dda7d42ecffc0bffa3cbc663c62583",
+    "packages/safe-js/dist/workerd.js": "b1f1ff3b85d845e8f60ba2edb500ed477206dd145a40193b0d9647fbe79f9f6f",
+    "packages/safe-js/dist/interp/native-promise-properties.js": "915a9d625ec34ee88a3ab2e8bf54a922783f6ae370a4b0a73cbe18cc43f6408c"
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import {readFileSync,writeFileSync,mkdtempSync,openSync,closeSync,readSync,writeSync,fsyncSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {spawnSync} from 'node:child_process';\nimport assert from 'node:assert/strict';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecFailureNoteCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-failure-note-cases.ts';\nconst python='/opt/homebrew/bin/python3.14';\nconst reference=spawnSync(python,['-I','-c','import sys,unicodedata,platform,json; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder)))'],{encoding:'utf8'});\nassert.equal(reference.status,0);\nconst identity=JSON.parse(reference.stdout);assert.ok(identity.version.startsWith('3.14.7 '));assert.equal(identity.unicode,'16.0.0');\nconst observations=[];\nfor(const item of codecFailureNoteCases){\n const oracle=spawnSync(python,['-I','-c',item.source],{input:'service\\n',encoding:'utf8'});\n assert.equal(oracle.status,0,item.name+': '+oracle.stderr);\n for(const cancel of [false,true]){\n  const directory=mkdtempSync(join(tmpdir(),'codec-note-'));\n  let input=-1,output=-1;\n  try{\n   writeFileSync(join(directory,'input'),'service\\n');input=openSync(join(directory,'input'),'r');output=openSync(join(directory,'output'),'w');\n   let reads=0;const controller=new AbortController();\n   const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,input:{readLine(){reads++;const buffer=Buffer.alloc(64);const length=readSync(input,buffer,0,64,null);if(cancel)controller.abort();return buffer.subarray(0,length).toString('utf8');}},output:{write(text){writeSync(output,text);},flush(){fsyncSync(output);}}});\n   const result=session.exec(item.source),stdout=readFileSync(join(directory,'output'),'utf8');let retry;\n   assert.equal(reads,1);\n   if(cancel){assert.deepEqual(result,{status:'terminated',reason:'cancelled',message:'execution cancelled'});retry=session.eval('1');assert.deepEqual(retry,result);assert.equal(stdout,'');}\n   else{assert.equal(result.status,'ok');assert.equal(stdout,oracle.stdout);}\n   observations.push({...item,cancel,oracle:{status:oracle.status,stdout:oracle.stdout,stderr:oracle.stderr},result,stdout,reads,retry});\n  }finally{if(input>=0)closeSync(input);if(output>=0)closeSync(output);rmSync(directory,{recursive:true,force:true});}\n }\n}\nconst path='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/codec-failure-note-services.json';\nwriteFileSync(path,JSON.stringify({reference:identity,driver:readFileSync('/tmp/safe-python-note-replay.mts','utf8'),observations},null,2)+'\\n');\nconsole.log(JSON.stringify({oraclePrograms:codecFailureNoteCases.length,sessionRuns:observations.length,reads:observations.reduce((n,x)=>n+x.reads,0),path}));\n",
+  "observations": [
+    {
+      "name": "encode: note getter list",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return notes\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert error is failure\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['service']\nassert notes == [\"encoding with 'note-probe' codec failed\"]\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "encode: note getter list",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return notes\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert error is failure\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['service']\nassert notes == [\"encoding with 'note-probe' codec failed\"]\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encode: note getter failure",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            raise secondary\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert error is secondary\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "encode: note getter failure",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            raise secondary\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert error is secondary\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encode: note getter invalid",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return 42\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert type(error) is TypeError\n    assert error.args == ('Cannot add note: __notes__ is not a list',)\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "encode: note getter invalid",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return 42\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.encode('x', 'note-probe')\nexcept BaseException as error:\n    assert type(error) is TypeError\n    assert error.args == ('Cannot add note: __notes__ is not a list',)\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decode: note getter list",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return notes\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert error is failure\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['service']\nassert notes == [\"decoding with 'note-probe' codec failed\"]\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "decode: note getter list",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return notes\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert error is failure\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['service']\nassert notes == [\"decoding with 'note-probe' codec failed\"]\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decode: note getter failure",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            raise secondary\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert error is secondary\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "decode: note getter failure",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            raise secondary\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert error is secondary\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decode: note getter invalid",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return 42\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert type(error) is TypeError\n    assert error.args == ('Cannot add note: __notes__ is not a list',)\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "decode: note getter invalid",
+      "source": "\nimport codecs\nevents = []\nnotes = []\nsecondary = ValueError('note lookup failed')\nclass Failure(ValueError):\n    def __getattribute__(self, name):\n        if name == '__notes__':\n            events.append(input())\n            return 42\n        return super().__getattribute__(name)\nfailure = Failure('codec failed')\ndef transform(*args):\n    raise failure\ndef search(name):\n    if name == 'note_probe':\n        return (transform, transform, None, None)\ncodecs.register(search)\ntry:\n    codecs.decode(b'x', 'note-probe')\nexcept BaseException as error:\n    assert type(error) is TypeError\n    assert error.args == ('Cannot add note: __notes__ is not a list',)\n    assert error.__context__ is failure\nelse:\n    assert False\nassert events == ['service']\nassert notes == []\nprint('verified')\n",
+      "cancel": true,
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ]
+}

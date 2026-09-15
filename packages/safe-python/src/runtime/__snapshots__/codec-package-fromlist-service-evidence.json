@@ -1,0 +1,614 @@
+{
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "cases": [
+    {
+      "name": "rejects non-string members after loading preceding members",
+      "source": "\nimport encodings\ntry:\n    __import__('encodings', fromlist=['cp037', 1, 'cp500'])\nexcept TypeError as error:\n    assert error.args == (\"Item in \" + chr(96) * 2 + \"from list'' must be str, not int\",), error.args\nelse:\n    raise AssertionError('non-string accepted')\nassert 'cp037' in encodings.__dict__\nassert 'cp500' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "8fe8bab9ac298baf968958aa11c8888f9fe539793b4fbc4df99dbffe2e847f55",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 140622,
+            "allocatedBytes": 1832725
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 140622,
+            "allocatedBytes": 1832725
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "expands all once and resumes the outer iterator",
+      "source": "\nimport encodings\nencodings.__all__ = ['cp037', '*', 'cp500']\nassert __import__('encodings', fromlist=['*', 'cp850']) is encodings\nfor name in ['cp037', 'cp500', 'cp850']:\n    assert name in encodings.__dict__, name\nprint('verified')\n",
+      "sha256": "5727b6cf166ea23c0ae2519e3fd2ed70e86969f172e45fa17480e3f4104ec445",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 186093,
+            "allocatedBytes": 2831656
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 186093,
+            "allocatedBytes": 2831656
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "reads dynamic all twice and preserves failure identity",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('all failed')\ndef missing(name):\n    events.append(name)\n    if len(events) == 1:\n        return ['cp037']\n    raise failure\nencodings.__getattr__ = missing\ntry:\n    __import__('encodings', fromlist=['*'])\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('second lookup skipped')\nassert events == ['__all__', '__all__'], events\nassert 'cp037' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "8e11546e9237e64031f79a45597d3bf1919833ae4250feb3bbc15ff10605c26f",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 131276,
+            "allocatedBytes": 1757555
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 131276,
+            "allocatedBytes": 1757555
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "recursive diagnostics use live package and guest type names",
+      "source": "\nimport encodings\nclass Bad:\n    pass\nBad.__name__ = 'Renamed'\nencodings.__name__ = 'renamed_package'\nencodings.__all__ = [Bad()]\ntry:\n    __import__('encodings', fromlist=['*'])\nexcept TypeError as error:\n    assert error.args == ('Item in renamed_package.__all__ must be str, not Renamed',), error.args\nelse:\n    raise AssertionError('invalid all accepted')\nprint('verified')\n",
+      "sha256": "d0d66099d4531e793860846cf80f869ca533382170c1b1b7edd1fd74e9e8f3d6",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 130289,
+            "allocatedBytes": 1715916
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 130289,
+            "allocatedBytes": 1715916
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "string subclass equality controls expansion",
+      "source": "\nimport encodings\nevents = []\nclass Star(str):\n    def __eq__(self, other):\n        events.append(other)\n        return True\nencodings.__all__ = ['cp037']\nassert __import__('encodings', fromlist=[Star('anything')]) is encodings\nassert events == ['*'], events\nassert 'cp037' in encodings.__dict__\nprint('verified')\n",
+      "sha256": "effdc82a113d06dc37d42c9ad6ec7728f21e4e333b289c22a845bc49864ce919",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 143221,
+            "allocatedBytes": 1876536
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 143221,
+            "allocatedBytes": 1876536
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "nonpackages skip member validation and packages without all skip expansion",
+      "source": "\nimport codecs, encodings\nassert __import__('codecs', fromlist=[1]) is codecs\nassert __import__('encodings', fromlist=['*']) is encodings\nassert 'cp037' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "489b16cd5a91821e3a2eaaaede1921464e9497f938316434480c77d91d386d0e",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 124120,
+            "allocatedBytes": 1626755
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 124120,
+            "allocatedBytes": 1626755
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "all remains a live iterable and ignores its own truth value",
+      "source": "\nimport encodings\nevents = []\nclass Members:\n    def __bool__(self):\n        raise AssertionError('all truth tested')\n    def __iter__(self):\n        events.append('iter')\n        return iter(['aliases'])\nencodings.__all__ = Members()\nassert __import__('encodings', fromlist=['*', '*']) is encodings\nassert events == ['iter', 'iter'], events\nencodings.__all__ = None\ntry:\n    __import__('encodings', fromlist=['*'])\nexcept TypeError as error:\n    assert error.args == (\"'NoneType' object is not iterable\",), error.args\nelse:\n    raise AssertionError('noniterable all accepted')\nprint('verified')\n",
+      "sha256": "34469d854f4295e8f0e532cd3d569b3f334b146145d35361219f7e8155cae452",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 137157,
+            "allocatedBytes": 1833510
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 137157,
+            "allocatedBytes": 1833510
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "recursive diagnostics add to the package name before querying the type",
+      "source": "\nimport encodings\nevents = []\nclass Name(str):\n    def __add__(self, other):\n        events.append(other)\n        return 'custom_location'\nclass Meta(type):\n    def __getattribute__(self, name):\n        if name == '__name__':\n            events.append(name)\n            return 'custom_type'\n        return type.__getattribute__(self, name)\nclass Bad(metaclass=Meta):\n    pass\nencodings.__name__ = Name('original')\nencodings.__all__ = [Bad()]\ntry:\n    __import__('encodings', fromlist=['*'])\nexcept TypeError as error:\n    assert error.args == ('Item in custom_location must be str, not custom_type',), error.args\nelse:\n    raise AssertionError('invalid all accepted')\nassert events == ['.__all__', '__name__'], events\nprint('verified')\n",
+      "sha256": "c4ee3cb0e8d97fd02e2e840bcfa7faa89c60672df6c754684a81e82d24af4f61",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 142847,
+            "allocatedBytes": 1914814
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 142847,
+            "allocatedBytes": 1914814
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "child discovery uses the live package name and permits retry",
+      "source": "\nimport encodings\nencodings.__name__ = 'encodings.aliases'\nassert __import__('encodings', fromlist=['cp037']) is encodings\nassert 'cp037' not in encodings.__dict__\nencodings.__name__ = 'encodings'\nassert __import__('encodings', fromlist=['cp037']) is encodings\nassert 'cp037' in encodings.__dict__\nprint('verified')\n",
+      "sha256": "c8858eee70886555c8be05e713465d1524fe08629e37a0ee81043c7c738ca6c1",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 140150,
+            "allocatedBytes": 1817704
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 140150,
+            "allocatedBytes": 1817704
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "child names use guest formatting after attribute lookup",
+      "source": "\nimport encodings\nevents = []\nclass Member(str):\n    def __format__(self, spec):\n        events.append(spec)\n        return 'cp037'\nmember = Member('missing_child')\nassert __import__('encodings', fromlist=[member]) is encodings\nassert events == [''], events\nassert 'cp037' in encodings.__dict__\nassert 'missing_child' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "7bdfae25ca589efa1b8a1ce4890fe7c4c83b0de58476ed6b5d9329dcc23c3e10",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 144062,
+            "allocatedBytes": 1885680
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 144062,
+            "allocatedBytes": 1885680
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "child name formatting failure preserves identity",
+      "source": "\nimport encodings\nfailure = ValueError('format failed')\nclass Name(str):\n    def __format__(self, spec):\n        raise failure\nencodings.__name__ = Name('encodings')\ntry:\n    __import__('encodings', fromlist=['cp037'])\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('format bypassed')\nassert 'cp037' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "120fcb2ca72ac61a7efd728b99c6ee4960681f89b4941915748b25644c09f0ed",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 131221,
+            "allocatedBytes": 1732328
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 0,
+            "writes": 2,
+            "flushes": 0
+          },
+          "usage": {
+            "steps": 131221,
+            "allocatedBytes": 1732328
+          }
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "recursive iteration calls the explicit input service",
+      "source": "\nimport encodings\nclass Members:\n    def __iter__(self):\n        assert input() == 'service'\n        return iter(['cp037'])\nencodings.__all__ = Members()\nassert __import__('encodings', fromlist=['*']) is encodings\nassert 'cp037' in encodings.__dict__\nprint('verified')\n",
+      "sha256": "c28f8565b2361f8f4ece574e8a2c93a5f6d1c9d1267d1ef6dd1a61a37afe2bcc",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 1,
+            "writes": 2,
+            "flushes": 1
+          },
+          "usage": {
+            "steps": 141629,
+            "allocatedBytes": 1851026
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "calls": {
+            "reads": 1,
+            "writes": 2,
+            "flushes": 1
+          },
+          "usage": {
+            "steps": 141629,
+            "allocatedBytes": 1851026
+          }
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "cancellation": [
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "calls": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "usage": {
+        "steps": 127553,
+        "allocatedBytes": 1688088
+      },
+      "afterCancellation": "terminated"
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "calls": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "usage": {
+        "steps": 127553,
+        "allocatedBytes": 1688088
+      },
+      "afterCancellation": "terminated"
+    }
+  ]
+}

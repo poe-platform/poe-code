@@ -1,0 +1,270 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts (5 tests | 5 failed) 376ms
+   × checks the binding again before reading x 109ms
+   × checks the binding again before reading x() 62ms
+   × handles a binding removed by unscopables (strict=false) 54ms
+   × handles a binding removed by unscopables (strict=true) 55ms
+   × restores an object environment without exposing host authority 94ms
+FAIL packages/safe-js/src/interp/object-binding-read.test.ts > checks the binding again before reading x
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+      "has",
+      "unscopables",
+-     "has",
+      "get",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:11:68
+      9|       get(t,k,r){if(k===Symbol.unscopables)trace.push('unscopables');i…
+     10|     with(p){${expression};} return trace;`;
+     11|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     12| });
+     13|
+
+FAIL packages/safe-js/src/interp/object-binding-read.test.ts > checks the binding again before reading x()
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+      "has",
+      "unscopables",
+-     "has",
+      "get",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:11:68
+      9|       get(t,k,r){if(k===Symbol.unscopables)trace.push('unscopables');i…
+     10|     with(p){${expression};} return trace;`;
+     11|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     12| });
+     13|
+
+FAIL packages/safe-js/src/interp/object-binding-read.test.ts > handles a binding removed by unscopables (strict=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(2) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,9 +3,9 @@
+    "returnValue": [
+      undefined,
+      [
+        "has",
+        "unscopables",
+-       "has",
++       "get",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:21:68
+     19|     return [result,trace];`;
+     20|   const expected=[strict?"ReferenceError":undefined,["has","unscopable…
+     21|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     22| });
+     23|
+
+FAIL packages/safe-js/src/interp/object-binding-read.test.ts > handles a binding removed by unscopables (strict=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(2) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "ReferenceError",
++     undefined,
+      [
+        "has",
+        "unscopables",
+-       "has",
++       "get",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:21:68
+     19|     return [result,trace];`;
+     20|   const expected=[strict?"ReferenceError":undefined,["has","unscopable…
+     21|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     22| });
+     23|
+
+FAIL packages/safe-js/src/interp/object-binding-read.test.ts > restores an object environment without exposing host authority
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ 7, …(3) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,11 +3,10 @@
+    "returnValue": [
+      7,
+      [
+        "has",
+        "unscopables",
+-       "has",
+        "get",
+      ],
+      "()=>x",
+      "undefined,undefined",
+    ],
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:34:75
+     32|   for(let i=0;i<3;i++){
+     33|     const settled=pending.catch(error=>error);
+     34|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     35|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     36|   }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/object-binding-read.test.ts > checks the binding again before reading x
+ FAIL  packages/safe-js/src/interp/object-binding-read.test.ts > checks the binding again before reading x()
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+      "has",
+      "unscopables",
+-     "has",
+      "get",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:11:68
+      9|       get(t,k,r){if(k===Symbol.unscopables)trace.push('unscopables');i…
+     10|     with(p){${expression};} return trace;`;
+     11|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     12| });
+     13|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/safe-js/src/interp/object-binding-read.test.ts > handles a binding removed by unscopables (strict=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(2) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,9 +3,9 @@
+    "returnValue": [
+      undefined,
+      [
+        "has",
+        "unscopables",
+-       "has",
++       "get",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:21:68
+     19|     return [result,trace];`;
+     20|   const expected=[strict?"ReferenceError":undefined,["has","unscopable…
+     21|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/safe-js/src/interp/object-binding-read.test.ts > handles a binding removed by unscopables (strict=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(2) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "ReferenceError",
++     undefined,
+      [
+        "has",
+        "unscopables",
+-       "has",
++       "get",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:21:68
+     19|     return [result,trace];`;
+     20|   const expected=[strict?"ReferenceError":undefined,["has","unscopable…
+     21|   expect(await run(`return Function(${JSON.stringify(code)})();`)).toM…
+       |                                                                    ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  packages/safe-js/src/interp/object-binding-read.test.ts > restores an object environment without exposing host authority
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ 7, …(3) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,11 +3,10 @@
+    "returnValue": [
+      7,
+      [
+        "has",
+        "unscopables",
+-       "has",
+        "get",
+      ],
+      "()=>x",
+      "undefined,undefined",
+    ],
+
+ ❯ packages/safe-js/src/interp/object-binding-read.test.ts:34:75
+     32|   for(let i=0;i<3;i++){
+     33|     const settled=pending.catch(error=>error);
+     34|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     35|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     36|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  11:15:00
+   Duration  3.26s (transform 2.19s, setup 62ms, import 2.72s, tests 376ms, environment 0ms)
+

@@ -19,6 +19,7 @@ import {
   type CreateMessageParams,
   type CreateMessageResult,
   type McpClientOptions,
+  type McpRequestContext,
   type McpTransport,
   type McpTransportClosedEvent,
   type ProgressParams,
@@ -203,7 +204,7 @@ async function startClientHandshake(
     closed: new Promise(() => {}),
     dispose: vi.fn(),
   };
-  const client = new McpClient(options);
+  const client = new McpClient({ ...options, protocolVersion: "2025-03-26" });
   const connectPromise = client.connect(transport);
   const iterator = readLines(writable)[Symbol.asyncIterator]();
   const initializeLine = await iterator.next();
@@ -1707,9 +1708,9 @@ describe("JsonRpcMessageLayer onRequest", () => {
     trackForCleanup(input, output);
     const outputIterator = readLines(output)[Symbol.asyncIterator]();
     const layer = new JsonRpcMessageLayer(input, output);
-    const handler = vi.fn((params: unknown, context: unknown) => ({
+    const handler = vi.fn((params: unknown, context: McpRequestContext) => ({
       params,
-      context,
+      context: { id: context.id, method: context.method },
     }));
 
     layer.onRequest("tools/call", handler);
@@ -1727,7 +1728,7 @@ describe("JsonRpcMessageLayer onRequest", () => {
     });
     expect(handler).toHaveBeenCalledWith(
       { name: "echo", arguments: { text: "hello" } },
-      { id: 7, method: "tools/call" }
+      { id: 7, method: "tools/call", signal: expect.any(AbortSignal) }
     );
 
     const responseLine = await outputIterator.next();
@@ -2031,7 +2032,7 @@ describe("JsonRpcMessageLayer onNotification", () => {
     });
     expect(requestHandler).toHaveBeenCalledWith(
       { name: "echo", arguments: { text: "from-batch" } },
-      { id: "server-request-1", method: "tools/call" }
+      { id: "server-request-1", method: "tools/call", signal: expect.any(AbortSignal) }
     );
     expect(notificationHandler).toHaveBeenCalledWith(
       { level: "info", data: { source: "batch" } },
@@ -2127,7 +2128,7 @@ describe("JsonRpcMessageLayer onNotification", () => {
     });
     expect(requestHandler).toHaveBeenCalledWith(
       { name: "echo", arguments: { text: "from-batch" } },
-      { id: "server-request-1", method: "tools/call" }
+      { id: "server-request-1", method: "tools/call", signal: expect.any(AbortSignal) }
     );
     expect(notificationHandler).toHaveBeenCalledWith(
       { level: "info", data: { source: "batch" } },
@@ -2713,6 +2714,17 @@ describe("StdioTransport stderr capture", () => {
 });
 
 describe("StdioTransport closed promise", () => {
+  it.each(["stdin", "stdout", "stderr"] as const)("handles child %s errors before a client connects", async (stream) => {
+    const child = createMockChildProcess();
+    const transport = new StdioTransport({ command: "node", spawn: () => child });
+    const reason = new Error("write EPIPE");
+    try {
+      expect(() => child[stream].emit("error", reason)).not.toThrow();
+      await expect(transport.closed).resolves.toMatchObject({ reason });
+      expect(child.kill).toHaveBeenCalledOnce();
+    } finally { transport.dispose(); }
+  });
+
   it("resolves when the process exits with code 0", async () => {
     const child = createMockChildProcess();
     const spawn = vi.fn<StdioSpawn>(() => child);
@@ -2914,12 +2926,12 @@ describe("McpClient constructor", () => {
       onRootsList,
     };
 
-    const client = new McpClient(options);
+    const client = new McpClient({ ...options, protocolVersion: "2025-03-26" });
     expect(client).toBeInstanceOf(McpClient);
   });
 
   it("starts in disconnected state", () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -2930,7 +2942,7 @@ describe("McpClient constructor", () => {
   });
 
   it("has null serverCapabilities before connect", () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -2941,7 +2953,7 @@ describe("McpClient constructor", () => {
   });
 
   it("has null serverInfo before connect", () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -2952,7 +2964,7 @@ describe("McpClient constructor", () => {
   });
 
   it("has undefined instructions before connect", () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -2965,7 +2977,7 @@ describe("McpClient constructor", () => {
 
 describe("McpClient state guards", () => {
   it("throws when guarded client method is called before connect", () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -2984,7 +2996,7 @@ describe("McpClient state guards", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3058,7 +3070,7 @@ describe("McpClient state guards", () => {
   });
 
   it("throws when guarded client method is called after close", async () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3081,7 +3093,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
     });
 
@@ -3126,7 +3138,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3181,7 +3193,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3256,7 +3268,7 @@ describe("McpClient connect", () => {
     const onSamplingRequest = vi.fn(
       async (_params: CreateMessageParams): Promise<CreateMessageResult> => samplingResponse
     );
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3340,7 +3352,9 @@ describe("McpClient connect", () => {
       systemPrompt: samplingRequestParams.systemPrompt,
       maxTokens: samplingRequestParams.maxTokens,
     });
-    expect(onSamplingRequest).toHaveBeenCalledWith(samplingRequestParams);
+    expect(onSamplingRequest).toHaveBeenCalledWith(samplingRequestParams, {
+      id: samplingRequestId, method: "sampling/createMessage", signal: expect.any(AbortSignal)
+    });
     expect(JSON.parse(samplingResponseLineResult.value)).toEqual({
       jsonrpc: "2.0",
       id: samplingRequestId,
@@ -3376,7 +3390,7 @@ describe("McpClient connect", () => {
         })
     );
     const writeSpy = vi.spyOn(writable, "write");
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3467,7 +3481,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3561,7 +3575,7 @@ describe("McpClient connect", () => {
       },
     ];
     const onRootsList = vi.fn(async () => roots);
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3636,7 +3650,7 @@ describe("McpClient connect", () => {
       dispose: vi.fn(),
     };
     const onRootsList = vi.fn(async () => [{ uri: "file:///secret", name: "secret" }]);
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
       onRootsList,
     });
@@ -3673,7 +3687,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3776,7 +3790,7 @@ describe("McpClient connect", () => {
         resolveToolsChanged = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3848,7 +3862,7 @@ describe("McpClient connect", () => {
         resolveResourcesChanged = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -3954,7 +3968,7 @@ describe("McpClient connect", () => {
         resolvePromptsChanged = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4060,7 +4074,7 @@ describe("McpClient connect", () => {
         resolveResourceUpdated = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4166,7 +4180,7 @@ describe("McpClient connect", () => {
         resolveProgressNotification = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4254,7 +4268,7 @@ describe("McpClient connect", () => {
         resolveProgressNotification = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4366,7 +4380,7 @@ describe("McpClient connect", () => {
         resolveProgressNotifications = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4462,7 +4476,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4543,7 +4557,7 @@ describe("McpClient connect", () => {
         resolveLogMessage = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4661,7 +4675,7 @@ describe("McpClient connect", () => {
         resolveAllLogs = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4741,7 +4755,7 @@ describe("McpClient connect", () => {
         resolveLogMessage = null;
       }
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4816,7 +4830,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4864,7 +4878,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4922,7 +4936,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -4975,7 +4989,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5030,7 +5044,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5089,7 +5103,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5151,7 +5165,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5209,7 +5223,7 @@ describe("McpClient connect", () => {
       },
       sampling: {},
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo,
       capabilities,
     });
@@ -5286,7 +5300,7 @@ describe("McpClient connect", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5364,7 +5378,7 @@ describe("McpClient listTools", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5456,7 +5470,7 @@ describe("McpClient listTools", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5572,7 +5586,7 @@ describe("McpClient listResources", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5669,7 +5683,7 @@ describe("McpClient listResources", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5795,7 +5809,7 @@ describe("McpClient listResourceTemplates", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -5914,7 +5928,7 @@ describe("McpClient listPrompts", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6012,7 +6026,7 @@ describe("McpClient getPrompt", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6105,7 +6119,7 @@ describe("McpClient getPrompt", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6211,7 +6225,7 @@ describe("McpClient getPrompt", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6362,7 +6376,7 @@ describe("McpClient complete", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6464,7 +6478,7 @@ describe("McpClient complete", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6554,7 +6568,7 @@ describe("McpClient complete", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6694,7 +6708,7 @@ describe("McpClient readResource", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6813,7 +6827,7 @@ describe("McpClient readResource", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6903,7 +6917,7 @@ describe("McpClient readResource", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -6991,7 +7005,7 @@ describe("McpClient resource subscriptions", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7071,7 +7085,7 @@ describe("McpClient resource subscriptions", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7153,7 +7167,7 @@ describe("McpClient callTool", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7255,7 +7269,7 @@ describe("McpClient callTool", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7363,7 +7377,7 @@ describe("McpClient callTool", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7467,7 +7481,7 @@ describe("McpClient callTool", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7612,7 +7626,7 @@ describe("McpClient setLogLevel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7692,7 +7706,7 @@ describe("McpClient sendRootsChanged", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7772,7 +7786,7 @@ describe("McpClient cancel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7837,7 +7851,7 @@ describe("McpClient cancel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7901,7 +7915,7 @@ describe("McpClient cancel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -7981,7 +7995,7 @@ describe("McpClient cancel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8046,7 +8060,7 @@ describe("McpClient cancel", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8164,7 +8178,7 @@ describe("McpClient ping", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8235,7 +8249,7 @@ describe("McpClient ping", () => {
         closed: new Promise(() => {}),
         dispose: vi.fn(),
       };
-      const client = new McpClient({
+      const client = new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "tiny-mcp-client",
           version: "0.1.0",
@@ -8308,7 +8322,7 @@ describe("McpClient ping", () => {
         closed: new Promise(() => {}),
         dispose: vi.fn(),
       };
-      const client = new McpClient({
+      const client = new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "tiny-mcp-client",
           version: "0.1.0",
@@ -8345,7 +8359,7 @@ describe("McpClient ping", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8413,7 +8427,7 @@ describe("McpClient close", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8504,7 +8518,7 @@ describe("McpClient close", () => {
   });
 
   it("does not use previous capabilities while reconnecting", async () => {
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
     });
     const firstReadable = new PassThrough();
@@ -8553,7 +8567,7 @@ describe("McpClient close", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8577,7 +8591,7 @@ describe("McpClient close", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8621,7 +8635,7 @@ describe("McpClient close", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8674,7 +8688,7 @@ describe("McpClient unexpected transport close", () => {
       }),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8755,7 +8769,7 @@ describe("McpClient unexpected transport close", () => {
       }),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8829,7 +8843,7 @@ describe("McpClient unexpected transport close", () => {
       command: process.execPath,
       args: ["-e", crashingServerScript],
     });
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",
@@ -8863,7 +8877,7 @@ describe("McpClient capability gating", () => {
       closed: new Promise(() => {}),
       dispose: vi.fn(),
     };
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "tiny-mcp-client",
         version: "0.1.0",

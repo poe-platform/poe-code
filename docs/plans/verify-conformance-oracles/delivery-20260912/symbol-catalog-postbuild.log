@@ -1,0 +1,38 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/symbol-registry.test.ts (13 tests) 1021ms
+ ✓ packages/safe-js/src/snapshot/intrinsic-mutations.test.ts (17 tests) 1335ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 883ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 837ms
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 575ms
+ ✓ packages/safe-js/src/snapshot/symbol-accessor-replay.test.ts (5 tests) 546ms
+ ✓ packages/safe-js/test/adversarial/snapshot-mutation.test.ts (1 test) 460ms
+     ✓ rejects malformed mutations with typed errors and preserves valid roundtrips  459ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 395ms
+ ✓ packages/safe-js/src/interp/intrinsics.test.ts (15 tests) 315ms
+ ✓ packages/safe-js/test/conformance/corpus.test.ts (11 tests) 341ms
+ ✓ packages/safe-js/test/adversarial/test262-semantics.test.ts (9 tests) 315ms
+ ✓ packages/safe-js/test/adversarial/corpus.test.ts (1 test) 311ms
+     ✓ handles transferable parser, runtime, lifecycle, and resource failures  310ms
+ ✓ packages/safe-js/src/interp/budget-realm-views.test.ts (7 tests) 49ms
+ ✓ packages/safe-js/src/snapshot/symbol.test.ts (22 tests) 32ms
+ ✓ packages/safe-js/test/adversarial/parser-smoke.test.ts (1 test) 27ms
+ ✓ packages/safe-js/test/conformance/command.test.ts (41 tests) 20ms
+ ✓ packages/safe-js/test/conformance/isolate.test.ts (27 tests) 19ms
+ ✓ packages/safe-js/test/conformance/metadata.test.ts (19 tests) 15ms
+ ✓ packages/safe-js/src/snapshot/symbol-replay.test.ts (16 tests) 15ms
+ ✓ packages/safe-js/test/conformance/discover.test.ts (8 tests) 7ms
+ ✓ packages/safe-js/test/conformance/import-boundary.test.ts (2 tests) 6ms
+ ✓ packages/safe-js/test/conformance/report.test.ts (15 tests) 5ms
+ ✓ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts (1 test) 10ms
+ ✓ packages/safe-js/test/conformance/worker.test.ts (7 tests) 4ms
+ ✓ packages/safe-js/test/conformance/accounting-mutations.test.ts (8 tests) 4ms
+ ✓ packages/safe-js/test/adversarial/report.test.ts (2 tests) 2ms
+ ✓ packages/safe-js/src/interp/intrinsic-realm-identity.test.ts (5 tests) 3ms
+
+ Test Files  27 passed (27)
+      Tests  332 passed (332)
+   Start at  14:33:40
+   Duration  10.05s (transform 3.55s, setup 277ms, import 10.19s, tests 7.55s, environment 1ms)
+

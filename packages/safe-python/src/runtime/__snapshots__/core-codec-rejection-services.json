@@ -1,0 +1,491 @@
+{
+  "source": "import codecs\ninput()\nfor name in ('ascii', 'latin_1', 'utf_8', 'utf_7', 'charmap', 'unicode_escape', 'raw_unicode_escape'):\n    for operation in ('encode', 'decode'):\n        fn = getattr(codecs, name + '_' + operation)\n        value = '' if operation == 'encode' else b''\n        for kind in ('missing', 'extra', 'keywords', 'source', 'errors', 'nul'):\n            try:\n                if kind == 'missing': result = fn()\n                elif kind == 'extra': result = fn(value, None, None, None)\n                elif kind == 'keywords': result = fn(value, errors=None)\n                elif kind == 'source': result = fn(None)\n                elif kind == 'errors': result = fn(value, True)\n                else: result = fn(value, '\\0')\n                print(name, operation, kind, 'ok', result)\n            except Exception as error:\n                print(name, operation, kind, type(error).__name__, error.args, error.__cause__, error.__context__, error.__traceback__ is not None)\n        print(name, operation, 'empty', fn(value))\nclass Final:\n    def __bool__(self):\n        input()\n        raise RuntimeError('final failed')\nfor name in ('utf_8', 'utf_7', 'unicode_escape', 'raw_unicode_escape'):\n    try:\n        getattr(codecs, name + '_decode')(b'', 'strict', Final())\n    except Exception as error:\n        print(name, 'final', type(error).__name__, error.args, error.__traceback__ is not None)\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracle": {
+    "status": 0,
+    "stdout": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None True\nascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None True\nascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None True\nascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None True\nascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None True\nascii encode nul ValueError ('embedded null character',) None None True\nascii encode empty (b'', 0)\nascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None True\nascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None True\nascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None True\nascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None True\nascii decode nul ValueError ('embedded null character',) None None True\nascii decode empty ('', 0)\nlatin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None True\nlatin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None True\nlatin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None True\nlatin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None True\nlatin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None True\nlatin_1 encode nul ValueError ('embedded null character',) None None True\nlatin_1 encode empty (b'', 0)\nlatin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None True\nlatin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None True\nlatin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None True\nlatin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nlatin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None True\nlatin_1 decode nul ValueError ('embedded null character',) None None True\nlatin_1 decode empty ('', 0)\nutf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None True\nutf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None True\nutf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None True\nutf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None True\nutf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None True\nutf_8 encode nul ValueError ('embedded null character',) None None True\nutf_8 encode empty (b'', 0)\nutf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None True\nutf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None True\nutf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None True\nutf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nutf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None True\nutf_8 decode nul ValueError ('embedded null character',) None None True\nutf_8 decode empty ('', 0)\nutf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None True\nutf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None True\nutf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None True\nutf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None True\nutf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None True\nutf_7 encode nul ValueError ('embedded null character',) None None True\nutf_7 encode empty (b'', 0)\nutf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None True\nutf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None True\nutf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None True\nutf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nutf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None True\nutf_7 decode nul ValueError ('embedded null character',) None None True\nutf_7 decode empty ('', 0)\ncharmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None True\ncharmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None True\ncharmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None True\ncharmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None True\ncharmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None True\ncharmap encode nul ValueError ('embedded null character',) None None True\ncharmap encode empty (b'', 0)\ncharmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None True\ncharmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None True\ncharmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None True\ncharmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\ncharmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None True\ncharmap decode nul ValueError ('embedded null character',) None None True\ncharmap decode empty ('', 0)\nunicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None True\nunicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None True\nunicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None True\nunicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None True\nunicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None True\nunicode_escape encode nul ValueError ('embedded null character',) None None True\nunicode_escape encode empty (b'', 0)\nunicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None True\nunicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None True\nunicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None True\nunicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nunicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None True\nunicode_escape decode nul ValueError ('embedded null character',) None None True\nunicode_escape decode empty ('', 0)\nraw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None True\nraw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None True\nraw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None True\nraw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None True\nraw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None True\nraw_unicode_escape encode nul ValueError ('embedded null character',) None None True\nraw_unicode_escape encode empty (b'', 0)\nraw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None True\nraw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None True\nraw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None True\nraw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True\nraw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None True\nraw_unicode_escape decode nul ValueError ('embedded null character',) None None True\nraw_unicode_escape decode empty ('', 0)\nutf_8 final RuntimeError ('final failed',) True\nutf_7 final RuntimeError ('final failed',) True\nunicode_escape final RuntimeError ('final failed',) True\nraw_unicode_escape final RuntimeError ('final failed',) True\n",
+    "stderr": ""
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "reads": 5,
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None False\nascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None False\nascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None False\nascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None False\nascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None False\nascii encode nul ValueError ('embedded null character',) None None False\nascii encode empty (b'', 0)\nascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None False\nascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None False\nascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None False\nascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None False\nascii decode nul ValueError ('embedded null character',) None None False\nascii decode empty ('', 0)\nlatin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None False\nlatin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None False\nlatin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None False\nlatin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None False\nlatin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None False\nlatin_1 encode nul ValueError ('embedded null character',) None None False\nlatin_1 encode empty (b'', 0)\nlatin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None False\nlatin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None False\nlatin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None False\nlatin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nlatin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None False\nlatin_1 decode nul ValueError ('embedded null character',) None None False\nlatin_1 decode empty ('', 0)\nutf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None False\nutf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None False\nutf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None False\nutf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None False\nutf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None False\nutf_8 encode nul ValueError ('embedded null character',) None None False\nutf_8 encode empty (b'', 0)\nutf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None False\nutf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None False\nutf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None False\nutf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None False\nutf_8 decode nul ValueError ('embedded null character',) None None False\nutf_8 decode empty ('', 0)\nutf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None False\nutf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None False\nutf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None False\nutf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None False\nutf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None False\nutf_7 encode nul ValueError ('embedded null character',) None None False\nutf_7 encode empty (b'', 0)\nutf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None False\nutf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None False\nutf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None False\nutf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None False\nutf_7 decode nul ValueError ('embedded null character',) None None False\nutf_7 decode empty ('', 0)\ncharmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None False\ncharmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None False\ncharmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None False\ncharmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None False\ncharmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None False\ncharmap encode nul ValueError ('embedded null character',) None None False\ncharmap encode empty (b'', 0)\ncharmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None False\ncharmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None False\ncharmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None False\ncharmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\ncharmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None False\ncharmap decode nul ValueError ('embedded null character',) None None False\ncharmap decode empty ('', 0)\nunicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None False\nunicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nunicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None False\nunicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None False\nunicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nunicode_escape encode nul ValueError ('embedded null character',) None None False\nunicode_escape encode empty (b'', 0)\nunicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None False\nunicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nunicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None False\nunicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nunicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nunicode_escape decode nul ValueError ('embedded null character',) None None False\nunicode_escape decode empty ('', 0)\nraw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nraw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None False\nraw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None False\nraw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape encode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape encode empty (b'', 0)\nraw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nraw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None False\nraw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nraw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape decode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape decode empty ('', 0)\nutf_8 final RuntimeError ('final failed',) False\nutf_7 final RuntimeError ('final failed',) False\nunicode_escape final RuntimeError ('final failed',) False\nraw_unicode_escape final RuntimeError ('final failed',) False\n",
+      "exactMatch": false
+    },
+    {
+      "mode": "cancel-return",
+      "reads": 2,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None False\nascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None False\nascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None False\nascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None False\nascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None False\nascii encode nul ValueError ('embedded null character',) None None False\nascii encode empty (b'', 0)\nascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None False\nascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None False\nascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None False\nascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None False\nascii decode nul ValueError ('embedded null character',) None None False\nascii decode empty ('', 0)\nlatin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None False\nlatin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None False\nlatin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None False\nlatin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None False\nlatin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None False\nlatin_1 encode nul ValueError ('embedded null character',) None None False\nlatin_1 encode empty (b'', 0)\nlatin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None False\nlatin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None False\nlatin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None False\nlatin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nlatin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None False\nlatin_1 decode nul ValueError ('embedded null character',) None None False\nlatin_1 decode empty ('', 0)\nutf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None False\nutf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None False\nutf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None False\nutf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None False\nutf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None False\nutf_8 encode nul ValueError ('embedded null character',) None None False\nutf_8 encode empty (b'', 0)\nutf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None False\nutf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None False\nutf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None False\nutf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None False\nutf_8 decode nul ValueError ('embedded null character',) None None False\nutf_8 decode empty ('', 0)\nutf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None False\nutf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None False\nutf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None False\nutf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None False\nutf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None False\nutf_7 encode nul ValueError ('embedded null character',) None None False\nutf_7 encode empty (b'', 0)\nutf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None False\nutf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None False\nutf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None False\nutf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None False\nutf_7 decode nul ValueError ('embedded null character',) None None False\nutf_7 decode empty ('', 0)\ncharmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None False\ncharmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None False\ncharmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None False\ncharmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None False\ncharmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None False\ncharmap encode nul ValueError ('embedded null character',) None None False\ncharmap encode empty (b'', 0)\ncharmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None False\ncharmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None False\ncharmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None False\ncharmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\ncharmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None False\ncharmap decode nul ValueError ('embedded null character',) None None False\ncharmap decode empty ('', 0)\nunicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None False\nunicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nunicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None False\nunicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None False\nunicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nunicode_escape encode nul ValueError ('embedded null character',) None None False\nunicode_escape encode empty (b'', 0)\nunicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None False\nunicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nunicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None False\nunicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nunicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nunicode_escape decode nul ValueError ('embedded null character',) None None False\nunicode_escape decode empty ('', 0)\nraw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nraw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None False\nraw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None False\nraw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape encode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape encode empty (b'', 0)\nraw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nraw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None False\nraw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nraw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape decode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape decode empty ('', 0)\n",
+      "terminalExecIdentity": true,
+      "terminalEvalIdentity": true
+    },
+    {
+      "mode": "cancel-throw",
+      "reads": 2,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None False\nascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None False\nascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None False\nascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None False\nascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None False\nascii encode nul ValueError ('embedded null character',) None None False\nascii encode empty (b'', 0)\nascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None False\nascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None False\nascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None False\nascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None False\nascii decode nul ValueError ('embedded null character',) None None False\nascii decode empty ('', 0)\nlatin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None False\nlatin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None False\nlatin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None False\nlatin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None False\nlatin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None False\nlatin_1 encode nul ValueError ('embedded null character',) None None False\nlatin_1 encode empty (b'', 0)\nlatin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None False\nlatin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None False\nlatin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None False\nlatin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nlatin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None False\nlatin_1 decode nul ValueError ('embedded null character',) None None False\nlatin_1 decode empty ('', 0)\nutf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None False\nutf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None False\nutf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None False\nutf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None False\nutf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None False\nutf_8 encode nul ValueError ('embedded null character',) None None False\nutf_8 encode empty (b'', 0)\nutf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None False\nutf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None False\nutf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None False\nutf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None False\nutf_8 decode nul ValueError ('embedded null character',) None None False\nutf_8 decode empty ('', 0)\nutf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None False\nutf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None False\nutf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None False\nutf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None False\nutf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None False\nutf_7 encode nul ValueError ('embedded null character',) None None False\nutf_7 encode empty (b'', 0)\nutf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None False\nutf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None False\nutf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None False\nutf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nutf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None False\nutf_7 decode nul ValueError ('embedded null character',) None None False\nutf_7 decode empty ('', 0)\ncharmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None False\ncharmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None False\ncharmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None False\ncharmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None False\ncharmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None False\ncharmap encode nul ValueError ('embedded null character',) None None False\ncharmap encode empty (b'', 0)\ncharmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None False\ncharmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None False\ncharmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None False\ncharmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\ncharmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None False\ncharmap decode nul ValueError ('embedded null character',) None None False\ncharmap decode empty ('', 0)\nunicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None False\nunicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nunicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None False\nunicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None False\nunicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nunicode_escape encode nul ValueError ('embedded null character',) None None False\nunicode_escape encode empty (b'', 0)\nunicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None False\nunicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nunicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None False\nunicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nunicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nunicode_escape decode nul ValueError ('embedded null character',) None None False\nunicode_escape decode empty ('', 0)\nraw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None False\nraw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None False\nraw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None False\nraw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape encode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape encode empty (b'', 0)\nraw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None False\nraw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None False\nraw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None False\nraw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False\nraw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None False\nraw_unicode_escape decode nul ValueError ('embedded null character',) None None False\nraw_unicode_escape decode empty ('', 0)\n",
+      "terminalExecIdentity": true,
+      "terminalEvalIdentity": true
+    }
+  ],
+  "differences": [
+    {
+      "line": 1,
+      "expected": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "ascii encode missing TypeError ('ascii_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 2,
+      "expected": "ascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "ascii encode extra TypeError ('ascii_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 3,
+      "expected": "ascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None True",
+      "actual": "ascii encode keywords TypeError ('_codecs.ascii_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 4,
+      "expected": "ascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None True",
+      "actual": "ascii encode source TypeError ('ascii_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 5,
+      "expected": "ascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "ascii encode errors TypeError ('ascii_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 6,
+      "expected": "ascii encode nul ValueError ('embedded null character',) None None True",
+      "actual": "ascii encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 8,
+      "expected": "ascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "ascii decode missing TypeError ('ascii_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 9,
+      "expected": "ascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None True",
+      "actual": "ascii decode extra TypeError ('ascii_decode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 10,
+      "expected": "ascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None True",
+      "actual": "ascii decode keywords TypeError ('_codecs.ascii_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 11,
+      "expected": "ascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "ascii decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 12,
+      "expected": "ascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "ascii decode errors TypeError ('ascii_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 13,
+      "expected": "ascii decode nul ValueError ('embedded null character',) None None True",
+      "actual": "ascii decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 15,
+      "expected": "latin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "latin_1 encode missing TypeError ('latin_1_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 16,
+      "expected": "latin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "latin_1 encode extra TypeError ('latin_1_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 17,
+      "expected": "latin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None True",
+      "actual": "latin_1 encode keywords TypeError ('_codecs.latin_1_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 18,
+      "expected": "latin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None True",
+      "actual": "latin_1 encode source TypeError ('latin_1_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 19,
+      "expected": "latin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "latin_1 encode errors TypeError ('latin_1_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 20,
+      "expected": "latin_1 encode nul ValueError ('embedded null character',) None None True",
+      "actual": "latin_1 encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 22,
+      "expected": "latin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "latin_1 decode missing TypeError ('latin_1_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 23,
+      "expected": "latin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None True",
+      "actual": "latin_1 decode extra TypeError ('latin_1_decode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 24,
+      "expected": "latin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None True",
+      "actual": "latin_1 decode keywords TypeError ('_codecs.latin_1_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 25,
+      "expected": "latin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "latin_1 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 26,
+      "expected": "latin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "latin_1 decode errors TypeError ('latin_1_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 27,
+      "expected": "latin_1 decode nul ValueError ('embedded null character',) None None True",
+      "actual": "latin_1 decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 29,
+      "expected": "utf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "utf_8 encode missing TypeError ('utf_8_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 30,
+      "expected": "utf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "utf_8 encode extra TypeError ('utf_8_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 31,
+      "expected": "utf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None True",
+      "actual": "utf_8 encode keywords TypeError ('_codecs.utf_8_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 32,
+      "expected": "utf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None True",
+      "actual": "utf_8 encode source TypeError ('utf_8_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 33,
+      "expected": "utf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "utf_8 encode errors TypeError ('utf_8_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 34,
+      "expected": "utf_8 encode nul ValueError ('embedded null character',) None None True",
+      "actual": "utf_8 encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 36,
+      "expected": "utf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "utf_8 decode missing TypeError ('utf_8_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 37,
+      "expected": "utf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None True",
+      "actual": "utf_8 decode extra TypeError ('utf_8_decode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 38,
+      "expected": "utf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None True",
+      "actual": "utf_8 decode keywords TypeError ('_codecs.utf_8_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 39,
+      "expected": "utf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "utf_8 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 40,
+      "expected": "utf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "utf_8 decode errors TypeError ('utf_8_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 41,
+      "expected": "utf_8 decode nul ValueError ('embedded null character',) None None True",
+      "actual": "utf_8 decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 43,
+      "expected": "utf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "utf_7 encode missing TypeError ('utf_7_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 44,
+      "expected": "utf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "utf_7 encode extra TypeError ('utf_7_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 45,
+      "expected": "utf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None True",
+      "actual": "utf_7 encode keywords TypeError ('_codecs.utf_7_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 46,
+      "expected": "utf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None True",
+      "actual": "utf_7 encode source TypeError ('utf_7_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 47,
+      "expected": "utf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "utf_7 encode errors TypeError ('utf_7_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 48,
+      "expected": "utf_7 encode nul ValueError ('embedded null character',) None None True",
+      "actual": "utf_7 encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 50,
+      "expected": "utf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "utf_7 decode missing TypeError ('utf_7_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 51,
+      "expected": "utf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None True",
+      "actual": "utf_7 decode extra TypeError ('utf_7_decode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 52,
+      "expected": "utf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None True",
+      "actual": "utf_7 decode keywords TypeError ('_codecs.utf_7_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 53,
+      "expected": "utf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "utf_7 decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 54,
+      "expected": "utf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "utf_7 decode errors TypeError ('utf_7_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 55,
+      "expected": "utf_7 decode nul ValueError ('embedded null character',) None None True",
+      "actual": "utf_7 decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 57,
+      "expected": "charmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "charmap encode missing TypeError ('charmap_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 58,
+      "expected": "charmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None True",
+      "actual": "charmap encode extra TypeError ('charmap_encode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 59,
+      "expected": "charmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None True",
+      "actual": "charmap encode keywords TypeError ('_codecs.charmap_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 60,
+      "expected": "charmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None True",
+      "actual": "charmap encode source TypeError ('charmap_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 61,
+      "expected": "charmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "charmap encode errors TypeError ('charmap_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 62,
+      "expected": "charmap encode nul ValueError ('embedded null character',) None None True",
+      "actual": "charmap encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 64,
+      "expected": "charmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "charmap decode missing TypeError ('charmap_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 65,
+      "expected": "charmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None True",
+      "actual": "charmap decode extra TypeError ('charmap_decode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 66,
+      "expected": "charmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None True",
+      "actual": "charmap decode keywords TypeError ('_codecs.charmap_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 67,
+      "expected": "charmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "charmap decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 68,
+      "expected": "charmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "charmap decode errors TypeError ('charmap_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 69,
+      "expected": "charmap decode nul ValueError ('embedded null character',) None None True",
+      "actual": "charmap decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 71,
+      "expected": "unicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "unicode_escape encode missing TypeError ('unicode_escape_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 72,
+      "expected": "unicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "unicode_escape encode extra TypeError ('unicode_escape_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 73,
+      "expected": "unicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None True",
+      "actual": "unicode_escape encode keywords TypeError ('_codecs.unicode_escape_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 74,
+      "expected": "unicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None True",
+      "actual": "unicode_escape encode source TypeError ('unicode_escape_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 75,
+      "expected": "unicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "unicode_escape encode errors TypeError ('unicode_escape_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 76,
+      "expected": "unicode_escape encode nul ValueError ('embedded null character',) None None True",
+      "actual": "unicode_escape encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 78,
+      "expected": "unicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "unicode_escape decode missing TypeError ('unicode_escape_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 79,
+      "expected": "unicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None True",
+      "actual": "unicode_escape decode extra TypeError ('unicode_escape_decode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 80,
+      "expected": "unicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None True",
+      "actual": "unicode_escape decode keywords TypeError ('_codecs.unicode_escape_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 81,
+      "expected": "unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 82,
+      "expected": "unicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "unicode_escape decode errors TypeError ('unicode_escape_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 83,
+      "expected": "unicode_escape decode nul ValueError ('embedded null character',) None None True",
+      "actual": "unicode_escape decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 85,
+      "expected": "raw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None True",
+      "actual": "raw_unicode_escape encode missing TypeError ('raw_unicode_escape_encode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 86,
+      "expected": "raw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None True",
+      "actual": "raw_unicode_escape encode extra TypeError ('raw_unicode_escape_encode expected at most 2 arguments, got 4',) None None False"
+    },
+    {
+      "line": 87,
+      "expected": "raw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None True",
+      "actual": "raw_unicode_escape encode keywords TypeError ('_codecs.raw_unicode_escape_encode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 88,
+      "expected": "raw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None True",
+      "actual": "raw_unicode_escape encode source TypeError ('raw_unicode_escape_encode() argument 1 must be str, not None',) None None False"
+    },
+    {
+      "line": 89,
+      "expected": "raw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "raw_unicode_escape encode errors TypeError ('raw_unicode_escape_encode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 90,
+      "expected": "raw_unicode_escape encode nul ValueError ('embedded null character',) None None True",
+      "actual": "raw_unicode_escape encode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 92,
+      "expected": "raw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None True",
+      "actual": "raw_unicode_escape decode missing TypeError ('raw_unicode_escape_decode expected at least 1 argument, got 0',) None None False"
+    },
+    {
+      "line": 93,
+      "expected": "raw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None True",
+      "actual": "raw_unicode_escape decode extra TypeError ('raw_unicode_escape_decode expected at most 3 arguments, got 4',) None None False"
+    },
+    {
+      "line": 94,
+      "expected": "raw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None True",
+      "actual": "raw_unicode_escape decode keywords TypeError ('_codecs.raw_unicode_escape_decode() takes no keyword arguments',) None None False"
+    },
+    {
+      "line": 95,
+      "expected": "raw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None True",
+      "actual": "raw_unicode_escape decode source TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None False"
+    },
+    {
+      "line": 96,
+      "expected": "raw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None True",
+      "actual": "raw_unicode_escape decode errors TypeError ('raw_unicode_escape_decode() argument 2 must be str or None, not bool',) None None False"
+    },
+    {
+      "line": 97,
+      "expected": "raw_unicode_escape decode nul ValueError ('embedded null character',) None None True",
+      "actual": "raw_unicode_escape decode nul ValueError ('embedded null character',) None None False"
+    },
+    {
+      "line": 99,
+      "expected": "utf_8 final RuntimeError ('final failed',) True",
+      "actual": "utf_8 final RuntimeError ('final failed',) False"
+    },
+    {
+      "line": 100,
+      "expected": "utf_7 final RuntimeError ('final failed',) True",
+      "actual": "utf_7 final RuntimeError ('final failed',) False"
+    },
+    {
+      "line": 101,
+      "expected": "unicode_escape final RuntimeError ('final failed',) True",
+      "actual": "unicode_escape final RuntimeError ('final failed',) False"
+    },
+    {
+      "line": 102,
+      "expected": "raw_unicode_escape final RuntimeError ('final failed',) True",
+      "actual": "raw_unicode_escape final RuntimeError ('final failed',) False"
+    }
+  ]
+}

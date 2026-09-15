@@ -1,0 +1,83 @@
+{
+  "reports": {
+    "red": {
+      "numPassedTests": 0,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTotalTests": 0,
+      "files": 1,
+      "failures": [
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts",
+          "message": "Cannot find module './iso2022-jp-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts",
+          "tests": []
+        }
+      ],
+      "slowestMs": 0
+    },
+    "first": {
+      "numPassedTests": 1323,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTotalTests": 1323,
+      "files": 1,
+      "failures": [],
+      "slowestMs": 4.652792000000034
+    },
+    "expanded": {
+      "numPassedTests": 1475,
+      "numFailedTests": 3,
+      "numPendingTests": 0,
+      "numTotalTests": 1478,
+      "files": 3,
+      "failures": [
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts",
+          "message": "",
+          "tests": [
+            {
+              "name": "restores pending escape and designation state at every split",
+              "messages": [
+                "UnicodeEncodeError: 'iso2022_jp' codec can't encode character '\\ub2e4' in position 2: illegal multibyte sequence\n    at DoubleByteEncodeBuffer.feed (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-codec.ts:104:23)\n    at DoubleByteCodec.encode (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-codec.ts:55:12)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts:44:67\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+              ]
+            },
+            {
+              "name": "retains shared encoder and decoder state after callback reset",
+              "messages": [
+                "AssertionError: expected [ Array(14) ] to deeply equal [ Array(12) ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts:68:57\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "retains shared encoder and decoder state after callback reenter",
+              "messages": [
+                "AssertionError: expected [ Array(14) ] to deeply equal [ Array(12) ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts:68:57\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            }
+          ]
+        }
+      ],
+      "slowestMs": 7.693499999999972
+    },
+    "focused": {
+      "numPassedTests": 2856,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTotalTests": 2856,
+      "files": 14,
+      "failures": [],
+      "slowestMs": 116.30216599999994
+    }
+  },
+  "checks": {
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python: exit 0",
+    "eslint": "npx eslint on iso2022-jp-codec.ts, iso2022-jp-codec.test.ts, iso2022-jp-recovery.test.ts, iso2022-jp-restored-state.test.ts, runtime-multibyte-recovery.test.ts: exit 0"
+  },
+  "artifactsSha256": {
+    "iso2022-jp-continuation-oracle.json": "24c568aabfe3a8f12ecc8188103685f5a70ba3b9c2c2bccac02c9ed575c65e9c",
+    "iso2022-jp-restored-oracle.json": "af84f6861092d4a581f0675192498c2e1b42b5e78907f67ab70a68862692e11e",
+    "iso2022-jp-recovery-oracle.json": "50f36d39f93f44c5adda2c6e7ff3402367077271dd8f5de2b431028124965e3d",
+    "iso2022-jp-continuation-evidence.json": "4cd8c4550b839bb6b51f3c1f4dc5f6bae9854f0939308b2d9a629a23c7e7b73b"
+  },
+  "expandedFailureExplanation": "Three newly copied test assertions retained Korean-only data/expected state. Replaced those assertions with newly generated CPython ISO-2022-JP oracle values (including reentrant reset and split-source bytes); no original Korean tests, assertions or corpus were changed. No runtime change was needed for those failures.",
+  "status": "unfinished; kernel and binding-level tests do not certify public modules, streams or registry consumers"
+}

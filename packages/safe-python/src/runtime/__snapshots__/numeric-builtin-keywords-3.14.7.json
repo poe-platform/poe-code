@@ -1,0 +1,2335 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "source": "round(1, **{'numbe': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'numbe'. Did you mean 'number'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'numbers': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'numbers'. Did you mean 'number'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'NUMBER': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'NUMBER'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'umber': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'umber'. Did you mean 'number'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'number\\x00': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'number\u0000'. Did you mean 'number'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'number\u00e9': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'number\u00e9'. Did you mean 'number'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'number\\ud800': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'number\ud800'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'x'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument ''",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{\"'\": 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument '''",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'\\n': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument '\n'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigit': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigit'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigitss': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigitss'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'NDIGITS': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'NDIGITS'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'digits': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'digits'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits\\x00': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigits\u0000'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits\u00e9': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigits\u00e9'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits\\ud800': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigits\ud800'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'x': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'x'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'x': 1, 'y': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 1, 'y': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'x': 1, 'y': 2, 'z': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 keyword arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 1, 'y': 2, 'z': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'number': 2, 'ndigit': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigit'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 2, 'ndigit': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'ndigit': 1, 'number': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigit'. Did you mean 'ndigits'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigit': 1, 'number': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'base': 2, 'expp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'base': 2, 'expp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'expp': 3, 'base': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'expp': 3, 'base': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'number': 1, 'ndigits': None})",
+      "expected": {
+        "type": "int",
+        "repr": "1",
+        "status": "ok"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 1, 'ndigits': None})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'base': 2, 'exp': 3, 'modd': 5})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 keyword arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'base': 2, 'exp': 3, 'modd': 5})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{'modd': 5, 'base': 2, 'exp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 keyword arguments (3 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(1, **{'modd': 5, 'base': 2, 'exp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'bas': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'bas'. Did you mean 'base'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'bases': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'bases'. Did you mean 'base'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'BASE': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'BASE'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'ase': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'ase'. Did you mean 'base'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base\\x00': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'base\u0000'. Did you mean 'base'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base\u00e9': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'base\u00e9'. Did you mean 'base'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base\\ud800': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'base\ud800'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'x'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument ''",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{\"'\": 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument '''",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'\\n': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument '\n'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'ex': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'ex'. Did you mean 'exp'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exps': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'exps'. Did you mean 'exp'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'EXP': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'EXP'. Did you mean 'exp'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'xp': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'xp'. Did you mean 'exp'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp\\x00': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'exp\u0000'. Did you mean 'exp'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp\u00e9': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'exp\u00e9'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp\\ud800': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'exp\ud800'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mo': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'mo'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mods': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'mods'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'MOD': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'MOD'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'od': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'od'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod\\x00': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'mod\u0000'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod\u00e9': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'mod\u00e9'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod\\ud800': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'mod\ud800'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'x': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'x'",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'x': 1, 'y': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 1, 'y': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'x': 1, 'y': 2, 'z': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 1, 'y': 2, 'z': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'number': 2, 'ndigit': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'number': 2, 'ndigit': 1})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'ndigit': 1, 'number': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'ndigit': 1, 'number': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'expp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'expp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'expp': 3, 'base': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'expp': 3, 'base': 2})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'number': 1, 'ndigits': None})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'number': 1, 'ndigits': None})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'exp': 3, 'modd': 5})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'exp': 3, 'modd': 5})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 5, 'base': 2, 'exp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 5, 'base': 2, 'exp': 3})",
+      "expected": {
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)",
+        "status": "exception"
+      }
+    },
+    {
+      "source": "round(**{})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      }
+    },
+    {
+      "source": "round(1,2, **{})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      }
+    },
+    {
+      "source": "round(**{'number': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "2"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for round() given by name ('number') and position (1)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(**{'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      }
+    },
+    {
+      "source": "round(1,2, **{'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(**{'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'numbr'. Did you mean 'number'?"
+      }
+    },
+    {
+      "source": "round(1,2, **{'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(**{'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(**{'number': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "2"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'number': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'number': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'numbr'. Did you mean 'number'?"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'number': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'number': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "source": "round(1, **{'number': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'number': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'ndigits': 2, 'number': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "2"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'ndigits': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'ndigits': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'ndigits': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'ndigits': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'ndigits': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'ndigits': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'numbr': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'numbr'. Did you mean 'number'?"
+      }
+    },
+    {
+      "source": "round(1, **{'numbr': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'numbr': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'numbr': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'numbr': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'numbr': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'numbr': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'numbr': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'numbr': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'x': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'x': 2, 'number': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'x': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'x': 2, 'ndigits': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(**{'x': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(1, **{'x': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(1,2, **{'x': 2, 'numbr': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "8"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "3"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('base') and position (1)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'exp': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "4"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('exp') and position (2)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'exp': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "4"
+      }
+    },
+    {
+      "source": "pow(2, **{'base': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('base') and position (1)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'base': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'base': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'base': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'base': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'base': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'base': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'base': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'base': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'base': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'exp': 2, 'base': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "4"
+      }
+    },
+    {
+      "source": "pow(2, **{'exp': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('base') and position (1)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'exp': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'exp': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'exp': 2, 'mod': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'exp': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'exp': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'exp': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'exp': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'exp': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'exp': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'exp': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'exp': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'mod': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'mod': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'mod': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'mod': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'mod': 2, 'exp': 2})",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'mod': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'mod': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'mod': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'mod': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'mod': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'mod': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'mod': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'mod': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'modd': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'modd': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'modd': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'modd': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'modd': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'modd': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'modd': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'modd': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'modd': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'modd': 2, 'x': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'x': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2, **{'x': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'x': 2, 'base': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'x': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'x': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'x': 2, 'exp': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'x': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'x': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'x': 2, 'mod': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "source": "pow(**{'x': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(2, **{'x': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(2,3, **{'x': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(2,3,5, **{'x': 2, 'modd': 2})",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (5 given)"
+      }
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number,None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number=number,ndigits=None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number=number,ndigits=2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number,ndigit=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigit'. Did you mean 'ndigits'?"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "round(number,ndigits=2,number=number)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(base=number,exp=2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(number,2,None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(number,2,3)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2, 3))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(number,2,modd=3)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "pow(number,exp=2,base=number)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('base') and position (1)"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__round__(number)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "25"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__round__(number,None)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "25"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__round__(number,digits)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "20"
+      },
+      "events": "['digits index']"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__round__(number,ndigits=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "int.__round__() takes no keyword arguments"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__round__(None,ndigits=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "descriptor '__round__' for 'int' objects doesn't apply to a 'NoneType' object"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__pow__(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "625"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__pow__(number,2,None)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "625"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(int):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(25)\ndigits=Digits()\n",
+      "source": "int.__pow__(number,2,3)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number,None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number=number,ndigits=None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', ())]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number=number,ndigits=2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest round'"
+      },
+      "events": "[('round', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number,ndigit=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'ndigit'. Did you mean 'ndigits'?"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "round(number,ndigits=2,number=number)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(base=number,exp=2)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(number,2,None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2,))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(number,2,3)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'guest power'"
+      },
+      "events": "[('pow', (2, 3))]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(number,2,modd=3)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() got an unexpected keyword argument 'modd'. Did you mean 'mod'?"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "pow(number,exp=2,base=number)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "argument for pow() given by name ('base') and position (1)"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__round__(number)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "2"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__round__(number,None)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "2"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__round__(number,digits)",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "['digits index']"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__round__(number,ndigits=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "float.__round__() takes no keyword arguments"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__round__(None,ndigits=2)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "descriptor '__round__' for 'float' objects doesn't apply to a 'NoneType' object"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__pow__(number,2)",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "6.25"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__pow__(number,2,None)",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "6.25"
+      },
+      "events": "[]"
+    },
+    {
+      "setup": "events=[]\nclass Number(float):\n def __round__(self, *args):\n  events.append(('round',args))\n  return 'guest round'\n def __pow__(self, *args):\n  events.append(('pow',args))\n  return 'guest power'\n def __index__(self):\n  events.append('number index')\n  return 2\nclass Digits:\n def __index__(self):\n  events.append('digits index')\n  return -1\nnumber=Number(2.5)\ndigits=Digits()\n",
+      "source": "float.__pow__(number,2,3)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() 3rd argument not allowed unless all arguments are integers"
+      },
+      "events": "[]"
+    }
+  ],
+  "platform": {
+    "system": "darwin",
+    "machine": "arm64",
+    "maxsize": 9223372036854775807
+  }
+}

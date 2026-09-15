@@ -1,0 +1,102 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "referenceQuery": "import sys,unicodedata,platform,json; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder)))",
+  "scope": "Exploratory kernel probes only. PRNG low-bit correlation does not provide exhaustive policy/final/raw combinations; no public registry or service compatibility claim.",
+  "evidence": [
+    {
+      "family": "utf7",
+      "seed": 48173,
+      "alphabet": [
+        43,
+        45,
+        65,
+        66,
+        68,
+        47,
+        57,
+        128,
+        255,
+        0,
+        10,
+        61,
+        90,
+        122,
+        100,
+        56,
+        83
+      ],
+      "maxLength": 25,
+      "cases": 12000,
+      "policies": [
+        "strict",
+        "ignore",
+        "replace",
+        "surrogateescape",
+        "backslashreplace"
+      ],
+      "prng": "state = (Math.imul(state, 1664525) + 1013904223) >>> 0; each row draws length, each byte, policy, final, then raw only for escape; all choices use modulo",
+      "oracleSource": "import sys,json,_codecs\nr=[]\nfor data,policy,final in json.load(sys.stdin):\n try:\n  text,n=_codecs.utf_7_decode(bytes(data),policy,final); r.append(['ok',list(map(ord,text)),n])\n except UnicodeDecodeError as e: r.append(['error',e.encoding,list(e.object),e.start,e.end,e.reason])\nprint(json.dumps(r))",
+      "oracleInvocation": "/opt/homebrew/bin/python3.14 -I -c <oracleSource>; JSON rows on stdin",
+      "status": 0,
+      "stderr": "",
+      "inputSha256": "9a09098669e3963a2b8032b9a60397833156837f4833ba1c412ad6bdd4ff1e0f",
+      "expectedSha256": "bef6b477697d73526a96f3979af6b41075ffe1013425b366a517a161fb89723e",
+      "actualSha256": "bef6b477697d73526a96f3979af6b41075ffe1013425b366a517a161fb89723e",
+      "failures": []
+    },
+    {
+      "family": "escape",
+      "seed": 98353,
+      "alphabet": [
+        92,
+        92,
+        117,
+        85,
+        120,
+        78,
+        123,
+        125,
+        97,
+        98,
+        102,
+        110,
+        114,
+        118,
+        48,
+        49,
+        55,
+        56,
+        57,
+        65,
+        70,
+        10,
+        13,
+        128,
+        255
+      ],
+      "maxLength": 30,
+      "cases": 12000,
+      "policies": [
+        "strict",
+        "ignore",
+        "replace",
+        "surrogateescape",
+        "backslashreplace"
+      ],
+      "prng": "state = (Math.imul(state, 1664525) + 1013904223) >>> 0; each row draws length, each byte, policy, final, then raw only for escape; all choices use modulo",
+      "oracleSource": "import sys,json,_codecs,warnings\nr=[]\nfor data,policy,final,raw in json.load(sys.stdin):\n with warnings.catch_warnings(record=True) as ws:\n  warnings.simplefilter('always')\n  try:\n   text,n=(_codecs.raw_unicode_escape_decode if raw else _codecs.unicode_escape_decode)(bytes(data),policy,final); item=['ok',list(map(ord,text)),n]\n  except UnicodeDecodeError as e: item=['error',e.encoding,list(e.object),e.start,e.end,e.reason]\n  r.append([item,[str(w.message) for w in ws]])\nprint(json.dumps(r))",
+      "oracleInvocation": "/opt/homebrew/bin/python3.14 -I -c <oracleSource>; JSON rows on stdin",
+      "status": 0,
+      "stderr": "",
+      "inputSha256": "48d3287a86d89f4383d72e84aabc9f9f8083f7036563f7f9f69ab79bc8230ed6",
+      "expectedSha256": "cf56a437e56ea79f037a47d12511d6939c8834231739800e4f4787d991856b20",
+      "actualSha256": "cf56a437e56ea79f037a47d12511d6939c8834231739800e4f4787d991856b20",
+      "failures": []
+    }
+  ]
+}

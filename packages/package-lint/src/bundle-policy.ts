@@ -38,6 +38,17 @@ export const canonicalFsRoutes = [
       node: "packages/safe-fs/dist/node-host.d.ts",
       browser: "packages/safe-fs/dist/node-unavailable.d.ts"
     }
+  },
+  {
+    workspace: "@poe-code/safe-fs/node/filesystem",
+    specifier: "poe-code/safe-fs/node/filesystem",
+    key: "./safe-fs/node/filesystem",
+    source: { node: "packages/safe-fs/src/node/filesystem.ts", browser: null },
+    runtime: { node: "packages/safe-js/dist/safe-fs-bridge.js", browser: null },
+    types: {
+      node: "packages/safe-fs/dist/node/filesystem.d.ts",
+      browser: "packages/safe-fs/dist/node-unavailable.d.ts"
+    }
   }
 ] as const;
 

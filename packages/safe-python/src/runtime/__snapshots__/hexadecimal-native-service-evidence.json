@@ -1,0 +1,456 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapter": "Node fs.writeSync/readSync/fsyncSync on an explicitly opened descriptor",
+  "rows": [
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "ecccef9f369e321597ea0ba0f4f91df2116c4134bb097daf9d7d57375cd2a75a"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "57d765acad6a8ef5db679bca7ea72a16ebda40f6cdfc0d8935c0f427954cddf4"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "8e083c4658febf5fd5cad2637c7ebd3bbdeb0f2a4827c1bd0d7ac73e6801675d"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "87f446c002de293d8415d9871145e6e1aa890a4881b920715571ee1142247e30"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "4acc16a9062322c5f0d6b8dfcd0b0564b49452bf02513110453adc0059f62416"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "1b6408a063bc09bcf5d43a1b55f63d092aa1f2f5e3a37adddf35f35f2d0f3b85"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "86ce34d7c0c6a6ecd19192c72cbfeb6a6b2a4bcc8efe757e77c4ed4488f23b00"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "12a4edf33178f302a6b99c2b8d96ba6d27d7d788911f9ee822c060eabb63f3eb"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "e2fad26b0072d892eb02ebdc7ae83efb9a90f1b6bfaf04a504a003d2dba7a668"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "d77c70fa431b32afe827a90a34af5a30e13dbbab42f99ef2fe1d4279665b2161"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "26e3f5454efd3c655eebcc84cf880a6fe65a6d919fb666b83727e790ca955ff2"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "306652f19bf52066204a9dda6a389496147e62a608df8cfe9661daaf4bada1ce"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "102388f18c9b749b95874741959d09a19204a2092fbe3506ef81a2eb9b6c75da"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "9233b38a4e9dd8f8194dfcad5ac46620982c3600f8a4358b692faf7600daed57"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "f4993b468f6d0ed231b3b955da147015bef00e479e1429c47a4e42638664cc95"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "73805d5f38de33e36157403baf13ff7a82631377438601d873098f1ec7d2e491"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "e18bdd65eb3432b16bc55c2993ef34851cadcb071f98c3360c546fc1c1e0c1cd"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "de0034cf0089d8c96c6e19a5777af179b8416dfe136d7ed477383266f770f8b8"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "600d2fbd28c9a47199643a3ce84ebfe31bc54ec7668860c7c7d70ed1cab5eacd"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "b6dd4b3474c573207c86fc49a7c8ac91e053148338b5a5d3750fc4e3311dae1e"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "9f255df17fcc0f24447ebfda50e403d672fe4d952edbdfc9ee38a9698a38baa2"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "23769b39d23334486a4d15b2451a33718d4f87297e06d5fa6a45e7da3abadf29"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "b6c2a6dc90318efa9a78809adaaeb2332942fc744971a485e5fd39b58cabe97c"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 12,
+      "sha256": "63db577a015e804418cfdc3f008059f1ba8b66e58e4019350a0433193041d989"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "27e842da10de6b319760c0c3fa9a43dc6a7522dc2886387787db607396a3cbd6"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "b1d386eca97a0a3f03a07d84dc34ecbd31888616b909678c04e44fb643f8f925"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "7813652888b6536288a55245a1d0384803c4470583e9f690a753f2d1a18e7ebe"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "1541621eef571014b41b802092c676104ee179fb7021df7fc77194bcb570cd8b"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "6e510bbbde8169ff182274c215df35c1ec94e0db721aafc0d28d63ad7010f08c"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "c34e468f0525136a4d251b7db10a6890a0ecb7b96e1b3222c35070aa0c7843fe"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "aebfa781ecafce0cd67e6ac3f8fd07bb785d66bfc1c38423ed47bc9f9a42189b"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "c506dfa92101f4569915685863a6c8f4e554b920e7a56833528131135b1ee8b7"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "d990c2ab9258a6eee993e4eddff43908e69e51f8d98ec93ef7374fa213c29dfe"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "ed182a25bb1a3726101c79fa6ddd586cae0501fff61efb7db4dba88c5d3bdc12"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "8ff22b431c99f613074dd33b11d68c934dcc01852a8059618cca54b3cebd8001"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "f4bbaa76171ffb30dac57f9bd194baa079b20a5837f30ab21ac4a0aa1c041c40"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "c22ed3eaa9d63e6ced8eff56b55ea2c068dc0f3ff12ffd4d8ff07da154c23239"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "3870f9f57f79e8ef06e9d8426530d53cfb19349ba945b867ecfe0827d3743a87"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "5de4e372826d4fb445ffabb1851d89978c6a76eb00e6b44ef853989f2ec72d59"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "65986d1dd0926ab1570285c761f7589efce22b6e526048b843554bad3c9490f7"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "8a15e8b457635748c697ab33acc7e498b031fffd1f3afe9d98c4f335b46c0467"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "4bbe8dcc98acb9de063b1f188169e1653bdd0e2563b52bdb666e0c64adae6d18"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "54c8d000f4896f1a828e175083a6d53883dfde1145facb0d6820fb81a12f8eef"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "2e1d10839d876ed507ed06fc8775325b1704ad6dc6f8a2ec52520cbf393d431c"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "e5a37d4acf3677b00eaf3a9a1ae38a079fc67821f5214e73b985763e94c9d777"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "c7cafb16e0d80e4eb4f860659de64b0931bad03b2f851418a9c505d35d325d16"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "835546b5e20170949832c88771744ac192087fa37b7aab6db65c551c2492225b"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "7e5d5f05163d5b192693ba18aa7dbc151eff0f9ea09fb9a7a10488c1c3aaf84b"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "cf01fe7b65c1b5f51d634cc647bcc06a3523f0fa83c5085aae75e6fbe7b23162"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "6bf0b3655c8cabef30a6bb0817878124a426c6310f18325cd94730acd2fc7000"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "5e5b91e5309643a165c68e540aed59fc1ef8e67d45e1b4789822d6a5278e0784"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "8e54b6d36a74d09d20e24180db6fe149ee761d2f504ee4fa2f387d1dac373dc5"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "59b8cc5b6c7febbee7acc8368e5968ade622006e5d00dfc356f0d30bea0edc93"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "0c47feeb7c3a1f0bb2ac5f6acde7700eefbcb898364474b93904c597f7481dfb"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "ed7812620a60c9c72a79eec327d904a217f42bc0b79d62588ea2d002b1414024"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 16,
+      "sha256": "78738ce7166934b6059dd218e9e78e7b7d61478c9a88c35bfe0150d1f8dfe67b"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "80eacd67a3be1b8bc1450e15d4b0f1bfbe7c449d5464cf1553b88a19147dd752"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "06ca86702b7bfd1741eeebdd5a80bce229b02fa78770be5bd27eda89c96b125c"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "438b9df117bd0bc0b4bd9cf2b509c9c55b73595228fbfe313013fcab270832ef"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "dcbcc9d709fbad699c2b468b5ae8bca93d65fbd46f0ba7fe8f3157fbd1e6e24a"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "37d51b3c2237441e12845c9d71a56a079be6730d5d3038caa8ff80ceaf8bc0a0"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "5cdb178b034b1faaf4eb4cd202507b1dc4223527b5d6bb223ed963d0f73b77b9"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "d008110cafaad0c88d5b7bd786be0399360cf100c529b6b42459f894b69c943c"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 21,
+      "sha256": "68d68a46df4a506694701653e6ef60e3003990dc87d7de473511c7e189f1cd01"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "721d74e86870e75a02586ee480bb4e5e9af2199e212b6dc00efda3935aadf75a"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "94ca3395cff24058a3aa7605da6fd8b8bde9eb90ed9b30da993352815257615e"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "26020d229df080e79b84d6e148e7f0f1e8c5a28e5a00141eb0fb7d8abc581e3b"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "97ddda893e754465182bc4854201809a1d30b9403d90009d62aaf4a727bfb7a8"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "00cfd8ce46fa34d126317a4e4ceabe1bbc8934da4007a0458f0258cf44615956"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "912d590ce9e59241d3475eb7ac9e482192192e60f8ba008fe92fc5f685e9a247"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "1cae501b5e9e4079da118f672a794e8e0d73aae1afe7568e2410f601ecdddac8"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+      "status": "ok",
+      "bytes": 25,
+      "sha256": "aec774aa0591156d058ca2064aabfe10651578c74fe09f1a6c77a35ecd0e1793"
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "status": "ok",
+      "bytes": 24,
+      "sha256": "3206230fea8ecdf7cf9a3d7007770d0f1488278433ed2b474e1e94b16438a9ec"
+    }
+  ],
+  "writes": 434,
+  "reads": 2,
+  "bytes": 1224,
+  "publicBinascii": {
+    "status": "exception",
+    "diagnostic": "No module named 'binascii'"
+  },
+  "driver": "import fs from 'node:fs';\nimport assert from 'node:assert/strict';\nimport crypto from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst oracle=JSON.parse(fs.readFileSync(root+'codec-incremental-replay-3.14.7.json','utf8'));\nconst fd=fs.openSync('/tmp/safe-python-hex-binding-output.txt','w+');\nconst inputFd=fs.openSync('/tmp/safe-python-hex-binding-input.txt','w+');\nfs.writeSync(inputFd,'continue\\ncontinue\\n',0,'utf8');\nconst rows=[];let offset=0,writes=0,inputOffset=0,reads=0;\nconst input={readLine(){reads++;let line='';const byte=Buffer.alloc(1);while(fs.readSync(inputFd,byte,0,1,inputOffset)){inputOffset++;line+=byte.toString();if(byte[0]===10)return line;}return line||null;}};\ntry{\n  for(const row of oracle.rows){\n    let size=0;\n    const session=new PythonSession({limits:{maxSteps:4000000,maxAllocatedBytes:64000000,maxDepth:150},hashSeed:[1n,2n],input,output:{write(text){const data=Buffer.from(text);let done=0;while(done<data.length)done+=fs.writeSync(fd,data,done,data.length-done,null);size+=data.length;writes++;},flush(){fs.fsyncSync(fd);}}});\n    const result=session.exec(row.source);assert.equal(result.status,'ok',row.name);\n    const buffer=Buffer.alloc(size);assert.equal(fs.readSync(fd,buffer,0,size,offset),size);offset+=size;\n    const output=buffer.toString();assert.equal(output,row.oracle.stdout,row.name);\n    rows.push({name:row.name,status:result.status,bytes:size,sha256:crypto.createHash('sha256').update(buffer).digest('hex')});\n  }\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n]});\n  const result=session.exec('import binascii');let diagnostic;\n  if(result.status==='exception'){session.globals.set('failure',result.exception);const value=session.eval('str(failure)');if(value.status==='ok')diagnostic=value.value.primitive;}\n  fs.writeFileSync(root+'hexadecimal-native-service-evidence.json',JSON.stringify({reference:oracle.reference,adapter:'Node fs.writeSync/readSync/fsyncSync on an explicitly opened descriptor',rows,writes,reads,bytes:offset,publicBinascii:{status:result.status,diagnostic},driver:fs.readFileSync('/tmp/safe-python-hex-binding-services.mts','utf8')},null,2)+'\\n');\n  console.log(JSON.stringify({rows:rows.length,writes,reads,bytes:offset,publicBinascii:{status:result.status,diagnostic}}));\n}finally{fs.closeSync(fd);fs.closeSync(inputFd);}\n"
+}

@@ -1,0 +1,16 @@
+{
+  "programs": 77,
+  "bytes": 6709,
+  "sourceSha256": "e7c1346f2d085fa648f7c516fa91e709e8df32f38015e8e2a6712343156ecf3e",
+  "outputSha256": "6006dee5ad5bd4363c56b4de80815955497283e74e225a97912cebf00d1c225e",
+  "adapter": "explicit PythonSession output adapter using owned file descriptor, writeSync and fsyncSync",
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "oracleHashSeed": 0,
+  "guestHashSeed": [
+    "1",
+    "2"
+  ],
+  "matched": true
+}

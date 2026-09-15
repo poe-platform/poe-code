@@ -226,6 +226,14 @@ export function canonicalBundleFixture() {
         },
         browser: null,
         import: "./packages/safe-js/dist/safe-fs-node.js"
+      },
+      "./safe-fs/node/filesystem": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-fs/dist/node/filesystem.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/safe-fs-bridge.js"
       }
     },
     imports: {
@@ -248,7 +256,8 @@ export function canonicalBundleFixture() {
         ? {
             "safe-fs": source,
             "safe-fs-core": "packages/safe-fs/src/core.ts",
-            "safe-fs-node": "packages/safe-fs/src/node-host.ts"
+            "safe-fs-node": "packages/safe-fs/src/node-host.ts",
+            "safe-fs-bridge": "packages/safe-fs/src/node/filesystem.ts"
           }
         : {
             "safe-fs": "packages/safe-fs/src/core.ts",
@@ -299,6 +308,7 @@ export function canonicalBundleFixture() {
       [types]: ["./core.js"],
       "packages/safe-fs/dist/core.d.ts": ["./contracts/errors.js"],
       "packages/safe-fs/dist/node-host.d.ts": ["./index.js"],
+      "packages/safe-fs/dist/node/filesystem.d.ts": ["../core.js"],
       "packages/safe-fs/dist/node-unavailable.d.ts": [],
       "packages/safe-fs/dist/contracts/errors.d.ts": ["#safe-fs-platform"],
       "packages/safe-fs/dist/platform/node.d.ts": ["node:util"],

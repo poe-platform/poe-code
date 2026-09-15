@@ -1,0 +1,156 @@
+{
+  "reference": {
+    "status": 0,
+    "stdout": "{\"version\": \"3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\", \"unicode\": \"16.0.0\", \"platform\": \"macOS-26.4.1-arm64-arm-64bit-Mach-O\"}\n",
+    "stderr": ""
+  },
+  "driver": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync,readFileSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {codecCallSlotCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-call-slot-cases.ts';\nconst python='/opt/homebrew/bin/python3.14';\nconst run=(source:string)=>{const r=spawnSync(python,['-I','-c',source],{encoding:'utf8',input:'ready\\n'});return {status:r.status,stdout:r.stdout,stderr:r.stderr};};\nconst reference=run('import sys,unicodedata,platform,json; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform())))');\nconst rows=codecCallSlotCases.map(c=>({...c,oracle:run(c.source)}));\nconst result={reference,driver:readFileSync(import.meta.filename,'utf8'),sourceReference:'https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c',sourceSha256:createHash('sha256').update(readFileSync('/tmp/safe-python-native-typeobject-3147.c')).digest('hex'),rows};\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/codec-call-slot-oracle.json',JSON.stringify(result,null,2)+'\\n');\nconsole.log(JSON.stringify({reference,failures:rows.filter(r=>r.oracle.status!==0),count:rows.length},null,2));\n",
+  "sourceReference": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c",
+  "sourceSha256": "fbfe5ac18847548ffd203a1b5e2d14f5464010c3cc6ecdc5adb790d4fd36ae8c",
+  "rows": [
+    {
+      "name": "CodecInfo readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.CodecInfo,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "IncrementalEncoder readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.IncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "IncrementalDecoder readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "BufferedIncrementalEncoder readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.BufferedIncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "BufferedIncrementalDecoder readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.BufferedIncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "StreamReader readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.StreamReader,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "StreamWriter readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.StreamWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "StreamReaderWriter readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.StreamReaderWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "StreamRecoder readiness and query identity",
+      "source": "\nimport codecs\nseen = []\nexpected = '__call__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self, value: value}\nC = type('C', (codecs.StreamRecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "call readiness follows hash and precedes str",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): lambda self: 7, Key('__call__'): lambda self: 19, Key('__str__'): lambda self: 'decoder'})\nassert seen == ['__hash__'] * 4 + ['__call__', '__str__'], seen\nvalue = C()\nseen.clear()\nassert callable(value)\nassert seen == [], seen\nassert value() == 19\nassert seen == ['__call__'], seen\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "failed call fixup disables invocation but preserves the dictionary",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                raise ValueError('call fixup')\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__call__'): lambda self: 23})\nassert seen == ['__call__'], seen\nvalue = C()\nassert not callable(value)\ntry:\n    value()\nexcept TypeError as error:\n    assert error.args == (\"'C' object is not callable\",), error.args\nelse:\n    assert False\nassert seen == ['__call__'], seen\nassert C.__call__(value) == 23\nC.__call__ = lambda self: 29\nassert callable(value)\nassert value() == 29\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "descriptor binding is deferred to invocation",
+      "source": "\nimport codecs\nseen = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        seen.append((instance, owner))\n        return lambda *args, **kwargs: (args, kwargs)\ndescriptor = Descriptor()\nclass C(codecs.IncrementalDecoder):\n    __call__ = descriptor\nvalue = C()\nassert callable(value)\nassert seen == []\nassert value(1, named=2) == ((1,), {'named': 2})\nassert seen == [(value, C)]\nassert C.__dict__['__call__'] is descriptor\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "inherited mutation and disabled call values",
+      "source": "\nimport codecs\nclass Base(codecs.IncrementalDecoder):\n    def __call__(self):\n        return 31\nclass Child(Base):\n    pass\nvalue = Child()\nassert value() == 31\nBase.__call__ = lambda self: 37\nassert value() == 37\nBase.__call__ = None\nassert callable(value)\ntry:\n    value()\nexcept TypeError as error:\n    assert error.args == (\"'NoneType' object is not callable\",), error.args\nelse:\n    assert False\ndel Base.__call__\nassert not callable(value)\nChild.__call__ = lambda self: 41\nBase.__call__ = lambda self: 43\nassert value() == 41\ndel Child.__call__\nassert value() == 43\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "source mutation leaves the copied call slot intact",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            namespace.clear()\n            namespace['changed'] = 47\n        return str.__eq__(self, other)\nkey = Key('__call__')\nnamespace = {key: lambda self: 53}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == ['__call__'], seen\nassert namespace == {'changed': 47}\nassert 'changed' not in C.__dict__\nassert C()() == 53\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "metaclass call fixup controls class callability",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                raise ValueError('metaclass call fixup')\n        return str.__eq__(self, other)\nMeta = type('Meta', (type,), {Key('__call__'): lambda cls: 67})\nclass C(codecs.IncrementalDecoder, metaclass=Meta):\n    pass\nassert seen == ['__call__'], seen\nassert not callable(C)\ntry:\n    C()\nexcept TypeError as error:\n    assert error.args == (\"'Meta' object is not callable\",), error.args\nelse:\n    assert False\nassert Meta.__call__(C) == 67\nMeta.__call__ = type.__call__\nassert callable(C)\nassert type(C()) is C\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "supported service callback during call readiness",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                assert input() == 'ready'\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__call__'): lambda self: 59})\nassert seen == ['__call__'], seen\nassert C()() == 59\nprint('call slot ready', flush=True)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "call slot ready\n",
+        "stderr": ""
+      }
+    }
+  ]
+}

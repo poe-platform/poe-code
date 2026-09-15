@@ -1,0 +1,193 @@
+{
+  "capturedAt": "2026-09-14T23:53:34.577Z",
+  "head": "17f9b3582a7a8aea9fb426b9e45071e59f6240a1",
+  "node": "v22.22.2",
+  "branch": "main",
+  "remoteMain": "eff793d5dfda1b4e6d1008b04f5da4033237f742",
+  "divergence": "13\t11",
+  "initialIndex": "",
+  "preservedPlanSha256": "ca7b19e9f65f764f5baefd983a38b55e7f94d88e09dbca6beea631416c9af539",
+  "prerequisites": [
+    {
+      "path": "packages/safe-bash/src/commands/python/index.ts",
+      "exists": false
+    },
+    {
+      "path": "packages/safe-bash/src/commands/python/node.ts",
+      "exists": false
+    },
+    {
+      "path": "packages/safe-bash/src/commands/python/worker.ts",
+      "exists": false
+    },
+    {
+      "path": "packages/safe-bash/src/commands/python/execution.ts",
+      "exists": false
+    },
+    {
+      "path": "src/sdk/bash.ts",
+      "exists": false
+    },
+    {
+      "path": "/Users/kjopek/Workspace/pyodide-cloudflare-validation/VALIDATION.md",
+      "exists": false
+    },
+    {
+      "path": "/Users/kjopek/Workspace/pyodide-cloudflare-validation/scripts/cloudflare.mjs",
+      "exists": false
+    }
+  ],
+  "resolutions": {
+    "pyodide": "MODULE_NOT_FOUND",
+    "workerd": "MODULE_NOT_FOUND",
+    "wrangler": "MODULE_NOT_FOUND"
+  },
+  "hashes": {
+    "packages/safe-bash/src/index.ts": "66f24e28ac4f72ffc334f5cc76ca08873753f9bc8e4e51350ecc8cb3df9391eb",
+    "packages/safe-bash/package.json": "dd8f09afcac7fb2aa74e82b6a98f1fa3a97eea57e66c8100e64416c84ad2b40e",
+    "packages/safe-fs/src/index.ts": "b9ce9830fecbf2af24b3eb452a16d32b763544278178bec77a347c81a516ca45",
+    "package.json": "2d74acbfab9c7b892eaa193de472f2c51dfb46a082b197958446e8ef2479b674",
+    "package-lock.json": "4ec17236c113343123ff8ce8f8a5a316a6966cb4b84e414c77b5f9137a920bac",
+    ".github/workflows/release.yml": "9319d98a1a2c8f8dc2a49ac8e2d0abf2807d0e28a535f67dc86503c90082abf7",
+    "docs/development/NPM_PUBLISHING.md": "b500f9740cb995cf6294fcd4b5ecd2b1c7796fef5337e2b3280db90b06e00b1d"
+  },
+  "tasks": [
+    {
+      "id": "establish-evidence-and-lifecycle-gate",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "separate-python-runtime-transport",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "reproducible-cloudflare-runtime-build",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "bridge-canonical-filesystem-with-jspi",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "wire-execution-stdio-and-finalization",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "qualify-package-provisioning",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "expose-cloudflare-adapter",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "validate-integrated-adapter-on-disposable-worker",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "qualify-persistence-and-production-load",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "expose-pyodide-in-browser-demo",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    },
+    {
+      "id": "review-compatibility-and-handoff",
+      "observedStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "acceptedImplementation": "open",
+      "acceptedTest": "open"
+    }
+  ],
+  "finalization": "pending",
+  "pythonExports": [],
+  "publicProbe": [
+    {
+      "command": "python -c \"print(1)\"",
+      "exitCode": 127,
+      "stdout": "",
+      "stderr": "shell: line 1: python: command not found\n",
+      "stdoutBytes": [],
+      "stderrBytes": [
+        115, 104, 101, 108, 108, 58, 32, 108, 105, 110, 101, 32, 49, 58, 32, 112, 121, 116, 104,
+        111, 110, 58, 32, 99, 111, 109, 109, 97, 110, 100, 32, 110, 111, 116, 32, 102, 111, 117,
+        110, 100, 10
+      ]
+    },
+    {
+      "command": "python3 -c \"print(1)\"",
+      "exitCode": 127,
+      "stdout": "",
+      "stderr": "shell: line 1: python3: command not found\n",
+      "stdoutBytes": [],
+      "stderrBytes": [
+        115, 104, 101, 108, 108, 58, 32, 108, 105, 110, 101, 32, 49, 58, 32, 112, 121, 116, 104,
+        111, 110, 51, 58, 32, 99, 111, 109, 109, 97, 110, 100, 32, 110, 111, 116, 32, 102, 111, 117,
+        110, 100, 10
+      ]
+    },
+    {
+      "command": "printf recovered | cat",
+      "exitCode": 0,
+      "stdout": "recovered",
+      "stderr": "",
+      "stdoutBytes": [114, 101, 99, 111, 118, 101, 114, 101, 100],
+      "stderrBytes": []
+    }
+  ],
+  "disposal": "awaited twice",
+  "result": "blocked; absence/recovery checks only; zero production acceptance passes"
+}

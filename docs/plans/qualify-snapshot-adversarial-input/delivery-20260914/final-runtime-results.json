@@ -1,0 +1,72 @@
+[
+  {
+    "runtime": "18.18.0",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "18.18.0",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "18.20.8",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "18.20.8",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "20.20.2",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "20.20.2",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "22.23.2",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "22.23.2",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "24.21.0",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "24.21.0",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "26.8.2",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "26.8.2",
+    "probe": "legacy",
+    "exit": 0
+  },
+  {
+    "runtime": "bun",
+    "probe": "graph",
+    "exit": 0
+  },
+  {
+    "runtime": "bun",
+    "probe": "legacy",
+    "exit": 0
+  }
+]

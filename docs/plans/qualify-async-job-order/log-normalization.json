@@ -1,0 +1,101 @@
+{
+  "reason": "git diff --cached --check rejected extra terminal blank lines; only terminal newline bytes were normalized, preserving all result lines",
+  "files": [
+    {
+      "path": "docs/plans/qualify-async-job-order/delegated-green.log",
+      "originalSha256": "cc9aa75f5d49ce03a24eb82fc133adbe2c579f81cd31043d1e2465838e740264",
+      "normalizedSha256": "88c3a60225916996238cd8292b4299c08b4fe8c8def7bc7aa63968572bb2ed0f",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/delegated-red.log",
+      "originalSha256": "ed152fca858aa119872864ea33655498188e46747ce1b96430cc9d372b789911",
+      "normalizedSha256": "faec9a6d96aa9434d2cfc70aa92516cafd566510ee443725827339ac6b54ad05",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/extended-first.log",
+      "originalSha256": "e1480bac7a07d1903afcf5504b127b6a757fa52df7b00004559f101c3cf595bf",
+      "normalizedSha256": "076d184b78388d07c0c1253641d60ea2b11093bf86633849282f17c6e3f9ce1a",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/finally-red.log",
+      "originalSha256": "eff1d02f04cf8b06ef3a630106f7454fcd170ef59919f2d591cb5798dc103e27",
+      "normalizedSha256": "9511dca7403181dad4c160b51e0d6058cd7b93927bd677866a54b19f0e1e0804",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/focused-final.log",
+      "originalSha256": "9a737fc87e64526791a9c863ec0c16a10090b3f18d0a7e259df004c1b00c522c",
+      "normalizedSha256": "fad025add71c229caf5e2f9759f4d13003acf96db5ef96bb46f9769395482989",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/focused-qualified.log",
+      "originalSha256": "5ee0acf36874b4e3b7d16d29e134b9f6b6bb1a0c5473da784d4f2db725348234",
+      "normalizedSha256": "8a79670b30406da96acf073dff0a81efceb7514bf00a00ba4d4819aa5f52159b",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/generator-controls-red.log",
+      "originalSha256": "1714374b5f93393a43f23d860bcc604f0750173b2a0dbb281d3f6739c0610e28",
+      "normalizedSha256": "bb20298fce8aabda2432a9f5ff2b5c8f2ca04c04f544dbbd0de6a2f78b4f41be",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/generator-green.log",
+      "originalSha256": "64f7129b7bef0d9fe5a88fdcb38093ffa1601d9df75f093bcf48da7c703c987c",
+      "normalizedSha256": "e397843912c5dc5042f5fd84f19a4409f738b2b1c0999e7082535208e37b4fa3",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/generator-red.log",
+      "originalSha256": "1b208ceba8aad3660eeee700b31fc72178d0ead9742395e0edd8b7c060ff39b7",
+      "normalizedSha256": "a8f295781837c9e7cb58f2fae108c8837f4bb0dc72daad6acb7ec2f32139ab3e",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/host-rejection-final.log",
+      "originalSha256": "5e71dcecf1b51ab2403edd03d72b0001347569b5ebe3f2b4d777fdc22b3be0b3",
+      "normalizedSha256": "5929305bfca1d5d273d0e2a4df1c67c75ee605e2b2a2484a543e154211d6150e",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/lifecycle-first.log",
+      "originalSha256": "cb351a60b6345d6d16902d494456870c7ee094653fdaa73f089727a6655088fa",
+      "normalizedSha256": "1dfc80d5810038a8b023e4a3bbbd20477d850b3869e17ae57d155ece1f7ad4d6",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/package-test-final.log",
+      "originalSha256": "4c60539b2c5836da4f1d976f24f8643e88fc9e846fd3ea5264dba1b5b820664a",
+      "normalizedSha256": "e5eee273e60e22f2acbc1ffa33fceec428337ddc06584e9750a0befed8e350b7",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/qualification-final.log",
+      "originalSha256": "898f7906864ee0db246f742abc56aa53585a6d560bd52ecc4f2900776fe8e3dd",
+      "normalizedSha256": "b2df7b00672f9bc81a4feca446b2df110206f332860fbcb30c2389839ad76e2a",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/restore-finally-first.log",
+      "originalSha256": "c10bc6f2671db45b6e0a6b7f073d758a6b8ec93735a85a8b38f7ee8a9dad1d1a",
+      "normalizedSha256": "237606fe8f686fb08ddd458d754bfe8f3607aab0f60820a06766cd8534527e66",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/restore-green.log",
+      "originalSha256": "14689958c17d39ac46267dd8b6f090d694816fa0f886eb49343a82733932f392",
+      "normalizedSha256": "a22c26c800e3cd5c8bea8a490f30d34cf96627354c37e41aa2351bf7003e5acf",
+      "terminalNewlinesRemoved": 1
+    },
+    {
+      "path": "docs/plans/qualify-async-job-order/traces-first.log",
+      "originalSha256": "10c019d7474f6303b7472897f724ee7c8d55c56be632af2ac84efd1b6ea9f0fd",
+      "normalizedSha256": "136fbf82ca5da0031f678eb72aa2e48cf10686b758e36ebda6f450ae0ef4aa98",
+      "terminalNewlinesRemoved": 1
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (8 tests) 581ms
+   ✓ enforces admitted symbol and value string limits through replay  365ms
+ ✓ scripts/bundle.test.ts (9 tests) 306ms
+ ✓ packages/safe-js/src/interp/native-promise-admission.test.ts (23 tests) 1579ms
+ ✓ packages/package-lint/src/native-assets.test.ts (109 tests) 218ms
+ ✓ packages/package-lint/src/rules/index.test.ts (130 tests) 195ms
+ ✓ packages/package-lint/src/canonical-declarations.test.ts (7 tests) 51ms
+ ✓ packages/package-lint/src/source-admission.test.ts (52 tests) 62ms
+ ✓ packages/package-lint/src/source-security.test.ts (78 tests) 79ms
+ ✓ packages/package-lint/src/source-imports.test.ts (11 tests) 19ms
+ ✓ packages/package-lint/src/model.test.ts (21 tests) 32ms
+ ✓ packages/package-lint/src/runtime-files.test.ts (12 tests) 32ms
+ ✓ scripts/package-safe.test.ts (2 tests) 28ms
+ ✓ packages/package-lint/src/bundle-policy.browser.test.ts (60 tests) 31ms
+ ✓ packages/package-lint/src/bundle-policy.builtins.test.ts (51 tests) 14ms
+ ✓ packages/package-lint/src/installability-system.test.ts (4 tests) 27ms
+ ✓ packages/package-lint/src/packlist.test.ts (4 tests) 9ms
+ ✓ packages/safe-js/src/interp/promise-import-properties.test.ts (2 tests) 4ms
+ ✓ packages/package-lint/src/report.test.ts (1 test) 3ms
+
+ Test Files  18 passed (18)
+      Tests  584 passed (584)
+   Start at  20:02:00
+   Duration  8.69s (transform 6.02s, setup 310ms, import 11.96s, tests 3.27s, environment 1ms)
+

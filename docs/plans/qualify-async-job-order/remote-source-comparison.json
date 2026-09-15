@@ -1,0 +1,43 @@
+{
+  "local": "bc6107ba5a308e94335f2d419d51d122ed17e6c3",
+  "remote": "8e890a5324a52a76a0a67da6ff0503efda76cb6b",
+  "files": [
+    {
+      "path": "packages/safe-js/src/interp/async-generator-driver.ts",
+      "localBlob": "d85711fc6128743b56f8b69a0b056bdfdfe04120",
+      "remoteBlob": "d85711fc6128743b56f8b69a0b056bdfdfe04120",
+      "equal": true
+    },
+    {
+      "path": "packages/safe-js/src/interp/generator-expression-state.ts",
+      "localBlob": "8c5a117fd637f45a5fde740b4a3d116811e8c903",
+      "remoteBlob": "8c5a117fd637f45a5fde740b4a3d116811e8c903",
+      "equal": true
+    },
+    {
+      "path": "packages/safe-js/src/interp/promise.ts",
+      "localBlob": "99384993cfecb18c495e54c1e685e7d1dc39b874",
+      "remoteBlob": "99384993cfecb18c495e54c1e685e7d1dc39b874",
+      "equal": true
+    },
+    {
+      "path": "packages/safe-js/src/snapshot/guest-ast-validation.ts",
+      "localBlob": "4ddcddaa8818a4f784f388fba48bef14756f5111",
+      "remoteBlob": "4ddcddaa8818a4f784f388fba48bef14756f5111",
+      "equal": true
+    },
+    {
+      "path": "packages/safe-js/src/snapshot/guest-heap-validation.ts",
+      "localBlob": "34703ad8b350f92988f54ca3cf0f61f024925622",
+      "remoteBlob": "34703ad8b350f92988f54ca3cf0f61f024925622",
+      "equal": true
+    },
+    {
+      "path": "packages/safe-js/src/interp/interpreter.ts",
+      "localBlob": "2f8156440f143d146296b41c0ce69e68ec928faa",
+      "remoteBlob": "2f8156440f143d146296b41c0ce69e68ec928faa",
+      "equal": true
+    }
+  ],
+  "remoteExecutionClaimed": false
+}

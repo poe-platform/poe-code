@@ -26,7 +26,8 @@ export const JSON_RPC_ERROR_CODES = Object.freeze({
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
   INTERNAL_ERROR: -32603,
-  RESOURCE_NOT_FOUND: -32002
+  RESOURCE_NOT_FOUND: -32002,
+  UNSUPPORTED_PROTOCOL_VERSION: -32022
 } as const);
 
 export class ToolError extends Error {
@@ -58,17 +59,35 @@ export interface ResourcesCapability {
   listChanged?: boolean;
 }
 
+export interface Implementation {
+  name: string;
+  title?: string;
+  version: string;
+  description?: string;
+  websiteUrl?: string;
+  icons?: Icon[];
+}
+
 export interface InitializeResult {
   protocolVersion: string;
   capabilities: {
+    extensions?: Record<string, Record<string, unknown>>;
     tools?: ToolsCapability;
     prompts?: PromptsCapability;
     resources?: ResourcesCapability;
   };
-  serverInfo: {
-    name: string;
-    version: string;
+  serverInfo: Implementation;
+}
+
+export interface DiscoverResult {
+  resultType: "complete";
+  supportedVersions: string[];
+  capabilities: InitializeResult["capabilities"];
+  _meta: {
+    "io.modelcontextprotocol/serverInfo": InitializeResult["serverInfo"];
   };
+  ttlMs: number;
+  cacheScope: "public" | "private";
 }
 
 export interface Tool {
@@ -76,7 +95,7 @@ export interface Tool {
   title?: string;
   description?: string;
   inputSchema: JSONSchema;
-  outputSchema?: JSONSchema;
+  outputSchema?: OutputSchema;
   annotations?: ToolAnnotations;
   execution?: ToolExecution;
   icons?: Icon[];
@@ -85,7 +104,7 @@ export interface Tool {
 
 export interface CallToolResult {
   content: ContentItem[];
-  structuredContent?: Record<string, unknown>;
+  structuredContent?: unknown;
   isError?: boolean;
 }
 
@@ -114,19 +133,13 @@ export interface ContentAnnotations {
   lastModified?: string;
 }
 
-export interface ResourceLink {
+export interface ResourceLink extends Resource {
   type: "resource_link";
-  uri: string;
-  name: string;
-  title?: string;
-  description?: string;
-  mimeType?: string;
-  size?: number;
-  annotations?: ContentAnnotations;
 }
 
 export interface PromptArgument {
   name: string;
+  title?: string;
   description?: string;
   required?: boolean;
 }
@@ -142,7 +155,7 @@ export interface Prompt {
 
 export interface PromptMessage {
   role: "user" | "assistant";
-  content: PromptContentItem;
+  content: ContentItem;
 }
 
 export interface GetPromptResult {
@@ -151,8 +164,9 @@ export interface GetPromptResult {
 }
 
 export type PromptHandler = (
-  args: Record<string, string>
-) => Promise<GetPromptResult> | GetPromptResult;
+  args: Record<string, string>,
+  context: HandlerRequestContext
+) => Promise<GetPromptResult | InputRequiredResult> | GetPromptResult | InputRequiredResult;
 
 export interface PromptDefinition extends Prompt {
   handler: PromptHandler;
@@ -182,14 +196,17 @@ export interface ResourceTemplate {
 }
 
 export type ResourceContents =
-  | { uri: string; mimeType?: string; text: string }
-  | { uri: string; mimeType?: string; blob: string };
+  | { uri: string; mimeType?: string; text: string; _meta?: Record<string, unknown> }
+  | { uri: string; mimeType?: string; blob: string; _meta?: Record<string, unknown> };
 
 export interface ReadResourceResult {
   contents: ResourceContents[];
 }
 
-export type ResourceHandler = (uri: string) => Promise<ReadResourceResult> | ReadResourceResult;
+export type ResourceHandler = (
+  uri: string,
+  context: HandlerRequestContext
+) => Promise<ReadResourceResult | InputRequiredResult> | ReadResourceResult | InputRequiredResult;
 
 export interface ResourceDefinition extends Resource {
   handler: ResourceHandler;
@@ -205,25 +222,28 @@ export interface HandleResult {
 }
 
 export type PromptContentItem =
-  | { type: "text"; text: string; annotations?: ContentAnnotations }
+  | { type: "text"; text: string; annotations?: ContentAnnotations; _meta?: Record<string, unknown> }
   | {
       type: "image";
       data: string;
       mimeType: string;
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
     }
   | {
       type: "audio";
       data: string;
       mimeType: string;
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
     }
   | {
       type: "resource";
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
       resource:
-        | { uri: string; mimeType?: string; text: string }
-        | { uri: string; mimeType?: string; blob: string };
+        | { uri: string; mimeType?: string; text: string; _meta?: Record<string, unknown> }
+        | { uri: string; mimeType?: string; blob: string; _meta?: Record<string, unknown> };
     };
 
 // ContentItem is a union of all possible tool result content block types.
@@ -233,6 +253,11 @@ export interface JSONSchema {
   type: "object";
   properties?: Record<string, JSONSchemaProperty>;
   required?: string[];
+  [keyword: string]: unknown;
+}
+
+export interface OutputSchema {
+  $schema?: string;
   [keyword: string]: unknown;
 }
 
@@ -255,6 +280,8 @@ export interface ServerOptions {
   maxStdioOutputBytes?: number;
   /** Per-stdio-connection messages awaiting handler/output settlement; defaults to 128. */
   maxPendingStdioMessages?: number;
+  /** Shared in-flight requests retained until their work settles; defaults to 128. */
+  maxActiveRequests?: number;
   maxStdioLineBytes?: number;
   validateToolArguments?: boolean;
   supportNotifications?: boolean;
@@ -263,16 +290,41 @@ export interface ServerOptions {
 
 import type { ToolReturn } from "./content/index.js";
 
+export interface InputRequiredResult {
+  resultType: "input_required";
+  inputRequests?: Record<
+    string,
+    {
+      method: "elicitation/create" | "sampling/createMessage" | "roots/list";
+      params?: Record<string, unknown>;
+    }
+  >;
+  requestState?: string;
+  _meta?: Record<string, unknown>;
+}
+
+export interface HandlerRequestContext {
+  readonly signal: AbortSignal;
+  readonly requestState?: string;
+  readonly inputResponses?: Record<string, unknown>;
+  readonly clientCapabilities: Record<string, unknown>;
+}
+
 export type ToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
-  args: T
-) => Promise<TOut | CallToolResult> | TOut | CallToolResult;
+  args: T,
+  context: HandlerRequestContext
+) =>
+  | Promise<TOut | CallToolResult | InputRequiredResult>
+  | TOut
+  | CallToolResult
+  | InputRequiredResult;
 
 export interface ToolDefinition<T = Record<string, unknown>, TOut = ToolReturn> {
   name: string;
   title?: string;
   description?: string;
   inputSchema: JSONSchema;
-  outputSchema?: JSONSchema;
+  outputSchema?: OutputSchema;
   annotations?: ToolAnnotations;
   execution?: ToolExecution;
   icons?: Icon[];

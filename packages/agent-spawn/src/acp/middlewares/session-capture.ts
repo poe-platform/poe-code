@@ -12,7 +12,7 @@ function readNonEmptyString(value: unknown): string | undefined {
 function updateSessionFromEvent(
   ctx: SpawnContext,
   event: AcpEvent,
-  toolCallsById: Map<string, SessionToolCall>
+  toolCallsById: Map<string, SessionToolCall> | undefined
 ): void {
   if (event.event === "session_start") {
     const threadId = readNonEmptyString((event as { threadId?: unknown }).threadId);
@@ -23,6 +23,8 @@ function updateSessionFromEvent(
     return;
   }
 
+  if (!toolCallsById) return;
+
   if (event.event === "agent_message") {
     const text = readString((event as { text?: unknown }).text);
     if (!text || !ctx.sessionResult) {
@@ -30,7 +32,7 @@ function updateSessionFromEvent(
     }
 
     ctx.sessionResult.messages.push(text);
-    ctx.sessionResult.output = ctx.sessionResult.messages.join("\n");
+    ctx.sessionResult.output += (ctx.sessionResult.messages.length > 1 ? "\n" : "") + text;
     return;
   }
 
@@ -93,30 +95,32 @@ function updateSessionFromEvent(
   }
 }
 
-export const sessionCapture: AcpMiddleware = async (ctx, next) => {
-  await next();
+function createSessionCapture(retainSession: boolean): AcpMiddleware {
+  return async (ctx, next) => {
+    await next();
 
-  const source = ctx.eventStream;
-  const toolCallsById = new Map<string, SessionToolCall>();
-  ctx.sessionResult = {
-    output: "",
-    messages: [],
-    toolCalls: []
-  };
-
-  for (const event of ctx.events) {
-    updateSessionFromEvent(ctx, event, toolCallsById);
-  }
-
-  if (!source) {
-    return;
-  }
-
-  ctx.eventStream = (async function* () {
-    for await (const event of source) {
-      ctx.events.push(event);
-      updateSessionFromEvent(ctx, event, toolCallsById);
-      yield event;
+    const source = ctx.eventStream;
+    const toolCallsById = retainSession ? new Map<string, SessionToolCall>() : undefined;
+    if (retainSession) {
+      ctx.sessionResult = { output: "", messages: [], toolCalls: [] };
     }
-  })();
-};
+
+    for (const event of ctx.events) {
+      updateSessionFromEvent(ctx, event, toolCallsById);
+    }
+
+    if (!source) return;
+
+    ctx.eventStream = (async function* () {
+      for await (const event of source) {
+        if (retainSession) ctx.events.push(event);
+        updateSessionFromEvent(ctx, event, toolCallsById);
+        yield event;
+      }
+    })();
+  };
+}
+
+export const sessionCapture = createSessionCapture(true);
+/** Capture thread metadata while leaving conversation content in the stream. */
+export const sessionMetadataCapture = createSessionCapture(false);

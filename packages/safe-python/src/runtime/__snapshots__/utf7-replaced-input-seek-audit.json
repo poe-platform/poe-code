@@ -1,0 +1,43 @@
+{
+  "executable": "/opt/homebrew/bin/python3.14",
+  "arguments": [
+    "-I",
+    "-c",
+    "<source>"
+  ],
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "source": "import sys,json,_codecs,codecs\nrows=json.load(sys.stdin)\nfor row in rows:\n events=[]\n def recover(e):\n  events.append([e.encoding,list(e.object),e.start,e.end,e.reason])\n  if len(events)==1:\n   e.object=bytes(row['replacement'])\n   return ('!',0)\n  return ('?',len(e.object))\n codecs.register_error('probe',recover)\n try:\n  s,n=_codecs.utf_7_decode(bytes(row['input']),'probe',row['final'])\n  result={'text':list(map(ord,s)),'consumed':n,'events':events}\n except Exception as e: result={'error':[type(e).__name__,str(e)],'events':events}\n print(json.dumps(result))\n",
+  "generator": {
+    "seed": 2443327975,
+    "algorithm": "32-bit xorshift: seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed >>> 0",
+    "alphabet": [
+      43,
+      45,
+      65,
+      66,
+      47,
+      50,
+      90,
+      97,
+      122,
+      32,
+      0,
+      128,
+      255
+    ],
+    "count": 12000,
+    "order": "input length 1+next()%20; input bytes alphabet[next()%alphabet.length]; replacement length next()%16; replacement bytes likewise; final !!(next()%2)"
+  },
+  "comparison": "exact output code points, consumed count and every callback error encoding/object/start/end/reason; first callback returns ! at position 0 in replacement input; subsequent callbacks return ? at end of current input",
+  "status": 0,
+  "stderr": "",
+  "inputSha256": "de6dd1b936209ce9e8b3095b1fbeb9ea56266358be35ca7b62d18428d5175d1d",
+  "expectedSha256": "ae911d0cd78bb5f22813887c4bbf4ad157ca7bd794e8d28639eca06be271267d",
+  "actualSha256": "ae911d0cd78bb5f22813887c4bbf4ad157ca7bd794e8d28639eca06be271267d",
+  "mismatches": []
+}

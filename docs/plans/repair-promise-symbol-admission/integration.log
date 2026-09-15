@@ -1,0 +1,233 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/iterator-result-creation-realm.test.ts (78 tests) 13030ms
+   ✓ retains iterator result realm: '"😀"[Symbol.iterator]()' after 1 steps  329ms
+   ✓ retains iterator result realm: '"😀"[Symbol.iterator]()' after 2 steps  378ms
+   ✓ retains iterator result realm: '"a".matchAll(/a/g)' after +0 steps  744ms
+   ✓ retains iterator result realm: '"a".matchAll(/a/g)' after 1 steps  476ms
+   ✓ retains iterator result realm: '/a/[Symbol.matchAll]("a")' after 1 steps  335ms
+   ✓ retains iterator result realm: '"a".matchAll("a")' after +0 steps  489ms
+   ✓ retains iterator result realm: 'RegExp.prototype[Symbol.matchAll].cal…' after 2 steps  328ms
+   ✓ uses the borrowed next method realm: [3].values()  369ms
+   ✓ preserves result realms through public replay: [3].values()  857ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-closures.test.ts (24 tests) 13806ms
+   ✓ restores the originating realm for '()=>[]'  478ms
+   ✓ restores the originating realm for '()=>({})'  494ms
+   ✓ restores the originating realm for '()=>/x/'  508ms
+   ✓ restores the originating realm for '()=>new Map()'  501ms
+   ✓ restores the originating realm for 'Function("return this")'  748ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  839ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  1321ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  861ms
+   ✓ restores the originating realm for '(()=>{class C { value=[] };return ()=…'  529ms
+   ✓ restores the originating realm for '(()=>{class C { #value={};get(){retur…'  587ms
+   ✓ restores the originating realm for '(()=>{class B{};class C extends B { v…'  455ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  644ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  533ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  468ms
+   ✓ restores the originating realm for '(()=>{function* f(){while(true)yield …'  493ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  913ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  520ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  754ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  836ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  480ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  397ms
+ ✓ packages/safe-js/src/run.promise-generic.test.ts (52 tests) 4894ms
+ ✓ packages/safe-js/src/run.promise-aliases.test.ts (19 tests) 6140ms
+     ✓ matches the full native workflow and restores both inputs (pending: false)  2084ms
+     ✓ matches the full native workflow and restores both inputs (pending: true)  1915ms
+     ✓ preserves genuine pre-repair v7 'full' history without relabeling  543ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-values.test.ts (15 tests) 3078ms
+   ✓ preserves new Set([1,2]).values() cursor progression across mixed-realm snapshots  419ms
+ ✓ packages/safe-js/src/interp/methods/array-species-creation-realm.test.ts (28 tests) 2251ms
+ ✓ packages/safe-js/src/interp/host-callback-arity.test.ts (30 tests) 2045ms
+     ✓ preserves cached aliases, native length descriptors, defaults and callback execution  330ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-continuations.test.ts (16 tests) 2258ms
+ ✓ packages/safe-js/src/run.promise-order.test.ts (39 tests) 2093ms
+     ✓ preserves 256 caller iterations before async continuation  316ms
+ ✓ packages/safe-js/src/interp/host-bridge.test.ts (45 tests) 1770ms
+     ✓ preserves synchronous function Error() { [native code] } metadata through repeated replay  387ms
+ ✓ packages/safe-js/src/interp/globals/weak-collection-realms.test.ts (32 tests) 1908ms
+ ✓ packages/safe-js/src/run.promise-compatibility.test.ts (20 tests) 2419ms
+     ✓ retains 'data'/'saved' replay with nullPrototype=false and unchanged history  310ms
+ ✓ packages/safe-js/src/interp/native-promise-admission.test.ts (22 tests) 1836ms
+ ✓ packages/safe-js/src/run.new-settlement-promise.test.ts (9 tests) 1605ms
+   ✓ replays a newly encountered fulfilled Promise and its aliases  303ms
+ ✓ packages/safe-js/src/interp/globals/iterator-helper-result-realm.test.ts (25 tests) 2449ms
+ ✓ packages/safe-js/src/interp/ordinary-constructor-realm.test.ts (38 tests) 2458ms
+ ✓ packages/safe-js/src/run.public-promise-recovery.test.ts (10 tests) 2497ms
+     ✓ restores one completed nonaliased raw Promise from arguments without replacement inputs  429ms
+     ✓ restores the full unchanged scan without hiding separate raw alias differences  1035ms
+ ✓ packages/safe-js/src/interp/globals/foreign-intrinsic-error-realm.test.ts (17 tests) 1209ms
+ ✓ packages/safe-js/src/run.pending-imported-promise.test.ts (5 tests) 1398ms
+   ✓ reconciles an aliased pending Promise once with a fulfilled outcome  354ms
+   ✓ checkpoints a pending Promise from sync host and reconciles it without repeating its source  307ms
+ ✓ packages/safe-js/src/interp/globals/reflection-creation-realm.test.ts (21 tests) 1425ms
+ ✓ packages/safe-js/src/snapshot/symbol-registry.test.ts (13 tests) 1426ms
+ ✓ packages/safe-js/src/run.promise-iterable.test.ts (36 tests) 2057ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-executors.test.ts (8 tests) 1055ms
+ ✓ packages/safe-js/src/interp/globals/boxed-creation-realm.test.ts (20 tests) 1276ms
+ ✓ packages/safe-js/src/interp/globals/promise-prototype-lifetime.test.ts (17 tests) 1092ms
+ ✓ packages/safe-js/src/interp/symbol.test.ts (41 tests) 1269ms
+ ✓ packages/safe-js/src/run.promise-constructor.test.ts (49 tests) 1744ms
+ ✓ packages/safe-js/src/run.host-promise-property-aliases.test.ts (6 tests) 1301ms
+   ✓ preserves aliases between Promise properties and their host outcome {"asynchronous":false,"promiseFirst":false}  382ms
+ ✓ packages/safe-js/src/interp/symbol-operators.test.ts (37 tests) 1121ms
+ ✓ packages/safe-js/src/interp/methods/regex-symbol-matchall.test.ts (19 tests) 1145ms
+ ✓ packages/safe-js/src/interp/globals/promise-result-realm.test.ts (13 tests) 1149ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-aggregates.test.ts (7 tests) 1166ms
+ ✓ packages/safe-js/src/run.host-nested-promise-replay.test.ts (5 tests) 1174ms
+   ✓ replays a rejected nested host Promise without invoking the host again  309ms
+ ✓ packages/safe-js/src/interp/globals/dynamic-function-owner-realm.test.ts (8 tests) 1035ms
+ ✓ packages/safe-js/src/interp/methods/split-creation-realm.test.ts (15 tests) 1170ms
+ ✓ packages/safe-js/src/realm-callback-phases.test.ts (27 tests) 1080ms
+ ✓ packages/safe-js/src/snapshot/settled-promises.test.ts (11 tests) 1221ms
+ ✓ packages/safe-js/src/interp/globals/promise-method-species.test.ts (19 tests) 898ms
+ ✓ packages/safe-js/src/run.promise-settlement-identity.test.ts (9 tests) 1036ms
+   ✓ preserves settlement sibling identity through completed replay  306ms
+ ✓ packages/safe-js/src/interp/generator-result-realm.test.ts (9 tests) 856ms
+ ✓ packages/safe-js/src/interp/globals/promise-custom-prototype.test.ts (16 tests) 866ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 916ms
+   ✓ preserves distinct Number intrinsic graphs from two originating realms  309ms
+ ✓ packages/safe-js/src/realm.test.ts (31 tests) 942ms
+ ✓ packages/safe-js/src/interp/methods/match-creation-realm.test.ts (12 tests) 846ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-subclasses.test.ts (5 tests) 863ms
+ ✓ packages/safe-js/src/interp/globals/json-creation-realm.test.ts (10 tests) 750ms
+ ✓ packages/safe-js/src/interp/globals/promise-foreign-newtarget.test.ts (11 tests) 797ms
+ ✓ packages/safe-js/src/interp/globals/promise-with-resolvers.test.ts (15 tests) 728ms
+ ✓ packages/safe-js/src/interp/regexp-match-payload-realm.test.ts (11 tests) 1093ms
+ ✓ packages/safe-js/src/snapshot/promise-resolvers.test.ts (8 tests) 910ms
+ ✓ packages/safe-js/src/run.host-promise-data-properties.test.ts (4 tests) 895ms
+   ✓ replays new host Promise data properties (async: false)  351ms
+ ✓ packages/safe-js/src/interp/methods/regex-symbol-replace.test.ts (13 tests) 577ms
+ ✓ packages/safe-js/src/interp/promise-await-properties.test.ts (13 tests) 767ms
+ ✓ packages/safe-js/src/interp/globals/promise-resolver-metadata.test.ts (8 tests) 794ms
+ ✓ packages/safe-js/src/snapshot/symbol-accessor-replay.test.ts (5 tests) 681ms
+ ✓ packages/safe-js/src/interp/promise-subclass-async.test.ts (11 tests) 783ms
+ ✓ packages/safe-js/src/run.promise-property-key-budgets.test.ts (14 tests) 579ms
+ ✓ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (5 tests) 686ms
+   ✓ enforces admitted symbol and value string limits through replay  458ms
+ ✓ packages/safe-js/src/run.replay-input-allocation-budgets.test.ts (4 tests) 501ms
+ ✓ packages/safe-js/src/interp/globals/descriptor-creation-realm.test.ts (7 tests) 593ms
+ ✓ packages/safe-js/src/interp/methods/regex-symbol-search.test.ts (17 tests) 659ms
+ ✓ packages/safe-js/src/interp/globals/promise-subclass-prototype.test.ts (15 tests) 727ms
+ ✓ packages/safe-js/src/host-callback-receiver.test.ts (16 tests) 678ms
+ ✓ packages/safe-js/src/interp/promise-property-budgets.test.ts (8 tests) 499ms
+ ✓ packages/safe-js/src/interp/promise-import-string-properties.test.ts (14 tests) 509ms
+ ✓ packages/safe-js/src/interp/globals/object-constructor-realm.test.ts (10 tests) 485ms
+ ✓ packages/safe-js/src/interp/entry-pair-creation-realm.test.ts (6 tests) 376ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-species.test.ts (4 tests) 448ms
+ ✓ packages/safe-js/src/interp/globals/promise-try.test.ts (16 tests) 646ms
+ ✓ packages/safe-js/src/run.pending-imported-promise-checkpoints.test.ts (2 tests) 410ms
+ ✓ packages/safe-js/src/interp/globals/promise-any-descriptors.test.ts (4 tests) 279ms
+ ✓ packages/safe-js/src/interp/globals/promise-function-metadata.test.ts (14 tests) 557ms
+ ✓ packages/safe-js/src/run.pending-imported-promise-nested-proof.test.ts (2 tests) 552ms
+   ✓ replays a pending checkpoint containing a Promise introduced by a reconciliation proof  329ms
+ ✓ packages/safe-js/src/interp/symbol-descriptors.test.ts (26 tests) 641ms
+ ✓ packages/safe-js/src/interp/methods/regex-symbol-split.test.ts (19 tests) 621ms
+ ✓ packages/safe-js/src/interp/methods/array-copy-creation-realm.test.ts (4 tests) 595ms
+ ✓ packages/safe-js/src/interp/globals/iterator-wrapper-result-realm.test.ts (5 tests) 603ms
+ ✓ packages/safe-js/src/interp/globals/promise-prototype-graph.test.ts (9 tests) 550ms
+ ✓ packages/safe-js/src/proxy-host-callback.test.ts (13 tests) 675ms
+ ✓ packages/safe-js/src/interp/globals/promise-own-properties.test.ts (13 tests) 739ms
+ ✓ packages/safe-js/src/run.promise-settlement-collections.test.ts (3 tests) 490ms
+ ✓ packages/safe-js/src/realm-console-override.test.ts (33 tests) 621ms
+ ✓ packages/safe-js/src/interp/globals/date-constructor-realm.test.ts (7 tests) 388ms
+ ✓ packages/safe-js/src/interp/globals/eval-foreign-realm.test.ts (5 tests) 530ms
+ ✓ packages/safe-js/src/interp/globals/promise-finally-foreign-species.test.ts (5 tests) 363ms
+ ✓ packages/safe-js/src/run.pending-imported-promise-cancellation.test.ts (2 tests) 317ms
+ ✓ packages/safe-js/src/interp/globals/iterator-to-array-realm.test.ts (5 tests) 343ms
+ ✓ packages/safe-js/src/interp/methods/regex-symbol-match.test.ts (15 tests) 489ms
+ ✓ packages/safe-js/src/interp/globals/object-from-entries-realm.test.ts (5 tests) 248ms
+ ✓ packages/safe-js/src/snapshot/promise-callable-references.test.ts (6 tests) 525ms
+ ✓ packages/safe-js/src/interp/globals/promise-inherited-proxy.test.ts (9 tests) 289ms
+ ✓ packages/safe-js/src/interp/primitive-symbol-members.test.ts (3 tests) 120ms
+ ✓ packages/safe-js/src/interp/globals/array-constructor-realm.test.ts (12 tests) 543ms
+ ✓ packages/safe-js/src/interp/globals/weak-prototype-realms.test.ts (4 tests) 553ms
+ ✓ packages/safe-js/src/interp/globals/promise-finally-own-then.test.ts (8 tests) 345ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-callbacks.test.ts (2 tests) 499ms
+ ✓ packages/safe-js/src/interp/globals/json-symbol-replacer.test.ts (9 tests) 371ms
+ ✓ packages/safe-js/src/interp/symbol-boxing.test.ts (11 tests) 358ms
+ ✓ packages/safe-js/src/snapshot/promise-to-string-tag.test.ts (3 tests) 385ms
+ ✓ packages/safe-js/src/interp/globals/disposal-symbols.test.ts (7 tests) 461ms
+ ✓ packages/safe-js/src/interp/globals/promise-proxy.test.ts (14 tests) 509ms
+ ✓ packages/safe-js/src/interp/globals/promise-own-then-resolution.test.ts (8 tests) 328ms
+ ✓ packages/safe-js/src/interp/globals/promise-method-constructor.test.ts (8 tests) 334ms
+ ✓ packages/safe-js/src/interp/pattern-rest-realm.test.ts (10 tests) 557ms
+ ✓ packages/safe-js/src/interp/globals/promise-proxy-property-read.test.ts (10 tests) 415ms
+ ✓ packages/safe-js/src/interp/string-symbol-protocols.test.ts (13 tests) 431ms
+ ✓ packages/safe-js/src/interp/globals/object-assign-symbol-keys.test.ts (9 tests) 315ms
+ ✓ packages/safe-js/src/interp/globals/string-concat-symbol.test.ts (8 tests) 268ms
+ ✓ packages/safe-js/src/interp/object-literal-realm.test.ts (6 tests) 578ms
+ ✓ packages/safe-js/src/run.pending-promise-properties.test.ts (1 test) 335ms
+   ✓ retains original properties across pending proof replacement and completed replay  333ms
+ ✓ packages/safe-js/src/interp/globals/promise-proxy-thenable.test.ts (13 tests) 449ms
+ ✓ packages/safe-js/src/interp/function-rest-realm.test.ts (7 tests) 416ms
+ ✓ packages/safe-js/src/interp/globals/group-by-creation-realm.test.ts (3 tests) 286ms
+ ✓ packages/safe-js/src/interp/host-imported-promise-validation.test.ts (5 tests) 408ms
+ ✓ packages/safe-js/src/interp/globals/promise-proxy-getter.test.ts (6 tests) 238ms
+ ✓ packages/safe-js/src/interp/globals/aggregate-error-array-realm.test.ts (6 tests) 464ms
+ ✓ packages/safe-js/src/interp/structured-clone-symbol.test.ts (7 tests) 284ms
+ ✓ packages/safe-js/src/interp/structured-clone-boxed-symbol.test.ts (8 tests) 283ms
+ ✓ packages/safe-js/src/interp/globals/promise-to-string-tag.test.ts (7 tests) 232ms
+ ✓ packages/safe-js/src/interp/promise-aggregate-state.test.ts (4 tests) 231ms
+ ✓ packages/safe-js/src/interp/globals/promise-catch-own-then.test.ts (6 tests) 259ms
+ ✓ packages/safe-js/src/interp/globals/promise-prototype-proxy-adoption.test.ts (4 tests) 257ms
+ ✓ packages/safe-js/src/interp/symbol-registry-accounting.test.ts (4 tests) 202ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-validation.test.ts (3 tests) 155ms
+ ✓ packages/safe-js/src/interp/promise-allocation-accessors.test.ts (10 tests) 195ms
+ ✓ packages/safe-js/src/interp/function-realm-budget-reuse.test.ts (2 tests) 187ms
+ ✓ packages/safe-js/src/interp/globals/promise-resolve-constructor.test.ts (4 tests) 252ms
+ ✓ packages/safe-js/src/interp/promise-continuations.test.ts (7 tests) 178ms
+ ✓ packages/safe-js/src/interp/structured-clone-symbol-keys.test.ts (5 tests) 203ms
+ ✓ packages/safe-js/src/interp/function-realm.test.ts (5 tests) 152ms
+ ✓ packages/safe-js/src/realm-owned-job-error.test.ts (4 tests) 144ms
+ ✓ packages/safe-js/src/interp/budget-realm-views.test.ts (7 tests) 79ms
+ ✓ packages/safe-js/src/interp/pending-promise-proof-budget.test.ts (5 tests) 20ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-depth.test.ts (3 tests) 57ms
+ ✓ packages/safe-js/src/interp/promise.test.ts (59 tests) 57ms
+ ✓ packages/safe-js/src/snapshot/symbol.test.ts (22 tests) 47ms
+ ✓ packages/safe-js/src/interp/host-call-graph.test.ts (4 tests) 36ms
+ ✓ packages/safe-js/src/interp/symbol-copy.test.ts (6 tests) 27ms
+ ✓ packages/safe-js/src/interp/host-call.test.ts (17 tests) 27ms
+ ✓ packages/safe-js/src/snapshot/replay-inputs.test.ts (13 tests) 20ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-data.test.ts (20 tests) 20ms
+ ✓ packages/safe-js/src/interp/shared-host-callback-validation.test.ts (6 tests) 21ms
+ ✓ packages/safe-js/src/lint/rules/AS-floating-promise.test.ts (14 tests) 13ms
+ ✓ packages/safe-js/src/interp/promise.generic.test.ts (28 tests) 23ms
+ ✓ packages/safe-js/src/interp/host-promise-property-budget.test.ts (2 tests) 15ms
+ ✓ packages/safe-js/src/snapshot/symbol-replay.test.ts (16 tests) 18ms
+ ✓ packages/safe-js/src/snapshot/trusted-promise-replay.test.ts (5 tests) 11ms
+ ✓ packages/safe-js/src/interp/host-promise-settlement-identity.test.ts (4 tests) 11ms
+ ✓ packages/safe-js/src/interp/typed-array-symbol-accounting.test.ts (25 tests) 9ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-properties.test.ts (7 tests) 13ms
+ ✓ packages/safe-js/src/interp/structured-clone-sdk-symbol.test.ts (7 tests) 11ms
+ ✓ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts (2 tests) 13ms
+ ✓ packages/safe-js/src/snapshot/pending-imported-promise-validation.test.ts (5 tests) 9ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-schedule.test.ts (10 tests) 15ms
+ ✓ packages/safe-js/src/interp/promise-settlement-alias.test.ts (6 tests) 11ms
+ ✓ packages/safe-js/src/interp/temporal-realm-prototypes.test.ts (8 tests) 7ms
+ ✓ packages/safe-js/src/interp/promise-replay-imports.test.ts (9 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/input-symbol-references.test.ts (9 tests) 18ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-property-validation.test.ts (4 tests) 15ms
+ ✓ packages/safe-js/src/interp/promise-replay.test.ts (18 tests) 47ms
+ ✓ packages/safe-js/src/interp/structured-clone-promises.test.ts (4 tests) 11ms
+ ✓ packages/safe-js/src/interp/promise-cross-realm-import.test.ts (4 tests) 14ms
+ ✓ packages/safe-js/src/interp/measure-symbol-capture.test.ts (3 tests) 6ms
+ ✓ packages/safe-js/src/interp/promise-property-capture.test.ts (1 test) 8ms
+ ✓ packages/safe-js/src/interp/symbol-resources.test.ts (7 tests) 8ms
+ ✓ packages/safe-js/src/interp/array-symbol-capture.test.ts (4 tests) 5ms
+ ✓ packages/safe-js/src/interp/promise-replay-settlement.test.ts (4 tests) 6ms
+ ✓ packages/safe-js/src/interp/prototype-realm-free.test.ts (5 tests) 5ms
+ ✓ packages/safe-js/src/interp/promise-replay-import-header.test.ts (13 tests) 7ms
+ ✓ packages/safe-js/src/interp/disposal-symbol-compatibility.test.ts (1 test) 4ms
+ ✓ packages/safe-js/src/interp/promise-import-properties.test.ts (2 tests) 4ms
+ ✓ packages/safe-js/src/interp/promise-state.test.ts (2 tests) 5ms
+ ✓ packages/safe-js/src/interp/intrinsic-realm-identity.test.ts (5 tests) 4ms
+
+ Test Files  173 passed (173)
+      Tests  2096 passed (2096)
+   Start at  18:19:48
+   Duration  138.29s (transform 10.84s, setup 2.66s, import 114.90s, tests 140.21s, environment 12ms)
+

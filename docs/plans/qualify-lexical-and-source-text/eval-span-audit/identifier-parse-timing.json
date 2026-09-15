@@ -1,0 +1,29 @@
+{
+  "node": "v22.23.2",
+  "icu": "78.2",
+  "sourceCommit": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+  "results": [
+    {
+      "filename": "start-unicode-17.0.0.js",
+      "sourceSha256": "8d095332b36f2900a1f0636e528594fb43757f5fb467306fa82d71bbeadfcb60",
+      "sourceBytes": 46832,
+      "statements": 4647,
+      "parseMs": 23.116999999999997
+    },
+    {
+      "filename": "start-unicode-17.0.0-escaped.js",
+      "sourceSha256": "f04165b4992b3339763bf3f897875187b33eaac4ea97b83317555ff7f56250c0",
+      "sourceBytes": 70145,
+      "statements": 4647,
+      "parseMs": 20.468125
+    },
+    {
+      "filename": "start-unicode-5.2.0.js",
+      "sourceSha256": "c263caa5bcedf3263899322e5391361828b210177e54f670c4edcab1545f3dda",
+      "sourceBytes": 60679,
+      "statements": 6092,
+      "parseMs": 19.325582999999995
+    }
+  ],
+  "disposition": "Parser-only diagnostic timing, not completed Test262 variants; full fixture runtime deadlines remain failed."
+}

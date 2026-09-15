@@ -1,0 +1,8 @@
+{
+  "file": "delivery-root-release.log.gz",
+  "rawBytes": 185891,
+  "rawSha256": "c826c8ebe517daac2629a1d3f85db5ea76de2551d63d204bd9eb64161edd92ee",
+  "gzipBytes": 20640,
+  "gzipSha256": "e60435b2fd55a0cd33617069f2da94fb8de2ea00bfa58cab82b78fe20809909d",
+  "decompressionVerified": true
+}

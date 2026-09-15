@@ -1,0 +1,14 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "cases": [
+    {
+      "name": "iterencode metadata, suspension, reentry and final failures",
+      "output": "iterencode iterencode codecs \nEncoding iterator.\n\nEncodes the input strings from the iterator using an IncrementalEncoder.\n\nerrors and kwargs are passed through to the IncrementalEncoder\nconstructor.\n\n('strict',) None {} None\n('iterator', 'encoding', 'errors', 'kwargs', 'encoder', 'input', 'output') 3 0 0 67108907 1043 <frozen codecs>\n[]\n(\"can't send non-None value to a just-started generator\",) []\nA [('init', 'policy', {'marker': 17}), ('A', False)]\nB [('init', 'policy', {'marker': 17}), ('A', False), ('B', False), ('generator already executing',)]\nfinal [('init', 'policy', {'marker': 17}), ('A', False), ('B', False), ('generator already executing',), ('', True), ('generator already executing',)]\n()\nNone\nA\nTrue [('init', 'strict', {}), ('A', False), ('generator already executing',)]\n[] None\n('generator raised StopIteration',) StopIteration ('final',) True True\n[('init', 'strict', {}), ('', True)] []\n"
+    },
+    {
+      "name": "iterdecode metadata, suspension, reentry and final failures",
+      "output": "iterdecode iterdecode codecs \nDecoding iterator.\n\nDecodes the input strings from the iterator using an IncrementalDecoder.\n\nerrors and kwargs are passed through to the IncrementalDecoder\nconstructor.\n\n('strict',) None {} None\n('iterator', 'encoding', 'errors', 'kwargs', 'decoder', 'input', 'output') 3 0 0 67108907 1061 <frozen codecs>\n[]\n(\"can't send non-None value to a just-started generator\",) []\nA [('init', 'policy', {'marker': 17}), ('A', False)]\nB [('init', 'policy', {'marker': 17}), ('A', False), ('B', False), ('generator already executing',)]\nfinal [('init', 'policy', {'marker': 17}), ('A', False), ('B', False), ('generator already executing',), (b'', True), ('generator already executing',)]\n()\nNone\nA\nTrue [('init', 'strict', {}), ('A', False), ('generator already executing',)]\n[] None\n('generator raised StopIteration',) StopIteration ('final',) True True\n[('init', 'strict', {}), (b'', True)] []\n"
+    }
+  ]
+}

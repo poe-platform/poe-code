@@ -1,13 +1,14 @@
 import { createHash, generateKeyPairSync } from "node:crypto";
 import { exportJWK, jwtVerify } from "jose";
 import { createJwksTokenVerifier } from "mcp-oauth";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   createInMemoryAuthorizationServerStore,
   createOAuthAuthorizationServer,
   type AuthorizationGrantRecord,
-  type AuthorizationInteraction
+  type AuthorizationInteraction,
+  type OAuthAuthorizationServerOptions
 } from "./index.js";
 
 const issuer = "https://auth.example.com";
@@ -16,9 +17,54 @@ const redirectUri = "http://127.0.0.1:43123/callback";
 const verifier = "v".repeat(43);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 
+it.each(["accessTokenTtlSeconds", "authorizationCodeTtlSeconds", "authorizationTransactionTtlSeconds", "refreshTokenTtlSeconds"] as const)("rejects unsafe %s settings before issuing credentials", async (key) => {
+  for (const value of [0, -1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER]) {
+    await expect(createServer({ [key]: value })).rejects.toThrow(`${key} must be a positive safe integer`);
+  }
+});
+
+it("rejects invalid UTF-8 in authorization registration JSON", async () => {
+  const { server } = await createServer();
+  const prefix = new TextEncoder().encode('{"redirect_uris":["https://example.test/');
+  const suffix = new TextEncoder().encode('"]}');
+  const bytes = new Uint8Array([...prefix, 255, ...suffix]);
+  const response = await server.handle(new Request(`${issuer}/register`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: bytes
+  }));
+  expect(response.status).toBe(400);
+});
+
+it("stops reading an oversized streamed authorization request and releases its reader", async () => {
+  const { server } = await createServer();
+  const cancel = vi.fn();
+  let pulls = 0;
+  const request = new Request(`${issuer}/register`, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: new ReadableStream({
+      pull(controller) { pulls++; controller.enqueue(new Uint8Array(40_000)); if (pulls === 5) controller.close(); },
+      cancel
+    }), duplex: "half"
+  } as RequestInit);
+  expect((await server.handle(request)).status).toBe(413);
+  expect(cancel).toHaveBeenCalledOnce();
+  expect(pulls).toBeLessThanOrEqual(3);
+  expect(request.body?.locked).toBe(false);
+});
+
+it("cancels a declared oversized authorization body without reading it", async () => {
+  const { server } = await createServer();
+  const request = new Request(`${issuer}/register`, {
+    method: "POST", headers: { "content-type": "application/json", "content-length": "100000" }, body: "{}"
+  });
+  const cancel = vi.spyOn(request.body!, "cancel");
+  expect((await server.handle(request)).status).toBe(413);
+  expect(cancel).toHaveBeenCalledOnce();
+});
+
 async function createServer(options: {
   onGrantRevoked?: (grant: AuthorizationGrantRecord) => Promise<void> | void;
-} = {}) {
+  issuer?: string;
+} & Partial<Pick<OAuthAuthorizationServerOptions, "accessTokenTtlSeconds" | "authorizationCodeTtlSeconds" | "authorizationTransactionTtlSeconds" | "refreshTokenTtlSeconds">> = {}) {
   const { privateKey, publicKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
   const publicJwk = await exportJWK(publicKey);
   const startedTransactions: string[] = [];
@@ -29,7 +75,8 @@ async function createServer(options: {
     }
   };
   const server = createOAuthAuthorizationServer({
-    issuer,
+    ...options,
+    issuer: options.issuer ?? issuer,
     resources: [resource],
     scopesSupported: ["mcp.read", "offline_access"],
     defaultScopes: ["mcp.read", "offline_access"],
@@ -103,6 +150,17 @@ async function exchangeCode(input: {
 }
 
 describe("createOAuthAuthorizationServer", () => {
+  it.each(["ftp://localhost", "ftp://127.0.0.1", "https://user:secret@auth.example.com", "http://user@localhost"])(
+    "rejects unsafe issuer URLs: %s", async (value) => {
+      await expect(createServer({ issuer: value })).rejects.toThrow();
+    }
+  );
+  it.each(["http://[::1]:43123", "http://127.0.0.2:43123"])(
+    "accepts actual HTTP loopback issuer URLs: %s", async (value) => {
+      const { server } = await createServer({ issuer: value });
+      expect(server.issuer).toBe(value);
+    }
+  );
   it("runs authorization code with PKCE and propagates the approved subject", async () => {
     const { server, startedTransactions, publicKey } = await createServer();
     const client = await registerClient(server);

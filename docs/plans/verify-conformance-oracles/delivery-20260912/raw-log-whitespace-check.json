@@ -1,0 +1,6 @@
+{
+  "command": "git diff --cached --check",
+  "exitCode": 2,
+  "output": "docs/plans/verify-conformance-oracles/acceptance-final/postbuild-tests.log:21: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/current-completion-green.log:21: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/current-completion-red.log:129: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/current-main-tests.log:20: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/delivery-20260912/conformance.log:21: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/final-conformance-tests.log:20: new blank line at EOF.\ndocs/plans/verify-conformance-oracles/reverification-20260912/tests.log:21: new blank line at EOF.\n",
+  "disposition": "Raw historical and fresh Vitest logs end with blank lines. Preserve their original bytes; check source, Markdown and JSON separately. This is not a failed test or runtime-policy waiver."
+}

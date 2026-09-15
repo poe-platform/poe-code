@@ -121,6 +121,7 @@ export function registerSpawnCommand(
         "--mode <mode>",
         `Permission mode: ${SPAWN_MODES.join(" | ")} (prompted; --yes uses ${DEFAULT_SPAWN_MODE})`
       )
+      .option("--no-capture-session", "Omit the captured conversation from the spawn result")
       .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
       .option(
         "--mcp-servers <json|@file>",
@@ -188,6 +189,7 @@ export function registerSpawnCommand(
           logDir?: string;
           logFileName?: string;
           logContent?: boolean;
+          captureSession?: boolean;
           captureOtel?: boolean;
           captureOtelContent?: boolean;
         } & RuntimeCliOptions &
@@ -335,6 +337,7 @@ export function registerSpawnCommand(
             ? { logFileName: commandOptions.logFileName }
             : {}),
           ...(commandOptions.logContent ? { logContent: true } : {}),
+          ...(commandOptions.captureSession === false ? { captureSession: false } : {}),
           ...(commandOptions.captureOtel || commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL === "1" || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
             ? { captureOtel: true }
             : {}),
@@ -451,6 +454,7 @@ export function registerSpawnCommand(
                 ? { logFileName: spawnOptions.logFileName }
                 : {}),
               ...(spawnOptions.logContent ? { logContent: true } : {}),
+              ...(spawnOptions.captureSession === false ? { captureSession: false } : {}),
               ...(spawnOptions.captureOtel ? { captureOtel: true } : {}),
               ...(spawnOptions.captureOtelContent ? { captureOtelContent: true } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined

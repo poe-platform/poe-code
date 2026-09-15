@@ -1,15 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
+import { setImmediate } from "node:timers/promises";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 
 import { dump, dumpCurrent } from "../dump.js";
 import { Budget } from "../interp/budget.js";
 import { run } from "../run.js";
 import { makeMcpModule } from "./mcp.js";
-import { parseMcpConfig } from "./mcp-transport.js";
+import { parseMcpConfig, normalizeMcpOptions } from "./mcp-transport.js";
 
-function createHttpServer() {
+function createHttpServer(modern = false) {
   const requests: Array<{ method: string; params?: unknown }> = [];
   const fetch = vi.fn(async (_input: string | URL, init?: RequestInit) => {
     if (init?.method === "GET") return new Response(null, { status: 405 });
@@ -19,6 +20,10 @@ function createHttpServer() {
     }
     const request = JSON.parse(String(init?.body));
     requests.push(request);
+    if (request.method === "server/discover") return Response.json(modern ? {
+      jsonrpc: "2.0", id: request.id, result: { resultType: "complete", supportedVersions: ["2026-07-28"],
+        capabilities: { tools: {} }, ttlMs: 0, cacheScope: "private" }
+    } : { jsonrpc: "2.0", id: request.id, error: { code: -32601, message: "Method not found" } });
     if (request.id === undefined) return new Response(null, { status: 202 });
     const result =
       request.method === "initialize"
@@ -28,10 +33,11 @@ function createHttpServer() {
             serverInfo: { name: "memory", version: "1" }
           }
         : request.method === "tools/list"
-          ? { tools: [{ name: "echo", inputSchema: { type: "object" } }] }
-          : { content: [{ type: "text", text: JSON.stringify(request.params.arguments) }] };
+          ? { ...(modern ? { resultType: "complete", ttlMs: 0, cacheScope: "private" } : {}), tools: [{ name: "echo", inputSchema: { type: "object" } }] }
+          : { ...(modern ? { resultType: "complete", structuredContent: request.params.arguments.value } : {}),
+            content: [{ type: "text", text: JSON.stringify(request.params.arguments) }] };
     return new Response(JSON.stringify({ jsonrpc: "2.0", id: request.id, result }), {
-      headers: { "content-type": "application/json", "mcp-session-id": "test-session" }
+      headers: { "content-type": "application/json", ...(modern ? {} : { "mcp-session-id": "test-session" }) }
     });
   });
   return { fetch, requests };
@@ -43,6 +49,152 @@ afterEach(() => {
 });
 
 describe("managed MCP capabilities", () => {
+  it.each(["redirected", "opaqueredirect"])("rejects %s responses before wrapping managed HTTP bodies", async (kind) => {
+    const server = createHttpServer(true);
+    const originalFetch = server.fetch.getMockImplementation()!;
+    const responses: Response[] = [];
+    server.fetch.mockImplementation(async (input, init) => {
+      const response = await originalFetch(input, init);
+      if (response.body !== null) {
+        Object.defineProperty(response, kind === "redirected" ? "redirected" : "type", {
+          value: kind === "redirected" ? true : "opaqueredirect"
+        });
+        responses.push(response);
+      }
+      return response;
+    });
+    const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } }, fetch: server.fetch });
+    try {
+      await expect(mcp.servers.docs.tools()).rejects.toThrow("redirect");
+      expect(responses.length).toBeGreaterThan(0);
+      expect(responses.every((response) => response.bodyUsed && !response.body!.locked)).toBe(true);
+    } finally { await mcp.servers.docs.close(); }
+  });
+
+  it.each(["invalid UTF-8", "abort"])("releases managed readers after %s despite stalled cancellation", async (failure) => {
+    const server = createHttpServer(true);
+    const originalFetch = server.fetch.getMockImplementation()!;
+    const cancellation = Promise.withResolvers<void>();
+    const entered = Promise.withResolvers<void>();
+    const cancel = vi.fn(() => cancellation.promise);
+    const controller = new AbortController();
+    let response: Response | undefined;
+    server.fetch.mockImplementation(async (input, init) => {
+      if (!String(init?.body).includes('"tools/call"')) return originalFetch(input, init);
+      response = new Response(new ReadableStream({
+        start(stream) {
+          if (failure === "invalid UTF-8") {
+            stream.enqueue(new Uint8Array([0xff]));
+            stream.enqueue(new Uint8Array([0xff]));
+            stream.enqueue(new Uint8Array([0xff]));
+          }
+        }, cancel
+      }), { headers: { "content-type": "application/json" } });
+      entered.resolve();
+      return response;
+    });
+    const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } },
+      fetch: server.fetch, signal: controller.signal });
+    let operation: Promise<unknown> | undefined;
+    try {
+      await mcp.servers.docs.tools();
+      operation = mcp.servers.docs.tool("echo", {}).catch((error) => error);
+      await entered.promise;
+      await setImmediate();
+      if (failure === "abort") controller.abort(new Error("cancelled"));
+      await setImmediate();
+      expect(cancel).toHaveBeenCalledOnce();
+      expect(response?.body?.locked).toBe(false);
+    } finally {
+      cancellation.resolve();
+      controller.abort(new Error("cleanup"));
+      await mcp.servers.docs.close();
+      await operation;
+    }
+  });
+
+  it.each([false, true])("releases rejected and failed HTTP body readers (modern: %s)", async (modern) => {
+    for (const failure of ["status", "stream", "abort"] as const) {
+      const server = createHttpServer(modern);
+      const originalFetch = server.fetch.getMockImplementation()!;
+      const controller = new AbortController();
+      const entered = Promise.withResolvers<void>();
+      const cancel = vi.fn();
+      const reason = new Error("body stopped");
+      let response: Response | undefined;
+      server.fetch.mockImplementation(async (input, init) => {
+        if (!String(init?.body).includes('"tools/call"')) return originalFetch(input, init);
+        response = new Response(new ReadableStream({
+          start(stream) {
+            if (failure === "stream") stream.error(reason);
+            if (failure === "status") { stream.enqueue(new TextEncoder().encode('{"error":"unavailable"}')); stream.close(); }
+          }, cancel
+        }), { status: failure === "status" ? 503 : 200, headers: { "content-type": "application/json" } });
+        entered.resolve();
+        return response;
+      });
+      const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } }, fetch: server.fetch, signal: controller.signal });
+      let operation: Promise<unknown> | undefined;
+      try {
+        await mcp.servers.docs.tools();
+        operation = mcp.servers.docs.tool("echo", {});
+        const observed = expect(operation).rejects.toThrow();
+        await entered.promise;
+        await setImmediate();
+        if (failure === "abort") controller.abort(reason);
+        await observed;
+        await setImmediate();
+        expect(response?.body?.locked).toBe(false);
+        if (failure === "abort") expect(cancel).toHaveBeenCalledOnce();
+      } finally {
+        controller.abort(reason);
+        await mcp.servers.docs.close();
+        await operation?.catch(() => undefined);
+      }
+    }
+  });
+
+  it("rejects sparse spawn argument arrays", () => {
+    expect(() => normalizeMcpOptions({ servers: { docs: { command: "node", args: new Array(2) } } }))
+      .toThrow("MCP args");
+  });
+
+  it("rejects spawn argument accessors without invoking them", () => {
+    const getter = vi.fn(() => "--unsafe");
+    const args: string[] = [];
+    Object.defineProperty(args, "0", { get: getter, enumerable: true });
+    expect(() => normalizeMcpOptions({ servers: { docs: { command: "node", args } } })).toThrow("MCP args");
+    expect(getter).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])("releases upstream HTTP body readers after managed MCP calls (modern: %s)", async (modern) => {
+    const server = createHttpServer(modern);
+    const originalFetch = server.fetch.getMockImplementation()!;
+    const responses: Response[] = [];
+    server.fetch.mockImplementation(async (input, init) => {
+      const response = await originalFetch(input, init);
+      responses.push(response);
+      return response;
+    });
+    const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } }, fetch: server.fetch });
+    try {
+      await mcp.servers.docs.tools();
+      await mcp.servers.docs.tool("echo", { message: "ready" });
+    } finally { await mcp.servers.docs.close(); }
+    expect(responses.length).toBeGreaterThan(0);
+    expect(responses.every((response) => response.body?.locked !== true)).toBe(true);
+  });
+
+  it("discovers modern HTTP tools and retains scalar structured results without legacy initialization", async () => {
+    const server = createHttpServer(true);
+    const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } }, fetch: server.fetch });
+    try {
+      expect(await mcp.servers.docs.tools()).toMatchObject([{ name: "echo" }]);
+      expect(await mcp.servers.docs.tool("echo", { value: 7 })).toMatchObject({ resultType: "complete", structuredContent: 7 });
+    } finally { await mcp.servers.docs.close(); }
+    expect(server.requests.map((request) => request.method)).toEqual(["server/discover", "tools/list", "tools/call"]);
+  });
+
   it("retains JSON-RPC error codes and data through checked calls and replay", async () => {
     const server = createHttpServer();
     const originalFetch = server.fetch.getMockImplementation()!;
@@ -114,6 +266,11 @@ describe("managed MCP capabilities", () => {
       for (const line of String(data).trim().split("\n")) {
         const request = JSON.parse(line);
         if (request.id === undefined) continue;
+        if (request.method === "server/discover") {
+          child.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: request.id,
+            error: { code: -32601, message: "Method not found" } }) + "\n");
+          continue;
+        }
         const result =
           request.method === "initialize"
             ? {

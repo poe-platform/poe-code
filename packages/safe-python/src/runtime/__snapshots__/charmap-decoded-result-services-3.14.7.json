@@ -1,0 +1,102 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "method": "Unchanged guest programs run through PythonSession with explicit real file-descriptor input/output adapters; output fsynced and compared byte-for-byte. Host Python is only an external oracle. Temporary directory removed in finally. Allocation-limit behavior is a sandbox contract, not a CPython quota claim.",
+  "records": [
+    {
+      "name": "empty",
+      "source": "import _codecs\nresult = _codecs.charmap_decode(b'', 'strict', {})\nprint(repr(result))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "('', 0)\n",
+        "stderr": ""
+      },
+      "actual": "('', 0)\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "matches": true
+    },
+    {
+      "name": "empty mapping",
+      "source": "import _codecs\nclass Map:\n    def __getitem__(self, key):\n        print(input(), key)\n        return ''\nprint(repr(_codecs.charmap_decode(b'AB', 'strict', Map())))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ready 65\nready 66\n('', 2)\n",
+        "stderr": ""
+      },
+      "actual": "ready 65\nready 66\n('', 2)\n",
+      "status": "ok",
+      "reads": 2,
+      "writes": 10,
+      "matches": true
+    },
+    {
+      "name": "expanded mapping",
+      "source": "import _codecs\nclass Map:\n    def __getitem__(self, key):\n        print(input(), key)\n        return 'A🐍'\nprint(repr(_codecs.charmap_decode(b'AB', 'strict', Map())))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ready 65\nready 66\n('A🐍A🐍', 2)\n",
+        "stderr": ""
+      },
+      "actual": "ready 65\nready 66\n('A🐍A🐍', 2)\n",
+      "status": "ok",
+      "reads": 2,
+      "writes": 10,
+      "matches": true
+    },
+    {
+      "name": "negative resume",
+      "source": "import _codecs\ndef recover(error):\n    print(input(), type(error).__name__, error.start, error.end, repr(error.object))\n    return ('🐍', -1)\n_codecs.register_error('recovery', recover)\nprint(repr(_codecs.charmap_decode(b'AB', 'recovery', {66: 67})))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ready UnicodeDecodeError 0 1 b'AB'\n('🐍C', 2)\n",
+        "stderr": ""
+      },
+      "actual": "ready UnicodeDecodeError 0 1 b'AB'\n('🐍C', 2)\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "matches": true
+    },
+    {
+      "name": "surrogateescape",
+      "source": "import _codecs\nprint(input())\nprint(repr(_codecs.charmap_decode(b'\\xff', 'surrogateescape', {})))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ready\n('\\udcff', 1)\n",
+        "stderr": ""
+      },
+      "actual": "ready\n('\\udcff', 1)\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 4,
+      "matches": true
+    },
+    {
+      "name": "guest failure",
+      "source": "import _codecs\nclass Map:\n    def __getitem__(self, key):\n        print(input(), key)\n        raise ValueError('mapping failed')\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Map())\nexcept ValueError as error:\n    print(type(error).__name__, repr(error.args))\n",
+      "stdin": "ready\nready\nready\nready\nready\nready\nready\nready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ready 65\nValueError ('mapping failed',)\n",
+        "stderr": ""
+      },
+      "actual": "ready 65\nValueError ('mapping failed',)\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 8,
+      "matches": true
+    }
+  ]
+}

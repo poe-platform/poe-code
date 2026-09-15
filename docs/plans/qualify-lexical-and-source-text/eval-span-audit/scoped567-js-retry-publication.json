@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-09-13T08:09:34.874366+00:00",
+  "requiredSourceCommit": "d92879b57436f4e65441cf217227b948ea2a2ccc",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.567",
+      "status": "failed",
+      "error": "<HTTPError 404: 'Not Found'>"
+    }
+  ]
+}

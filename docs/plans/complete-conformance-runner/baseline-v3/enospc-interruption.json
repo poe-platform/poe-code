@@ -1,0 +1,55 @@
+{
+  "utc": "2026-09-12T08:19:51.379651+00:00",
+  "coordinatorExitCode": 1,
+  "coordinatorError": "OSError: [Errno 28] No space left on device writing batches/39500-39999.receipt.json",
+  "monitorEnded": true,
+  "excludedAttempts": [
+    {
+      "label": "39500-39999",
+      "resultRecords": 407,
+      "terminalType": "result",
+      "processExitCode": null,
+      "processExitCodeReason": "Supervisor failed to persist receipt due ENOSPC; no exit code fabricated",
+      "includedInFinalAggregation": false,
+      "files": [
+        {
+          "original": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/39500-39999.jsonl",
+          "copy": "docs/plans/complete-conformance-runner/baseline-v3/excluded-enospc-attempts/39500-39999.jsonl",
+          "bytes": 159711,
+          "sha256": "f2fe99acf0386986cb3b3351c42c1c7810dd43bf00d21059fe01238ee148bc0a"
+        },
+        {
+          "original": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/39500-39999.log",
+          "copy": "docs/plans/complete-conformance-runner/baseline-v3/excluded-enospc-attempts/39500-39999.log",
+          "bytes": 819,
+          "sha256": "57319ba8c367bcc4463b20056dedae2ab917833aa03afbe8dbf7d2d471b975cd"
+        }
+      ]
+    },
+    {
+      "label": "40500-40999",
+      "resultRecords": 442,
+      "terminalType": "aborted",
+      "processExitCode": null,
+      "processExitCodeReason": "Supervisor failed to persist receipt due ENOSPC; no exit code fabricated",
+      "includedInFinalAggregation": false,
+      "files": [
+        {
+          "original": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/40500-40999.jsonl",
+          "copy": "docs/plans/complete-conformance-runner/baseline-v3/excluded-enospc-attempts/40500-40999.jsonl",
+          "bytes": 131033,
+          "sha256": "cccdc33dd206fd36eb3fee657ba65c7c4f8c4cb77e73490cc17cc94d4ae5c01c"
+        },
+        {
+          "original": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/40500-40999.log",
+          "copy": "docs/plans/complete-conformance-runner/baseline-v3/excluded-enospc-attempts/40500-40999.log",
+          "bytes": 1113,
+          "sha256": "61b75bf61a8ffcfdbfd2f961d19677ec1c13b4132b67a9d6d7caf21bd0d93c8d"
+        }
+      ]
+    }
+  ],
+  "resumeSchedule": "resume-batch-schedule.json",
+  "originalReportsUntouched": true,
+  "sourceUnchanged": true
+}

@@ -1,5 +1,7 @@
 import { getTheme } from "../../internal/theme-detect.js";
+import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import { ScreenBuffer } from "../buffer.js";
+import { plainTerminalText } from "../ansi.js";
 import type { CellStyle, Rect } from "../types.js";
 
 export type FooterHint = {
@@ -14,12 +16,27 @@ export function renderFooter(buffer: ScreenBuffer, rect: Rect, hints: FooterHint
     return;
   }
 
-  const cells = truncateCells(hintsToCells(hints), rect.width);
-  const startX = rect.x + Math.floor((rect.width - cells.length) / 2);
+  const fitted: FooterHint[] = [];
+  hints = hints.map(hint => ({ key: plainTerminalText(hint.key), label: plainTerminalText(hint.label) }));
+  let width = 0;
+  for (const hint of hints) {
+    const nextWidth = displayWidth(`${hint.key} ${hint.label}`) + (fitted.length > 0 ? 2 : 0);
+    if (width + nextWidth > rect.width) break;
+    fitted.push(hint);
+    width += nextWidth;
+  }
+  if (fitted.length === 0) {
+    const key = truncateToWidth(hints[0]!.key, rect.width);
+    fitted.push({ key, label: "" });
+    width = displayWidth(key);
+  }
+  const cells = hintsToCells(fitted);
+  let x = rect.x + Math.floor((rect.width - width) / 2);
   const y = rect.y + Math.floor(rect.height / 2);
 
-  cells.forEach((cell, index) => {
-    buffer.put(startX + index, y, cell.ch, cell.style);
+  cells.forEach((cell) => {
+    buffer.put(x, y, cell.ch, cell.style);
+    x += graphemeWidth(cell.ch);
   });
 }
 
@@ -42,38 +59,18 @@ function hintsToCells(hints: FooterHint[]): Array<{ ch: string; style: CellStyle
       cells.push({ ch: " ", style: {} }, { ch: " ", style: {} });
     }
 
-    for (const ch of hint.key) {
+    for (const ch of graphemes(hint.key)) {
       cells.push({ ch, style: accentStyle });
     }
 
-    cells.push({ ch: " ", style: {} });
+    if (hint.label.length > 0) cells.push({ ch: " ", style: {} });
 
-    for (const ch of hint.label) {
+    for (const ch of graphemes(hint.label)) {
       cells.push({ ch, style: {} });
     }
   });
 
   return cells;
-}
-
-function truncateCells(
-  cells: Array<{ ch: string; style: CellStyle }>,
-  width: number
-): Array<{ ch: string; style: CellStyle }> {
-  if (cells.length <= width) {
-    return cells;
-  }
-
-  if (width <= 3) {
-    return Array.from({ length: Math.max(0, width) }, () => ({ ch: ".", style: {} }));
-  }
-
-  return [
-    ...cells.slice(0, width - 3),
-    { ch: ".", style: {} },
-    { ch: ".", style: {} },
-    { ch: ".", style: {} }
-  ];
 }
 
 function getAccentStyle(): CellStyle {

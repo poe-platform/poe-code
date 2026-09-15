@@ -1,0 +1,13 @@
+diff --git a/packages/safe-js/src/interp/promise.ts b/packages/safe-js/src/interp/promise.ts
+index 99384993c..06961e534 100644
+--- a/packages/safe-js/src/interp/promise.ts
++++ b/packages/safe-js/src/interp/promise.ts
+@@ -553,6 +553,8 @@ function getPromisePrototype(budget: Budget): SandboxObject {
+             ? (["fulfilled", "rejected"] as const).map((state) =>
+                 createSandboxClosure({
+                   sandbox: true,
++                  name: "",
++                  length: 1,
+                   retainedValues: () => [onFinally, constructor],
+                   call: async ([value]) => {
+                     const result = await callPromiseClosure(

@@ -30,7 +30,6 @@
     "test": "cd ../.. && vitest run packages/terminal-pilot/src/ --pool=forks",
     "pretest:unit": "npm run build",
     "test:unit": "cd ../.. && vitest run packages/terminal-pilot/src/ --pool=forks",
-    "qa:cli": "cd ../.. && tsx packages/terminal-pilot/src/testing/qa-cli.ts",
     "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
     "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-*.tgz && rm -rf $TMPD",
     "smoke": "cd ../.. && tsx packages/terminal-pilot/scripts/smoke-test.ts",

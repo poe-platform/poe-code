@@ -13,6 +13,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { runNpm } from "./npm-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -356,8 +357,7 @@ function prepare(packageDir, dependencyNames) {
       bundledDirs.push(...copyInstalledDependencyTree(packageDir, dependencyName));
       continue;
     }
-    const packOutput = execFileSync(
-      "npm",
+    const packOutput = runNpm(
       ["pack", workspaceDir, "--json", "--pack-destination", tempDir, "--dry-run=false"],
       {
         cwd: repoRoot,

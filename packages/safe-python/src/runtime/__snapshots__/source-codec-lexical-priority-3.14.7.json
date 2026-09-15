@@ -1,0 +1,2110 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "exec/text: \"x = ﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ﻿\"",
+      "source": "source = bytes([120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = ﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = ﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n﻿\"",
+      "source": "source = bytes([120,32,61,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n﻿\\n\"",
+      "source": "source = bytes([120,32,61,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 +\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 +\\n﻿\"",
+      "source": "source = bytes([49,32,43,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 +\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 +\\n﻿\\n\"",
+      "source": "source = bytes([49,32,43,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 +\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 +\\n﻿\\r\\n\"",
+      "source": "source = bytes([49,32,43,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\n﻿\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\n﻿\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\n﻿\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = â\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = â\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = â\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = â\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = â\\n\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = â\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = â\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = â\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = â\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = í \"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = í \"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = í \"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = í \\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = í \\n\"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = í \\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = í \\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = í \\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = í \\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = ï»¿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ï»¿\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = ï»¿\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = ï»¿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ï»¿\\n\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = ï»¿\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = ï»¿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = ï»¿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = ï»¿\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = (\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = (\"",
+      "source": "source = bytes([120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = (\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 2, 5, 'x = (\\n', 2, 0))\n'(' was never closed priority.py 2 5 'x = (\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = (\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = (\\n\"",
+      "source": "source = bytes([120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = (\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 2, 5, 'x = (\\n', 2, 0))\n'(' was never closed priority.py 2 5 'x = (\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = (\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = (\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 1, 5, 'x = (\\n', 1, 0))\n'(' was never closed priority.py 1 5 'x = (\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = (\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'(' was never closed\", ('priority.py', 2, 5, 'x = (\\n', 2, 0))\n'(' was never closed priority.py 2 5 'x = (\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n(\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n(\"",
+      "source": "source = bytes([120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\n(\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax priority.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n(\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n(\\n\"",
+      "source": "source = bytes([120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\n(\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax priority.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n(\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n(\\r\\n\"",
+      "source": "source = bytes([120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax priority.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\n(\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax priority.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{\"",
+      "source": "source = bytes([120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"{\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 2, 7, 'x = f\"{\\n', 2, 0))\n'{' was never closed priority.py 2 7 'x = f\"{\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"{\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 2, 7, 'x = f\"{\\n', 2, 0))\n'{' was never closed priority.py 2 7 'x = f\"{\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 1, 7, 'x = f\"{\\n', 1, 0))\n'{' was never closed priority.py 1 7 'x = f\"{\\n' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"{\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"'{' was never closed\", ('priority.py', 2, 7, 'x = f\"{\\n', 2, 0))\n'{' was never closed priority.py 2 7 'x = f\"{\\n' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{﻿\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"{﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"{﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 8, 'x = f\"{\\ufeff', 1, 8))\ninvalid non-printable character U+FEFF priority.py 1 8 'x = f\"{\\ufeff' 1 8\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 # ﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 # ﻿\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 # ﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 # ﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 # ﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 # ﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = '﻿'\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = '﻿'\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = '﻿'\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = '﻿'\\n\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = '﻿'\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = '﻿'\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 5, 'x = \"\\\\x\"\\n', 2, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 5 'x = \"\\\\x\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 5, 'x = \"\\\\x\"\\n', 2, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 5 'x = \"\\\\x\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 5, 'x = \"\\\\x\"\\n', 1, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 5 'x = \"\\\\x\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 5, 'x = \"\\\\x\"\\n', 2, 9))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 5 'x = \"\\\\x\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 2, 5, 'x = b\"\\\\x\"\\n', 2, 10))\n(value error) invalid \\x escape at position 0 priority.py 2 5 'x = b\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 2, 5, 'x = b\"\\\\x\"\\n', 2, 10))\n(value error) invalid \\x escape at position 0 priority.py 2 5 'x = b\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 1, 5, 'x = b\"\\\\x\"\\n', 1, 10))\n(value error) invalid \\x escape at position 0 priority.py 1 5 'x = b\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('priority.py', 2, 5, 'x = b\"\\\\x\"\\n', 2, 10))\n(value error) invalid \\x escape at position 0 priority.py 2 5 'x = b\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 2, 5, 'x = \"\\\\N{no}\"\\n', 2, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 2 5 'x = \"\\\\N{no}\"\\n' 2 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 2, 5, 'x = \"\\\\N{no}\"\\n', 2, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 2 5 'x = \"\\\\N{no}\"\\n' 2 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 1, 5, 'x = \"\\\\N{no}\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 1 5 'x = \"\\\\N{no}\"\\n' 1 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('priority.py', 2, 5, 'x = \"\\\\N{no}\"\\n', 2, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name priority.py 2 5 'x = \"\\\\N{no}\"\\n' 2 13\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = f\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = f\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = f\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = f\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = f\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = f\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = f\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = f\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = t\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = t\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = t\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = t\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 1, 9, 'x = t\"\\\\x\"\\n', 1, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 1 9 'x = t\"\\\\x\"\\n' 1 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('priority.py', 2, 9, 'x = t\"\\\\x\"\\n', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape priority.py 2 9 'x = t\"\\\\x\"\\n' 2 10\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"é\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"é\\\"\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"é\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 2, 5, 'x = b\"é\"\\n', 2, 9))\nbytes can only contain ASCII literal characters priority.py 2 5 'x = b\"é\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 2, 5, 'x = b\"é\"\\n', 2, 9))\nbytes can only contain ASCII literal characters priority.py 2 5 'x = b\"é\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 1, 5, 'x = b\"é\"\\n', 1, 9))\nbytes can only contain ASCII literal characters priority.py 1 5 'x = b\"é\"\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34,13,10])\ntry:\n    compile(source, 'priority.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('priority.py', 2, 5, 'x = b\"é\"\\n', 2, 9))\nbytes can only contain ASCII literal characters priority.py 2 5 'x = b\"é\"\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ﻿\"",
+      "source": "source = bytes([120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 1, 5, 'x = \\ufeff', 1, 5))\ninvalid non-printable character U+FEFF priority.py 1 5 'x = \\ufeff' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n﻿\"",
+      "source": "source = bytes([120,32,61,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n﻿\\n\"",
+      "source": "source = bytes([120,32,61,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\n﻿\"",
+      "source": "source = bytes([49,32,43,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\n﻿\\n\"",
+      "source": "source = bytes([49,32,43,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\n﻿\\r\\n\"",
+      "source": "source = bytes([49,32,43,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\n﻿\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\n﻿\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\n﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\n﻿\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\n﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\n﻿\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+FEFF', ('priority.py', 2, 1, '\\ufeff', 2, 1))\ninvalid non-printable character U+FEFF priority.py 2 1 '\\ufeff' 2 1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = â\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = â\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = â\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = â\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = â\\n\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = â\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = â\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,226,130,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = â\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,162,194,130,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 1, 6, 'x = â\\x82', 1, 6))\ninvalid non-printable character U+0082 priority.py 1 6 'x = â\\x82' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = â\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,226,130,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+0082', ('priority.py', 2, 6, 'x = â\\x82', 2, 6))\ninvalid non-printable character U+0082 priority.py 2 6 'x = â\\x82' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = í \"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = í \"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = í \"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = í \\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = í \\n\"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = í \\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = í \\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,237,160,128,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = í \\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,173,194,160,194,128,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 1, 6, 'x = í\\xa0\\x80', 1, 6))\ninvalid non-printable character U+00A0 priority.py 1 6 'x = í\\xa0\\x80' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = í \\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,237,160,128,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid non-printable character U+00A0', ('priority.py', 2, 6, 'x = í\\xa0\\x80', 2, 6))\ninvalid non-printable character U+00A0 priority.py 2 6 'x = í\\xa0\\x80' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ï»¿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ï»¿\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = ï»¿\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ï»¿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ï»¿\\n\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = ï»¿\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = ï»¿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = ï»¿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,195,175,194,187,194,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 1, 6, 'x = ï»¿', 1, 6))\ninvalid character '»' (U+00BB) priority.py 1 6 'x = ï»¿' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = ï»¿\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"invalid character '»' (U+00BB)\", ('priority.py', 2, 6, 'x = ï»¿', 2, 6))\ninvalid character '»' (U+00BB) priority.py 2 6 'x = ï»¿' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = (\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (', 1, 4))\ninvalid syntax priority.py 1 3 'x = (' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = (\"",
+      "source": "source = bytes([120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (', 1, 4))\ninvalid syntax priority.py 1 3 'x = (' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = (\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = (', 2, 4))\ninvalid syntax priority.py 2 3 'x = (' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = (\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = (\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = (\\n\"",
+      "source": "source = bytes([120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = (\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = (\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = (\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = (\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = (\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = (\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = (\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = (\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = (\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = (\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = (\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = (\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n(\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n(\"",
+      "source": "source = bytes([120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x =\\n(\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x =\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x =\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n(\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n(\\n\"",
+      "source": "source = bytes([120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x =\\n(\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x =\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x =\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x =\\n(\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x =\\n(\\r\\n\"",
+      "source": "source = bytes([120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x =\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x =\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x =\\n(\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10,40,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x =\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x =\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{\"",
+      "source": "source = bytes([120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"{\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"{', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"{' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"{\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"{\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"{\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"{\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,123,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"{\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"{\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{﻿\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"{﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,123,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"{﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,123,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"{\\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"{\\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = 1 # ﻿\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = 1 # ﻿\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = 1 # ﻿\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = 1 # ﻿\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = 1 # ﻿\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,35,32,65279,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = 1 # ﻿\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,35,32,239,187,191,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = 1 # \\ufeff\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = 1 # \\ufeff\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = '﻿'\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = '﻿'\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = '﻿'\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\\n\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\\n\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = '﻿'\\n\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\\n\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\\n\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = '﻿'\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,39,65279,39,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\\n\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\\n\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = '﻿'\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,39,239,187,191,39,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, \"x = '\\ufeff'\\n\", 1, 4))\ninvalid syntax priority.py 1 3 \"x = '\\ufeff'\\n\" 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\x\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\x\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"\\\\x\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"\\\\x\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\N{no}\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\N{no}\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\N{no}\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\N{no}\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\N{no}\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\N{no}\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = \"\\\\N{no}\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = \"\\\\N{no}\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = \\\"\\\\N{no}\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,34,92,78,123,110,111,125,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = \"\\\\N{no}\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = \"\\\\N{no}\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"\\\\x\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"\\\\x\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = f\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = f\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = f\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,102,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = f\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = f\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = t\\\"\\\\x\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = t\"\\\\x\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = t\"\\\\x\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = t\\\"\\\\x\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = t\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = t\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = t\"\\\\x\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = t\"\\\\x\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = t\\\"\\\\x\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,116,34,92,120,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = t\"\\\\x\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = t\"\\\\x\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"é\\\"\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"é\\\"\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"é\\\"\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"é\"', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"é\"' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"é\\\"\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"é\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"é\"\\n' 2 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,98,34,233,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,98,34,195,169,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 1, 3, 'x = b\"é\"\\n', 1, 4))\ninvalid syntax priority.py 1 3 'x = b\"é\"\\n' 1 4\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"x = b\\\"é\\\"\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,98,34,233,34,13,10])\ntry:\n    compile(source, 'priority.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('priority.py', 2, 3, 'x = b\"é\"\\n', 2, 4))\ninvalid syntax priority.py 2 3 'x = b\"é\"\\n' 2 4\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "source": "d63d1f4bb81b4514d873090b970b796bb15be702",
+  "command": [
+    "node",
+    "--input-type=module"
+  ],
+  "exitCode": 0,
+  "output": "{\"withEffect\":false,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":false,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"ok\":true,\"value\":0},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[7,7],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"error\":\"HostCallResumabilityError\",\"message\":\"Host call 5e1516c2-c94b-4c1b-88e5-4c10506b3a49:3 does not match the next restored invocation; reset is required.\"},\"saves\":1,\"effects\":[7,0],\"replayError\":null}\n",
+  "disposition": "semantic failure remains; process exit is not qualification"
+}

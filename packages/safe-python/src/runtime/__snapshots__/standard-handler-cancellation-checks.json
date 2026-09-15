@@ -1,0 +1,242 @@
+{
+  "scope": "Standard codec handler classification and chaining cancellation boundaries. Service-contract unit evidence, not final CPython or real-adapter certification.",
+  "red": {
+    "command": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-standard-handler-cancellation --maxWorkers=2 --reporter=json --outputFile=/tmp/standard-handler-cancellation-red.json",
+    "passed": 1,
+    "failed": 8,
+    "pending": 0,
+    "files": [
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts",
+        "passed": 1,
+        "failures": [
+          {
+            "name": "ignore observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "replace observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "xmlcharrefreplace observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "backslashreplace observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "namereplace observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "surrogateescape observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "surrogatepass observes classification cancellation before another service callback",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected 3 to be 1 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:47:31\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "strict handler chaining observes cancellation on return and failure",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected RuntimeRaisedException{ …(1) } to be an instance of ExecutionLimitError\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1386:15)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts:96:36\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20"
+            ]
+          }
+        ]
+      }
+    ],
+    "slowestTestMilliseconds": 6.386124999999993
+  },
+  "green": {
+    "command": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-standard-handler-cancellation runtime-codec-errors session-standard-codec-handlers session-escape-encoding --maxWorkers=2 --reporter=json --outputFile=/tmp/standard-handler-cancellation-green.json",
+    "passed": 73,
+    "failed": 0,
+    "pending": 0,
+    "files": [
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-escape-encoding.test.ts",
+        "passed": 6,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-standard-codec-handlers.test.ts",
+        "passed": 10,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-errors.test.ts",
+        "passed": 48,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts",
+        "passed": 9,
+        "failures": []
+      }
+    ],
+    "slowestTestMilliseconds": 97.09691699999985
+  },
+  "regression": {
+    "command": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-standard-handler-cancellation runtime-codec-errors session-standard-codec-handlers session-escape-encoding runtime-codec-registry session-codec-search-lifecycle-user session-codec-recovery-index-boundaries session-codec-incremental-replay session-core-codec-cancellation session-codec-stream-cancellation session-codec-native-slots session-codec-stream-traceback session-codec-surrogatepass-names session-wide-codec-api session-codec-stream-state session-source-codec-final-line --maxWorkers=2 --reporter=json --outputFile=/tmp/standard-handler-cancellation-regression.json",
+    "passed": 1346,
+    "failed": 4,
+    "pending": 0,
+    "files": [
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-replay.test.ts",
+        "passed": 74,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts",
+        "passed": 56,
+        "failures": [
+          {
+            "name": "native codec slots: 'hash inheritance failure 1'",
+            "status": "failed",
+            "messages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native codec slots: 'hash inheritance failure 2'",
+            "status": "failed",
+            "messages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native codec slots: 'hash inheritance failure 3'",
+            "status": "failed",
+            "messages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-recovery-index-boundaries.test.ts",
+        "passed": 40,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-search-lifecycle-user.test.ts",
+        "passed": 56,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-cancellation.test.ts",
+        "passed": 14,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "passed": 9,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts",
+        "passed": 0,
+        "failures": [
+          {
+            "name": "retains caller and codec frames with pinned instruction positions",
+            "status": "failed",
+            "messages": [
+              "AssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-surrogatepass-names.test.ts",
+        "passed": 25,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-cancellation.test.ts",
+        "passed": 5,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-escape-encoding.test.ts",
+        "passed": 6,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-source-codec-final-line.test.ts",
+        "passed": 3,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-standard-codec-handlers.test.ts",
+        "passed": 10,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-wide-codec-api.test.ts",
+        "passed": 933,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-errors.test.ts",
+        "passed": 48,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "passed": 15,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "passed": 43,
+        "failures": []
+      },
+      {
+        "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts",
+        "passed": 9,
+        "failures": []
+      }
+    ],
+    "slowestTestMilliseconds": 182.53708299999994
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint packages/safe-python/src/runtime/runtime-codec-errors.ts packages/safe-python/src/runtime/runtime-standard-handler-cancellation.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "sha256": {
+    "runtime-codec-errors.ts": "391e480f46550ebc77938860e55636a449efa1ec0446923fa14c49ef90db552c",
+    "runtime-standard-handler-cancellation.test.ts": "04ef5b0e091d67f526d6b25cd934eaf3aec31e43b5b9ede304111df4706b6103",
+    "__snapshots__/codec-errors-3.14.7.json": "b14d313d730aa2a6854a437efd0a9b5d7f06a4c2c480c243fdbcdb7f01b796f3"
+  }
+}

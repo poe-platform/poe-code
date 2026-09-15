@@ -1,0 +1,7 @@
+{
+  "fixtureRows": 294,
+  "assetRows": 20,
+  "historicalSkipRows": 47,
+  "specificationSha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+  "qualification": "Original assets rehashed, exclusions matched to full manifest, historical skip receipt hash and unique case reasons verified. No current full package skip outcome asserted."
+}

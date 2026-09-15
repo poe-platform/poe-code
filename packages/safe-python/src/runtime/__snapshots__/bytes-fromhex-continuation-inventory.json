@@ -1,0 +1,486 @@
+{
+  "inventory": [
+    {
+      "name": "__new__",
+      "expected": "('builtin_function_or_method', 'Create and return a new object.  See help(type) for accurate signature.', '($type, *args, **kwargs)')",
+      "actual": "('builtin_function_or_method', 'Create and return a new object.  See help(type) for accurate signature.', '($type, *args, **kwargs)')",
+      "matches": true
+    },
+    {
+      "name": "__repr__",
+      "expected": "('wrapper_descriptor', 'Return repr(self).', '($self, /)')",
+      "actual": "('wrapper_descriptor', 'Return repr(self).', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__hash__",
+      "expected": "('wrapper_descriptor', 'Return hash(self).', '($self, /)')",
+      "actual": "('wrapper_descriptor', 'Return hash(self).', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__str__",
+      "expected": "('wrapper_descriptor', 'Return str(self).', '($self, /)')",
+      "actual": "('wrapper_descriptor', 'Return str(self).', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__lt__",
+      "expected": "('wrapper_descriptor', 'Return self<value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self<value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__le__",
+      "expected": "('wrapper_descriptor', 'Return self<=value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self<=value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__eq__",
+      "expected": "('wrapper_descriptor', 'Return self==value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self==value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__ne__",
+      "expected": "('wrapper_descriptor', 'Return self!=value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self!=value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__gt__",
+      "expected": "('wrapper_descriptor', 'Return self>value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self>value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__ge__",
+      "expected": "('wrapper_descriptor', 'Return self>=value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self>=value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__iter__",
+      "expected": "('wrapper_descriptor', 'Implement iter(self).', '($self, /)')",
+      "actual": "('wrapper_descriptor', 'Implement iter(self).', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__buffer__",
+      "expected": "('wrapper_descriptor', 'Return a buffer object that exposes the underlying memory of the object.', '($self, flags, /)')",
+      "actual": "('KeyError', \"'__buffer__'\")",
+      "matches": false
+    },
+    {
+      "name": "__mod__",
+      "expected": "('wrapper_descriptor', 'Return self%value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self%value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__rmod__",
+      "expected": "('wrapper_descriptor', 'Return value%self.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return value%self.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__len__",
+      "expected": "('wrapper_descriptor', 'Return len(self).', '($self, /)')",
+      "actual": "('wrapper_descriptor', 'Return len(self).', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__getitem__",
+      "expected": "('wrapper_descriptor', 'Return self[key].', '($self, key, /)')",
+      "actual": "('wrapper_descriptor', 'Return self[key].', '($self, key, /)')",
+      "matches": true
+    },
+    {
+      "name": "__add__",
+      "expected": "('wrapper_descriptor', 'Return self+value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self+value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__mul__",
+      "expected": "('wrapper_descriptor', 'Return self*value.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return self*value.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__rmul__",
+      "expected": "('wrapper_descriptor', 'Return value*self.', '($self, value, /)')",
+      "actual": "('wrapper_descriptor', 'Return value*self.', '($self, value, /)')",
+      "matches": true
+    },
+    {
+      "name": "__contains__",
+      "expected": "('wrapper_descriptor', 'Return bool(key in self).', '($self, key, /)')",
+      "actual": "('wrapper_descriptor', 'Return bool(key in self).', '($self, key, /)')",
+      "matches": true
+    },
+    {
+      "name": "__getnewargs__",
+      "expected": "('method_descriptor', None, '($self, /)')",
+      "actual": "('method_descriptor', None, '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "__bytes__",
+      "expected": "('method_descriptor', 'Convert this value to exact type bytes.', '($self, /)')",
+      "actual": "('method_descriptor', 'Convert this value to exact type bytes.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "capitalize",
+      "expected": "('method_descriptor', 'B.capitalize() -> copy of B\\n\\nReturn a copy of B with only its first character capitalized (ASCII)\\nand the rest lower-cased.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.capitalize() -> copy of B\\n\\nReturn a copy of B with only its first character capitalized (ASCII)\\nand the rest lower-cased.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "center",
+      "expected": "('method_descriptor', 'Return a centered string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "actual": "('method_descriptor', 'Return a centered string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "matches": true
+    },
+    {
+      "name": "count",
+      "expected": "('method_descriptor', \"Return the number of non-overlapping occurrences of subsection 'sub' in bytes B[start:end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\", '($self, sub[, start[, end]], /)')",
+      "actual": "('method_descriptor', \"Return the number of non-overlapping occurrences of subsection 'sub' in bytes B[start:end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\", '($self, sub[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "decode",
+      "expected": "('method_descriptor', \"Decode the bytes using the codec registered for encoding.\\n\\n  encoding\\n    The encoding with which to decode the bytes.\\n  errors\\n    The error handling scheme to use for the handling of decoding\\n    errors.  The default is 'strict' meaning that decoding errors\\n    raise a UnicodeDecodeError.  Other possible values are 'ignore'\\n    and 'replace' as well as any other name registered with\\n    codecs.register_error that can handle UnicodeDecodeErrors.\", \"($self, /, encoding='utf-8', errors='strict')\")",
+      "actual": "('method_descriptor', \"Decode the bytes using the codec registered for encoding.\\n\\n  encoding\\n    The encoding with which to decode the bytes.\\n  errors\\n    The error handling scheme to use for the handling of decoding\\n    errors.  The default is 'strict' meaning that decoding errors\\n    raise a UnicodeDecodeError.  Other possible values are 'ignore'\\n    and 'replace' as well as any other name registered with\\n    codecs.register_error that can handle UnicodeDecodeErrors.\", \"($self, /, encoding='utf-8', errors='strict')\")",
+      "matches": true
+    },
+    {
+      "name": "endswith",
+      "expected": "('method_descriptor', 'Return True if the bytes ends with the specified suffix, False otherwise.\\n\\n  suffix\\n    A bytes or a tuple of bytes to try.\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.', '($self, suffix[, start[, end]], /)')",
+      "actual": "('method_descriptor', 'Return True if the bytes ends with the specified suffix, False otherwise.\\n\\n  suffix\\n    A bytes or a tuple of bytes to try.\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.', '($self, suffix[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "expandtabs",
+      "expected": "('method_descriptor', 'Return a copy where all tab characters are expanded using spaces.\\n\\nIf tabsize is not given, a tab size of 8 characters is assumed.', '($self, /, tabsize=8)')",
+      "actual": "('method_descriptor', 'Return a copy where all tab characters are expanded using spaces.\\n\\nIf tabsize is not given, a tab size of 8 characters is assumed.', '($self, /, tabsize=8)')",
+      "matches": true
+    },
+    {
+      "name": "find",
+      "expected": "('method_descriptor', \"Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nReturn -1 on failure.\", '($self, sub[, start[, end]], /)')",
+      "actual": "('method_descriptor', \"Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nReturn -1 on failure.\", '($self, sub[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "fromhex",
+      "expected": "('classmethod_descriptor', \"Create a bytes object from a string of hexadecimal numbers.\\n\\nSpaces between two numbers are accepted.\\nExample: bytes.fromhex('B9 01EF') -> b'\\\\\\\\xb9\\\\\\\\x01\\\\\\\\xef'.\", '($type, string, /)')",
+      "actual": "('classmethod_descriptor', \"Create a bytes object from a string of hexadecimal numbers.\\n\\nSpaces between two numbers are accepted.\\nExample: bytes.fromhex('B9 01EF') -> b'\\\\\\\\xb9\\\\\\\\x01\\\\\\\\xef'.\", '($type, string, /)')",
+      "matches": true
+    },
+    {
+      "name": "hex",
+      "expected": "('method_descriptor', \"Create a string of hexadecimal numbers from a bytes object.\\n\\n  sep\\n    An optional single character or byte to separate hex bytes.\\n  bytes_per_sep\\n    How many bytes between separators.  Positive values count from\\n    the right, negative values count from the left.\\n\\nExample:\\n>>> value = b'\\\\xb9\\\\x01\\\\xef'\\n>>> value.hex()\\n'b901ef'\\n>>> value.hex(':')\\n'b9:01:ef'\\n>>> value.hex(':', 2)\\n'b9:01ef'\\n>>> value.hex(':', -2)\\n'b901:ef'\", '($self, /, sep=<unrepresentable>, bytes_per_sep=1)')",
+      "actual": "('method_descriptor', \"Create a string of hexadecimal numbers from a bytes object.\\n\\n  sep\\n    An optional single character or byte to separate hex bytes.\\n  bytes_per_sep\\n    How many bytes between separators.  Positive values count from\\n    the right, negative values count from the left.\\n\\nExample:\\n>>> value = b'\\\\xb9\\\\x01\\\\xef'\\n>>> value.hex()\\n'b901ef'\\n>>> value.hex(':')\\n'b9:01:ef'\\n>>> value.hex(':', 2)\\n'b9:01ef'\\n>>> value.hex(':', -2)\\n'b901:ef'\", '($self, /, sep=<unrepresentable>, bytes_per_sep=1)')",
+      "matches": true
+    },
+    {
+      "name": "index",
+      "expected": "('method_descriptor', \"Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nRaise ValueError if the subsection is not found.\", '($self, sub[, start[, end]], /)')",
+      "actual": "('method_descriptor', \"Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nRaise ValueError if the subsection is not found.\", '($self, sub[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "isalnum",
+      "expected": "('method_descriptor', 'B.isalnum() -> bool\\n\\nReturn True if all characters in B are alphanumeric\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isalnum() -> bool\\n\\nReturn True if all characters in B are alphanumeric\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "isalpha",
+      "expected": "('method_descriptor', 'B.isalpha() -> bool\\n\\nReturn True if all characters in B are alphabetic\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isalpha() -> bool\\n\\nReturn True if all characters in B are alphabetic\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "isascii",
+      "expected": "('method_descriptor', 'B.isascii() -> bool\\n\\nReturn True if B is empty or all characters in B are ASCII,\\nFalse otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isascii() -> bool\\n\\nReturn True if B is empty or all characters in B are ASCII,\\nFalse otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "isdigit",
+      "expected": "('method_descriptor', 'B.isdigit() -> bool\\n\\nReturn True if all characters in B are digits\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isdigit() -> bool\\n\\nReturn True if all characters in B are digits\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "islower",
+      "expected": "('method_descriptor', 'B.islower() -> bool\\n\\nReturn True if all cased characters in B are lowercase and there is\\nat least one cased character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.islower() -> bool\\n\\nReturn True if all cased characters in B are lowercase and there is\\nat least one cased character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "isspace",
+      "expected": "('method_descriptor', 'B.isspace() -> bool\\n\\nReturn True if all characters in B are whitespace\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isspace() -> bool\\n\\nReturn True if all characters in B are whitespace\\nand there is at least one character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "istitle",
+      "expected": "('method_descriptor', 'B.istitle() -> bool\\n\\nReturn True if B is a titlecased string and there is at least one\\ncharacter in B, i.e. uppercase characters may only follow uncased\\ncharacters and lowercase characters only cased ones. Return False\\notherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.istitle() -> bool\\n\\nReturn True if B is a titlecased string and there is at least one\\ncharacter in B, i.e. uppercase characters may only follow uncased\\ncharacters and lowercase characters only cased ones. Return False\\notherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "isupper",
+      "expected": "('method_descriptor', 'B.isupper() -> bool\\n\\nReturn True if all cased characters in B are uppercase and there is\\nat least one cased character in B, False otherwise.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.isupper() -> bool\\n\\nReturn True if all cased characters in B are uppercase and there is\\nat least one cased character in B, False otherwise.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "join",
+      "expected": "('method_descriptor', \"Concatenate any number of bytes objects.\\n\\nThe bytes whose method is called is inserted in between each pair.\\n\\nThe result is returned as a new bytes object.\\n\\nExample: b'.'.join([b'ab', b'pq', b'rs']) -> b'ab.pq.rs'.\", '($self, iterable_of_bytes, /)')",
+      "actual": "('method_descriptor', \"Concatenate any number of bytes objects.\\n\\nThe bytes whose method is called is inserted in between each pair.\\n\\nThe result is returned as a new bytes object.\\n\\nExample: b'.'.join([b'ab', b'pq', b'rs']) -> b'ab.pq.rs'.\", '($self, iterable_of_bytes, /)')",
+      "matches": true
+    },
+    {
+      "name": "ljust",
+      "expected": "('method_descriptor', 'Return a left-justified string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "actual": "('method_descriptor', 'Return a left-justified string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "matches": true
+    },
+    {
+      "name": "lower",
+      "expected": "('method_descriptor', 'B.lower() -> copy of B\\n\\nReturn a copy of B with all ASCII characters converted to lowercase.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.lower() -> copy of B\\n\\nReturn a copy of B with all ASCII characters converted to lowercase.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "lstrip",
+      "expected": "('method_descriptor', 'Strip leading bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip leading  ASCII whitespace.', '($self, bytes=None, /)')",
+      "actual": "('method_descriptor', 'Strip leading bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip leading  ASCII whitespace.', '($self, bytes=None, /)')",
+      "matches": true
+    },
+    {
+      "name": "maketrans",
+      "expected": "('staticmethod', 'Convert a function to be a static method.\\n\\nA static method does not receive an implicit first argument.\\nTo declare a static method, use this idiom:\\n\\n     class C:\\n         @staticmethod\\n         def f(arg1, arg2, argN):\\n             ...\\n\\nIt can be called either on the class (e.g. C.f()) or on an instance\\n(e.g. C().f()). Both the class and the instance are ignored, and\\nneither is passed implicitly as the first argument to the method.\\n\\nStatic methods in Python are similar to those found in Java or C++.\\nFor a more advanced concept, see the classmethod builtin.', None)",
+      "actual": "('staticmethod', 'Convert a function to be a static method.\\n\\nA static method does not receive an implicit first argument.\\nTo declare a static method, use this idiom:\\n\\n     class C:\\n         @staticmethod\\n         def f(arg1, arg2, argN):\\n             ...\\n\\nIt can be called either on the class (e.g. C.f()) or on an instance\\n(e.g. C().f()). Both the class and the instance are ignored, and\\nneither is passed implicitly as the first argument to the method.\\n\\nStatic methods in Python are similar to those found in Java or C++.\\nFor a more advanced concept, see the classmethod builtin.', None)",
+      "matches": true
+    },
+    {
+      "name": "partition",
+      "expected": "('method_descriptor', 'Partition the bytes into three parts using the given separator.\\n\\nThis will search for the separator sep in the bytes.  If the\\nseparator is found, returns a 3-tuple containing the part before the\\nseparator, the separator itself, and the part after it.\\n\\nIf the separator is not found, returns a 3-tuple containing the\\noriginal bytes object and two empty bytes objects.', '($self, sep, /)')",
+      "actual": "('method_descriptor', 'Partition the bytes into three parts using the given separator.\\n\\nThis will search for the separator sep in the bytes.  If the\\nseparator is found, returns a 3-tuple containing the part before the\\nseparator, the separator itself, and the part after it.\\n\\nIf the separator is not found, returns a 3-tuple containing the\\noriginal bytes object and two empty bytes objects.', '($self, sep, /)')",
+      "matches": true
+    },
+    {
+      "name": "replace",
+      "expected": "('method_descriptor', 'Return a copy with all occurrences of substring old replaced by new.\\n\\n  count\\n    Maximum number of occurrences to replace.\\n    -1 (the default value) means replace all occurrences.\\n\\nIf the optional argument count is given, only the first count occurrences are\\nreplaced.', '($self, old, new, count=-1, /)')",
+      "actual": "('method_descriptor', 'Return a copy with all occurrences of substring old replaced by new.\\n\\n  count\\n    Maximum number of occurrences to replace.\\n    -1 (the default value) means replace all occurrences.\\n\\nIf the optional argument count is given, only the first count occurrences are\\nreplaced.', '($self, old, new, count=-1, /)')",
+      "matches": true
+    },
+    {
+      "name": "removeprefix",
+      "expected": "('method_descriptor', 'Return a bytes object with the given prefix string removed if present.\\n\\nIf the bytes starts with the prefix string, return\\nbytes[len(prefix):].  Otherwise, return a copy of the original\\nbytes.', '($self, prefix, /)')",
+      "actual": "('method_descriptor', 'Return a bytes object with the given prefix string removed if present.\\n\\nIf the bytes starts with the prefix string, return\\nbytes[len(prefix):].  Otherwise, return a copy of the original\\nbytes.', '($self, prefix, /)')",
+      "matches": true
+    },
+    {
+      "name": "removesuffix",
+      "expected": "('method_descriptor', 'Return a bytes object with the given suffix string removed if present.\\n\\nIf the bytes ends with the suffix string and that suffix is not\\nempty, return bytes[:-len(prefix)].  Otherwise, return a copy of the\\noriginal bytes.', '($self, suffix, /)')",
+      "actual": "('method_descriptor', 'Return a bytes object with the given suffix string removed if present.\\n\\nIf the bytes ends with the suffix string and that suffix is not\\nempty, return bytes[:-len(prefix)].  Otherwise, return a copy of the\\noriginal bytes.', '($self, suffix, /)')",
+      "matches": true
+    },
+    {
+      "name": "rfind",
+      "expected": "('method_descriptor', \"Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nReturn -1 on failure.\", '($self, sub[, start[, end]], /)')",
+      "actual": "('method_descriptor', \"Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nReturn -1 on failure.\", '($self, sub[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "rindex",
+      "expected": "('method_descriptor', \"Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nRaise ValueError if the subsection is not found.\", '($self, sub[, start[, end]], /)')",
+      "actual": "('method_descriptor', \"Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\\n\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.\\n\\nRaise ValueError if the subsection is not found.\", '($self, sub[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "rjust",
+      "expected": "('method_descriptor', 'Return a right-justified string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "actual": "('method_descriptor', 'Return a right-justified string of length width.\\n\\nPadding is done using the specified fill character.', \"($self, width, fillchar=b' ', /)\")",
+      "matches": true
+    },
+    {
+      "name": "rpartition",
+      "expected": "('method_descriptor', 'Partition the bytes into three parts using the given separator.\\n\\nThis will search for the separator sep in the bytes, starting at the\\nend.  If the separator is found, returns a 3-tuple containing the\\npart before the separator, the separator itself, and the part after\\nit.\\n\\nIf the separator is not found, returns a 3-tuple containing two\\nempty bytes objects and the original bytes object.', '($self, sep, /)')",
+      "actual": "('method_descriptor', 'Partition the bytes into three parts using the given separator.\\n\\nThis will search for the separator sep in the bytes, starting at the\\nend.  If the separator is found, returns a 3-tuple containing the\\npart before the separator, the separator itself, and the part after\\nit.\\n\\nIf the separator is not found, returns a 3-tuple containing two\\nempty bytes objects and the original bytes object.', '($self, sep, /)')",
+      "matches": true
+    },
+    {
+      "name": "rsplit",
+      "expected": "('method_descriptor', 'Return a list of the sections in the bytes, using sep as the delimiter.\\n\\n  sep\\n    The delimiter according which to split the bytes.\\n    None (the default value) means split on ASCII whitespace\\n    characters (space, tab, return, newline, formfeed, vertical tab).\\n  maxsplit\\n    Maximum number of splits to do.\\n    -1 (the default value) means no limit.\\n\\nSplitting is done starting at the end of the bytes and working to\\nthe front.', '($self, /, sep=None, maxsplit=-1)')",
+      "actual": "('method_descriptor', 'Return a list of the sections in the bytes, using sep as the delimiter.\\n\\n  sep\\n    The delimiter according which to split the bytes.\\n    None (the default value) means split on ASCII whitespace\\n    characters (space, tab, return, newline, formfeed, vertical tab).\\n  maxsplit\\n    Maximum number of splits to do.\\n    -1 (the default value) means no limit.\\n\\nSplitting is done starting at the end of the bytes and working to\\nthe front.', '($self, /, sep=None, maxsplit=-1)')",
+      "matches": true
+    },
+    {
+      "name": "rstrip",
+      "expected": "('method_descriptor', 'Strip trailing bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip trailing ASCII whitespace.', '($self, bytes=None, /)')",
+      "actual": "('method_descriptor', 'Strip trailing bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip trailing ASCII whitespace.', '($self, bytes=None, /)')",
+      "matches": true
+    },
+    {
+      "name": "split",
+      "expected": "('method_descriptor', 'Return a list of the sections in the bytes, using sep as the delimiter.\\n\\n  sep\\n    The delimiter according which to split the bytes.\\n    None (the default value) means split on ASCII whitespace\\n    characters (space, tab, return, newline, formfeed, vertical tab).\\n  maxsplit\\n    Maximum number of splits to do.\\n    -1 (the default value) means no limit.', '($self, /, sep=None, maxsplit=-1)')",
+      "actual": "('method_descriptor', 'Return a list of the sections in the bytes, using sep as the delimiter.\\n\\n  sep\\n    The delimiter according which to split the bytes.\\n    None (the default value) means split on ASCII whitespace\\n    characters (space, tab, return, newline, formfeed, vertical tab).\\n  maxsplit\\n    Maximum number of splits to do.\\n    -1 (the default value) means no limit.', '($self, /, sep=None, maxsplit=-1)')",
+      "matches": true
+    },
+    {
+      "name": "splitlines",
+      "expected": "('method_descriptor', 'Return a list of the lines in the bytes, breaking at line boundaries.\\n\\nLine breaks are not included in the resulting list unless keepends\\nis given and true.', '($self, /, keepends=False)')",
+      "actual": "('method_descriptor', 'Return a list of the lines in the bytes, breaking at line boundaries.\\n\\nLine breaks are not included in the resulting list unless keepends\\nis given and true.', '($self, /, keepends=False)')",
+      "matches": true
+    },
+    {
+      "name": "startswith",
+      "expected": "('method_descriptor', 'Return True if the bytes starts with the specified prefix, False otherwise.\\n\\n  prefix\\n    A bytes or a tuple of bytes to try.\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.', '($self, prefix[, start[, end]], /)')",
+      "actual": "('method_descriptor', 'Return True if the bytes starts with the specified prefix, False otherwise.\\n\\n  prefix\\n    A bytes or a tuple of bytes to try.\\n  start\\n    Optional start position. Default: start of the bytes.\\n  end\\n    Optional stop position. Default: end of the bytes.', '($self, prefix[, start[, end]], /)')",
+      "matches": true
+    },
+    {
+      "name": "strip",
+      "expected": "('method_descriptor', 'Strip leading and trailing bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip leading and trailing ASCII\\nwhitespace.', '($self, bytes=None, /)')",
+      "actual": "('method_descriptor', 'Strip leading and trailing bytes contained in the argument.\\n\\nIf the argument is omitted or None, strip leading and trailing ASCII\\nwhitespace.', '($self, bytes=None, /)')",
+      "matches": true
+    },
+    {
+      "name": "swapcase",
+      "expected": "('method_descriptor', 'B.swapcase() -> copy of B\\n\\nReturn a copy of B with uppercase ASCII characters converted\\nto lowercase ASCII and vice versa.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.swapcase() -> copy of B\\n\\nReturn a copy of B with uppercase ASCII characters converted\\nto lowercase ASCII and vice versa.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "title",
+      "expected": "('method_descriptor', 'B.title() -> copy of B\\n\\nReturn a titlecased version of B, i.e. ASCII words start with\\nuppercase characters, all remaining cased characters have lowercase.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.title() -> copy of B\\n\\nReturn a titlecased version of B, i.e. ASCII words start with\\nuppercase characters, all remaining cased characters have lowercase.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "translate",
+      "expected": "('method_descriptor', 'Return a copy with each character mapped by the given translation table.\\n\\n  table\\n    Translation table, which must be a bytes object of length 256.\\n\\nAll characters occurring in the optional argument delete are\\nremoved.  The remaining characters are mapped through the given\\ntranslation table.', \"($self, table, /, delete=b'')\")",
+      "actual": "('method_descriptor', 'Return a copy with each character mapped by the given translation table.\\n\\n  table\\n    Translation table, which must be a bytes object of length 256.\\n\\nAll characters occurring in the optional argument delete are\\nremoved.  The remaining characters are mapped through the given\\ntranslation table.', \"($self, table, /, delete=b'')\")",
+      "matches": true
+    },
+    {
+      "name": "upper",
+      "expected": "('method_descriptor', 'B.upper() -> copy of B\\n\\nReturn a copy of B with all ASCII characters converted to uppercase.', '($self, /)')",
+      "actual": "('method_descriptor', 'B.upper() -> copy of B\\n\\nReturn a copy of B with all ASCII characters converted to uppercase.', '($self, /)')",
+      "matches": true
+    },
+    {
+      "name": "zfill",
+      "expected": "('method_descriptor', 'Pad a numeric string with zeros on the left, to fill a field of the given width.\\n\\nThe original string is never truncated.', '($self, width, /)')",
+      "actual": "('method_descriptor', 'Pad a numeric string with zeros on the left, to fill a field of the given width.\\n\\nThe original string is never truncated.', '($self, width, /)')",
+      "matches": true
+    },
+    {
+      "name": "__doc__",
+      "expected": "('str', \"str(object='') -> str\\nstr(bytes_or_buffer[, encoding[, errors]]) -> str\\n\\nCreate a new string object from the given object. If encoding or\\nerrors is specified, then the object must expose a data buffer\\nthat will be decoded using the given encoding and error handler.\\nOtherwise, returns the result of object.__str__() (if defined)\\nor repr(object).\\nencoding defaults to 'utf-8'.\\nerrors defaults to 'strict'.\", None)",
+      "actual": "('str', \"str(object='') -> str\\nstr(bytes_or_buffer[, encoding[, errors]]) -> str\\n\\nCreate a new string object from the given object. If encoding or\\nerrors is specified, then the object must expose a data buffer\\nthat will be decoded using the given encoding and error handler.\\nOtherwise, returns the result of object.__str__() (if defined)\\nor repr(object).\\nencoding defaults to 'utf-8'.\\nerrors defaults to 'strict'.\", None)",
+      "matches": true
+    }
+  ],
+  "probes": [
+    {
+      "expression": "bytes(bytearray([65]))",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('NameError', \"name 'bytearray' is not defined\")"
+        }
+      }
+    },
+    {
+      "expression": "bytes(memoryview(b'abc')[::2])",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('NameError', \"name 'memoryview' is not defined\")"
+        }
+      }
+    },
+    {
+      "expression": "b'a'.__buffer__(0)",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"'bytes' object has no attribute '__buffer__'\")"
+        }
+      }
+    },
+    {
+      "expression": "bytes.__basicsize__",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"type object 'bytes' has no attribute '__basicsize__'\")"
+        }
+      }
+    },
+    {
+      "expression": "bytes.__itemsize__",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"type object 'bytes' has no attribute '__itemsize__'\")"
+        }
+      }
+    },
+    {
+      "expression": "bytes.__flags__",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"type object 'bytes' has no attribute '__flags__'\")"
+        }
+      }
+    },
+    {
+      "expression": "b'a'.__reduce__()",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"'bytes' object has no attribute '__reduce__'\")"
+        }
+      }
+    },
+    {
+      "expression": "iter(b'a').__reduce_ex__(4)",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('AttributeError', \"'bytes_iterator' object has no attribute '__reduce_ex__'\")"
+        }
+      }
+    },
+    {
+      "expression": "__import__('codecs')",
+      "result": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('NameError', \"name '__import__' is not defined\")"
+        }
+      }
+    }
+  ]
+}

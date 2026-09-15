@@ -1,0 +1,661 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "name": "hex false sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sep'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'61:09:62:0a:63'\"), [])"
+    },
+    {
+      "name": "hex false sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sepx'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'. Did you mean 'sep'?\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex false bytes_per_sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sep'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'6109620a63'\"), [])"
+    },
+    {
+      "name": "hex false bytes_per_sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sepx'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'. Did you mean 'bytes_per_sep'?\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex true sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sep'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'61:09:62:0a:63'\"), [])"
+    },
+    {
+      "name": "hex true sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sepx'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex true bytes_per_sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sep'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'6109620a63'\"), [])"
+    },
+    {
+      "name": "hex true bytes_per_sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sepx'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sep'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'61:09:62:0a:63'\"), [])"
+    },
+    {
+      "name": "hex raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sepx'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex raise bytes_per_sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sep'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'6109620a63'\"), [])"
+    },
+    {
+      "name": "hex raise bytes_per_sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sepx'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex str-raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sep'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'61:09:62:0a:63'\"), [])"
+    },
+    {
+      "name": "hex str-raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('sepx'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex str-raise bytes_per_sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sep'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('str', \"'6109620a63'\"), [])"
+    },
+    {
+      "name": "hex str-raise bytes_per_sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('bytes_per_sepx'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.hex(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex duplicate precedence",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'abc'.hex(':', **{Key('unknown'): 1, Key('sep'): ':'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'hex() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "name": "split false sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "split false sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"split() got an unexpected keyword argument 'display'. Did you mean 'sep'?\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"split() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split false maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a', b'b\\\\nc']\"), [])"
+    },
+    {
+      "name": "split false maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"split() got an unexpected keyword argument 'display'. Did you mean 'maxsplit'?\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"split() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split true sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "split true sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for split()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for split()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split true maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a', b'b\\\\nc']\"), [])"
+    },
+    {
+      "name": "split true maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for split()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for split()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "split raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split raise maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a', b'b\\\\nc']\"), [])"
+    },
+    {
+      "name": "split raise maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split str-raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "split str-raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split str-raise maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a', b'b\\\\nc']\"), [])"
+    },
+    {
+      "name": "split str-raise maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.split(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split duplicate precedence",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'abc'.split(b'a', **{Key('unknown'): 1, Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'split() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "name": "rsplit false sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "rsplit false sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"rsplit() got an unexpected keyword argument 'display'. Did you mean 'sep'?\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"rsplit() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit false maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb', b'c']\"), [])"
+    },
+    {
+      "name": "rsplit false maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"rsplit() got an unexpected keyword argument 'display'. Did you mean 'maxsplit'?\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"rsplit() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit true sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "rsplit true sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for rsplit()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for rsplit()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit true maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb', b'c']\"), [])"
+    },
+    {
+      "name": "rsplit true maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for rsplit()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for rsplit()'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "rsplit raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit raise maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb', b'c']\"), [])"
+    },
+    {
+      "name": "rsplit raise maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit str-raise sep",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'', b'\\\\tb\\\\nc']\"), [])"
+    },
+    {
+      "name": "rsplit str-raise sepx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('sepx'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit str-raise maxsplit",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplit'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb', b'c']\"), [])"
+    },
+    {
+      "name": "rsplit str-raise maxsplitx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('maxsplitx'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.rsplit(**{Key('unrelated'): 1})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit duplicate precedence",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'abc'.rsplit(b'a', **{Key('unknown'): 1, Key('sep'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'rsplit() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "name": "translate false delete",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('delete'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'\\\\tb\\\\nc'\"), [])"
+    },
+    {
+      "name": "translate false deletex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('deletex'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"translate() got an unexpected keyword argument 'display'. Did you mean 'delete'?\"), [('eq', 'delete'), ('str',)])"
+    },
+    {
+      "name": "translate false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"translate() got an unexpected keyword argument 'display'\"), [('eq', 'delete'), ('str',)])"
+    },
+    {
+      "name": "translate true delete",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('delete'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'\\\\tb\\\\nc'\"), [])"
+    },
+    {
+      "name": "translate true deletex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('deletex'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for translate()'), [('eq', 'delete')])"
+    },
+    {
+      "name": "translate true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for translate()'), [('eq', 'delete')])"
+    },
+    {
+      "name": "translate raise delete",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('delete'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'\\\\tb\\\\nc'\"), [])"
+    },
+    {
+      "name": "translate raise deletex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('deletex'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'delete')])"
+    },
+    {
+      "name": "translate raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'delete')])"
+    },
+    {
+      "name": "translate str-raise delete",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('delete'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'\\\\tb\\\\nc'\"), [])"
+    },
+    {
+      "name": "translate str-raise deletex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('deletex'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'delete'), ('str',)])"
+    },
+    {
+      "name": "translate str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.translate(None, **{Key('unrelated'): b'a'})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'delete'), ('str',)])"
+    },
+    {
+      "name": "expandtabs false tabsize",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsize'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'a b\\\\nc'\"), [])"
+    },
+    {
+      "name": "expandtabs false tabsizex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsizex'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"expandtabs() got an unexpected keyword argument 'display'. Did you mean 'tabsize'?\"), [('eq', 'tabsize'), ('str',)])"
+    },
+    {
+      "name": "expandtabs false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"expandtabs() got an unexpected keyword argument 'display'\"), [('eq', 'tabsize'), ('str',)])"
+    },
+    {
+      "name": "expandtabs true tabsize",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsize'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'a b\\\\nc'\"), [])"
+    },
+    {
+      "name": "expandtabs true tabsizex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsizex'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for expandtabs()'), [('eq', 'tabsize')])"
+    },
+    {
+      "name": "expandtabs true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for expandtabs()'), [('eq', 'tabsize')])"
+    },
+    {
+      "name": "expandtabs raise tabsize",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsize'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'a b\\\\nc'\"), [])"
+    },
+    {
+      "name": "expandtabs raise tabsizex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsizex'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'tabsize')])"
+    },
+    {
+      "name": "expandtabs raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'tabsize')])"
+    },
+    {
+      "name": "expandtabs str-raise tabsize",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsize'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('bytes', \"b'a b\\\\nc'\"), [])"
+    },
+    {
+      "name": "expandtabs str-raise tabsizex",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('tabsizex'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'tabsize'), ('str',)])"
+    },
+    {
+      "name": "expandtabs str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.expandtabs(**{Key('unrelated'): 2})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'tabsize'), ('str',)])"
+    },
+    {
+      "name": "splitlines false keepends",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keepends'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb\\\\n', b'c']\"), [])"
+    },
+    {
+      "name": "splitlines false keependsx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keependsx'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"splitlines() got an unexpected keyword argument 'display'. Did you mean 'keepends'?\"), [('eq', 'keepends'), ('str',)])"
+    },
+    {
+      "name": "splitlines false unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('unrelated'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"splitlines() got an unexpected keyword argument 'display'\"), [('eq', 'keepends'), ('str',)])"
+    },
+    {
+      "name": "splitlines true keepends",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keepends'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb\\\\n', b'c']\"), [])"
+    },
+    {
+      "name": "splitlines true keependsx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keependsx'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for splitlines()'), [('eq', 'keepends')])"
+    },
+    {
+      "name": "splitlines true unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'true'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('unrelated'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for splitlines()'), [('eq', 'keepends')])"
+    },
+    {
+      "name": "splitlines raise keepends",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keepends'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb\\\\n', b'c']\"), [])"
+    },
+    {
+      "name": "splitlines raise keependsx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keependsx'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'keepends')])"
+    },
+    {
+      "name": "splitlines raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('unrelated'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'keepends')])"
+    },
+    {
+      "name": "splitlines str-raise keepends",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keepends'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('list', \"[b'a\\\\tb\\\\n', b'c']\"), [])"
+    },
+    {
+      "name": "splitlines str-raise keependsx",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('keependsx'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'keepends'), ('str',)])"
+    },
+    {
+      "name": "splitlines str-raise unrelated",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'str-raise'\ntry:\n    result = b'a\\tb\\nc'.splitlines(**{Key('unrelated'): True})\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'keepends'), ('str',)])"
+    },
+    {
+      "name": "hex repeated payload sep false",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): ':', Key('sep'): '-'}\nevents = []\nmode = 'false'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex repeated payload sep true",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): ':', Key('sep'): '-'}\nevents = []\nmode = 'true'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep'), ('eq', 'sep')])"
+    },
+    {
+      "name": "hex repeated payload sep raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): ':', Key('sep'): '-'}\nevents = []\nmode = 'raise'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex repeated payload sep str-raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): ':', Key('sep'): '-'}\nevents = []\nmode = 'str-raise'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex repeated payload bytes_per_sep false",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('bytes_per_sep'): 1, Key('bytes_per_sep'): 2}\nevents = []\nmode = 'false'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"hex() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "hex repeated payload bytes_per_sep true",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('bytes_per_sep'): 1, Key('bytes_per_sep'): 2}\nevents = []\nmode = 'true'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for hex()'), [('eq', 'sep'), ('eq', 'sep')])"
+    },
+    {
+      "name": "hex repeated payload bytes_per_sep raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('bytes_per_sep'): 1, Key('bytes_per_sep'): 2}\nevents = []\nmode = 'raise'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "hex repeated payload bytes_per_sep str-raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('bytes_per_sep'): 1, Key('bytes_per_sep'): 2}\nevents = []\nmode = 'str-raise'\ntry:\n    result = b'abc'.hex(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'bytes_per_sep'), ('str',)])"
+    },
+    {
+      "name": "split repeated payload sep false",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): b'a', Key('sep'): b'b'}\nevents = []\nmode = 'false'\ntry:\n    result = b'abc'.split(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"split() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "split repeated payload sep true",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): b'a', Key('sep'): b'b'}\nevents = []\nmode = 'true'\ntry:\n    result = b'abc'.split(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for split()'), [('eq', 'sep'), ('eq', 'sep')])"
+    },
+    {
+      "name": "split repeated payload sep raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): b'a', Key('sep'): b'b'}\nevents = []\nmode = 'raise'\ntry:\n    result = b'abc'.split(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "split repeated payload sep str-raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('sep'): b'a', Key('sep'): b'b'}\nevents = []\nmode = 'str-raise'\ntry:\n    result = b'abc'.split(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit repeated payload maxsplit false",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('maxsplit'): 1, Key('maxsplit'): 2}\nevents = []\nmode = 'false'\ntry:\n    result = b'abc'.rsplit(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"rsplit() got an unexpected keyword argument 'display'\"), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "rsplit repeated payload maxsplit true",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('maxsplit'): 1, Key('maxsplit'): 2}\nevents = []\nmode = 'true'\ntry:\n    result = b'abc'.rsplit(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for rsplit()'), [('eq', 'sep'), ('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit repeated payload maxsplit raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('maxsplit'): 1, Key('maxsplit'): 2}\nevents = []\nmode = 'raise'\ntry:\n    result = b'abc'.rsplit(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'sep')])"
+    },
+    {
+      "name": "rsplit repeated payload maxsplit str-raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('maxsplit'): 1, Key('maxsplit'): 2}\nevents = []\nmode = 'str-raise'\ntry:\n    result = b'abc'.rsplit(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'sep'), ('eq', 'maxsplit'), ('str',)])"
+    },
+    {
+      "name": "decode repeated payload encoding false",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('encoding'): 'ascii', Key('encoding'): 'utf-8'}\nevents = []\nmode = 'false'\ntry:\n    result = b'abc'.decode(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"decode() got an unexpected keyword argument 'display'\"), [('eq', 'encoding'), ('eq', 'errors'), ('str',)])"
+    },
+    {
+      "name": "decode repeated payload encoding true",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('encoding'): 'ascii', Key('encoding'): 'utf-8'}\nevents = []\nmode = 'true'\ntry:\n    result = b'abc'.decode(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for decode()'), [('eq', 'encoding'), ('eq', 'encoding')])"
+    },
+    {
+      "name": "decode repeated payload encoding raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('encoding'): 'ascii', Key('encoding'): 'utf-8'}\nevents = []\nmode = 'raise'\ntry:\n    result = b'abc'.decode(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword equality'), [('eq', 'encoding')])"
+    },
+    {
+      "name": "decode repeated payload encoding str-raise",
+      "source": "events = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append(('eq', other))\n        if mode == 'raise':\n            raise ValueError('keyword equality')\n        return mode == 'true'\n    __hash__ = str.__hash__\n    def __str__(self):\n        events.append(('str',))\n        if mode == 'str-raise':\n            raise ValueError('keyword string')\n        return 'display'\nmode = 'false'\nkwargs = {Key('encoding'): 'ascii', Key('encoding'): 'utf-8'}\nevents = []\nmode = 'str-raise'\ntry:\n    result = b'abc'.decode(**kwargs)\n    outcome = (type(result).__name__, repr(result))\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error))\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'keyword string'), [('eq', 'encoding'), ('eq', 'errors'), ('str',)])"
+    }
+  ]
+}

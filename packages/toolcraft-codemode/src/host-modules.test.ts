@@ -2,12 +2,43 @@ import { lint, run } from "@poe-code/safe-js/core";
 import { createHumanInLoop, type HumanInLoopProvider } from "toolcraft/human-in-loop";
 import { createSDK } from "toolcraft/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { defineCommand, defineGroup } from "toolcraft";
+import { defineCommand, defineGroup, UserError } from "toolcraft";
 import { S } from "toolcraft-schema";
 
 import { buildHostModules } from "./host-modules.js";
 
 describe("buildHostModules", () => {
+  it.each([false, true])("rejects root/subgroup export collisions with nested-first=%s", async (nestedFirst) => {
+    const rootHandler = vi.fn(async () => "root");
+    const nestedHandler = vi.fn(async () => "nested");
+    const rootCommand = defineCommand({
+      name: "read",
+      params: S.Object({}),
+      handler: rootHandler
+    });
+    const nestedGroup = defineGroup({
+      name: "tools",
+      children: [defineCommand({
+        name: "read",
+        params: S.Object({}),
+        handler: nestedHandler
+      })]
+    });
+    const root = defineGroup({
+      name: "tools",
+      children: nestedFirst ? [nestedGroup, rootCommand] : [rootCommand, nestedGroup]
+    });
+
+    const result = buildHostModules(root, createSDK(root));
+    await expect(result).rejects.toThrow(UserError);
+    await expect(result).rejects.toThrow(
+      'Codemode module "tools" exports "read" more than once'
+    );
+    await expect(result).rejects.toThrow('"tools.read"');
+    expect(rootHandler).not.toHaveBeenCalled();
+    expect(nestedHandler).not.toHaveBeenCalled();
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
   });

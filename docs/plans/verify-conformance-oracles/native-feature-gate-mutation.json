@@ -1,0 +1,13 @@
+{
+  "sourceSha": "51f580428c75d2405c67b5fd719f88c54fab5d4f",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2"
+  },
+  "featureProbe": "undefined",
+  "fixture": "built-ins/Math/f16round/not-a-constructor.js",
+  "deliberateMutation": "Remove required native capability gate",
+  "actual": "Test262Error: isConstructor invoked with a non-function value",
+  "classification": "unavailable-native-feature-not-a-semantic-failure",
+  "reason": "Removing the native capability gate causes pinned isConstructor.js to throw Test262Error because Math.f16round is undefined. This is missing native feature evidence, not a SafeJS failure or a native semantic failure for a supported API. The proposed ungated-pass concern does not reproduce: the pinned harness guards against non-functions."
+}

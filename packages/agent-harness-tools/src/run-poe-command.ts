@@ -446,7 +446,7 @@ function captureRunStreams(
   };
 
   bind(handle.stdout, (chunk) => {
-    stdout += chunk;
+    if (execution?.captureStdout !== false) stdout += chunk;
     execution?.onStdout?.(chunk);
   }, true);
   bind(handle.stderr, (chunk) => {

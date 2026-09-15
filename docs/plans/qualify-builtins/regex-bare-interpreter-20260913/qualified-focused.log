@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts (4 tests) 102ms
+(node:37922) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/safe-js/src/interp/globals/array-from.test.ts (61 tests) 1852ms
+ ✓ packages/safe-js/src/interp/interpreter.test.ts (477 tests) 1617ms
+     ✓ spreads large arrays into push without leaking the host argument limit  378ms
+     ✓ caps million-element for...of iteration through the step budget  873ms
+ ✓ packages/safe-js/src/interp/array-length-coercion.test.ts (8 tests) 547ms
+ ✓ packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts (18 tests) 1309ms
+ ✓ packages/safe-js/src/interp/methods/string-regexp-created-hooks.test.ts (25 tests) 449ms
+
+ Test Files  6 passed (6)
+      Tests  593 passed (593)
+   Start at  17:58:50
+   Duration  5.81s (transform 2.63s, setup 97ms, import 4.80s, tests 5.88s, environment 0ms)
+

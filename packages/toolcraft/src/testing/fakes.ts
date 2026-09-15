@@ -34,7 +34,7 @@ export function fakeService<T extends object>(
 
       const stub = Reflect.get(target, property, receiver) as unknown;
       if (typeof stub !== "function") {
-        if (stub !== undefined) {
+        if (stub !== undefined || property === "then") {
           return stub;
         }
 
@@ -96,6 +96,7 @@ export function fakeFetch(routes: FetchRoute[]): typeof globalThis.fetch & { cal
   const fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = new Request(input, init);
     calls.push(request);
+    request.signal.throwIfAborted();
 
     const route = routes.find((candidate) => routeMatches(candidate, request));
     if (route === undefined) {

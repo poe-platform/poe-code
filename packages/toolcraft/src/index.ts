@@ -11,6 +11,7 @@ import type {
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
 import { ToolcraftBugError, UserError, isUserError } from "./user-error.js";
 import { suggest } from "./suggest.js";
+import { isProxyNode } from "./mcp-proxy-metadata.js";
 import type { RuntimeLogger } from "./runtime-logging.js";
 import type { StreamStatusEvent, ToolcraftStream } from "./stream.js";
 
@@ -34,6 +35,8 @@ type HumanInLoopMode = "sync" | "async";
 type HumanInLoopModeInput = HumanInLoopMode | null | undefined;
 
 export type Scope = ScopeValue;
+
+export type MCPResultValue = Record<string, unknown> | readonly unknown[] | string | number | boolean | null;
 
 type ResolveOwnHumanInLoopMode<TValue> = TValue extends {
   mode: infer TMode extends HumanInLoopMode;
@@ -109,6 +112,7 @@ export type GroupCheckContext<TServices extends object = EmptyServices> = TServi
   fs: HandlerFs;
   env: HandlerEnv;
   diagnostics: RuntimeLogger;
+  signal?: AbortSignal;
   progress(message: string): void;
 };
 
@@ -176,8 +180,8 @@ export interface CommandConfig<
   aliases?: string[];
   positional?: string[];
   params: TParamsSchema;
-  result?: ObjectSchema<any>;
-  mcpResult?: (result: TResult) => Record<string, unknown>;
+  result?: AnySchema;
+  mcpResult?: (result: TResult) => MCPResultValue;
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
@@ -234,8 +238,8 @@ export interface Command<
   aliases: string[];
   positional: string[];
   params: TParamsSchema;
-  result?: ObjectSchema<any>;
-  mcpResult?: (result: TResult) => Record<string, unknown>;
+  result?: AnySchema;
+  mcpResult?: (result: TResult) => MCPResultValue;
   stream?: StreamDefinition<any>;
   secrets: SecretDeclarations;
   scope: Scope[];
@@ -343,8 +347,8 @@ interface InternalCommandConfig {
   scope?: Scope[];
   hidden: boolean;
   examples: CommandExample[];
-  result?: ObjectSchema<any>;
-  mcpResult?: (result: unknown) => Record<string, unknown>;
+  result?: AnySchema;
+  mcpResult?: (result: unknown) => MCPResultValue;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
@@ -834,7 +838,7 @@ function createBaseCommand<
       examples: cloneCommandExamples(config.examples),
       result: config.result,
       mcpResult: config.mcpResult as
-        | ((result: unknown) => Record<string, unknown>)
+        | ((result: unknown) => MCPResultValue)
         | undefined,
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
@@ -917,7 +921,7 @@ function materializeCommand<
     params: command.params,
     result: internal.result,
     mcpResult: internal.mcpResult as
-      | ((result: TResult) => Record<string, unknown>)
+      | ((result: TResult) => MCPResultValue)
       | undefined,
     stream: command.stream,
     secrets: mergeSecrets(inherited.secrets, internal.secrets),
@@ -1161,6 +1165,79 @@ export function defineGroup<
     >;
 }
 
+export type ClonedCommandNode<TNode extends CommandNode<any>> =
+  TNode extends Command<infer TServices, infer TParams, infer TSecrets, infer TResult>
+    ? Command<TServices, TParams, TSecrets, TResult> & Pick<TNode, Extract<keyof TNode, "__agentKitCommandTypeInfo">>
+    : TNode extends Group<infer TServices>
+      ? Group<TServices> & Pick<TNode, Extract<keyof TNode, "__agentKitGroupTypeInfo">>
+      : never;
+
+export function cloneCommandNode<TNode extends CommandNode<any>>(node: TNode): ClonedCommandNode<TNode>;
+export function cloneCommandNode<TServices extends object>(
+  node: CommandNode<TServices>,
+  scopeOverride: Scope[]
+): CommandNode<TServices>;
+export function cloneCommandNode<TServices extends object>(
+  node: CommandNode<TServices>,
+  scopeOverride?: Scope[]
+): CommandNode<TServices> {
+  function rebuildNode(
+    current: CommandNode<TServices>,
+    root: boolean,
+    withinProxy: boolean
+  ): CommandNode<TServices> {
+    const description = current.kind === "command"
+      ? commandConfigSymbol.description
+      : groupConfigSymbol.description;
+    const symbol = Object.getOwnPropertySymbols(current).find((candidate) => candidate.description === description);
+    const config = symbol === undefined ? undefined : Reflect.get(current, symbol) as
+      | InternalCommandConfig
+      | InternalGroupConfig<TServices>
+      | undefined;
+    const inherited = root || config === undefined ? current : config;
+    const metadata = {
+      scope: scopeOverride ?? inherited.scope,
+      humanInLoop: inherited.humanInLoop,
+      secrets: inherited.secrets,
+      requires: inherited.requires
+    };
+
+    if (current.kind === "command") {
+      const base = createBaseCommand({ ...current, ...metadata });
+      if (config !== undefined) {
+        getInternalCommandConfig(base).sourcePath = (config as InternalCommandConfig).sourcePath;
+      }
+      base.stream = current.stream === undefined ? undefined : { ...current.stream };
+      return base;
+    }
+
+    const groupConfig = config as InternalGroupConfig<TServices> | undefined;
+    const proxyChildren = withinProxy || groupConfig?.mcp !== undefined;
+    const sourceChildren = current.children.filter((child) => !proxyChildren || !isProxyNode(child));
+    const children = sourceChildren.map((child) => rebuildNode(child, false, proxyChildren));
+    const defaultIndex = current.default === undefined ? -1 : sourceChildren.indexOf(current.default);
+    if (current.default !== undefined && defaultIndex === -1) {
+      throw new ToolcraftBugError(`Default command "${current.default.name}" must be listed in children.`);
+    }
+    return createBaseGroup({
+      ...current,
+      ...metadata,
+      mcp: groupConfig?.mcp,
+      tools: groupConfig?.tools,
+      rename: groupConfig?.rename,
+      children,
+      default: defaultIndex === -1 ? undefined : children[defaultIndex] as Command<TServices, any, any, any>
+    });
+  }
+
+  return materializeNode(rebuildNode(node, true, false), {
+    scope: undefined,
+    humanInLoop: undefined,
+    secrets: {},
+    requires: undefined
+  });
+}
+
 export function getCommandSourcePath(command: Command<any, any, any, any>): string | undefined {
   return (command as Command<any, any, any, any> & { [commandSourcePathSymbol]?: string })[
     commandSourcePathSymbol
@@ -1205,7 +1282,9 @@ export type { HttpErrorRequest, HttpErrorResponse } from "./http-errors.js";
 export { ApprovalDeclinedError, ToolcraftBugError, UserError, isUserError };
 export { suggest } from "./suggest.js";
 export { createRuntimeLogger, isLogLevel, shouldEmitDiagnostic } from "./runtime-logging.js";
+export { isSensitiveName, redactHttpBody } from "./redaction.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
+export { asMCPResult } from "./mcp-result.js";
 export type { PackageMetadata } from "./package-metadata.js";
 export type {
   FileChangeRendererOptions,
@@ -1243,6 +1322,7 @@ export type {
   StringSchema,
   UnionSchema,
   ValidationIssue,
+  ValidationOptions,
   ValidationResult
 } from "./schema.js";
 export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntime };

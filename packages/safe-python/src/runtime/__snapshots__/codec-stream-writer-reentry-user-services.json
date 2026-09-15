@@ -1,0 +1,869 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 150
+  },
+  "hashSeed": [
+    1,
+    2
+  ],
+  "adapter": "Explicit output.write via fs.writeSync with partial-write handling; output.flush via fs.fsyncSync. Owned temporary descriptors closed and files removed.",
+  "cases": [
+    {
+      "name": "ascii; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('ascii')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "c0b6ec7757e2fe0c8a97fc77170e3bbb279e5373bec596938d6f2fa61d7ad8bf",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "ascii; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('ascii')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "e0bc28209aed6b0adc3f8a2803922d567e713a996c6d361536743fef28dd01f6",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "ascii; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('ascii')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "502ef260246b39d032f67a65f08e5a9872c82342042617a3b2c1c4931a5a803d",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "ascii; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('ascii')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "4aca269689d846ced7d82af35882b3483e20ba8411f273469b9f36c995e3353d",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('ascii', '\\ud800', 0, 1, 'ordinal not in range(128)')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "cp1252; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('cp1252')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "bd718ed784e15d7723d65264a9626f6f770260bdb0f0679a4660e8977763acee",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "cp1252; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('cp1252')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "8ab7e1c57ae48c904451ea1f1727b372e2331583404912bc456a4eaff8e73771",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "cp1252; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('cp1252')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "14c0d9bd5c19a70d17fd884fd196c4f1c53b18a26dd6aab7f7f4b323ca1f9ba6",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "cp1252; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('cp1252')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "33d1b3059ea3ca9acb0471aa5708cd85763a34186c667eb2c9886bd79a51def6",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('charmap', '\\ud800', 0, 1, 'character maps to <undefined>')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\\\U0001f600', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "4abbade39564414d963ed603356ce46e56e06b8ad9f1234bfba1380d1b85af95",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "5c3286221553a2221a9821ac8e6509855eb3ff2f359e392edc3465734994603e",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "41fc818bd0a33c9b44dbacebcdfaeeb45bf91617b8a9cae1c139b7173df5f2fc",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "9b4aba1412febf196acee56aa2add857bf4900ed9fb91105349774c18f23552e",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8-sig')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "fe595f36aac53b877ee85bca991f6c0768e3e32400dd946e6678ff1fb32fc312",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate True backslashreplace [('sink', b'', 'bytes', True)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate True backslashreplace [('sink', b'', 'bytes', True)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8-sig')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "d8a30f0eb976a18da3167ee191be3f05d6e0024d2be8b1473a95d2a6f0151b0f",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nfailure True OSError ('sink failed',)\nstate True backslashreplace [('sink', b'', 'bytes', True)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nfailure True OSError ('sink failed',)\nstate True backslashreplace [('sink', b'', 'bytes', True)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8-sig')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "c90df791fda067f0e4482ae2158b502216cd92d7782cf0ead5ade23c9f444f5d",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', True), ('reset', None)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'\\xef\\xbb\\xbfA', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', True), ('reset', None)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'\\xef\\xbb\\xbfA', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-8-sig')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "1d62edb738eda0f40c6dae3eb7cf0f08fdca47d24ab37fdcb2af0ed195dfa6de",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate True backslashreplace [('sink', b'', 'bytes', True), ('sink', b'N', 'bytes', True), ('nested', None)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')\nstate True strict []\nwrite '' None\nstate True backslashreplace [('sink', b'', 'bytes', True), ('sink', b'N', 'bytes', True), ('nested', None)]\nwrite 'A' None\nstate True backslashreplace [('sink', b'A', 'bytes', True)]\nwrite 'é😀' None\nstate True backslashreplace [('sink', b'\\xc3\\xa9\\xf0\\x9f\\x98\\x80', 'bytes', True)]\nwrite 'Z' None\nstate True backslashreplace [('sink', b'Z', 'bytes', True)]\nseek None\nreplay None\nstate True backslashreplace [('seek', 0, 0), ('sink', b'\\xef\\xbb\\xbfBC', 'bytes', True)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-7')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "d9541e03d6690627e3fbcbd6e4d3a4a885398f832da16aef750d89218e878997",
+      "actual": {
+        "status": "ok",
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-7')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "ebb663b7a33b4c034154933e511fa0227aef13efb734299874d89d51d88ab6da",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('sink failed',)\nstate False strict [('sink', b'+2AA-', 'bytes', False)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('sink failed',)\nstate False strict [('sink', b'+2AA-', 'bytes', False)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-7')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "788ae206af51c49b1390a1f5fd254b2ebba4d8e232c9dcdb6653e85c948a54a6",
+      "actual": {
+        "status": "ok",
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False), ('reset', None)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False), ('reset', None)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-7')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "cd2483c2a2ca75a1c41ed2a262ce697a1ad5b2817803e6f44288ee1c322c45d4",
+      "actual": {
+        "status": "ok",
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "write '\\ud800' None\nstate False strict [('sink', b'+2AA-', 'bytes', False), ('sink', b'N', 'bytes', False), ('nested', None)]\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'+AOnYPd4A-', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'BC', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "85a62511758957b63866510c5712cbabae2dbe9ab10e228092ff86bc12960611",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "7f5ad7ab889e52831fd830bd9bc7e2d7082d4bf238c5d82054904b634b20b717",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "951c8ed2006c4d68fe15dea7b2f830f82b590345d9556b6d83ff47435204d915",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "c06c88ce4562c74c0cfaa04802e5c0929a86a32e7df897d22c195c4acee750cb",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N\\x00', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N\\x00', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00=\\xd8\\x00\\xde', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00C\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "5f5c1c7aa13cb3a5e618bf36525d77c6a66051af8d4287ec043f7b34a0318f5b",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "44ecfafa7f92d2d53646be4e170bf36f74a3d40bb489710aca3221e048e43c90",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "a5690ef0a8b32fc2af577da2768e32a74c1f96dc4d747a5f0295384ffb90628f",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-16-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "d7e264505fff4c344f9d41efc803352843250061cacfa70b1d115d370b0876b3",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'\\x00N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'\\x00N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\xe9\\xd8=\\xde\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00B\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-le; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "2ac950bb44bbca930fd58d94c4beb9841114b8c7762e7e1544c62bf13981b622",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-le; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "289aacb42fc6ad5eaba7d5f6c2abc0591bb7706e034f521750577657767d083d",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-le; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "dfad4d4245b6cce4ecef571c254622b54faaad164cd5b315fdfee1583dedb59f",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-le; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-le')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "a8064bdb024c12f68239aeb1269a6812389e58928816575377835845a054e22e",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N\\x00\\x00\\x00', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'N\\x00\\x00\\x00', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'A\\x00\\x00\\x00', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\xe9\\x00\\x00\\x00\\x00\\xf6\\x01\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'Z\\x00\\x00\\x00', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'B\\x00\\x00\\x00C\\x00\\x00\\x00', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-be; return",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            pass\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "40a9d0a364394eb390db01c51768a643eccd2b02f9cade52fcfa9c661449a898",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-be; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            raise failure\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "a48d41940d24680e925a0387df8d2c60a2335b2680a13d2ee292ae9395e1bb71",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nfailure True OSError ('sink failed',)\nstate False backslashreplace [('sink', b'', 'bytes', False)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-be; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('reset', writer.reset()))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "a7c465d64eacb353851430cd3818b8042b1fa88ff27616bcdddab3d9e25f4f67",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('reset', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-be; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('sink failed')\nclass Result:\n    def __index__(self):\n        raise AssertionError('sink result must not be converted')\n    def __bool__(self):\n        raise AssertionError('sink result must not be tested')\nclass Sink:\n    active = False\n    def write(self, data):\n        events.append(('sink', data, type(data).__name__, 'encode' in writer.__dict__))\n        if not self.active:\n            self.active = True\n            events.append(('nested', writer.write('N')))\n        return Result()\n    def seek(self, offset, whence):\n        events.append(('seek', offset, whence))\n        return Result()\nsink = Sink()\nwriter = codecs.getwriter('utf-32-be')(sink)\nfor data in ('\\ud800', '', 'A', 'é😀', 'Z'):\n    try:\n        print('write', repr(data), writer.write(data))\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', 'encode' in writer.__dict__, writer.errors, events)\n    events.clear()\n    writer.errors = 'backslashreplace'\nprint('seek', writer.seek(0))\nprint('replay', writer.writelines(['B', '', 'C']))\nprint('state', 'encode' in writer.__dict__, writer.errors, events)\n",
+      "sha256": "17e8bb5f464c3008a3a1745d19ee78f6d372cc7b33d45cceb8786e63ec50042f",
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'\\x00\\x00\\x00N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False UnicodeEncodeError ('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')\nstate False strict []\nwrite '' None\nstate False backslashreplace [('sink', b'', 'bytes', False), ('sink', b'\\x00\\x00\\x00N', 'bytes', False), ('nested', None)]\nwrite 'A' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00A', 'bytes', False)]\nwrite 'é😀' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00\\xe9\\x00\\x01\\xf6\\x00', 'bytes', False)]\nwrite 'Z' None\nstate False backslashreplace [('sink', b'\\x00\\x00\\x00Z', 'bytes', False)]\nseek None\nreplay None\nstate False backslashreplace [('seek', 0, 0), ('sink', b'\\x00\\x00\\x00B\\x00\\x00\\x00C', 'bytes', False)]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "byte escape types, argument precedence, warnings and buffer exports",
+      "source": "from _codecs import escape_encode, escape_decode\nimport warnings\n\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nsource = Buffer(b\"A\\n\\xff'\")\nencoded = escape_encode(source, Text('unknown'))\nassert encoded == (b\"A\\\\n\\\\xff\\\\'\", 4)\nassert type(encoded) is tuple and type(encoded[0]) is bytes\nassert escape_decode(encoded[0]) == (source, len(encoded[0]))\nassert escape_decode(Text('é🐍')) == (b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d', 6)\nsingle = b'A'\nassert escape_encode(single)[0] is not single\nassert escape_decode(single)[0] is single\nempty = b''\nassert escape_encode(empty)[0] is empty\nassert escape_decode(empty)[0] is empty\nfor function in (escape_encode, escape_decode):\n    assert function.__module__ == '_codecs'\n    assert function.__doc__ is None\n    assert function.__text_signature__ == '($module, data, errors=None, /)'\n    try:\n        function(data=b'')\n    except TypeError as error:\n        assert error.args == ('_codecs.' + function.__name__ + '() takes no keyword arguments',)\n    else:\n        assert False\n    try:\n        function(b'', 'strict\\0')\n    except ValueError as error:\n        assert error.args == ('embedded null character',)\n    else:\n        assert False\nbad = Text('x\\ud800')\nfor args in [(bad, 42), (b'', bad)]:\n    try:\n        escape_decode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 1, 2, 'surrogates not allowed')\n        assert error.__traceback__ is not None\n    else:\n        assert False\ndata = bytearray(b'\\\\x41')\nassert escape_decode(data) == (b'A', 4)\ndata.extend(b'Z')\nassert escape_decode(memoryview(data)) == (b'AZ', 5)\ntry:\n    escape_decode(memoryview(data)[::2])\nexcept BufferError:\n    pass\nelse:\n    assert False\nview = memoryview(data)\nview.release()\ntry:\n    escape_decode(view)\nexcept ValueError:\n    pass\nelse:\n    assert False\nfor policy in ('strict', 'replace', 'ignore', 'unknown'):\n    try:\n        escape_decode(b'\\\\', policy)\n    except ValueError as error:\n        assert error.args == ('Trailing \\\\ in string',)\n    else:\n        assert False\nassert escape_decode(b'\\\\x0Z', 'replace') == (b'?Z', 4)\nassert escape_decode(b'\\\\x0Z', 'ignore') == (b'Z', 4)\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    assert escape_decode(b'\\\\q\\\\400') == (b'\\\\q\\x00', 6)\n    assert len(seen) == 1\n    assert seen[0].category is DeprecationWarning\n    assert str(seen[0].message) == 'b\"\\\\q\" is an invalid escape sequence. Such sequences will not work in the future. '\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    try:\n        escape_decode(b'\\\\q\\\\x')\n    except ValueError as error:\n        assert error.args == ('invalid \\\\x escape at position 2',)\n    else:\n        assert False\n    assert len(seen) == 0\nwith warnings.catch_warnings():\n    warnings.simplefilter('error')\n    try:\n        escape_decode(b'\\\\400')\n    except DeprecationWarning as error:\n        assert str(error) == 'b\"\\\\400\" is an invalid octal escape sequence. Such sequences will not work in the future. '\n        assert error.__traceback__ is not None\n    else:\n        assert False\n",
+      "sha256": "b4dc3a0ce0fde3e93a9b8e2b7fd438049c83ee281041daf89e17952a2ac1a870",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('ModuleNotFoundError', \"No module named 'warnings'\", (\"No module named 'warnings'\",))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "readbuffer_encode native copying, subtype and argument contracts",
+      "source": "from _codecs import readbuffer_encode\n\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nfor source, expected in [(b'abc', b'abc'), (Buffer(b'abc'), b'abc'), (Text('é🐍'), b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d')]:\n    result = readbuffer_encode(source, Text('unknown'))\n    assert result == (expected, len(expected))\n    assert type(result[0]) is type(b'')\n    assert result[0] is not source\nempty = b''\nassert readbuffer_encode(empty, None)[0] is empty\nfor args, message in [((), 'readbuffer_encode expected at least 1 argument, got 0'), ((b'', None, None), 'readbuffer_encode expected at most 2 arguments, got 3'), ((None,), \"a bytes-like object is required, not 'NoneType'\"), (([],), \"a bytes-like object is required, not 'list'\"), ((b'', 42), 'readbuffer_encode() argument 2 must be str or None, not int')]:\n    try:\n        readbuffer_encode(*args)\n    except TypeError as error:\n        assert error.args == (message,)\n    else:\n        assert False\ntry:\n    readbuffer_encode(data=b'')\nexcept TypeError as error:\n    assert error.args == ('_codecs.readbuffer_encode() takes no keyword arguments',)\nelse:\n    assert False\ntry:\n    readbuffer_encode(b'', 'unknown\\0')\nexcept ValueError as error:\n    assert error.args == ('embedded null character',)\nelse:\n    assert False\nbad = Text('prefix\\ud800suffix')\nfor args in [(bad, 42), (bad, 'ignore'), (b'', bad)]:\n    try:\n        readbuffer_encode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert error.args[1] is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 6, 7, 'surrogates not allowed')\n    else:\n        assert False\n",
+      "sha256": "b2cf84aaae58b0ba34b7d38089fcbd2d5d50a1af88bcbce7942042b04fe3aa9a",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "Punycode public decoder factories retain rewritten exception chains and tracebacks",
+      "source": "import codecs\nimport encodings.punycode\nfor decode in (lambda data: codecs.decode(data, 'punycode'), lambda data: codecs.getdecoder('punycode')(data), lambda data: codecs.getincrementaldecoder('punycode')().decode(data, True), lambda data: encodings.punycode.punycode_decode(data, 'strict')):\n    for data, inner_object, start, end, reason in (\n        (b'A\\xff-z', b'A\\xff', 1, 2, 'ordinal not in range(128)'),\n        (b'abc-z', b'Z', 1, 2, 'incomplete punycode string'),\n        (b'abc-?', b'?', 0, 1, \"Invalid extended code point '63'\"),\n    ):\n        outer = ValueError('active')\n        try:\n            try:\n                raise outer\n            except ValueError:\n                decode(data)\n        except UnicodeDecodeError as error:\n            assert error.__traceback__ is not None\n            assert error.__cause__ is None\n            assert error.__suppress_context__ is True\n            assert error.object == data\n            inner = error.__context__\n            assert type(inner) is UnicodeDecodeError\n            assert inner.args == (error.encoding, inner_object, start, end, reason)\n            assert inner.__traceback__ is not None\n            assert inner.__cause__ is None\n            assert inner.__suppress_context__ is False\n            if data == b'abc-z':\n                indexing = inner.__context__\n                assert type(indexing) is IndexError\n                assert indexing.args == ('index out of range',)\n                assert indexing.__traceback__ is not None\n                assert indexing.__context__ is outer\n            else:\n                assert inner.__context__ is outer\n        else:\n            assert False\n",
+      "sha256": "06edd02633e2705342f17aa955db991971d33a3aee14da55a8a46a9a14c52514",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('NameError', \"name 'memoryview' is not defined\", (\"name 'memoryview' is not defined\",))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "charmap surrogateescape retains original decode exception arguments",
+      "source": "import codecs\nfor mapping in ({}, '', '\\ufffe' * 256):\n    source = b'\\xff\\xfea'\n    try:\n        codecs.charmap_decode(source, 'surrogateescape', mapping)\n    except UnicodeDecodeError as error:\n        assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n        assert (error.start, error.end, error.reason) == (2, 3, 'character maps to <undefined>')\n        assert error.object == source\n        assert error.__traceback__ is not None\n    else:\n        assert False\nsource = b'\\x80\\x70'\ntry:\n    source.decode('cp424', 'surrogateescape')\nexcept UnicodeDecodeError as error:\n    assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n    assert (error.start, error.end) == (1, 2)\n    assert error.__traceback__ is not None\nelse:\n    assert False\n",
+      "sha256": "1affb1f419eca814afc6d02d4048bbd051568e11616013994f87df3fbe12d9d3",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('AssertionError', '', ())"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "normalized search names retain identity across misses and cache invalidation",
+      "source": "import codecs\nseen = []\nmode = 'miss'\ninfo = (None, None, None, None)\ndef search(name):\n    seen.append(name)\n    if mode == 'failure':\n        raise ValueError('search failed')\n    if mode == 'success':\n        return info\ncodecs.register(search)\nfor spelling, mode in [('Codec-Identity-Probe', 'miss'), ('CODEC IDENTITY PROBE', 'failure'), ('codec_identity_probe', 'success')]:\n    try:\n        codecs.lookup(spelling)\n    except (LookupError, ValueError):\n        pass\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('codec-identity-probe') is info\nassert len(seen) == 4\nfor name in seen:\n    assert name is seen[0]\n",
+      "sha256": "1dd66a167545a691042572c3d22147bc59ad21febef04536a8a76e6947364702",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "callback failures preserve identity, notes and guest traceback frames",
+      "source": "import codecs\nfailure = ValueError('callback failed')\ndef codec(value):\n    raise failure\ncodecs.register(lambda name: (codec, codec, None, None) if name == 'public_traceback' else None)\nfor operation, value in [(codecs.encode, 'x'), (codecs.decode, b'x')]:\n    failure.__traceback__ = None\n    try:\n        operation(value, 'public_traceback')\n    except ValueError as error:\n        assert error is failure and error.args == ('callback failed',)\n        traceback = error.__traceback__\n        assert traceback.tb_frame.f_code.co_name == '<module>'\n        assert traceback.tb_next.tb_frame.f_code.co_name == 'codec'\n        assert traceback.tb_next.tb_next is None\n    else:\n        assert False\nassert failure.__notes__ == [\"encoding with 'public_traceback' codec failed\", \"decoding with 'public_traceback' codec failed\"]\n",
+      "sha256": "4ccf68bae724758eff2fee16a772374a0db798c633f31997f12975748ff8c9d7",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('AttributeError', \"'NoneType' object has no attribute 'tb_frame'\", (\"'NoneType' object has no attribute 'tb_frame'\",))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "generator error callbacks are rejected without starting their body",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append('started')\n    yield ('?', 1)\ncodecs.register_error('public_generator', handler)\nfor operation, expected in [(lambda: b'\\xff'.decode('ascii', 'public_generator'), 'decoding error handler must return (str, int) tuple'), (lambda: 'é'.encode('ascii', 'public_generator'), 'encoding error handler must return (str/bytes, int) tuple')]:\n    try:\n        operation()\n    except TypeError as error:\n        assert error.args == (expected,)\n    else:\n        assert False\nassert events == []\n",
+      "sha256": "b34c121be767ee7a07bb98d18c17d4963a81cdd08c4087d04f234d93c8a4229f",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "handler result validation precedes index and mutated-object validation",
+      "source": "import codecs\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ndef handler(error):\n    error.object = None\n    return (b'?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == ('decoding error handler must return (str, int) tuple',)\nelse:\n    assert False\nassert events == []\ndef handler(error):\n    error.object = None\n    return ('?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == (\"UnicodeError 'object' attribute must be a bytes\",)\nelse:\n    assert False\nassert events == ['index']\n",
+      "sha256": "f0fbc8e8a088a3c0b599f7d3eace511d785fe3c2d3a1af09aea37da7c4aee4fb",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "CodecInfo tuple layout, metadata, subclassing and attribute independence",
+      "source": "import codecs\ndef encode(value, errors='strict'):\n    return (b'encoded', len(value))\ndef decode(value, errors='strict'):\n    return ('decoded', len(value))\nclass Info(codecs.CodecInfo):\n    pass\ninfo = Info(encode, decode, name='custom')\nassert isinstance(info, tuple)\nassert type(info) is Info\nassert len(info) == 4\nassert tuple(info) == (encode, decode, None, None)\nassert info.encode is encode and info.decode is decode\nassert info.incrementalencoder is None and info.incrementaldecoder is None\nassert info.name == 'custom' and info._is_text_encoding is True\ninfo.encode = None\nassert info[0] is encode and info.encode is None\nassert codecs.CodecInfo.__module__ == 'codecs'\n",
+      "sha256": "8d0222742d9aeea47c8ad06cace3b55bdb1c71797f88578e3431181b69e77eac",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "search normalization, cache identity, duplicate registration and invalidation",
+      "source": "import codecs\nevents = []\ninfo = codecs.CodecInfo(lambda value: (value, 0), lambda value: (value, 0), name='public_test')\ndef search(name):\n    events.append(name)\n    if name == 'public_test':\n        return info\ncodecs.register(search)\ncodecs.register(search)\nassert codecs.lookup(' PUBLIC---TEST ') is info\nassert codecs.lookup('public_test') is info\nassert events == ['public_test']\ncodecs.unregister(search)\nassert codecs.lookup('public_test') is info\nassert events == ['public_test', 'public_test']\ncodecs.unregister(search)\ntry:\n    codecs.lookup('public_test')\nexcept LookupError as error:\n    assert error.args == ('unknown encoding: public_test',)\nelse:\n    assert False\n",
+      "sha256": "ed02632449481f95c1001f97b938ff7ac2d35f5060df3bd93f93a0c765149a5e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "recursive handlers and exception.object mutation after __index__",
+      "source": "import codecs\nevents = []\nreplacement = b'ABCD'\nclass Index:\n    def __index__(self):\n        events[-1].object = replacement\n        return -2\ndef handler(error):\n    events.append(error)\n    if len(events) == 1:\n        assert b'\\xff'.decode('ascii', 'public_recursive') == '?CD'\n        error.object = b'WXYZ'\n        return ('!', -1)\n    return ('?', Index())\ncodecs.register_error('public_recursive', handler)\nassert b'\\xff'.decode('ascii', 'public_recursive') == '!Z'\nassert len(events) == 2\nassert events[0] is not events[1]\nassert events[0].args == ('ascii', b'\\xff', 0, 1, 'ordinal not in range(128)')\nassert events[1].object is replacement\n",
+      "sha256": "dac59e29041aa84953ca1bfef7a714a1a8eaa87aa703402a8e1a966d545b7509",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "all standard handlers through published registry identities",
+      "source": "import codecs\nimport _codecs\nerror = UnicodeEncodeError('ascii', 'é', 0, 1, 'reason')\nfor name, result in [('ignore', ''), ('replace', '?'), ('backslashreplace', '\\\\xe9'), ('xmlcharrefreplace', '&#233;'), ('namereplace', '\\\\N{LATIN SMALL LETTER E WITH ACUTE}')]:\n    handler = codecs.lookup_error(name)\n    assert handler(error) == (result, 1)\n    assert handler is getattr(codecs, name + '_errors')\n    assert handler is _codecs.lookup_error(name)\ntry:\n    codecs.lookup_error('strict')(error)\nexcept UnicodeEncodeError as caught:\n    assert caught is error\n    assert caught.__traceback__ is not None\nelse:\n    assert False\nassert codecs.lookup_error('surrogateescape')(UnicodeDecodeError('ascii', b'\\xff', 0, 1, 'reason')) == ('\\udcff', 1)\nassert codecs.lookup_error('surrogatepass')(UnicodeEncodeError('utf-8', '\\ud800', 0, 1, 'reason')) == (b'\\xed\\xa0\\x80', 1)\n",
+      "sha256": "692463013bca24736ce0f7c06ad2f9c10a718251132eaf4a923e025eb7fdfa48",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('AssertionError', '', ())"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "standard handler rejection chains the active exception without changing cause",
+      "source": "import codecs\nfor name in ('strict', 'surrogatepass', 'surrogateescape'):\n    original = UnicodeEncodeError('ascii', 'é', 0, 1, 'original')\n    arguments = original.args\n    prior = ValueError('active')\n    cause = ValueError('explicit cause')\n    original.__cause__ = cause\n    try:\n        raise prior\n    except ValueError:\n        prior.__context__ = original\n        try:\n            codecs.lookup_error(name)(original)\n        except UnicodeEncodeError as caught:\n            assert caught is original\n            assert caught.__context__ is prior\n            assert prior.__context__ is None\n            assert caught.__cause__ is cause\n            assert caught.__suppress_context__ is True\n            assert caught.args is arguments\n        else:\n            assert False\n    try:\n        codecs.lookup_error(name)(original)\n    except UnicodeEncodeError as caught:\n        assert caught.__context__ is prior\n    else:\n        assert False\n",
+      "sha256": "abe2fad00cd23fe2ec23fc41b58825f52cf56a50ff6288e25237a7030cbe7897",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "custom codecs shared by encode/decode and str/bytes constructors",
+      "source": "import codecs\nevents = []\ndef encode(value, errors='strict'):\n    events.append(('encode', value, errors))\n    return (b'custom', len(value))\ndef decode(value, errors='strict'):\n    events.append(('decode', bytes(value), errors))\n    return ('custom', len(value))\ndef search(name):\n    if name == 'public_consumer':\n        return codecs.CodecInfo(encode, decode, name=name)\ncodecs.register(search)\nassert 'x'.encode('public_consumer') == b'custom'\nassert bytes('x', 'public_consumer') == b'custom'\nassert codecs.encode('x', 'public_consumer') == b'custom'\nassert b'x'.decode('public_consumer') == 'custom'\nassert str(b'x', 'public_consumer') == 'custom'\nassert codecs.decode(b'x', 'public_consumer') == 'custom'\nassert events == [('encode', 'x', 'strict')] * 3 + [('decode', b'x', 'strict')] * 3\n",
+      "sha256": "ec5011097bc79fc96305990e6bba74a089150280072cbba0070801eb289ee122",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('LookupError', 'unknown encoding: public_consumer', ('unknown encoding: public_consumer',))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "core fast paths survive codec shadowing and distinguish handler shadowing",
+      "source": "import codecs\nevents = []\ndef search(name):\n    events.append(name)\n    return (None, None, None, None)\ndef handler(error):\n    return ('!', error.end)\ncodecs.register(search)\nfor encoding in ('ascii', 'latin-1', 'utf-8'):\n    assert 'A'.encode(encoding) == b'A'\n    assert b'A'.decode(encoding) == 'A'\nassert events == []\ncodecs.register_error('replace', handler)\ncodecs.register_error('strict', handler)\nassert '\\ud800'.encode('utf-8', 'replace') == b'?'\nassert '\\ud800'.encode('utf-8', 'strict') == b'!'\ntry:\n    'é'.encode('ascii', 'strict')\nexcept UnicodeEncodeError as error:\n    assert (error.encoding, error.object, error.start, error.end, error.reason) == ('ascii', 'é', 0, 1, 'ordinal not in range(128)')\nelse:\n    assert False\n",
+      "sha256": "f6b389451e7d19d39c7cedaf17168a2f9ba9436fc323c5d35a07d0a930b681bb",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "decoder subtype identity and tuple override avoidance",
+      "source": "import codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual item')\n    def __len__(self):\n        raise AssertionError('virtual length')\ndef decode(value, errors='strict'):\n    return Pair((result, None))\ncodecs.register(lambda name: codecs.CodecInfo(None, decode, name=name) if name == 'public_subtype' else None)\nfor content in ('', 'A', 'é', 'Ā', 'two', '\\ud800'):\n    result = Text(content)\n    assert codecs.decode(b'x', 'public_subtype') is result\n    for actual in (b'x'.decode('public_subtype'), str(b'x', 'public_subtype')):\n        if content in ('', 'A', 'é'):\n            assert type(actual) is str and actual is content\n        else:\n            assert actual is result\n",
+      "sha256": "709f2af8a478cbcb6ca24bb13413e9b6a21269f657253eed0e832c0c9f58dedf",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('LookupError', 'unknown encoding: public_subtype', ('unknown encoding: public_subtype',))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "incremental UTF-8 split input, state restoration, reset and final failure",
+      "source": "import codecs\nimport encodings.utf_8\nfactory = codecs.getincrementaldecoder('utf8')\nassert factory is encodings.utf_8.IncrementalDecoder\ndecoder = factory()\nassert isinstance(decoder, codecs.BufferedIncrementalDecoder)\nassert decoder.decode(b'\\xf0\\x9f') == ''\nstate = decoder.getstate()\nassert state == (b'\\xf0\\x9f', 0)\nassert decoder.decode(b'\\x90\\x8d', True) == '🐍'\ndecoder.setstate(state)\ntry:\n    decoder.decode(b'', True)\nexcept UnicodeDecodeError as error:\n    assert (error.object, error.start, error.end, error.reason) == (b'\\xf0\\x9f', 0, 2, 'unexpected end of data')\nelse:\n    assert False\nassert decoder.getstate() == state\ndecoder.reset()\nassert decoder.getstate() == (b'', 0)\n",
+      "sha256": "78911b138a9db3ed09e549826fed732dc36bcfeaec6ca2756057e1dffd6f0a21",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "stream reader/writer adapters over a real in-memory binary stream",
+      "source": "import codecs\nimport io\nstream = io.BytesIO()\nwriter = codecs.getwriter('utf8')(stream)\nwriter.write('é\\n🐍\\n')\nwriter.writelines(['A', 'B'])\nassert stream.getvalue() == b'\\xc3\\xa9\\n\\xf0\\x9f\\x90\\x8d\\nAB'\nstream.seek(0)\nreader = codecs.getreader('utf8')(stream)\nassert reader.readline() == 'é\\n'\nassert reader.readline() == '🐍\\n'\nassert reader.read() == 'AB'\nassert reader.read() == ''\nreader.seek(0)\nassert reader.read() == 'é\\n🐍\\nAB'\n",
+      "sha256": "77eb22952da0c102ef6d22b25ebdd8efc4121ce9da5e1e873d37f20a07374951",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('ModuleNotFoundError', \"No module named 'io'\", (\"No module named 'io'\",))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "owned charmap module and undefined-character recovery",
+      "source": "import codecs\nimport encodings.charmap\ninfo = encodings.charmap.getregentry()\nassert info.name == 'charmap'\nassert isinstance(info, codecs.CodecInfo)\nassert codecs.charmap_decode(b'\\x00\\x01', 'strict', 'BA') == ('BA', 2)\nassert codecs.charmap_encode('BA', 'strict', {66: 0, 65: 1}) == (b'\\x00\\x01', 2)\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', error.end)\ncodecs.register_error('public_charmap', handler)\nassert codecs.charmap_decode(b'\\x00\\x01', 'public_charmap', 'A\\ufffe') == ('A?', 2)\nassert events == [('charmap', b'\\x00\\x01', 1, 2, 'character maps to <undefined>')]\n",
+      "sha256": "3810d168ba19239f75e2fa2907722ae5dc56e3b3a829625edfb3e7d0784863f6",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "UTF-16/32 rejected replacements restore cached faults and retain incremental BOM state",
+      "source": "import codecs\nfor encoding in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):\n    for replacement in ('\\ud800', b'!'):\n        for reused in (False, True):\n            source = '\\ud800A\\udfffZ'\n            seen = []\n            events = []\n            class Position:\n                def __index__(self):\n                    events.append('index')\n                    seen[-1].start = 90\n                    seen[-1].end = 91\n                    seen[-1].reason = 'index mutation'\n                    return -1\n            def handler(error):\n                seen.append(error)\n                if reused and len(seen) == 1:\n                    return ('?', error.end)\n                error.encoding = 'changed encoding'\n                error.object = 'changed object'\n                error.start = 42\n                error.end = 43\n                error.reason = 'changed reason'\n                return (replacement, Position())\n            codecs.register_error('public_wide_rejection', handler)\n            encoder = codecs.getincrementalencoder(encoding)('public_wide_rejection')\n            state = encoder.getstate()\n            try:\n                encoder.encode(source)\n            except UnicodeEncodeError as error:\n                assert error is seen[0] and error is seen[-1]\n                assert error.encoding == 'changed encoding'\n                assert error.object == 'changed object'\n                assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n                assert error.args == (encoding, source, 0, 1, 'surrogates not allowed')\n                assert error.__traceback__ is not None\n            else:\n                assert False\n            assert encoder.getstate() == state\n            assert events == ['index']\n            assert len(seen) == (2 if reused else 1)\n            assert encoder.encode('A') == 'A'.encode(encoding)\n",
+      "sha256": "55db968eec94db1eea8ae369cdd11178fc7ae9b536091f3ead4eee7445867d45",
+      "actual": {
+        "status": "exception",
+        "stdout": "",
+        "diagnostic": "('LookupError', 'unknown encoding: utf-16', ('unknown encoding: utf-16',))"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": false
+    }
+  ]
+}

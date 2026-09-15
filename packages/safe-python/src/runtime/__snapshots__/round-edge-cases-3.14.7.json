@@ -1,0 +1,3086 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "source": "round(0.0, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(0.0, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(0.0, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-0.0, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-0.0, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(5e-324, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(5e-324, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-5e-324"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-5e-324, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-5e-324, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, -308)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "rounded value too large to represent",
+        "args": "('rounded value too large to represent',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, -308)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "rounded value too large to represent",
+        "args": "('rounded value too large to represent',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(1.7976931348623157e308, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(1.7976931348623157e308, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, -308)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "rounded value too large to represent",
+        "args": "('rounded value too large to represent',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, -308)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "rounded value too large to represent",
+        "args": "('rounded value too large to represent',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-1.7976931348623157e+308"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "-0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(-1.7976931348623157e308, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(-1.7976931348623157e308, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "3"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "3"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "3.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "3.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.67"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.67"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "2.675"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "0.0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(2.675, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(2.675, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), None)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "cannot convert float infinity to integer",
+        "args": "('cannot convert float infinity to integer',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), None)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "OverflowError",
+        "message": "cannot convert float infinity to integer",
+        "args": "('cannot convert float infinity to integer',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "inf"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"inf\"), 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"inf\"), 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), None)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "ValueError",
+        "message": "cannot convert float NaN to integer",
+        "args": "('cannot convert float NaN to integer',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), None)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "ValueError",
+        "message": "cannot convert float NaN to integer",
+        "args": "('cannot convert float NaN to integer',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), -10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "nan"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(float(\"nan\"), 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(float(\"nan\"), 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "120"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "120"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(125, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(125, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, None)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, -309)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, -308)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, -1)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 0)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 2)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 323)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 324)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 10**100)",
+      "setup": "",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "1"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(True, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(True, 1.5)",
+      "setup": "",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', ())]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(number)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', ())]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(number, None)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, Index())",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', (<__main__.Index object at 0x1098f2900>,))]",
+      "warnings": [],
+      "eventContract": "len(events) == 1 and events[0][0] == 'round' and len(events[0][1]) == 1 and type(events[0][1][0]) is Index"
+    },
+    {
+      "source": "int.__round__(number, Index())",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "120"
+      },
+      "events": "['index']",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 1.5)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', (1.5,))]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(number, 1.5)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(number, ndigits=1)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "int.__round__() takes no keyword arguments",
+        "args": "('int.__round__() takes no keyword arguments',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(number, 1, 2)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "__round__ expected at most 1 argument, got 2",
+        "args": "('__round__ expected at most 1 argument, got 2',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "int.__round__(None, 1, bad=2)",
+      "setup": "events = []\nclass Number(int):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "descriptor '__round__' for 'int' objects doesn't apply to a 'NoneType' object",
+        "args": "(\"descriptor '__round__' for 'int' objects doesn't apply to a 'NoneType' object\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', ())]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(number)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', ())]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(number, None)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "125"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, Index())",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', (<__main__.Index object at 0x1098f2f90>,))]",
+      "warnings": [],
+      "eventContract": "len(events) == 1 and events[0][0] == 'round' and len(events[0][1]) == 1 and type(events[0][1][0]) is Index"
+    },
+    {
+      "source": "float.__round__(number, Index())",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "float",
+        "repr": "120.0"
+      },
+      "events": "['index']",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 1.5)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'override'"
+      },
+      "events": "[('round', (1.5,))]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(number, 1.5)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer",
+        "args": "(\"'float' object cannot be interpreted as an integer\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(number, ndigits=1)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "float.__round__() takes no keyword arguments",
+        "args": "('float.__round__() takes no keyword arguments',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(number, 1, 2)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "__round__ expected at most 1 argument, got 2",
+        "args": "('__round__ expected at most 1 argument, got 2',)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "float.__round__(None, 1, bad=2)",
+      "setup": "events = []\nclass Number(float):\n    def __round__(self, *args):\n        events.append(('round', args))\n        return 'override'\n    def __int__(self):\n        raise AssertionError('int conversion')\n    def __float__(self):\n        raise AssertionError('float conversion')\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return -1\nnumber = Number(125)\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "descriptor '__round__' for 'float' objects doesn't apply to a 'NoneType' object",
+        "args": "(\"descriptor '__round__' for 'float' objects doesn't apply to a 'NoneType' object\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number:\n    __round__ = None\nnumber = Number()\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not callable",
+        "args": "(\"'NoneType' object is not callable\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number:\n    __round__ = None\nnumber = Number()\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not callable",
+        "args": "(\"'NoneType' object is not callable\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 2)",
+      "setup": "events = []\nclass Number:\n    __round__ = None\nnumber = Number()\n",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not callable",
+        "args": "(\"'NoneType' object is not callable\",)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number:\n    def __round__(self, *args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number:\n    def __round__(self, *args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 2)",
+      "setup": "events = []\nclass Number:\n    def __round__(self, *args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "(2,)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number:\n    @staticmethod\n    def __round__(*args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number:\n    @staticmethod\n    def __round__(*args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 2)",
+      "setup": "events = []\nclass Number:\n    @staticmethod\n    def __round__(*args):\n        return args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "(2,)"
+      },
+      "events": "[]",
+      "warnings": []
+    },
+    {
+      "source": "round(number)",
+      "setup": "events = []\nclass Number:\n    @property\n    def __round__(self):\n        events.append('get')\n        return lambda *args: args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "['get']",
+      "warnings": []
+    },
+    {
+      "source": "round(number, None)",
+      "setup": "events = []\nclass Number:\n    @property\n    def __round__(self):\n        events.append('get')\n        return lambda *args: args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "()"
+      },
+      "events": "['get']",
+      "warnings": []
+    },
+    {
+      "source": "round(number, 2)",
+      "setup": "events = []\nclass Number:\n    @property\n    def __round__(self):\n        events.append('get')\n        return lambda *args: args\nnumber = Number()\n",
+      "expected": {
+        "status": "ok",
+        "type": "tuple",
+        "repr": "(2,)"
+      },
+      "events": "['get']",
+      "warnings": []
+    }
+  ],
+  "blocked": [
+    {
+      "source": "round(125, -10**100)",
+      "setup": "",
+      "reason": "External reference exceeded 0.5 second wall limit; no semantic result certified",
+      "runtime": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "int.__round__(125, -10**100)",
+      "setup": "",
+      "reason": "External reference exceeded 0.5 second wall limit; no semantic result certified",
+      "runtime": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "round(True, -10**100)",
+      "setup": "",
+      "reason": "External reference exceeded 0.5 second wall limit; no semantic result certified",
+      "runtime": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    },
+    {
+      "source": "int.__round__(True, -10**100)",
+      "setup": "",
+      "reason": "External reference exceeded 0.5 second wall limit; no semantic result certified",
+      "runtime": {
+        "status": "ok",
+        "type": "int",
+        "repr": "0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "source": "import codecs\nseen = []\nfailure = ValueError('guest failure')\nfail = False\ndef recover(error):\n    input()\n    seen.append((error.start, error.end, error.reason))\n    if fail:\n        raise failure\n    return ('*', error.end - len(error.object))\ncodecs.register_error('name-boundary', recover)\ndecoder = codecs.getincrementaldecoder('unicode_escape')('name-boundary')\nprint(repr(decoder.decode(b'\\N{TODHRI ', False)))\nprint(repr(decoder.decode(b'LETTER A}', True)))\nprint(repr(decoder.decode(b'\\u?\\N{CJK UNIFIED IDEOGRAPH-4E00}', True)))\nprint(seen)\nfail = True\ntry:\n    decoder.decode(b'\\u?', True)\nexcept ValueError as error:\n    print(error is failure)\ndecoder.reset()\nprint(decoder.getstate())\nprint(repr(decoder.decode(b'\\N{LATIN CAPITAL LETTER A}', True)))\n",
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin\nlittle\n",
+  "node": "v22.23.2",
+  "oracle": {
+    "status": 0,
+    "stdout": "''\n'𐗀'\n'*?一'\n[(0, 2, 'truncated \\\\uXXXX escape')]\nTrue\n(b'', 0)\n'A'\n",
+    "stderr": "<string>:13: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n<string>:15: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:19: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:24: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n"
+  },
+  "adapter": "Explicit fs.readSync line input, full fs.writeSync output, fs.fsyncSync flush; temporary descriptors and files cleaned in finally. No guest filesystem capability. Explicit warning adapter writes CPython diagnostic format to a separate file descriptor and fsyncs each diagnostic. The unchanged source intentionally retains invalid bytes-literal escape warnings; complete stderr is compared.",
+  "runs": [
+    {
+      "mode": "normal",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "ok"
+      },
+      "output": "''\n'𐗀'\n'*?一'\n[(0, 2, 'truncated \\\\uXXXX escape')]\nTrue\n(b'', 0)\n'A'\n",
+      "stderr": "<string>:13: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n<string>:15: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:19: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:24: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 396,
+            "line": 13,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 494,
+            "line": 15,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 588,
+            "line": 19,
+            "column": 21
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 726,
+            "line": 24,
+            "column": 28
+          },
+          "filename": "<string>"
+        }
+      ],
+      "reads": 2,
+      "writes": 14,
+      "flushes": 2,
+      "retries": [],
+      "passed": true
+    },
+    {
+      "mode": "cancel-return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "''\n'𐗀'\n",
+      "stderr": "<string>:13: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n<string>:15: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:19: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:24: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 396,
+            "line": 13,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 494,
+            "line": 15,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 588,
+            "line": 19,
+            "column": 21
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 726,
+            "line": 24,
+            "column": 28
+          },
+          "filename": "<string>"
+        }
+      ],
+      "reads": 1,
+      "writes": 4,
+      "flushes": 1,
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "mode": "cancel-throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "''\n'𐗀'\n",
+      "stderr": "<string>:13: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n<string>:15: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:19: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n<string>:24: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 396,
+            "line": 13,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 494,
+            "line": 15,
+            "column": 28
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "position": {
+            "offset": 588,
+            "line": 19,
+            "column": 21
+          },
+          "filename": "<string>"
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "position": {
+            "offset": 726,
+            "line": 24,
+            "column": 28
+          },
+          "filename": "<string>"
+        }
+      ],
+      "reads": 1,
+      "writes": 4,
+      "flushes": 1,
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "withoutWarningAdapter": [
+    {
+      "mode": "normal",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "capability",
+        "message": "warning capability is absent"
+      },
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "retries": [],
+      "passed": false
+    },
+    {
+      "mode": "cancel-return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "capability",
+        "message": "warning capability is absent"
+      },
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "warning capability is absent"
+        },
+        {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "warning capability is absent"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "mode": "cancel-throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "capability",
+        "message": "warning capability is absent"
+      },
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "warning capability is absent"
+        },
+        {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "warning capability is absent"
+        }
+      ],
+      "passed": false
+    }
+  ]
+}

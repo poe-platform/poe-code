@@ -1,0 +1,68 @@
+[
+  {
+    "id": "annexB/language/function-code/block-decl-func-skip-arguments.js#sloppy",
+    "filename": "annexB/language/function-code/block-decl-func-skip-arguments.js",
+    "sourceHash": "8a225aefbeb41d9a8f5630403141e3b718330d1e946c15a9fb35678da9a90d01",
+    "variantSourceHash": "8a225aefbeb41d9a8f5630403141e3b718330d1e946c15a9fb35678da9a90d01",
+    "flags": [
+      "noStrict"
+    ],
+    "features": [],
+    "mode": "sloppy",
+    "status": "failed",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00ab\"function arguments() {}\"\u00bb, \u00ab\"[object Arguments]\"\u00bb) to be true",
+      "type": "Test262Error"
+    },
+    "report": "00750-00999.jsonl",
+    "reportSha256": "8e7abd041e65339c600d77ec29cb8421601f11261476c96e0c4300e3de0bb23c",
+    "esid": "sec-web-compat-functiondeclarationinstantiation",
+    "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/annexB/language/function-code/block-decl-func-skip-arguments.js",
+    "category": "semantic-candidate-unvalidated",
+    "primaryTask": "qualify-language-semantics",
+    "owner": "Annex B function-code semantics",
+    "surface": "packages/safe-js/src/interp/interpreter.ts",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending",
+    "neighboringPassingControl": {
+      "id": "annexB/language/function-code/block-decl-func-no-skip-try.js#sloppy",
+      "sourceHash": "6a23262d38ff6daacc42e13d7b14d44a9e58dba8239bffd6b42151268dbcdb56",
+      "variantSourceHash": "6a23262d38ff6daacc42e13d7b14d44a9e58dba8239bffd6b42151268dbcdb56",
+      "report": "00750-00999.jsonl",
+      "reportSha256": "8e7abd041e65339c600d77ec29cb8421601f11261476c96e0c4300e3de0bb23c"
+    },
+    "current": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab\"function arguments() {}\"\u00bb, \u00ab\"[object Arguments]\"\u00bb) to be true",
+        "type": "Test262Error"
+      },
+      "sourceHash": "8a225aefbeb41d9a8f5630403141e3b718330d1e946c15a9fb35678da9a90d01"
+    },
+    "delivered": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab\"function arguments() {}\"\u00bb, \u00ab\"[object Arguments]\"\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    },
+    "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76",
+    "latest": {
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected SameValue(\u00ab\"function arguments() {}\"\u00bb, \u00ab\"[object Arguments]\"\u00bb) to be true",
+        "type": "Test262Error"
+      }
+    }
+  }
+]

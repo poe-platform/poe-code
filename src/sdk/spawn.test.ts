@@ -3,6 +3,8 @@ import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
+import { sessionCapture as captureSession } from "../../packages/agent-spawn/src/acp/middlewares/session-capture.js";
+import { usageCapture as captureUsage } from "../../packages/agent-spawn/src/acp/middlewares/usage-capture.js";
 
 const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
@@ -524,6 +526,58 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("retains metadata captured when a held stream is consumed after the child completes", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    vi.mocked(spawnStreaming).mockReturnValue({
+      events: (async function* () {
+        yield { event: "session_start", threadId: "held-thread" };
+        yield { event: "agent_message", text: "delivered after done" };
+        yield { event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      await captureSession(ctx, async () => {});
+      await captureUsage(ctx, async () => {});
+    });
+    const { events, result } = spawn("codex", "test prompt");
+    const final = await result;
+    expect(final.usage).toBeUndefined();
+    expect(final.threadId).toBeUndefined();
+    await collectEvents(events);
+    expect(final.usage).toEqual({ inputTokens: 120, outputTokens: 45, cachedTokens: 10 });
+    expect(final.threadId).toBe("held-thread");
+    expect(final.sessionResult?.output).toBe("delivered after done");
+  });
+
+  it.each(["cli", "acp"])("reports a deferred %s log failure after child completion", async (transport) => {
+    if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+    else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+    vi.mocked(nativeSpawn).mockReturnValue({
+      events: (async function* () { yield { event: "agent_message", text: "delivered" }; })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.logFile = "/logs/held.jsonl";
+      const source = ctx.eventStream!;
+      ctx.eventStream = (async function* () {
+        // spawnLog opens lazily on first delivery and removes an unusable log path.
+        delete ctx.logFile;
+        ctx.logError = "Unable to write /logs/held.jsonl: permission denied";
+        yield* source;
+      })();
+    });
+    const { events, result } = spawn("codex", "test prompt");
+    const final = await result;
+    expect(final.logFile).toBe("/logs/held.jsonl");
+    expect(final.logError).toBeUndefined();
+    await collectEvents(events);
+    expect(final.logError).toBe("Unable to write /logs/held.jsonl: permission denied");
+    expect(final.logFile).toBeUndefined();
+    expect(final.exitCode).toBe(0);
+  });
+
   it("falls back to middleware-captured usage in the streaming path", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -565,6 +619,72 @@ describe("SDK spawn()", () => {
       }
     });
   });
+
+  it.each(["cli", "acp"].flatMap(transport => [undefined, false].map(captureSession => ({ transport, captureSession }))))("keeps streamed $transport metadata with captureSession=$captureSession", async ({ transport, captureSession: retainSession }) => {
+    const { sessionMetadataCapture } = await import("@poe-code/agent-spawn");
+    const { sessionMetadataCapture: captureMetadata } = await import("../../packages/agent-spawn/src/acp/middlewares/session-capture.js");
+    if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+    else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+    const source = [
+      { event: "session_start", threadId: "metadata-thread" },
+      { event: "agent_message", text: "Streaming message" },
+      { event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 }
+    ];
+    vi.mocked(nativeSpawn).mockReturnValue({ events: (async function* () { yield* source; })(), done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 }) } as any);
+    vi.mocked(applyMiddlewares).mockImplementation(async (middlewares, ctx) => {
+      for (const middleware of middlewares) {
+        if (middleware === sessionCapture) await captureSession(ctx, async () => {});
+        if (middleware === sessionMetadataCapture) await captureMetadata(ctx, async () => {});
+        if (middleware === usageCapture) await captureUsage(ctx, async () => {});
+      }
+    });
+    const { events, result } = spawn("codex", "test prompt", { ...(retainSession === false ? { captureSession: false } : {}) });
+    const final = await result;
+    expect(await collectEvents(events)).toEqual(source);
+    if (retainSession === false) expect(final.sessionResult).toBeUndefined();
+    else expect(final.sessionResult?.output).toBe("Streaming message");
+    expect(final.threadId).toBe("metadata-thread");
+    expect(final.usage).toEqual({ inputTokens: 120, outputTokens: 45, cachedTokens: 10 });
+    expect(applyMiddlewares).toHaveBeenCalledWith([retainSession === false ? sessionMetadataCapture : sessionCapture, usageCapture, spawnLog], expect.objectContaining({ events: retainSession === false ? [] : source }));
+  });
+
+  it.each(["cli", "acp"].flatMap(transport => [undefined, false].flatMap(captureSession => [false, true].map(streamThrows => ({ transport, captureSession, streamThrows })))))(
+    "preserves known $transport abort usage with captureSession=$captureSession streamThrows=$streamThrows",
+    async ({ transport, captureSession: retainSession, streamThrows }) => {
+      const { sessionMetadataCapture } = await import("@poe-code/agent-spawn");
+      const { sessionMetadataCapture: captureMetadata } = await import("../../packages/agent-spawn/src/acp/middlewares/session-capture.js");
+      if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+      else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+      const resultError = Object.assign(new Error("cancelled"), { name: "AbortError" });
+      const streamError = Object.assign(new Error("stream cancelled"), { name: "AbortError" });
+      const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+      let rejectDone!: (error: Error) => void;
+      const done = new Promise((_, reject) => { rejectDone = reject; });
+      const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+      vi.mocked(nativeSpawn).mockReturnValue({ events: (async function* () {
+        yield { event: "usage", ...usage };
+        rejectDone(resultError);
+        if (streamThrows) throw streamError;
+      })(), done } as any);
+      vi.mocked(applyMiddlewares).mockImplementation(async (middlewares, ctx) => {
+        for (const middleware of middlewares) {
+          if (middleware === sessionCapture) await captureSession(ctx, async () => {});
+          if (middleware === sessionMetadataCapture) await captureMetadata(ctx, async () => {});
+          if (middleware === usageCapture) await captureUsage(ctx, async () => {});
+        }
+      });
+      const { events, result } = spawn("codex", "test prompt", { ...(retainSession === false ? { captureSession: false } : {}) });
+      const settled = result.catch(error => error);
+      const consumed = await collectEvents(events).catch(error => error);
+      if (streamThrows) {
+        expect(consumed).toBe(streamError);
+        expect(consumed).toMatchObject({ usage });
+      } else expect(consumed).toEqual([{ event: "usage", ...usage }]);
+      expect(await settled).toBe(resultError);
+      expect(resultError).toMatchObject({ usage });
+    }
+  );
 
   it("exposes middleware-captured sessionResult on the spawn result", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({

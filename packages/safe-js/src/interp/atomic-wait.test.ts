@@ -15,7 +15,7 @@ const state = vi.hoisted(() => ({
 
 vi.mock("node:worker_threads", async () => {
   const { EventEmitter } = await import("node:events");
-  return { Worker: class extends EventEmitter {
+  return { ...await vi.importActual<typeof import("node:worker_threads")>("node:worker_threads"), Worker: class extends EventEmitter {
     posts: Array<{ id: number }> = [];
     terminate = vi.fn(async () => { this.emit("exit", 1); return 1; });
     constructor() {

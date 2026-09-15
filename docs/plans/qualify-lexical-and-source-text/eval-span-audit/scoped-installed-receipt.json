@@ -1,0 +1,165 @@
+{
+  "observedAt": "2026-09-13T07:40:16.478784+00:00",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.566",
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-safe-js-44bimwx1",
+      "mode": "js",
+      "entry": "@poe-platform/safe-js",
+      "status": "passed",
+      "install.log": "\nadded 15 packages in 2s\n",
+      "smoke-node22.log": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n",
+      "smoke-node18.log": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n",
+      "smoke-bun.log": "{\"entry\":\"@poe-platform/safe-js\",\"mode\":\"js\",\"status\":\"passed\",\"node\":\"v24.3.0\",\"icu\":\"74.2\"}\n",
+      "signatures.log": "audited 15 packages in 0s\n\n15 packages have verified registry signatures\n\n10 packages have verified attestations\n\n",
+      "cli-smoke.json": {
+        "command": [
+          "node",
+          "./dist/safe-js/cli.js",
+          "broken.ajs"
+        ],
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "ParseError: broken.ajs:1:12\n\n1 | const \ud801\udc00 = );\n  |           ^\n\nUnexpected token ')' at line 1, column 12.\n",
+        "status": "passed"
+      }
+    },
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.566",
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-safe-fs-k53elvap",
+      "mode": "fs",
+      "entry": "@poe-platform/safe-fs",
+      "status": "passed",
+      "install.log": "\nadded 3 packages in 840ms\n",
+      "smoke-node22.log": "{\"entry\":\"@poe-platform/safe-fs\",\"mode\":\"fs\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n",
+      "smoke-node18.log": "{\"entry\":\"@poe-platform/safe-fs\",\"mode\":\"fs\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n",
+      "signatures.log": "audited 3 packages in 1s\n\n3 packages have verified registry signatures\n\n2 packages have verified attestations\n\n"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.566",
+      "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-safe-bash-3v_a44qb",
+      "mode": "bash",
+      "entry": "@poe-platform/safe-bash",
+      "status": "passed",
+      "install.log": "\nadded 6 packages in 2s\n",
+      "smoke-node22.log": "{\"entry\":\"@poe-platform/safe-bash\",\"mode\":\"bash\",\"status\":\"passed\",\"node\":\"v22.23.2\",\"icu\":\"78.2\"}\n",
+      "smoke-node18.log": "{\"entry\":\"@poe-platform/safe-bash\",\"mode\":\"bash\",\"status\":\"passed\",\"node\":\"v18.18.0\",\"icu\":\"73.2\"}\n",
+      "signatures.log": "audited 6 packages in 0s\n\n6 packages have verified registry signatures\n\n4 packages have verified attestations\n\n"
+    }
+  ],
+  "allIndependentInstallations": true,
+  "initialSafeJsFailures": "Metadata and tarball HTTP 404s, followed by a missing-package smoke setup error; retry succeeded after canonical tarball became available. No source assertion was weakened.",
+  "publishedWorkerd": {
+    "command": [
+      "npm",
+      "exec",
+      "--yes",
+      "--package=workerd@1.20260911.1",
+      "--",
+      "workerd",
+      "serve",
+      "--socket-addr=http=127.0.0.1:62876",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/lexical-safe-js-44bimwx1/config.capnp"
+    ],
+    "result": {
+      "status": "passed",
+      "results": [
+        {
+          "separator": "\n",
+          "filename": "<eval>",
+          "span": {
+            "start": {
+              "column": 9,
+              "line": 2,
+              "offset": 14
+            },
+            "end": {
+              "column": 10,
+              "line": 2,
+              "offset": 15
+            }
+          }
+        },
+        {
+          "separator": "\r",
+          "filename": "<eval>",
+          "span": {
+            "start": {
+              "column": 9,
+              "line": 2,
+              "offset": 14
+            },
+            "end": {
+              "column": 10,
+              "line": 2,
+              "offset": 15
+            }
+          }
+        },
+        {
+          "separator": "\r\n",
+          "filename": "<eval>",
+          "span": {
+            "start": {
+              "column": 9,
+              "line": 2,
+              "offset": 15
+            },
+            "end": {
+              "column": 10,
+              "line": 2,
+              "offset": 16
+            }
+          }
+        },
+        {
+          "separator": "\u2028",
+          "filename": "<eval>",
+          "span": {
+            "start": {
+              "column": 9,
+              "line": 2,
+              "offset": 14
+            },
+            "end": {
+              "column": 10,
+              "line": 2,
+              "offset": 15
+            }
+          }
+        },
+        {
+          "separator": "\u2029",
+          "filename": "<eval>",
+          "span": {
+            "start": {
+              "column": 9,
+              "line": 2,
+              "offset": 14
+            },
+            "end": {
+              "column": 10,
+              "line": 2,
+              "offset": 15
+            }
+          }
+        }
+      ],
+      "value": [
+        42,
+        4,
+        true
+      ]
+    },
+    "error": null,
+    "status": "passed"
+  },
+  "bunRuntime": {
+    "version": "1.3.11",
+    "revision": "1.3.11-canary.1+687700d84",
+    "note": "The node field in smoke-bun.log is Bun's Node compatibility version, not another installed Node runtime."
+  }
+}

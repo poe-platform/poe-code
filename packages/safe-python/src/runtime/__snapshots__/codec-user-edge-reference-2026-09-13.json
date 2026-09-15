@@ -1,0 +1,22 @@
+{
+  "source": "import codecs, sys, unicodedata, platform, json\nprint(json.dumps(dict(version=sys.version, unicode=unicodedata.unidata_version, platform=platform.platform(), byteorder=sys.byteorder)))\ntry:\n    codecs.IncrementalEncoder().encode('')\nexcept NotImplementedError as error:\n    tb = error.__traceback__\n    while tb is not None:\n        print(tb.tb_frame.f_code.co_name, tb.tb_lineno, tb.tb_lasti)\n        tb = tb.tb_next\n",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"version\": \"3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\", \"unicode\": \"16.0.0\", \"platform\": \"macOS-26.4.1-arm64-arm-64bit-Mach-O\", \"byteorder\": \"little\"}\n<module> 4 256\nencode 204 12\n",
+  "stderr": "",
+  "invalidStateProbe": {
+    "source": "import sys,unicodedata,codecs; print(sys.version); print(unicodedata.unidata_version); d=codecs.getincrementaldecoder(\"iso2022_jp\")(); d.setstate((b\"\",0)); print(d.getstate()); d.decode(b\"A\")",
+    "command": "/opt/homebrew/bin/python3.14 -I -c <source>",
+    "shellExitStatus": 139,
+    "stdout": "",
+    "stderr": "",
+    "conclusion": "No Python exception contract established; buffered identity output was lost when the external oracle crashed. No replacement runtime behavior inferred."
+  },
+  "unchangedStreamTracebackProgram": {
+    "source": "import codecs\ntry:\n    codecs.IncrementalEncoder().encode('')\nexcept NotImplementedError as error:\n    tb = error.__traceback__\n    while tb is not None:\n        print(tb.tb_frame.f_code.co_name, tb.tb_lineno, tb.tb_lasti)\n        tb = tb.tb_next\n",
+    "status": 0,
+    "signal": null,
+    "stdout": "<module> 3 66\nencode 204 12\n",
+    "stderr": ""
+  }
+}

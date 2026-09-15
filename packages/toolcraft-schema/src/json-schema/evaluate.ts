@@ -70,6 +70,13 @@ function evaluateNode(
     results.push(...evaluateValidationKeywords(node, schema, value, nextContext.instancePath));
   }
 
+  if (typeof value === "string" && typeof schema.format === "string") {
+    const validator = graph.formats.get(schema.format);
+    if (validator !== undefined && validator(value) !== true) {
+      results.push(invalidResult(issue(nextContext.instancePath, `format ${schema.format}`, value, `must match format ${schema.format}`)));
+    }
+  }
+
   const merged = mergeResults(results);
   if (isObject(value)) {
     evaluateUnevaluatedProperties(graph, node, schema, value, nextContext, merged);
@@ -390,9 +397,6 @@ function evaluateValidationKeywords(
   path: readonly string[]
 ): EvaluationResult[] {
   const results: EvaluationResult[] = [];
-  if (schema.nullable === true && value === null) {
-    return results;
-  }
   const types =
     typeof schema.type === "string" ? [schema.type] : Array.isArray(schema.type) ? schema.type : [];
   if (

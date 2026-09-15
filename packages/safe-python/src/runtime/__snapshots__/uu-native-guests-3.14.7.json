@@ -1,0 +1,19 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0"
+  },
+  "sources": [
+    "\nseen = []\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        return True\nassert b2a_uu(b'\\0', backtick=Flag()) == b'!````\\n'\nassert seen == ['truth']\n",
+    "\nseen = []\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        return False\nassert b2a_uu(b'\\0', backtick=Flag()) == b'!    \\n'\nassert seen == ['truth']\n",
+    "\nseen = []\nclass Flag:\n    def __len__(self):\n        seen.append('truth')\n        return 1\nassert b2a_uu(b'\\0', backtick=Flag()) == b'!````\\n'\nassert seen == ['truth']\n",
+    "\nseen = []\nclass Flag:\n    def __len__(self):\n        seen.append('truth')\n        return 0\nassert b2a_uu(b'\\0', backtick=Flag()) == b'!    \\n'\nassert seen == ['truth']\n",
+    "\nseen = []\nfailure = ValueError('truth failure')\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        raise failure\ntry:\n    b2a_uu(b'a' * 0, backtick=Flag())\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('truth failure',)\nelse:\n    assert False\nassert seen == ['truth']\n",
+    "\nseen = []\nfailure = ValueError('truth failure')\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        raise failure\ntry:\n    b2a_uu(b'a' * 46, backtick=Flag())\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('truth failure',)\nelse:\n    assert False\nassert seen == ['truth']\n",
+    "\nseen = []\nfailure = ValueError('truth failure')\nclass Flag:\n    def __len__(self):\n        seen.append('truth')\n        raise failure\ntry:\n    b2a_uu(b'a' * 0, backtick=Flag())\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('truth failure',)\nelse:\n    assert False\nassert seen == ['truth']\n",
+    "\nseen = []\nfailure = ValueError('truth failure')\nclass Flag:\n    def __len__(self):\n        seen.append('truth')\n        raise failure\ntry:\n    b2a_uu(b'a' * 46, backtick=Flag())\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('truth failure',)\nelse:\n    assert False\nassert seen == ['truth']\n",
+    "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('coercion')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('coercion')\nassert a2b_uu(Text('!    \\n')) == b'\\0'\nassert a2b_uu(Data(b'!    \\n')) == b'\\0'\nassert b2a_uu(Data(b'\\0'), backtick=True) == b'!````\\n'\n",
+    "\nseen = []\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        raise AssertionError('truth reached')\ntry:\n    b2a_uu('text', backtick=Flag())\nexcept TypeError as error:\n    assert error.args == (\"a bytes-like object is required, not 'str'\",)\nelse:\n    assert False\nassert seen == []\n",
+    "\nseen = []\nclass Flag:\n    def __bool__(self):\n        seen.append('truth')\n        raise AssertionError('truth reached')\ntry:\n    b2a_uu(b'a', Flag())\nexcept TypeError as error:\n    assert error.args == ('b2a_uu() takes exactly 1 positional argument (2 given)',)\nelse:\n    assert False\nassert seen == []\n"
+  ]
+}

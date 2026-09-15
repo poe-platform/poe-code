@@ -450,14 +450,13 @@ export class TerminalBuffer {
 
   private _parseCsiParams(): number[] {
     if (!this._csiParams) return [];
-    const values = this._csiParams
-      .split(";")
-      .flatMap((segment) => segment.split(":"))
-      .map((segment) => (segment === "" ? 0 : parseInt(segment, 10)));
-    if ((values[0] === 38 || values[0] === 48) && values[1] === 2 && values[2] === 0) {
-      values.splice(2, 1);
-    }
-    return values;
+    return this._csiParams.split(";").flatMap((segment) => {
+      const values = segment.split(":").map((part) => part === "" ? 0 : parseInt(part, 10));
+      if (values.length === 6 && (values[0] === 38 || values[0] === 48) && values[1] === 2) {
+        values.splice(2, 1);
+      }
+      return values;
+    });
   }
 
   private _execCsi(final: string): void {

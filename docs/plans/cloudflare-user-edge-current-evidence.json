@@ -1,0 +1,87 @@
+{
+  "head": "bb272573292ee712a09c1c5fdb1516f7a655dc97",
+  "node": "v22.22.2",
+  "evidenceClass": "built public API absence/recovery; not Python acceptance",
+  "hashes": {
+    "packages/safe-bash/src/index.ts": "66f24e28ac4f72ffc334f5cc76ca08873753f9bc8e4e51350ecc8cb3df9391eb",
+    "packages/safe-bash/src/core.ts": "a435018f43581d4df9e519924a7900daa838f5ca74f610b57654fea997d15595",
+    "packages/safe-bash/package.json": "dd8f09afcac7fb2aa74e82b6a98f1fa3a97eea57e66c8100e64416c84ad2b40e",
+    "packages/safe-bash/dist/index.js": "ceac40fb8fca49c3d30f540e864d0ca59d8e84193dd9c71ffdef081b41cae20b",
+    "packages/safe-bash/dist/core.js": "d100871bb13643520e6af15ed3e731acc5e3ce0e461f1440a52721ece6a0592a",
+    "packages/safe-bash-playground/src/session.ts": "2b93d12613ed8c31fcec194a3114f2a87af2dc578b8b6dc09b0106ea440546d9",
+    "packages/safe-bash-playground/src/main.ts": "c6e853b33e7d4c4d70959c86210cfd2cde071f1149a14af0e027418a14703cbd",
+    "package-lock.json": "4ec17236c113343123ff8ce8f8a5a316a6966cb4b84e414c77b5f9137a920bac",
+    "packages/safe-bash/src/plugins/index.ts": "8d828e3cb66dcd85605dde718472b82295c88dcd065a455546fb9da9b4418d2f",
+    "packages/safe-bash-playground/src/engine/index.ts": "dbd9a5b275d0b70937c84d64cfd779b408e991f59bc02a0b4f9ca7a0fdd17d63",
+    "packages/safe-bash-playground/src/engine/build-plugin.mjs": "339b6f8c8e22da24bc8be88edd37745a2d2f2da68922e8db0cde01591ed0ef3c"
+  },
+  "cases": [
+    {
+      "case": 0,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 1,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 2,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 3,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 4,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 5,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 6,
+      "exitCode": 1,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 7,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 8,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": 9,
+      "exitCode": 127,
+      "stdoutBytes": 0
+    },
+    {
+      "case": "concurrent_missing_command",
+      "count": 8,
+      "exitCode": 127
+    }
+  ],
+  "pythonSubpath": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+  "hostGlobalsPreserved": [
+    "fetch",
+    "WebAssembly",
+    "process",
+    "Buffer",
+    "setTimeout"
+  ],
+  "siblingRecovery": true,
+  "repeatedDispose": true,
+  "productionPasses": 0,
+  "procedure": "Ephemeral Node assert probe: built poe-code/safe-bash import; new Shell({fs:new MemoryFileSystem(),env:{}}).use(agentCommands()); cases identified in companion Markdown. No executable QA script installed."
+}

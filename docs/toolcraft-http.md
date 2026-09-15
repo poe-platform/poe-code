@@ -34,6 +34,16 @@ await handle.close();
 
 The options combine Toolcraft MCP runtime options with the upstream HTTP controls: stateful or stateless sessions, JSON responses, allowed hosts and origins, request and batch limits, session limits and expiry, stream limits, concurrent tool-call limits, server timeouts, observability, trusted-proxy handling, custom session stores, and OAuth verification.
 
+## Streaming And Session Mode
+
+Omitting `sessionIdGenerator` uses the transport's default stateful sessions. A custom generator also enables stateful sessions. Explicitly setting `sessionIdGenerator: undefined` selects stateless mode for ordinary request/response tools.
+
+Toolcraft stream commands require session-scoped notifications and therefore work over stateful HTTP or stdio, not stateless HTTP. Both `createHTTPMCPServer()` and `runHTTPMCP()` reject a stateless composition containing exposed MCP stream commands before creating the HTTP transport or starting a producer. The error names the unsupported streams. Setting `enableJsonResponse: false` does not enable subscriptions in stateless mode.
+
+Use stateful HTTP for stream commands, or set the existing `tools` allowlist to expose only ordinary commands on a stateless server. Streams without MCP scope do not affect HTTP startup. Hosted OAuth always selects stateless mode, even if a custom session generator is supplied; expose only ordinary tools through that configuration.
+
+## Request Services
+
 Use `requestServices(context)` to map request-scoped HTTP or OAuth data into the same service interface consumed by command handlers:
 
 ```ts

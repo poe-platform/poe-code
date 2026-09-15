@@ -1,0 +1,9 @@
+{
+  "utc": "2026-09-12T06:30:14.516370+00:00",
+  "ownedGroupsTerminated": [
+    10992,
+    10993,
+    11085
+  ],
+  "reason": "V2withdrawn; shortdrain elapsed and final sourcev3ready. Remaining results historical, no reuse. Earlier source drift aborts intentionally preserved."
+}

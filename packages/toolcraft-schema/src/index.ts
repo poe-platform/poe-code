@@ -1,17 +1,19 @@
 import { Json } from "./json.js";
+import { nativeJsonSchema, type NativeSchema } from "./native-json-schema.js";
+import { cloneDefaultValue } from "./clone-default.js";
 import { createJsonSchemaDocument } from "./json-schema-document.js";
 import { OneOf } from "./oneof.js";
 import { Record as RecordBuilder } from "./record.js";
 import { Union } from "./union.js";
-import { validate } from "./validate.js";
+import { isPlainRecord, validate } from "./validate.js";
 import type { JsonValue, JsonValueSchema } from "./json.js";
 import type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 import type { OneOfSchema } from "./oneof.js";
 import type { RecordSchema } from "./record.js";
 import type { UnionSchema } from "./union.js";
-import type { ValidationIssue, ValidationResult } from "./validate.js";
+import type { ValidationIssue, ValidationOptions, ValidationResult } from "./validate.js";
 
-type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object";
+type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 type SchemaKind =
   | "string"
   | "number"
@@ -24,8 +26,7 @@ type SchemaKind =
   | "union"
   | "record"
   | "json";
-type EnumValue = string | number | boolean;
-type JsonSchemaEnumValue = EnumValue | null;
+type EnumValue = string | number | boolean | null;
 type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
@@ -123,10 +124,13 @@ export interface SchemaBase<TKind extends SchemaKind, TStatic> {
 
 export interface JsonSchema {
   additionalProperties?: boolean | JsonSchema;
-  type?: JsonSchemaType;
+  allOf?: JsonSchema[];
+  anyOf?: JsonSchema[];
+  type?: JsonSchemaType | JsonSchemaType[];
   description?: string;
   default?: unknown;
-  enum?: ReadonlyArray<JsonSchemaEnumValue>;
+  enum?: ReadonlyArray<JsonValue>;
+  const?: JsonValue;
   format?: string;
   items?: JsonSchema;
   maxItems?: number;
@@ -136,6 +140,7 @@ export interface JsonSchema {
   minimum?: number;
   minLength?: number;
   nullable?: boolean;
+  not?: JsonSchema;
   oneOf?: JsonSchema[];
   pattern?: string;
   properties?: Record<string, JsonSchema>;
@@ -209,11 +214,16 @@ function withMetadata<TSchema extends AnySchema>(
   }
 
   if (schema.default !== undefined) {
-    jsonSchema.default = schema.default;
+    jsonSchema.default = cloneDefaultValue(schema.default);
   }
 
   if (schema.nullable === true) {
-    jsonSchema.nullable = true;
+    if (jsonSchema.type !== undefined) {
+      jsonSchema.type = [...new Set([...(Array.isArray(jsonSchema.type) ? jsonSchema.type : [jsonSchema.type]), "null" as const])];
+    }
+    if (jsonSchema.oneOf !== undefined) {
+      jsonSchema.oneOf.push({ enum: [null] });
+    }
   }
 
   return jsonSchema;
@@ -277,6 +287,7 @@ function getEnumJsonType(values: ReadonlyArray<EnumValue>): JsonSchemaType | und
   }
 
   const firstType = typeof firstValue;
+  if (firstValue === null && values.every((value) => value === null)) return "null";
   const isSinglePrimitiveType = values.every((value) => typeof value === firstType);
 
   if (!isSinglePrimitiveType) {
@@ -365,12 +376,27 @@ function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<An
   return schema;
 }
 
+function toObjectBranchJsonSchema(schema: ObjectSchema<any>): JsonSchema {
+  const objectSchema: ObjectSchema<any> = { ...schema, nullable: false };
+  const branchJsonSchema = toJsonSchema(objectSchema);
+  if (branchJsonSchema.default === null) {
+    delete branchJsonSchema.default;
+  }
+  return branchJsonSchema;
+}
+
 function withInjectedDiscriminator(
   schema: ObjectSchema<any>,
   discriminator: string,
   branchName: string
 ): JsonSchema {
-  const branchJsonSchema = toJsonSchema(schema);
+  const branchJsonSchema = toObjectBranchJsonSchema(schema);
+  if (branchJsonSchema.default !== undefined) {
+    branchJsonSchema.default = {
+      ...(branchJsonSchema.default as Record<string, unknown>),
+      [discriminator]: branchName
+    };
+  }
   const properties = {
     ...(branchJsonSchema.properties ?? {}),
     [discriminator]: {
@@ -518,6 +544,8 @@ export const S = {
 
 export function toJsonSchema(schema: AnySchema): JsonSchema {
   const unwrappedSchema = unwrapOptional(schema);
+  const native = (unwrappedSchema as NativeSchema)[nativeJsonSchema];
+  if (native !== undefined) return structuredClone(native.document);
 
   switch (unwrappedSchema.kind) {
     case "string":
@@ -584,7 +612,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
 
     case "union":
       return withMetadata(unwrappedSchema, {
-        oneOf: unwrappedSchema.branches.map((branchSchema) => toJsonSchema(branchSchema))
+        oneOf: unwrappedSchema.branches.map((branchSchema) => toObjectBranchJsonSchema(branchSchema))
       });
 
     case "record":
@@ -593,8 +621,17 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
         additionalProperties: toJsonSchema(unwrappedSchema.value)
       });
 
-    case "json":
-      return withMetadata(unwrappedSchema, {});
+    case "json": {
+      const constraints: JsonSchema = {
+        ...(unwrappedSchema.const !== undefined ? { const: unwrappedSchema.const } : {}),
+        ...(unwrappedSchema.enum !== undefined ? { enum: unwrappedSchema.enum } : {})
+      };
+      return withMetadata(unwrappedSchema,
+        unwrappedSchema.nullable === true && Object.keys(constraints).length > 0
+          ? { anyOf: [constraints, { type: "null" }] }
+          : constraints
+      );
+    }
   }
 }
 
@@ -605,8 +642,14 @@ export function toJsonSchemaDocument(
   return createJsonSchemaDocument(toJsonSchema(schema), options);
 }
 
-export { Json, OneOf, RecordBuilder as Record, Union, validate };
+export { Json, OneOf, RecordBuilder as Record, Union, isPlainRecord, validate };
+export { isJsonValue } from "./json.js";
+export { cloneDefaultValue } from "./clone-default.js";
+export { unicodeLength } from "./json-schema/utils.js";
 export { compileJsonSchema, formatIssues } from "./json-schema/index.js";
+export { normalizeLegacyNullability } from "./json-schema/normalize-nullability.js";
+export { withJsonSchema, nativeJsonSchema } from "./native-json-schema.js";
+export type { NativeSchema } from "./native-json-schema.js";
 export type { CompileJsonSchemaOptions, CompiledJsonSchema } from "./json-schema/index.js";
 export type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 export type {
@@ -616,5 +659,6 @@ export type {
   RecordSchema,
   UnionSchema,
   ValidationIssue,
+  ValidationOptions,
   ValidationResult
 };

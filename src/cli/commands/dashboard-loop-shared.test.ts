@@ -41,6 +41,34 @@ describe("dashboard loop shared helpers", () => {
     expect(lines).toEqual(["alpha", "beta", "charlie"]);
   });
 
+  it("bounds pending newline-free output while retaining the latest text", () => {
+    const lines: string[] = [];
+    const buffer = createDashboardLineBuffer((line) => lines.push(line));
+    for (let index = 0; index < 100; index += 1) buffer.push("old output ".repeat(100));
+    buffer.push("LATEST RESULT");
+    expect(lines).toEqual([]);
+    buffer.flush();
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.length).toBeLessThanOrEqual(16_384);
+    expect(lines[0]).toContain("Output truncated");
+    expect(lines[0]!.endsWith("LATEST RESULT")).toBe(true);
+    buffer.push("next\r");
+    buffer.push("\n");
+    expect(lines.at(-1)).toBe("next");
+  });
+
+  it("bounds oversized completed lines without losing following lines", () => {
+    const lines: string[] = [];
+    const buffer = createDashboardLineBuffer((line) => lines.push(line));
+    buffer.push("x".repeat(30000) + "END\nnext\n");
+    expect(lines[0]!.length).toBeLessThanOrEqual(16_384);
+    expect(lines[0]).toContain("Output truncated");
+    expect(lines[0]!.endsWith("END")).toBe(true);
+    expect(lines[1]).toBe("next");
+    buffer.flush();
+    expect(lines).toHaveLength(2);
+  });
+
   it("requires --tui, terminal output, and TTY stdin/stdout", () => {
     const io = {
       stdin: { isTTY: true },
@@ -116,4 +144,28 @@ describe("dashboard loop shared helpers", () => {
     expect(destroy).toHaveBeenCalledTimes(1);
     expect(exitSpy).toHaveBeenCalledWith(130);
   });
+  it("restores the terminal immediately but waits for run cleanup before force exit", async () => {
+    let commandHandler: (command: string) => void = () => {};
+    let finishCleanup!: () => void;
+    const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+    const abortController = new AbortController();
+    const destroy = vi.fn();
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    registerDashboardQuitCommands({
+      abortController,
+      dashboard: { onCommand(handler) { commandHandler = handler; }, stop: vi.fn(), destroy },
+      requestCancellation: vi.fn(),
+      cleanupComplete
+    });
+    commandHandler("forceQuit");
+    commandHandler("forceQuit");
+    expect(abortController.signal.aborted).toBe(true);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(exit).not.toHaveBeenCalled();
+    finishCleanup();
+    await cleanupComplete;
+    await Promise.resolve();
+    expect(exit).toHaveBeenCalledExactlyOnceWith(130);
+  });
+
 });

@@ -1,0 +1,121 @@
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=@poe-code/safe-js
+
+
+> @poe-code/frontmatter@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-defs@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/poe-acp-client@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/process-runner@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+
+> @poe-code/user-error@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> auth-store@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-oauth-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code-language-delivery/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/providers@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc
+
+
+> @poe-code/task-list@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth@0.0.1 build
+> tsc
+
+
+> tiny-stdio-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 postbuild
+> node scripts/smoke-built-exports.mjs
+
+
+> @poe-code/config-extends@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/config-mutations@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-mcp-client@0.1.0 build
+> node scripts/build.mjs
+
+
+> @poe-code/poe-code-config@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/agent-skill-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs
+
+
+> @poe-code/agent-harness-tools@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-hook-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-spawn@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-js@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+src/interp/async.ts(386,9): error TS2322: Type 'SandboxRegex | SandboxObject | Date | ArrayBuffer | SharedArrayBuffer | NumericTypedArray | ... 9 more ... | undefined' is not assignable to type 'SandboxObject | undefined'.
+  Type 'Date' is not assignable to type 'SandboxObject'.
+    Index signature for type 'string' is missing in type 'Date'.
+npm error Lifecycle script `build` failed with error:
+npm error code 2
+npm error path /Users/kjopek/Workspace/poe-code-language-delivery/packages/safe-js
+npm error workspace @poe-code/safe-js@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code-language-delivery/packages/safe-js
+npm error command failed
+npm error command sh -c node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs
+Error: Workspace build failed: @poe-code/safe-js (2)
+    at taskError (file:///Users/kjopek/Workspace/poe-code-language-delivery/scripts/build-workspaces.mjs:174:17)
+    at ChildProcess.onClose (file:///Users/kjopek/Workspace/poe-code-language-delivery/scripts/build-workspaces.mjs:319:27)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  exitCode: 2
+}

@@ -2,7 +2,10 @@ import * as fsPromises from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import {
   resolveAbsolutePlanPath,
+  includePipelineInitialization,
+  cancelPipelineInitialization,
   runPipeline as runWorkspacePipeline,
+  type AgentRunUsage,
   type PipelineFileSystem,
   type PipelineRunOptions as WorkspacePipelineRunOptions,
   type PipelineRunResult
@@ -29,6 +32,7 @@ export type {
   StepHooks,
   StepMode,
   TaskProgress,
+  TaskCompletion,
   PlanSummary
 } from "@poe-code/pipeline";
 export { resolvePlanDirectory } from "@poe-code/pipeline";
@@ -155,10 +159,12 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
 async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
   assertNotAborted(options.signal);
+  let initialization: { durationMs: number; usage?: AgentRunUsage } | undefined;
   const userRunAgent =
     options.runAgent ??
     (async (input: PipelineAgentRunnerInput) => {
       return await sdkSpawn.autonomous(input.agent, {
+        captureSession: false,
         prompt: input.prompt,
         cwd: input.cwd,
         logDir: input.logDir,
@@ -176,38 +182,59 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
     const planFs = options.fs ?? fsPromises;
     const planAbsolutePath = resolveAbsolutePlanPath(options.plan, options.cwd, options.homeDir);
     if (await planNeedsInit(planAbsolutePath, planFs)) {
+      const initializationStartedAt = Date.now();
       const sourceDocContent = await planFs.readFile(planAbsolutePath, "utf8");
       const prompt = buildPipelineInitPrompt({
         sourceDocPath: options.plan,
         sourceDocContent,
         skillContent: pipelineSkillPlan
       });
-      const initResult = await runWithRetry(
-        () =>
-          userRunAgent({
-            agent: options.agent,
-            prompt,
-            cwd: options.cwd,
-            ...(options.model ? { model: options.model } : {}),
-            ...(options.signal ? { signal: options.signal } : {})
-          }),
-        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
-        options.signal
-      );
-      assertNotAborted(options.signal);
+      let initResult;
+      try {
+        initResult = await runWithRetry(
+          () =>
+            userRunAgent({
+              agent: options.agent,
+              prompt,
+              cwd: options.cwd,
+              ...(options.model ? { model: options.model } : {}),
+              ...(options.signal ? { signal: options.signal } : {})
+            }),
+          PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
+          options.signal
+        );
+      } catch (error) {
+        if (!(error instanceof Error) || error.name !== "AbortError") throw error;
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: error });
+      }
+      if (options.signal?.aborted) {
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: initResult });
+      }
       if (initResult.exitCode !== 0) {
         throw new Error(`Pipeline initialization failed with exit code ${initResult.exitCode}.`);
       }
+      initialization = {
+        durationMs: Math.max(0, Date.now() - initializationStartedAt),
+        ...(initResult.usage ? { usage: initResult.usage } : {})
+      };
     }
   }
 
   const retryRunAgent: PipelineAgentRunner = (input) =>
     runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT, input.signal);
 
-  return runWorkspacePipeline({
+  const initializationUsage = initialization?.usage;
+  const result = await runWorkspacePipeline({
     ...options,
+    ...(initializationUsage && options.onPlanResolved
+      ? {
+          onPlanResolved: (summary) =>
+            options.onPlanResolved?.({ ...summary, initializationUsage })
+        }
+      : {}),
     runAgent: retryRunAgent
   });
+  return initialization ? includePipelineInitialization(result, initialization) : result;
 }
 
 function isWorktreeEnabled(worktree: WorktreeExecutionOptions | undefined): boolean {

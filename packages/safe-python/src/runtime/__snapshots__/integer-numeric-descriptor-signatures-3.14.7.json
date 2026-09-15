@@ -1,0 +1,917 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "int.__add__.__text_signature__",
+      "source": "try:\n value=int.__add__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__add__.__text_signature__",
+      "source": "try:\n value=(7).__add__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__add__(7, 2)",
+      "source": "try:\n value=int.__add__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '9')"
+    },
+    {
+      "name": "(7).__add__(2)",
+      "source": "try:\n value=(7).__add__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '9')"
+    },
+    {
+      "name": "int.__add__(7, value=2)",
+      "source": "try:\n value=int.__add__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __add__() takes no keyword arguments', ('wrapper __add__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__add__(7)",
+      "source": "try:\n value=int.__add__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__add__(None, 2)",
+      "source": "try:\n value=int.__add__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__add__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__add__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__radd__.__text_signature__",
+      "source": "try:\n value=int.__radd__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__radd__.__text_signature__",
+      "source": "try:\n value=(7).__radd__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__radd__(7, 2)",
+      "source": "try:\n value=int.__radd__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '9')"
+    },
+    {
+      "name": "(7).__radd__(2)",
+      "source": "try:\n value=(7).__radd__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '9')"
+    },
+    {
+      "name": "int.__radd__(7, value=2)",
+      "source": "try:\n value=int.__radd__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __radd__() takes no keyword arguments', ('wrapper __radd__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__radd__(7)",
+      "source": "try:\n value=int.__radd__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__radd__(None, 2)",
+      "source": "try:\n value=int.__radd__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__radd__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__radd__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__sub__.__text_signature__",
+      "source": "try:\n value=int.__sub__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__sub__.__text_signature__",
+      "source": "try:\n value=(7).__sub__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__sub__(7, 2)",
+      "source": "try:\n value=int.__sub__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "(7).__sub__(2)",
+      "source": "try:\n value=(7).__sub__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "int.__sub__(7, value=2)",
+      "source": "try:\n value=int.__sub__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __sub__() takes no keyword arguments', ('wrapper __sub__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__sub__(7)",
+      "source": "try:\n value=int.__sub__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__sub__(None, 2)",
+      "source": "try:\n value=int.__sub__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__sub__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__sub__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rsub__.__text_signature__",
+      "source": "try:\n value=int.__rsub__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rsub__.__text_signature__",
+      "source": "try:\n value=(7).__rsub__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rsub__(7, 2)",
+      "source": "try:\n value=int.__rsub__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '-5')"
+    },
+    {
+      "name": "(7).__rsub__(2)",
+      "source": "try:\n value=(7).__rsub__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '-5')"
+    },
+    {
+      "name": "int.__rsub__(7, value=2)",
+      "source": "try:\n value=int.__rsub__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rsub__() takes no keyword arguments', ('wrapper __rsub__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rsub__(7)",
+      "source": "try:\n value=int.__rsub__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rsub__(None, 2)",
+      "source": "try:\n value=int.__rsub__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rsub__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rsub__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__mul__.__text_signature__",
+      "source": "try:\n value=int.__mul__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__mul__.__text_signature__",
+      "source": "try:\n value=(7).__mul__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__mul__(7, 2)",
+      "source": "try:\n value=int.__mul__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '14')"
+    },
+    {
+      "name": "(7).__mul__(2)",
+      "source": "try:\n value=(7).__mul__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '14')"
+    },
+    {
+      "name": "int.__mul__(7, value=2)",
+      "source": "try:\n value=int.__mul__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __mul__() takes no keyword arguments', ('wrapper __mul__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__mul__(7)",
+      "source": "try:\n value=int.__mul__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__mul__(None, 2)",
+      "source": "try:\n value=int.__mul__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__mul__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__mul__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rmul__.__text_signature__",
+      "source": "try:\n value=int.__rmul__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rmul__.__text_signature__",
+      "source": "try:\n value=(7).__rmul__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rmul__(7, 2)",
+      "source": "try:\n value=int.__rmul__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '14')"
+    },
+    {
+      "name": "(7).__rmul__(2)",
+      "source": "try:\n value=(7).__rmul__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '14')"
+    },
+    {
+      "name": "int.__rmul__(7, value=2)",
+      "source": "try:\n value=int.__rmul__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rmul__() takes no keyword arguments', ('wrapper __rmul__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rmul__(7)",
+      "source": "try:\n value=int.__rmul__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rmul__(None, 2)",
+      "source": "try:\n value=int.__rmul__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rmul__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rmul__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__truediv__.__text_signature__",
+      "source": "try:\n value=int.__truediv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__truediv__.__text_signature__",
+      "source": "try:\n value=(7).__truediv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__truediv__(7, 2)",
+      "source": "try:\n value=int.__truediv__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '3.5')"
+    },
+    {
+      "name": "(7).__truediv__(2)",
+      "source": "try:\n value=(7).__truediv__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '3.5')"
+    },
+    {
+      "name": "int.__truediv__(7, value=2)",
+      "source": "try:\n value=int.__truediv__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __truediv__() takes no keyword arguments', ('wrapper __truediv__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__truediv__(7)",
+      "source": "try:\n value=int.__truediv__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__truediv__(None, 2)",
+      "source": "try:\n value=int.__truediv__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__truediv__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__truediv__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rtruediv__.__text_signature__",
+      "source": "try:\n value=int.__rtruediv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rtruediv__.__text_signature__",
+      "source": "try:\n value=(7).__rtruediv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rtruediv__(7, 2)",
+      "source": "try:\n value=int.__rtruediv__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0.2857142857142857')"
+    },
+    {
+      "name": "(7).__rtruediv__(2)",
+      "source": "try:\n value=(7).__rtruediv__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0.2857142857142857')"
+    },
+    {
+      "name": "int.__rtruediv__(7, value=2)",
+      "source": "try:\n value=int.__rtruediv__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rtruediv__() takes no keyword arguments', ('wrapper __rtruediv__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rtruediv__(7)",
+      "source": "try:\n value=int.__rtruediv__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rtruediv__(None, 2)",
+      "source": "try:\n value=int.__rtruediv__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rtruediv__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rtruediv__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__floordiv__.__text_signature__",
+      "source": "try:\n value=int.__floordiv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__floordiv__.__text_signature__",
+      "source": "try:\n value=(7).__floordiv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__floordiv__(7, 2)",
+      "source": "try:\n value=int.__floordiv__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '3')"
+    },
+    {
+      "name": "(7).__floordiv__(2)",
+      "source": "try:\n value=(7).__floordiv__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '3')"
+    },
+    {
+      "name": "int.__floordiv__(7, value=2)",
+      "source": "try:\n value=int.__floordiv__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __floordiv__() takes no keyword arguments', ('wrapper __floordiv__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__floordiv__(7)",
+      "source": "try:\n value=int.__floordiv__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__floordiv__(None, 2)",
+      "source": "try:\n value=int.__floordiv__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__floordiv__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__floordiv__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rfloordiv__.__text_signature__",
+      "source": "try:\n value=int.__rfloordiv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rfloordiv__.__text_signature__",
+      "source": "try:\n value=(7).__rfloordiv__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rfloordiv__(7, 2)",
+      "source": "try:\n value=int.__rfloordiv__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0')"
+    },
+    {
+      "name": "(7).__rfloordiv__(2)",
+      "source": "try:\n value=(7).__rfloordiv__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0')"
+    },
+    {
+      "name": "int.__rfloordiv__(7, value=2)",
+      "source": "try:\n value=int.__rfloordiv__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rfloordiv__() takes no keyword arguments', ('wrapper __rfloordiv__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rfloordiv__(7)",
+      "source": "try:\n value=int.__rfloordiv__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rfloordiv__(None, 2)",
+      "source": "try:\n value=int.__rfloordiv__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rfloordiv__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rfloordiv__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__mod__.__text_signature__",
+      "source": "try:\n value=int.__mod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__mod__.__text_signature__",
+      "source": "try:\n value=(7).__mod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__mod__(7, 2)",
+      "source": "try:\n value=int.__mod__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '1')"
+    },
+    {
+      "name": "(7).__mod__(2)",
+      "source": "try:\n value=(7).__mod__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '1')"
+    },
+    {
+      "name": "int.__mod__(7, value=2)",
+      "source": "try:\n value=int.__mod__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __mod__() takes no keyword arguments', ('wrapper __mod__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__mod__(7)",
+      "source": "try:\n value=int.__mod__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__mod__(None, 2)",
+      "source": "try:\n value=int.__mod__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__mod__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__mod__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rmod__.__text_signature__",
+      "source": "try:\n value=int.__rmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rmod__.__text_signature__",
+      "source": "try:\n value=(7).__rmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rmod__(7, 2)",
+      "source": "try:\n value=int.__rmod__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "(7).__rmod__(2)",
+      "source": "try:\n value=(7).__rmod__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "int.__rmod__(7, value=2)",
+      "source": "try:\n value=int.__rmod__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rmod__() takes no keyword arguments', ('wrapper __rmod__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rmod__(7)",
+      "source": "try:\n value=int.__rmod__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rmod__(None, 2)",
+      "source": "try:\n value=int.__rmod__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rmod__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rmod__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__pow__.__text_signature__",
+      "source": "try:\n value=int.__pow__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, mod=None, /)'\")"
+    },
+    {
+      "name": "(7).__pow__.__text_signature__",
+      "source": "try:\n value=(7).__pow__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, mod=None, /)'\")"
+    },
+    {
+      "name": "int.__pow__(7, 2)",
+      "source": "try:\n value=int.__pow__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '49')"
+    },
+    {
+      "name": "(7).__pow__(2)",
+      "source": "try:\n value=(7).__pow__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '49')"
+    },
+    {
+      "name": "int.__pow__(7, value=2)",
+      "source": "try:\n value=int.__pow__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __pow__() takes no keyword arguments', ('wrapper __pow__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__pow__(7)",
+      "source": "try:\n value=int.__pow__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 or 2 arguments, got 0', ('expected 1 or 2 arguments, got 0',))"
+    },
+    {
+      "name": "int.__pow__(None, 2)",
+      "source": "try:\n value=int.__pow__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__pow__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__pow__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rpow__.__text_signature__",
+      "source": "try:\n value=int.__rpow__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, mod=None, /)'\")"
+    },
+    {
+      "name": "(7).__rpow__.__text_signature__",
+      "source": "try:\n value=(7).__rpow__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, mod=None, /)'\")"
+    },
+    {
+      "name": "int.__rpow__(7, 2)",
+      "source": "try:\n value=int.__rpow__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '128')"
+    },
+    {
+      "name": "(7).__rpow__(2)",
+      "source": "try:\n value=(7).__rpow__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '128')"
+    },
+    {
+      "name": "int.__rpow__(7, value=2)",
+      "source": "try:\n value=int.__rpow__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rpow__() takes no keyword arguments', ('wrapper __rpow__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rpow__(7)",
+      "source": "try:\n value=int.__rpow__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 or 2 arguments, got 0', ('expected 1 or 2 arguments, got 0',))"
+    },
+    {
+      "name": "int.__rpow__(None, 2)",
+      "source": "try:\n value=int.__rpow__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rpow__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rpow__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__lshift__.__text_signature__",
+      "source": "try:\n value=int.__lshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__lshift__.__text_signature__",
+      "source": "try:\n value=(7).__lshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__lshift__(7, 2)",
+      "source": "try:\n value=int.__lshift__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '28')"
+    },
+    {
+      "name": "(7).__lshift__(2)",
+      "source": "try:\n value=(7).__lshift__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '28')"
+    },
+    {
+      "name": "int.__lshift__(7, value=2)",
+      "source": "try:\n value=int.__lshift__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __lshift__() takes no keyword arguments', ('wrapper __lshift__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__lshift__(7)",
+      "source": "try:\n value=int.__lshift__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__lshift__(None, 2)",
+      "source": "try:\n value=int.__lshift__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__lshift__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__lshift__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rlshift__.__text_signature__",
+      "source": "try:\n value=int.__rlshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rlshift__.__text_signature__",
+      "source": "try:\n value=(7).__rlshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rlshift__(7, 2)",
+      "source": "try:\n value=int.__rlshift__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '256')"
+    },
+    {
+      "name": "(7).__rlshift__(2)",
+      "source": "try:\n value=(7).__rlshift__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '256')"
+    },
+    {
+      "name": "int.__rlshift__(7, value=2)",
+      "source": "try:\n value=int.__rlshift__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rlshift__() takes no keyword arguments', ('wrapper __rlshift__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rlshift__(7)",
+      "source": "try:\n value=int.__rlshift__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rlshift__(None, 2)",
+      "source": "try:\n value=int.__rlshift__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rlshift__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rlshift__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rshift__.__text_signature__",
+      "source": "try:\n value=int.__rshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rshift__.__text_signature__",
+      "source": "try:\n value=(7).__rshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rshift__(7, 2)",
+      "source": "try:\n value=int.__rshift__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '1')"
+    },
+    {
+      "name": "(7).__rshift__(2)",
+      "source": "try:\n value=(7).__rshift__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '1')"
+    },
+    {
+      "name": "int.__rshift__(7, value=2)",
+      "source": "try:\n value=int.__rshift__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rshift__() takes no keyword arguments', ('wrapper __rshift__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rshift__(7)",
+      "source": "try:\n value=int.__rshift__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rshift__(None, 2)",
+      "source": "try:\n value=int.__rshift__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rshift__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rshift__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rrshift__.__text_signature__",
+      "source": "try:\n value=int.__rrshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rrshift__.__text_signature__",
+      "source": "try:\n value=(7).__rrshift__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rrshift__(7, 2)",
+      "source": "try:\n value=int.__rrshift__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0')"
+    },
+    {
+      "name": "(7).__rrshift__(2)",
+      "source": "try:\n value=(7).__rrshift__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '0')"
+    },
+    {
+      "name": "int.__rrshift__(7, value=2)",
+      "source": "try:\n value=int.__rrshift__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rrshift__() takes no keyword arguments', ('wrapper __rrshift__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rrshift__(7)",
+      "source": "try:\n value=int.__rrshift__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rrshift__(None, 2)",
+      "source": "try:\n value=int.__rrshift__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rrshift__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rrshift__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__and__.__text_signature__",
+      "source": "try:\n value=int.__and__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__and__.__text_signature__",
+      "source": "try:\n value=(7).__and__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__and__(7, 2)",
+      "source": "try:\n value=int.__and__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "(7).__and__(2)",
+      "source": "try:\n value=(7).__and__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "int.__and__(7, value=2)",
+      "source": "try:\n value=int.__and__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __and__() takes no keyword arguments', ('wrapper __and__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__and__(7)",
+      "source": "try:\n value=int.__and__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__and__(None, 2)",
+      "source": "try:\n value=int.__and__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__and__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__and__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rand__.__text_signature__",
+      "source": "try:\n value=int.__rand__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rand__.__text_signature__",
+      "source": "try:\n value=(7).__rand__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rand__(7, 2)",
+      "source": "try:\n value=int.__rand__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "(7).__rand__(2)",
+      "source": "try:\n value=(7).__rand__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '2')"
+    },
+    {
+      "name": "int.__rand__(7, value=2)",
+      "source": "try:\n value=int.__rand__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rand__() takes no keyword arguments', ('wrapper __rand__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rand__(7)",
+      "source": "try:\n value=int.__rand__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rand__(None, 2)",
+      "source": "try:\n value=int.__rand__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rand__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rand__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__xor__.__text_signature__",
+      "source": "try:\n value=int.__xor__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__xor__.__text_signature__",
+      "source": "try:\n value=(7).__xor__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__xor__(7, 2)",
+      "source": "try:\n value=int.__xor__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "(7).__xor__(2)",
+      "source": "try:\n value=(7).__xor__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "int.__xor__(7, value=2)",
+      "source": "try:\n value=int.__xor__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __xor__() takes no keyword arguments', ('wrapper __xor__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__xor__(7)",
+      "source": "try:\n value=int.__xor__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__xor__(None, 2)",
+      "source": "try:\n value=int.__xor__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__xor__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__xor__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rxor__.__text_signature__",
+      "source": "try:\n value=int.__rxor__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rxor__.__text_signature__",
+      "source": "try:\n value=(7).__rxor__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rxor__(7, 2)",
+      "source": "try:\n value=int.__rxor__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "(7).__rxor__(2)",
+      "source": "try:\n value=(7).__rxor__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '5')"
+    },
+    {
+      "name": "int.__rxor__(7, value=2)",
+      "source": "try:\n value=int.__rxor__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rxor__() takes no keyword arguments', ('wrapper __rxor__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rxor__(7)",
+      "source": "try:\n value=int.__rxor__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rxor__(None, 2)",
+      "source": "try:\n value=int.__rxor__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rxor__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rxor__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__or__.__text_signature__",
+      "source": "try:\n value=int.__or__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__or__.__text_signature__",
+      "source": "try:\n value=(7).__or__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__or__(7, 2)",
+      "source": "try:\n value=int.__or__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '7')"
+    },
+    {
+      "name": "(7).__or__(2)",
+      "source": "try:\n value=(7).__or__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '7')"
+    },
+    {
+      "name": "int.__or__(7, value=2)",
+      "source": "try:\n value=int.__or__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __or__() takes no keyword arguments', ('wrapper __or__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__or__(7)",
+      "source": "try:\n value=int.__or__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__or__(None, 2)",
+      "source": "try:\n value=int.__or__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__or__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__ror__.__text_signature__",
+      "source": "try:\n value=int.__ror__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__ror__.__text_signature__",
+      "source": "try:\n value=(7).__ror__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__ror__(7, 2)",
+      "source": "try:\n value=int.__ror__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '7')"
+    },
+    {
+      "name": "(7).__ror__(2)",
+      "source": "try:\n value=(7).__ror__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '7')"
+    },
+    {
+      "name": "int.__ror__(7, value=2)",
+      "source": "try:\n value=int.__ror__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __ror__() takes no keyword arguments', ('wrapper __ror__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__ror__(7)",
+      "source": "try:\n value=int.__ror__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__ror__(None, 2)",
+      "source": "try:\n value=int.__ror__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__ror__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__divmod__.__text_signature__",
+      "source": "try:\n value=int.__divmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__divmod__.__text_signature__",
+      "source": "try:\n value=(7).__divmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__divmod__(7, 2)",
+      "source": "try:\n value=int.__divmod__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '(3, 1)')"
+    },
+    {
+      "name": "(7).__divmod__(2)",
+      "source": "try:\n value=(7).__divmod__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '(3, 1)')"
+    },
+    {
+      "name": "int.__divmod__(7, value=2)",
+      "source": "try:\n value=int.__divmod__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __divmod__() takes no keyword arguments', ('wrapper __divmod__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__divmod__(7)",
+      "source": "try:\n value=int.__divmod__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__divmod__(None, 2)",
+      "source": "try:\n value=int.__divmod__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__divmod__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__divmod__' requires a 'int' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "int.__rdivmod__.__text_signature__",
+      "source": "try:\n value=int.__rdivmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "(7).__rdivmod__.__text_signature__",
+      "source": "try:\n value=(7).__rdivmod__.__text_signature__\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', \"'($self, value, /)'\")"
+    },
+    {
+      "name": "int.__rdivmod__(7, 2)",
+      "source": "try:\n value=int.__rdivmod__(7, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '(0, 2)')"
+    },
+    {
+      "name": "(7).__rdivmod__(2)",
+      "source": "try:\n value=(7).__rdivmod__(2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('ok', '(0, 2)')"
+    },
+    {
+      "name": "int.__rdivmod__(7, value=2)",
+      "source": "try:\n value=int.__rdivmod__(7, value=2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'wrapper __rdivmod__() takes no keyword arguments', ('wrapper __rdivmod__() takes no keyword arguments',))"
+    },
+    {
+      "name": "int.__rdivmod__(7)",
+      "source": "try:\n value=int.__rdivmod__(7)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',))"
+    },
+    {
+      "name": "int.__rdivmod__(None, 2)",
+      "source": "try:\n value=int.__rdivmod__(None, 2)\n result=('ok', repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\n",
+      "expected": "('TypeError', \"descriptor '__rdivmod__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__rdivmod__' requires a 'int' object but received a 'NoneType'\",))"
+    }
+  ]
+}

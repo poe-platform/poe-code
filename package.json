@@ -15,6 +15,12 @@
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
     },
+    "./safe-bash/commands/op": {
+      "types": "./packages/safe-bash/dist/commands/op/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/op/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/op/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/op/index.js"
+    },
     "./safejs": {
       "types": {
         "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
@@ -395,6 +401,14 @@
       "types": "./packages/safe-bash/dist/commands/docx/index.d.ts",
       "browser": "./packages/safe-bash/dist/commands/docx/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/docx/index.js"
+    },
+    "./safe-fs/node/filesystem": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/safe-fs-bridge.js"
     }
   },
   "workspaces": [
@@ -491,6 +505,7 @@
     "packages/config-mutations/dist",
     "packages/toolcraft-design/dist",
     "packages/memory/dist",
+    "packages/op/dist/**/*.d.ts",
     "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
     "packages/tiny-stdio-mcp-server/dist",
@@ -627,6 +642,7 @@
     "@formatjs/intl-pluralrules": "6.3.13",
     "@noble/hashes": "2.4.0",
     "@petamoriken/float16": "^3.9.3",
+    "@kayahr/text-encoding": "^2.2.0",
     "chalk": "^5.6.2",
     "commander": "^13.1.0",
     "console-table-printer": "^2.15.0",
@@ -707,6 +723,7 @@
     "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",
+    "@poe-platform/op": "*",
     "@types/mustache": "^4.2.6",
     "@types/node": "^25.2.2",
     "@types/semver": "^7.7.1",
@@ -757,7 +774,8 @@
     "typescript-eslint": "8.55.0",
     "virtual-bash": "*",
     "vite": "6.4.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "@poe-code/safe-python": "*"
   },
   "repository": {
     "type": "git",

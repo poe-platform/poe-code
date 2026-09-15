@@ -1,0 +1,61 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/test/async-lifecycle-qualification.test.ts (5 tests | 1 failed) 254ms
+   ✓ cancellation finishes function cleanup before returning 87ms
+   ✓ cancellation finishes generator cleanup before returning 43ms
+   × realm close waits for callback cancellation and asynchronous extension cleanup 36ms
+   ✓ for-await cleanup awaits return and preserves throw precedence (false) 45ms
+   ✓ for-await cleanup awaits return and preserves throw precedence (true) 41ms
+FAIL packages/safe-js/test/async-lifecycle-qualification.test.ts > realm close waits for callback cancellation and asynchronous extension cleanup
+AssertionError: expected [ Array(3) ] to deeply equal [ 'finally', 'cleanup:start', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "finally",
+    "cleanup:start",
+    "cleanup:end",
+    "closed",
+  ]
+
+ ❯ packages/safe-js/test/async-lifecycle-qualification.test.ts:58:18
+     56|   // resume guest code. A second close is idempotent, not a timing del…
+     57|   await realm.close();
+     58|   expect(events).toEqual(['finally','cleanup:start','cleanup:end','clo…
+       |                  ^
+     59|   await expect(realm.invokeCallback(callback)).rejects.toThrow(/closed…
+     60| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/async-lifecycle-qualification.test.ts > realm close waits for callback cancellation and asynchronous extension cleanup
+AssertionError: expected [ Array(3) ] to deeply equal [ 'finally', 'cleanup:start', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "finally",
+    "cleanup:start",
+    "cleanup:end",
+    "closed",
+  ]
+
+ ❯ packages/safe-js/test/async-lifecycle-qualification.test.ts:58:18
+     56|   // resume guest code. A second close is idempotent, not a timing del…
+     57|   await realm.close();
+     58|   expect(events).toEqual(['finally','cleanup:start','cleanup:end','clo…
+       |                  ^
+     59|   await expect(realm.invokeCallback(callback)).rejects.toThrow(/closed…
+     60| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  04:41:22
+   Duration  3.84s (transform 2.63s, setup 53ms, import 3.43s, tests 254ms, environment 0ms)

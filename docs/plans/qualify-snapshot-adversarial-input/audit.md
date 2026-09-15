@@ -1,0 +1,72 @@
+# qualify-snapshot-adversarial-input — local qualification
+
+## Target, source and ownership
+
+Owner: `qualify-snapshot-adversarial-input`; integration owners are `qualify-realms-and-recovery` (realm lifetime), `qualify-async-job-order` (Promise scheduling), and `qualify-shared-memory` (atomic waits). These are **SafeJS product/transport contracts**, not new ECMAScript defects or missing host capabilities.
+
+The compatibility target remains ECMA-262 **edition 16, June 2025**, ECMA-402 **edition 12**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and the ledger's separately pinned extensions (including Temporal `e8cc03fc970a65a3359e8870e3b35e687ac94e55`). Primary edition: <https://262.ecma-international.org/16.0/>; §7.2.9 SameValue and §27.2 Promise objects supply identity/settlement context, but do not specify a checkpoint wire format. Refetched edition SHA-256: `6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713`, matching the existing pin. The web reader exceeded its size limit; curl succeeded. No native engine is used as a snapshot-format oracle. Upstream Test262 does not define SafeJS records: explicit transport fixtures and the package's maintained tests are the appropriate oracles here; this is not a new Test262 conformance claim.
+
+Initial local `main`: `88548af52fa8f9bca1356c0670d900085d3bd976`. Runtime: **Node 22.23.2, ICU 78.2**, V8 12.4.254.21-node.56, Unicode 17.0, CLDR 48.0, TZ data 2026a. `source-before.json` records exact TypeScript SHA-256 values and full runtime versions. The worktree already contained substantial changes, including jobs-v8/v9 transport compatibility changes. Results apply to that recorded working source plus these repairs, not to a clean checkout of the initial SHA alone. `safejs-before.patch` is a local preservation receipt, not an owned change to publish.
+
+## Entrypoint inventory and contract
+
+| Surface | Validation / authority boundary | Evidence |
+| --- | --- | --- |
+| Public Node `restore` (`index.ts` → `restore.ts`) | Inactive snapshot, external data descriptors/prototypes, dump envelope, heap graph, source identity and migration ancestry. Branded in-memory runtime snapshots retain their separate serialization fallback. | `adversarial-entrypoints.test.ts`, `restore.test.ts`, OBJ002 and guest heap suites |
+| `run` through Node/core/Workerd exports | Same engine validation before executable host bindings; Promise trace and host journal validation before replay. The new runtime paths are shared, but this run qualifies Node, not a separately executed Workerd deployment. | Public effect spy, external checkpoint validation, integration snapshot roundtrip/crash-resume |
+| CLI restore reader and `FileSnapshotBackend.read` | JSON parsing is transport only, not realm hydration. CLI calls `restore`; backend consumers must use the validated execution path. A backend read alone is not a semantic snapshot validator. | Backend and migration-file memfs tests; CLI external checkpoint integration |
+| `inspectSnapshotMigration` / `migrateSnapshot` | Pure snapshot data, supported semantics, original source, replay journal; explicit quiescence, exact digest and complete host reconciliation before creating continuation state. | Migration suite and jobs-v1 through jobs-v9 explicit empty-journal fixtures |
+| `migrateSnapshotFile` | Parses files then delegates to inspection/migration before exclusive output publication; no overwrite of an existing checkpoint. | Maintained memfs migration-file suite |
+| Interpreter `snapshot/restore.ts` | Descriptor preflight, source/AST/heap/private/prototype identity checks before hydration; owns provisional memory, weak-registration activation and intrinsic cleanup. | Interpreter accessor fixtures, restore/guest/private/proxy/weak/atomic suites and realm rollback qualification |
+| `decodeReplayData` / `prepareReplayInputs` | Plain transport records, references and type-specific codec checks; explicit resolvers provide capability authority. Imported identities/property tables/compile tickets are transactional; provider activation waits for scheduling success. Shared graph memo commits only on success. | Replay input/data/graph-extension suites and transaction qualification |
+| `HostCallJournal` / `PromiseReplay` constructors | Decode versioned host-call journals and Promise traces; validate source, IDs, ordering, callback registrations and imported scheduling identities before public execution. | Host-call, host-call-graph, Promise replay/import/header suites |
+| Per-value snapshot codecs | Internal helpers reached through the validated interpreter/replay paths; not additional package export entrypoints. | Full `src/snapshot` selection |
+
+The public data envelope remains extensible metadata, and user objects can have ordinary `kind`/`tag` properties. Such fields are not automatically serialization tags. Authority identifiers identify supplied capabilities; they do not authorize arbitrary code or filesystem/module access. Internal resolver/observation/scheduler callbacks are trusted engine integration hooks, not guest host-operation callbacks: arbitrary external effects deliberately performed inside such hooks cannot be undone by a data decoder. Regression claims concern SafeJS-owned state and activation of guest-visible providers.
+
+## Reproduced defects and TDD receipts
+
+All failures below were run before their corresponding runtime repair; tests create graphs in memory and do not write fixture files or contact models.
+
+| ID / owner | Smallest counterexample and actual failure | Expected / neighboring control | Receipts |
+| --- | --- | --- | --- |
+| SNAP-ADV-DATA / snapshot validation | `restore` on a version/bindings/nested getter invokes that getter; interpreter sourceHash/scopeChain/nested getters also run. A plain custom-prototype binding record is accepted. | Reject external active objects without getter/proxy effects; valid plain record, branded runtime snapshot and explicit legacy records still pass. | `accessors-red.log`: 4 failures/27 passes, 2.17s; `interpreter-accessors-red.log`: 3 failures/31 passes, 2.07s. |
+| SNAP-ADV-REPLAY / replay transaction | One settled imported Promise whose outcome is `/abc/`; scheduler throws after capture. Memo is cleared but import metadata remains and **84** units of compiled data are transferred to the caller. Rejected outcome additionally leaks an unhandled native rejection. | Remove newly owned metadata/tickets, restore previous Promise property table identity, leave the parent charge unchanged; supported imported settlement controls still settle and preserve rejection tracking. | `transaction-red-all.log`: four failed assertions, 18ms tests/1.83s process. `scheduling-rejection-red.log`: tests pass but **one unhandled rejection**, therefore run fails. |
+| SNAP-ADV-ACTIVATE / replay transaction + async jobs | Three Promise nodes: pending provider, unscheduled fulfilled value 8, then scheduler failure. Restore throws, but provider is invoked and values **[8, 7]** settle afterward. | Neither earlier provider nor failed graph settlements activate; successful pending provider still runs exactly once. | `pending-activation-red.log`: 1 failed/5 passed, 23ms tests/2.34s process. |
+| SNAP-ADV-SCHEDULE-ID / replay identity | Two distinct imported Promise nodes both use schedule ID 1. Decoder accepts and invokes the scheduler twice. | Reject duplicate scheduling identity before scheduling; repeated references to one canonical node continue sharing identity. | `duplicate-schedule-red.log`: 1 failed/6 passed, 27ms tests/2.89s process. |
+| SNAP-ADV-REALM / realm recovery | Restore a captured modified Number.prototype into a fresh budget; inject failure at final `reconcileCompileData`. A partial intrinsic root remains; retry encounters the old intrinsic registration. Initial cleanup alone still leaves **4** data units charged. | Remove fresh intrinsic registrations/roots, refund transient live-data charges, preserve original realm, permit retry. Successful transactions keep their charges and enforce the same data limit. | `realm-retry-red-all.log`, `realm-accounting-red.log`: 2 failed/1 passed, 117ms tests/1.82s process. |
+
+Repairs: external descriptors/prototypes are checked before reading values; prototype checks are cached only within a callback-free validation traversal. Interpreter preflight accepts an optional undefined field while semantic validation still governs actual values. Replay tracks duplicate scheduling IDs, defers provider/settlement activation, releases imported metadata on failure, transfers compile tickets only after scheduling succeeds, and clears retained transaction closures. Realm restore uses provisional accounting with explicit success commit, releases **all newly created** intrinsic realms on failure, and rejects an already installed intrinsic budget before touching it.
+
+CPU work and peak-memory history are **not refunded**. The rollback guarantee concerns live/transient memory and owned registrations, so repeated malformed inputs cannot obtain free computational work.
+
+## Qualifications, controls and non-defects
+
+- Bounded mutation corpus: seed `0x5a902026`, 96 cases, unchanged 750ms mutation cap and 2s test timeout. Generated graph test covers ring sizes 1–16 with two edges per node and exact alias/cycle checks.
+- Missing/unknown tags, dangling references, duplicate scope/template/private/scheduling/symbol identities, invalid private/prototype records, raw transport cycles versus legal reference cycles, mismatched source, and oversized strings/keys/sparse arrays are covered by the new entrypoint tests plus the full maintained snapshot selection.
+- Legacy fixtures explicitly exercise dump versions 1/2 with cyclic heap aliases, resume markers jobs-v6/v7/v8/v9, and migration of jobs-v1 through jobs-v9. Older incompatible resume markers provide the explicit-reconciliation error; they are not silently relabeled.
+- Promise property rollback checks both absent and existing property tables, preserving the exact original table and descriptors. Weak/finalization rollback tests cover queued cleanup and throwing detachers; atomic-wait rollback tests use controlled workers, including partial activation and an unrelated owner that must remain live. They make no nondeterministic GC timing claim.
+- The first existing-realm fault injection did **not** reach final reconciliation: the old implementation rejected duplicate intrinsic registration first, while the observed existing prototype and retained roots remained intact. This is an intentional fresh-realm boundary, not evidence of late-reconciliation corruption of that realm. The revised test records the boundary; a separate fresh-budget test reproduces the actual leak and proves retry.
+- Forged capability IDs do not grant authority: no supplied resolver means no executable capability; malformed capability IDs reject before lookup. Valid supplied capabilities are controls, not an ECMAScript defect.
+- No new CLI layout or presentation was changed. CLI/file routing is exercised by maintained integration tests; no screenshot is claimed.
+
+## Verification history and disposition
+
+Initial baseline: **177 files / 2,445 tests passed**, 86.21s process. After the first descriptor repair the broad run found optional `heap: undefined` incompatibility and mutation cost 1172.9ms; another focused run measured 825.1ms. These are recorded failures introduced during repair, not waived flakes. Preserving optional-field behavior, retaining early scalar rejection and caching prototype inspection within a traversal restored the unchanged mutation gate. `validation-performance-green.log`: 36 tests passed. The first broad final run overlapped addition of the pending-activation regression and failed that new test; it is not an acceptance receipt.
+
+Focused green receipts before final breadth: transaction 33 tests; scheduled-rejection 25 tests; realm accounting/budget/finalization 56 tests; pending activation 45 tests; legacy and transaction 53 tests. Final stable-source breadth, lint/typecheck and source receipts are recorded in `commands.json` and the ledger after completion.
+
+Delivery is separate from local correctness. Remote `main` fetched as `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`; initial local main and remote main have **38 local-only / 70 remote-only commits**. No force push, branch reset or merge of unrelated histories was performed. No new release is claimed. Publication and a clean delivered-source qualification remain open; local test receipts must not be relabeled as a release receipt.
+
+### Reproduction commands
+
+Run from the repository root on the recorded source state. Red logs name the pre-repair result; the same regressions pass on the repaired working source.
+
+- `npx vitest run packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts` — external/interpreter accessor and malformed-entrypoint red receipts.
+- `npx vitest run packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts` — replay metadata, charge, scheduling rejection, pending activation and duplicate-ID red receipts. Use `-t` with the exact test name to isolate a counterexample.
+- `npx vitest run packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts` — intrinsic lifetime/accounting red receipts.
+- `npx vitest run packages/safe-js/test/adversarial/snapshot-mutation.test.ts` — fixed-seed bounded mutation, with the original limits.
+
+Final stable-source acceptance: **188 files / 2,617 tests passed; zero failures, zero skips, zero unhandled errors**, 124.52s. Narrow maintained TypeScript and ESLint checks exited 0. Source hashes were checked unchanged after local commits. The three local repair commits are `b4215ce3e`, `1f8729839`, `837e81a2c`; details are in `local-commits.json`. Unrelated staged content is byte-for-byte unchanged (`staged-preservation.json`), and all pre-existing non-owned TypeScript sources are unchanged (`source-preservation.json`).
+
+**Disposition:** local Node acceptance matrix qualified; five reproduced defects repaired in three atomic local commits. Overall delivery/closure stays **open**: no push or release was performed, the histories diverge, and clean delivered-source and independently executed Workerd/Bun receipts are not established by these working-tree tests. No unspecified runtime or format is counted as passing.

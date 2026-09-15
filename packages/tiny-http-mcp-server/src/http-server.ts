@@ -11,8 +11,11 @@ import {
   type ServerOptions,
   type ToolDefinition,
   type CallToolResult,
+  type InputRequiredResult,
+  type HandlerRequestContext,
   type ToolReturn,
-  type TypedSchema
+  type TypedSchema,
+  type TypedOutputSchema
 } from "tiny-stdio-mcp-server";
 import {
   PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
@@ -75,7 +78,7 @@ export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
     description: string,
     inputSchema: TypedSchema<TIn>,
     handler: HttpToolHandler<TIn, TOut>,
-    outputSchema?: TypedSchema<TOut>
+    outputSchema?: TypedOutputSchema<TOut>
   ): HttpServer;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
@@ -83,14 +86,16 @@ export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
   ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
   handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
-  getRequestContext(): HttpToolContext | undefined;
+  getRequestContext(): HttpRequestContext | undefined;
 }
 
-export interface HttpToolContext {
+export interface HttpRequestContext {
   request: AuthenticatedIncomingMessage;
   sessionId?: string;
   auth?: RequestAuthInfo;
 }
+
+export interface HttpToolContext extends HttpRequestContext, HandlerRequestContext {}
 
 type MountedIncomingMessage = IncomingMessage & {
   baseUrl?: unknown;
@@ -99,7 +104,11 @@ type MountedIncomingMessage = IncomingMessage & {
 export type HttpToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
   args: T,
   context: HttpToolContext
-) => Promise<TOut | CallToolResult> | TOut | CallToolResult;
+) =>
+  | Promise<TOut | CallToolResult | InputRequiredResult>
+  | TOut
+  | CallToolResult
+  | InputRequiredResult;
 
 function normalizePath(path: string): string {
   if (path.length === 0 || path === "/") {
@@ -203,14 +212,8 @@ export function createProtectedResourceMetadataDocument(
 }
 
 export function createHttpServer(options: HttpTransportOptions): HttpServer {
-  const requestContextStorage = new AsyncLocalStorage<HttpToolContext>();
-  const supportsSessions =
-    !hasOwnProperty(options, "sessionIdGenerator") || options.sessionIdGenerator !== undefined;
-  const server = createServer({
-    ...options,
-    supportNotifications: supportsSessions,
-    supportResourceSubscriptions: supportsSessions
-  });
+  const requestContextStorage = new AsyncLocalStorage<HttpRequestContext>();
+  const server = createServer(options);
   const transport = new StreamableHttpTransport(server, options, async (req, callback) =>
     requestContextStorage.run(
       {
@@ -227,12 +230,12 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
     options.oauth === undefined
       ? undefined
       : JSON.stringify(createProtectedResourceMetadataDocument(options.oauth));
-  const httpServer = server as HttpServer;
+  const httpServer = server as unknown as HttpServer;
   const registerTool = server.tool.bind(server);
   const registerRichTool = server.registerTool.bind(server);
   const defaultContext = {
     request: { headers: {}, socket: {} } as AuthenticatedIncomingMessage
-  } satisfies HttpToolContext;
+  } satisfies HttpRequestContext;
 
   const authorizeHttpRequest = async (
     req: IncomingMessage,
@@ -281,13 +284,14 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
     description: string,
     inputSchema: TypedSchema<TIn>,
     handler: HttpToolHandler<TIn, TOut>,
-    outputSchema?: TypedSchema<TOut>
+    outputSchema?: TypedOutputSchema<TOut>
   ): HttpServer => {
     registerTool(
       name,
       description,
       inputSchema,
-      (args) => handler(args, requestContextStorage.getStore() ?? defaultContext),
+      (args, context) =>
+        handler(args, { ...(requestContextStorage.getStore() ?? defaultContext), ...context }),
       outputSchema
     );
 
@@ -298,8 +302,8 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
     handler: HttpToolHandler<TIn, TOut>
   ): HttpServer => {
-    registerRichTool(definition, (args) =>
-      handler(args, requestContextStorage.getStore() ?? defaultContext)
+    registerRichTool(definition, (args, context) =>
+      handler(args, { ...(requestContextStorage.getStore() ?? defaultContext), ...context })
     );
 
     return httpServer;
@@ -450,10 +454,6 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   httpServer.getRequestContext = () => requestContextStorage.getStore();
 
   return httpServer;
-}
-
-function hasOwnProperty(value: object, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 export type { RequestAuthInfo, TokenVerifier, VerifiedAccessToken };

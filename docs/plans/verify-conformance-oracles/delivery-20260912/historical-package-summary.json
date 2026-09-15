@@ -1,0 +1,448 @@
+{
+  "sourceSha": "d126d355c150a076e6c5d5f110162289c57ed1c9",
+  "node": "22.23.2",
+  "icu": "78.2",
+  "command": "npm test --workspace=@poe-code/safe-js -- --reporter=default --reporter=json --outputFile.json=docs/plans/safejs-baseline-refresh-20260912/package-test.json",
+  "exitCode": 1,
+  "vitestDurationSeconds": 1951.88,
+  "groups": {
+    "tracked": {
+      "files": 1302,
+      "fileOutcomes": {
+        "passed": 1299,
+        "failed": 1,
+        "skipped": 2
+      },
+      "tests": 28951,
+      "testOutcomes": {
+        "passed": 28903,
+        "failed": 1,
+        "skipped": 47
+      }
+    },
+    "exploratory": {
+      "files": 11,
+      "fileOutcomes": {
+        "passed": 9,
+        "failed": 2
+      },
+      "tests": 116,
+      "testOutcomes": {
+        "passed": 109,
+        "failed": 7
+      }
+    }
+  },
+  "skipped": [
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames the open rather than the read and names the path node omits: readFile on a directory is blamed on read, which names no path",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames rm, the fs function, where node blames the unlink it refused: rm of a file in a write-denied directory is blamed on unlink",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames copyFile, the fs function, where node blames the lower-cased syscall: copyFile with COPYFILE_EXCL onto an existing path is blamed on copyfile",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames utimes, the fs function, where node blames the utime syscall: utimes on a missing path is blamed on utime",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory created below an existing parent",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs returns the requested path rather than the first directory created: mkdir recursive returns the first directory it created as the path was spelled",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames the missing parent rather than the path mkdir was given: mkdir non-recursive with a missing parent rejects with ENOENT",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames the file segment rather than the path mkdir was given: mkdir non-recursive through a file segment rejects with ENOTDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs forgives an existing file when mkdir is recursive and resolves: mkdir recursive on an existing file rejects with EEXIST",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames stat where node's rm lstats the path first: rm on a missing path without force rejects with ENOENT",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames stat where node's rm lstats the path first: rm force through a file segment still rejects with ENOTDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs raises a plain Error and prefixes the code to node's message: rm on a directory without recursive rejects with ERR_FS_EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs raises a plain Error and prefixes the code to node's message: rm force on a directory without recursive still rejects with ERR_FS_EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs follows the link and refuses it as a directory instead of unlinking it: rm on a symlink to a directory unlinks the link",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs stats through the link and reports the missing target as ENOENT: rm on a dangling symlink without force unlinks the link",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs ignores the read-only flag and appends where node refuses the write: appendFile with flag r rejects with EBADF",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames open with the directory the link resolved to where node blames a pathless read: readFile through a symlink to a directory rejects with EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs recurses through the cycle instead of answering ELOOP: readFile through a symlink loop rejects with ELOOP",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs recurses through the cycle instead of answering ELOOP: stat through a symlink loop rejects with ELOOP",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs recurses through the cycle instead of answering ELOOP: realpath through a symlink loop rejects with ELOOP",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs names the copyFile function where node names the copyfile syscall: copyFile with COPYFILE_EXCL onto an existing destination rejects with EEXIST",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs names the copyFile function where node names the copyfile syscall: copyFile onto itself with COPYFILE_EXCL rejects with EEXIST",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs opens the source and refuses it as EISDIR where darwin's copyfile answers ENOTSUP: copyFile where the source is a directory rejects with darwin's own code",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames the destination it opened where node blames the source and reports the destination as dest: copyFile where the destination is a directory rejects with EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs raises a plain EISDIR where node raises its own ERR_FS_EISDIR: cp non-recursive on a directory rejects with ERR_FS_EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs raises a plain EEXIST where node raises its own ERR_FS_CP_EEXIST: cp with errorOnExist and force off onto an existing file rejects with ERR_FS_CP_EEXIST",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs raises a plain EINVAL blaming the source where node raises ERR_FS_CP_EINVAL blaming the destination: cp of a directory into itself rejects with ERR_FS_CP_EINVAL",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs replaces the directory with the file instead of refusing it as EISDIR: rename of a file onto an existing directory rejects with EISDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs replaces the file with the directory instead of refusing it as ENOTDIR: rename of a directory onto an existing file rejects with ENOTDIR",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs overwrites the non-empty directory instead of refusing it as ENOTEMPTY: rename of a directory onto a non-empty directory rejects with ENOTEMPTY",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs hard-links the directory instead of refusing it as EPERM: link where the source is a directory rejects with EPERM",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/modules/fs.conformance.test.ts",
+      "tracked": true,
+      "name": "fs module conformance against real node's recorded truth reference gap \u2014 memfs blames the missing parent rather than the path it was given, and names no syscall in the message at all: writeFile into a missing directory rejects with ENOENT",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/parse/fuzz.test.ts",
+      "tracked": true,
+      "name": "parse fuzz handles deterministic random sources without parser crashes",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native host Instant in structured cloning: direct",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native host Instant in structured cloning: record",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native host Instant in structured cloning: array",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native host Instant in structured cloning: map",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native host Instant in structured cloning: set",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "preserves ordinary native Instant imports and aliases",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/structured-clone-host-instant.test.ts",
+      "tracked": true,
+      "name": "rejects native Instant without reading own accessors",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/temporal-instant-native.test.ts",
+      "tracked": true,
+      "name": "imports native host Instants with exact epochs and aliases",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/temporal-instant-native.test.ts",
+      "tracked": true,
+      "name": "exports into the native host Instant class when available",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/temporal-instant-native.test.ts",
+      "tracked": true,
+      "name": "accepts a native Instant as an injected binding",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/temporal-instant-native.test.ts",
+      "tracked": true,
+      "name": "rejects a forged native Instant without reading its own epoch accessor",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/math-f16round.independent.test.ts",
+      "tracked": true,
+      "name": "Math.f16round independent review matches native on 253,952 half values/tie neighbors",
+      "status": "skipped"
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/math-f16round.test.ts",
+      "tracked": true,
+      "name": "Math.f16round matches native f16round for 16,384 deterministic binary64 inputs",
+      "status": "skipped"
+    }
+  ],
+  "failures": [
+    {
+      "path": "packages/safe-js/test/integration/input-error-projection.test.ts",
+      "tracked": true,
+      "ancestorTitles": [
+        "O12 exact modeled Error proof projection"
+      ],
+      "fullName": "O12 exact modeled Error proof projection records raw public-input qualification without substituting it for O12",
+      "status": "failed",
+      "title": "records raw public-input qualification without substituting it for O12",
+      "duration": 5008.142667000007,
+      "failureMessages": [
+        "Error: STACK_TRACE_ERROR\n    at task (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/test/integration/input-error-projection.test.ts:623:3\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2462:26"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/promise-import-properties.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "imports user symbol properties without exposing host promise metadata",
+      "status": "failed",
+      "title": "imports user symbol properties without exposing host promise metadata",
+      "duration": 3.7068340000005264,
+      "failureMessages": [
+        "AssertionError: expected undefined to be 42 // Object.is equality\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/promise-import-properties.test.ts:15:27\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "retains the standalone ISO month for en-US with long width",
+      "status": "failed",
+      "title": "retains the standalone ISO month for en-US with long width",
+      "duration": 97.53775000000041,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "retains the standalone ISO month for pl-PL with long width",
+      "status": "failed",
+      "title": "retains the standalone ISO month for pl-PL with long width",
+      "duration": 52.483374999999796,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "retains the standalone ISO month for ru-RU with long width",
+      "status": "failed",
+      "title": "retains the standalone ISO month for ru-RU with long width",
+      "duration": 44.318749999999454,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "preserves both ISO month names and sources in a en-US range",
+      "status": "failed",
+      "title": "preserves both ISO month names and sources in a en-US range",
+      "duration": 36.846166999999696,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:39:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "preserves both ISO month names and sources in a pl-PL range",
+      "status": "failed",
+      "title": "preserves both ISO month names and sources in a pl-PL range",
+      "duration": 37.34900000000016,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:39:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    },
+    {
+      "path": "packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts",
+      "tracked": false,
+      "ancestorTitles": [],
+      "fullName": "preserves both ISO month names and sources in a ru-RU range",
+      "status": "failed",
+      "title": "preserves both ISO month names and sources in a ru-RU range",
+      "duration": 34.90558400000009,
+      "failureMessages": [
+        "AssertionError: expected { ok: true, \u2026(3) } to match object { ok: true, returnValue: [ \u2026(3) ] }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts:39:18\n    at file:///Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+      ],
+      "meta": {},
+      "tags": []
+    }
+  ],
+  "total": {
+    "numTotalTestSuites": 2114,
+    "numPassedTestSuites": 2110,
+    "numFailedTestSuites": 4,
+    "numPendingTestSuites": 0,
+    "numTotalTests": 29067,
+    "numPassedTests": 29012,
+    "numFailedTests": 8,
+    "numPendingTests": 47,
+    "numTodoTests": 0
+  },
+  "logSha256": "774b036a1e59df88ce8d97da30efa7fdc29b4214ba61d764be1105c795c4530d"
+}

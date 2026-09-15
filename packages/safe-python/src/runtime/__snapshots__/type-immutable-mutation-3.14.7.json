@@ -1,0 +1,1279 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "type.__setattr__ int 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ int None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ int []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ int 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ int \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'int\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'int\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'int\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'int\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ int \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ int \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(int,type) int \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(int,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(int,type) int \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(int,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'object\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'object\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'object\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'object\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ object \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(object,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ object \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(object,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(object,type) object \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(object,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(object,type) object \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(object,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'object'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'type\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'type\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'type\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'type\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ type \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(type,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ type \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(type,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(type,type) type \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(type,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(type,type) type \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(type,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'type'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'str\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'str\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'str\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'str\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ str \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(str,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ str \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(str,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(str,type) str \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(str,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(str,type) str \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(str,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'str'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'bytes\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'bytes\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'bytes\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'bytes\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ bytes \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(bytes,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ bytes \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(bytes,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(bytes,type) bytes \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(bytes,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(bytes,type) bytes \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(bytes,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'bytes'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set None attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set [] attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'x' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'Exception\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'Exception\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'Exception\\'',), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('cannot set \"a\\'\\\\n\\\\x00\ud800\udc00\" attribute of immutable type \\'Exception\\'',), False), [])"
+    },
+    {
+      "name": "type.__setattr__ Exception \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(Exception,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ Exception \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(Exception,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(Exception,type) Exception \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(Exception,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(Exception,type) Exception \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(Exception,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set 'a\\\\ud800' attribute of immutable type 'Exception'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ C 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)(1,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C 1",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)(1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ C None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)(None,37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C None",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)(None))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,[],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'list'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__ C []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,[]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'list'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)([],37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'list'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C []",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)([]))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'list'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,'x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__ C 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,'x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)('x',37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C 'x'",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)('x'))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__ C \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'a'\\n\\x00\ud800\udc00'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)(\"a'\\n\\x00\ud800\udc00\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C \"a'\\n\\x00\ud800\udc00\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)(\"a'\\n\\x00\ud800\udc00\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'a'\\n\\x00\ud800\udc00'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__ C \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(C,\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__ C \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(C,\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'a\\ud800'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__.__get__(C,type) C \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__.__get__(C,type)(\"a\\ud800\",37))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "type.__delattr__.__get__(C,type) C \"a\\ud800\"",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__.__get__(C,type)(\"a\\ud800\"))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'a\\ud800'\",), False), [])"
+    },
+    {
+      "name": "object return 'custom name' __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set custom name attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "object return 'custom name' __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object return 'custom name' __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set custom name attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "object return 'custom name' __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object raise marker __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ValueError', ('marker',), True), ['repr'])"
+    },
+    {
+      "name": "object raise marker __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object raise marker __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ValueError', ('marker',), True), ['repr'])"
+    },
+    {
+      "name": "object raise marker __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object return 17 __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__repr__ returned non-string (type int)',), False), ['repr'])"
+    },
+    {
+      "name": "object return 17 __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object return 17 __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__repr__ returned non-string (type int)',), False), ['repr'])"
+    },
+    {
+      "name": "object return 17 __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object return Result('result\\x00') __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set result\\x00 attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "object return Result('result\\x00') __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "object return Result('result\\x00') __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set result\\x00 attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "object return Result('result\\x00') __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(object):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'Name'\",), False), [])"
+    },
+    {
+      "name": "str return 'custom name' __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set custom name attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "str return 'custom name' __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "str return 'custom name' __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set custom name attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "str return 'custom name' __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 'custom name'\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "str raise marker __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ValueError', ('marker',), True), ['repr'])"
+    },
+    {
+      "name": "str raise marker __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "str raise marker __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ValueError', ('marker',), True), ['repr'])"
+    },
+    {
+      "name": "str raise marker __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "str return 17 __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__repr__ returned non-string (type int)',), False), ['repr'])"
+    },
+    {
+      "name": "str return 17 __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "str return 17 __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__repr__ returned non-string (type int)',), False), ['repr'])"
+    },
+    {
+      "name": "str return 17 __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return 17\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "str return Result('result\\x00') __setattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set result\\x00 attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "str return Result('result\\x00') __setattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__setattr__(C,name,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "str return Result('result\\x00') __delattr__ int",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"cannot set result\\x00 attribute of immutable type 'int'\",), False), ['repr'])"
+    },
+    {
+      "name": "str return Result('result\\x00') __delattr__ C",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\nclass Result(str):\n def __str__(self): raise RuntimeError(\"str\")\nclass Name(str):\n def __repr__(self):\n  events.append(\"repr\")\n  return Result('result\\x00')\n def __str__(self): raise RuntimeError(\"str\")\n def __hash__(self): raise RuntimeError(\"hash\")\n def __eq__(self,other): raise RuntimeError(\"eq\")\nname=Name('x')\ntry:\n result=(\"ok\", type.__delattr__(C,name))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', (\"type object 'C' has no attribute 'x'\",), False), [])"
+    },
+    {
+      "name": "type.__setattr__(int)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 0',), False), [])"
+    },
+    {
+      "name": "type.__setattr__(int,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 1',), False), [])"
+    },
+    {
+      "name": "type.__setattr__(int,1,2,3)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,1,2,3))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 3',), False), [])"
+    },
+    {
+      "name": "type.__setattr__(int,1,x=2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(int,1,x=2))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('wrapper __setattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "type.__setattr__(1,2,3)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__setattr__(1,2,3))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"descriptor '__setattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "type.__delattr__(int)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('expected 1 argument, got 0',), False), [])"
+    },
+    {
+      "name": "type.__delattr__(int,1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,1,2))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('expected 1 argument, got 2',), False), [])"
+    },
+    {
+      "name": "type.__delattr__(int,x=1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(int,x=1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', ('wrapper __delattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "type.__delattr__(1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", type.__delattr__(1,2))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"descriptor '__delattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "setattr(int,1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", setattr(int,1,2))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "delattr(int,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass C: pass\ntry:\n result=(\"ok\", delattr(int,1))\nexcept Exception as error:\n result=(type(error).__name__, error.args, error is marker)\nresult=(result, events)\n",
+      "expected": "(('TypeError', (\"attribute name must be string, not 'int'\",), False), [])"
+    },
+    {
+      "name": "type(None) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(None),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type(None) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(None),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'NoneType'\",), False), [])"
+    },
+    {
+      "name": "type(Ellipsis) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(Ellipsis),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'ellipsis'\",), False), [])"
+    },
+    {
+      "name": "type(Ellipsis) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(Ellipsis),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'ellipsis'\",), False), [])"
+    },
+    {
+      "name": "type(NotImplemented) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(NotImplemented),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'NotImplementedType'\",), False), [])"
+    },
+    {
+      "name": "type(NotImplemented) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(NotImplemented),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'NotImplementedType'\",), False), [])"
+    },
+    {
+      "name": "type(abs) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(abs),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'builtin_function_or_method'\",), False), [])"
+    },
+    {
+      "name": "type(abs) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(abs),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'builtin_function_or_method'\",), False), [])"
+    },
+    {
+      "name": "type(lambda:None) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(lambda:None),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'function'\",), False), [])"
+    },
+    {
+      "name": "type(lambda:None) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(lambda:None),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'function'\",), False), [])"
+    },
+    {
+      "name": "type({}.keys()) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type({}.keys()),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_keys'\",), False), [])"
+    },
+    {
+      "name": "type({}.keys()) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type({}.keys()),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_keys'\",), False), [])"
+    },
+    {
+      "name": "type({}.values()) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type({}.values()),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_values'\",), False), [])"
+    },
+    {
+      "name": "type({}.values()) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type({}.values()),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_values'\",), False), [])"
+    },
+    {
+      "name": "type({}.items()) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type({}.items()),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_items'\",), False), [])"
+    },
+    {
+      "name": "type({}.items()) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type({}.items()),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'dict_items'\",), False), [])"
+    },
+    {
+      "name": "type(type.__dict__) __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__setattr__(type(type.__dict__),1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'mappingproxy'\",), False), [])"
+    },
+    {
+      "name": "type(type.__dict__) __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\ntry:\n result=(\"ok\", type.__delattr__(type(type.__dict__),1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set 1 attribute of immutable type 'mappingproxy'\",), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__setattr__(int,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 1',), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__setattr__(int,name,1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 3',), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__setattr__(int,name,1,x=2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,x=2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __setattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__setattr__(1,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(1,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__setattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__delattr__(int,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('expected 1 argument, got 2',), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__delattr__(int,name,x=1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,x=1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __delattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "return \"name\" precedence type.__delattr__(1,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return \"name\"\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(1,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__delattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__setattr__(int,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 1',), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__setattr__(int,name,1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 3',), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__setattr__(int,name,1,x=2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,x=2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __setattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__setattr__(1,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(1,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__setattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__delattr__(int,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('expected 1 argument, got 2',), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__delattr__(int,name,x=1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,x=1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __delattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "raise marker precedence type.__delattr__(1,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  raise marker\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(1,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__delattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "return None precedence type.__setattr__(int,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 1',), False), [])"
+    },
+    {
+      "name": "return None precedence type.__setattr__(int,name,1,2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('__setattr__ expected 2 arguments, got 3',), False), [])"
+    },
+    {
+      "name": "return None precedence type.__setattr__(int,name,1,x=2)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1,x=2))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __setattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "return None precedence type.__setattr__(1,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(1,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__setattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "return None precedence type.__delattr__(int,name,1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('expected 1 argument, got 2',), False), [])"
+    },
+    {
+      "name": "return None precedence type.__delattr__(int,name,x=1)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name,x=1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', ('wrapper __delattr__() takes no keyword arguments',), False), [])"
+    },
+    {
+      "name": "return None precedence type.__delattr__(1,name)",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"repr\")\n  return None\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(1,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"descriptor '__delattr__' requires a 'type' object but received a 'int'\",), False), [])"
+    },
+    {
+      "name": "special lookup __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"class repr\")\n  return \"class name\"\nname=Name()\nname.__repr__=lambda: events.append(\"instance repr\")\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set class name attribute of immutable type 'int'\",), False), ['class repr'])"
+    },
+    {
+      "name": "descriptor repr __setattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Descriptor:\n def __get__(self,obj,owner):\n  events.append((type(obj).__name__,owner.__name__))\n  raise marker\nclass Name:\n __repr__=Descriptor()\nname=Name()\ntry:\n result=(\"ok\", type.__setattr__(int,name,1))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('marker',), True), [('Name', 'Name')])"
+    },
+    {
+      "name": "special lookup __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Name:\n def __repr__(self):\n  events.append(\"class repr\")\n  return \"class name\"\nname=Name()\nname.__repr__=lambda: events.append(\"instance repr\")\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"cannot set class name attribute of immutable type 'int'\",), False), ['class repr'])"
+    },
+    {
+      "name": "descriptor repr __delattr__",
+      "source": "events=[]\nmarker=ValueError(\"marker\")\nclass Descriptor:\n def __get__(self,obj,owner):\n  events.append((type(obj).__name__,owner.__name__))\n  raise marker\nclass Name:\n __repr__=Descriptor()\nname=Name()\ntry:\n result=(\"ok\", type.__delattr__(int,name))\nexcept Exception as error:\n result=(type(error).__name__,error.args,error is marker)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('marker',), True), [('Name', 'Name')])"
+    }
+  ]
+}

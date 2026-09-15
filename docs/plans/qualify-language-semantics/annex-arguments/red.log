@@ -1,0 +1,184 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts (9 tests | 5 failed) 369ms
+   × preserves the arguments object around a block function with  106ms
+   × preserves the arguments object around a block function with x 45ms
+   × preserves the arguments object around a block function with ...rest 50ms
+   × preserves the arguments object around a block function with x=1 33ms
+   × preserves the arguments object around a block function with {x}={} 32ms
+   ✓ preserves explicit arguments bindings: return Function("arguments", "{function arguments(){return 7}}return arguments")(3) 24ms
+   ✓ preserves explicit arguments bindings: return Function("return (()=>{{function arguments(){return 7}}return arguments()})()")() 29ms
+   ✓ preserves explicit arguments bindings: return Function("function arguments(){return 3}{function arguments(){return 7}}return arguments()")() 23ms
+   ✓ preserves explicit arguments bindings: return Function("let arguments=3;{function arguments(){return 7}}return arguments")() 25ms
+FAIL packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with 
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+FAIL packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with x
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+FAIL packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with ...rest
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+FAIL packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with x=1
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+FAIL packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with {x}={}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with 
+ FAIL  packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with x
+ FAIL  packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with ...rest
+ FAIL  packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with x=1
+ FAIL  packages/safe-js/src/interp/legacy-arguments.test.ts > preserves the arguments object around a block function with {x}={}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     false,
+      7,
+-     "[object Arguments]",
++     "[object Function]",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/legacy-arguments.test.ts:7:29
+      5|   const body = 'const before=arguments;let inner;{inner=arguments();fu…
+      6|   const source = `return Function(${JSON.stringify(parameter)},${JSON.…
+      7|   expect(await run(source)).toMatchObject({ok:true,returnValue:[true,7…
+       |                             ^
+      8| });
+      9|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 4 passed (9)
+   Start at  12:07:11
+   Duration  3.62s (transform 2.40s, setup 65ms, import 3.06s, tests 369ms, environment 0ms)
+

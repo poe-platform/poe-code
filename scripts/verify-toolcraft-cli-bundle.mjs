@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { runNpm } from "./npm-command.mjs";
 import {
   canonicalizeToolcraftBundle,
   createToolcraftBundleOptions
@@ -16,8 +17,7 @@ const consumerDirectory = mkdtempSync(path.join(os.tmpdir(), "toolcraft-bundle-c
 
 try {
   const packResult = JSON.parse(
-    execFileSync(
-      "npm",
+    runNpm(
       ["pack", "./packages/toolcraft", "--json", "--pack-destination", packDirectory],
       { cwd: rootDirectory, encoding: "utf8" }
     )
@@ -50,7 +50,7 @@ try {
     ].join("\n") + "\n"
   );
 
-  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballPath], {
+  runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", tarballPath], {
     cwd: consumerDirectory,
     stdio: "inherit"
   });

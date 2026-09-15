@@ -50,13 +50,15 @@ export interface OpenApiSpecCacheFileSystem extends OpenApiSourceFileSystem {
 
 export interface LoadedOpenApiSource {
   sourceText: string;
+  sourceUrl: string;
   document: OpenApiDocument;
   commit?: () => Promise<void>;
 }
 
 interface OpenApiSpecCacheEntry {
-  version: 1;
+  version: 2;
   sourceText: string;
+  sourceUrl: string;
   validatedAt: number;
   maxAgeMs: number;
   etag?: string;
@@ -105,6 +107,7 @@ export async function loadCachedOpenApiSource(
     }
     return {
       sourceText: result.sourceText,
+      sourceUrl: result.sourceUrl,
       document: parseOpenApiDocument(result.sourceText, inputUrl)
     };
   }
@@ -124,6 +127,7 @@ export async function loadCachedOpenApiSource(
   ) {
     return {
       sourceText: cached.entry.sourceText,
+      sourceUrl: cached.entry.sourceUrl,
       document: cached.document
     };
   }
@@ -143,6 +147,7 @@ export async function loadCachedOpenApiSource(
     notifyFallback(options.cache, inputUrl, error);
     return {
       sourceText: cached.entry.sourceText,
+      sourceUrl: cached.entry.sourceUrl,
       document: cached.document
     };
   }
@@ -160,6 +165,7 @@ export async function loadCachedOpenApiSource(
       );
     }
 
+    const sourceUrl = result.sourceUrl ?? cached.entry.sourceUrl;
     const policy =
       result.cacheControl === undefined
         ? {
@@ -178,6 +184,7 @@ export async function loadCachedOpenApiSource(
     if (!policy.store) {
       return {
         sourceText: cached.entry.sourceText,
+        sourceUrl,
         document: cached.document,
         ...(writableFs === null ? {} : { commit: () => removeCacheEntry(cachePath, writableFs) })
       };
@@ -185,12 +192,14 @@ export async function loadCachedOpenApiSource(
 
     const entry: OpenApiSpecCacheEntry = {
       ...cached.entry,
+      sourceUrl,
       validatedAt: now,
       maxAgeMs: policy.maxAgeMs,
       ...(result.etag === undefined ? {} : { etag: result.etag })
     };
     return {
       sourceText: cached.entry.sourceText,
+      sourceUrl,
       document: cached.document,
       ...(writableFs === null
         ? {}
@@ -208,20 +217,23 @@ export async function loadCachedOpenApiSource(
   if (!policy.store) {
     return {
       sourceText: result.sourceText,
+      sourceUrl: result.sourceUrl,
       document,
       ...(writableFs === null ? {} : { commit: () => removeCacheEntry(cachePath, writableFs) })
     };
   }
 
   const entry: OpenApiSpecCacheEntry = {
-    version: 1,
+    version: 2,
     sourceText: result.sourceText,
+    sourceUrl: result.sourceUrl,
     validatedAt: now,
     maxAgeMs: policy.maxAgeMs,
     ...(result.etag === undefined ? {} : { etag: result.etag })
   };
   return {
     sourceText: result.sourceText,
+    sourceUrl: result.sourceUrl,
     document,
     ...(writableFs === null
       ? {}
@@ -491,9 +503,11 @@ function isCacheEntry(value: unknown): value is OpenApiSpecCacheEntry {
   const entry = value as Record<string, unknown>;
   return (
     Object.hasOwn(entry, "version") &&
-    entry.version === 1 &&
+    entry.version === 2 &&
     Object.hasOwn(entry, "sourceText") &&
     typeof entry.sourceText === "string" &&
+    Object.hasOwn(entry, "sourceUrl") &&
+    typeof entry.sourceUrl === "string" &&
     Object.hasOwn(entry, "validatedAt") &&
     typeof entry.validatedAt === "number" &&
     Number.isFinite(entry.validatedAt) &&

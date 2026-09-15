@@ -1,0 +1,11 @@
+{
+  "utc": "2026-09-12T08:20:44.626547+00:00",
+  "freeBytes": 299786240,
+  "remainingSelections": 27,
+  "remainingFiles": 13376,
+  "estimatedAdditionalEvidenceBytesUpperBound": 104857600,
+  "estimateBasis": "Remaining JSONL/log/receipts about10MiB; final aggregate/inventory and compressed archives plus optionalfreshmanifest within100MiB, based observed report sizes. External storage use remains outside task control.",
+  "newSelectionMinimumFreeBytes": 134217728,
+  "workerCap": 2,
+  "disposition": "Pause new scheduling below128MiB, preserve any active results; no timeout/budget changes."
+}

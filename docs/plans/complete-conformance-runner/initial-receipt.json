@@ -1,0 +1,75 @@
+{
+  "observedUtc": "2026-09-12T04:13:45.852656+00:00",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "remoteMain": "d72160a500ef9ac63961eb8af264272a39ec96f9",
+  "branch": "main",
+  "runtime": {
+    "node": "22.23.2",
+    "acorn": "8.16.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.8",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.3",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.69.0",
+    "openssl": "3.5.7",
+    "simdjson": "4.5.0",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.3",
+    "tz": "2026a",
+    "undici": "6.28.0",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.56",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "corpus": "/private/tmp/safejs-baseline-test262-419d3e0",
+  "corpusRevision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "corpusStatus": "",
+  "initialStagedDiffHash": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "contracts": {
+    "ecma262-ed16": {
+      "url": "https://262.ecma-international.org/16.0/",
+      "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+      "bytes": 8169822
+    },
+    "ecma402-ed12": {
+      "url": "https://402.ecma-international.org/12.0/",
+      "sha256": "6d88587f7ee3759a604f59e0af4390c8f103d8ac4be124d8e10feb3ec48121b0",
+      "bytes": 1226121
+    },
+    "INTERPRETING.md": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "d1aa6662ea899cc0594dc48e7424c586e557ec2dba55768834ef62d3c5660f41"
+    },
+    "CONTRIBUTING.md": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "74a8d5ec31c289ecc9afd532a47790027685a37639b98d3d909d82a69c4d6137"
+    },
+    "features.txt": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "2f8dfa3d3ba98ae4618692c30f7c365069fb55d5899add707f50749f648ba039"
+    },
+    "harness/doneprintHandle.js": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add"
+    },
+    "harness/sta.js": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35"
+    },
+    "harness/assert.js": {
+      "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+      "sha256": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48"
+    }
+  }
+}

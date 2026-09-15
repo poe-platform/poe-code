@@ -1,0 +1,220 @@
+{
+  "cases": [
+    {
+      "name": "iso2022_jp",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_1",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_1')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_1",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_1')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_1",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_1')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_3",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_3')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_3",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_3')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_3",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_3')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2004')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2004')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_2004')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_ext')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_ext')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_jp_ext')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_kr",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_kr')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_kr",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_kr')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "iso2022_kr",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: iso2022_kr')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "hz",
+      "mode": "normal",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: hz')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "hz",
+      "mode": "cancel-return",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: hz')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    },
+    {
+      "name": "hz",
+      "mode": "cancel-throw",
+      "status": "exception",
+      "diagnostic": "LookupError('unknown encoding: hz')",
+      "reads": 0,
+      "writes": 0,
+      "output": ""
+    }
+  ]
+}

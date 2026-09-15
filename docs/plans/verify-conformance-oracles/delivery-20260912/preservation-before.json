@@ -1,0 +1,21 @@
+{
+  "unrelatedWorkingFiles": {
+    ".poe-code/pipeline/steps.yaml": "200d2f170cfed972b2dc487def8d8e5882e0b9e77c3bfaef297e3a83c25e0f0e",
+    "README.md": "2ac456a2cc8abad14f65dff1c983d887c12904e4bd05c4938bc9d53e8b31b959",
+    "docs/plans/safejs-array-literal-prototype-lifetime.md": "0af3201ecd58510844348c39d446f5767a4a0c946bcd4977e5f5ca01b63b0b22",
+    "docs/plans/safejs-current-gap-inventory-2026-09-10.md": "ed252aff959f6ae3fa0ce7c49bb930c581efbc495fb124b65303e1f0c9adc10f",
+    "docs/plans/safejs-language-completeness.md": "d277bd2b8e44c8b0dfb7bb82e73b6cc567af4e3d0040129ce805b47e6a600838",
+    "docs/plans/safejs-new-imported-promises-integration.md": "a20fecf5ca98e27c66597d78625274d06145eff846a88aa46563270e6b5fdbf9",
+    "docs/plans/safejs-standard-builtin-metadata.md": "e253b0b9e414055ec1910cbb33bb853a059985c2aaf83c5a975762518e3e21bb",
+    "docs/plans/safejs-temporal-plain-month-day.md": "56b321049d02f1eb7c048c4bb30a2d611bd64696f3bb08dbc350fbb7f6ce3b96",
+    "docs/plans/safejs-temporal-plain-time-core.md": "c50e7a1a16facabbec28f3814c62f770cc61df42a914994337a7239653627034",
+    "docs/plans/safejs-temporal-plain-year-month.md": "8f189ef27ac8c483afa8d9316cb5104dd692c11d57e7b922aff8938272c7fd61",
+    "packages/safe-js/README.md": "b13cdcbf9a39c225885678930d6fd5b4ddeefad06a2f189e2cfa2cb3b5dc56b7"
+  },
+  "stagedDiffSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "stagedPaths": [
+    "packages/safe-bash/src/commands/text.ts",
+    "packages/safe-bash/tests/commands/helpers.ts",
+    "packages/safe-bash/tests/commands/text.test.ts"
+  ]
+}

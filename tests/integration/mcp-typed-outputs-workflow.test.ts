@@ -1,11 +1,8 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { McpClient, StdioTransport } from "tiny-mcp-client";
 
-const tempDirs: string[] = [];
 const root = process.cwd();
 const tinyStdioEntry = pathToFileURL(
   path.join(root, "packages/tiny-stdio-mcp-server/dist/index.js"),
@@ -17,23 +14,13 @@ const toolcraftMcpEntry = pathToFileURL(
   path.join(root, "packages/toolcraft/dist/mcp.js"),
 ).href;
 
-async function createServerScript(source: string): Promise<string> {
-  const dir = await mkdtemp(
-    path.join(os.tmpdir(), "mcp-typed-output-workflow-"),
-  );
-  tempDirs.push(dir);
-  const scriptPath = path.join(dir, "server.mjs");
-  await writeFile(scriptPath, source);
-  return scriptPath;
-}
-
-async function connectToServerScript(scriptPath: string): Promise<{
+async function connectToServerScript(source: string): Promise<{
   client: McpClient;
   cleanup: () => Promise<void>;
 }> {
   const transport = new StdioTransport({
     command: process.execPath,
-    args: [scriptPath],
+    args: ["--input-type=module", "--eval", source],
     cwd: root,
     env: { ...process.env },
   });
@@ -53,15 +40,9 @@ async function connectToServerScript(scriptPath: string): Promise<{
   };
 }
 
-afterEach(async () => {
-  await Promise.all(
-    tempDirs.splice(0).map((dir) => rm(dir, { force: true, recursive: true })),
-  );
-});
-
 describe("MCP typed output real stdio workflows", () => {
   it("round-trips typed stdio tools and exposes non-happy paths over MCP", async () => {
-    const scriptPath = await createServerScript(`
+    const source = `
       import { createServer, defineSchema } from ${JSON.stringify(tinyStdioEntry)};
 
       const outputSchema = {
@@ -89,14 +70,14 @@ describe("MCP typed output real stdio workflows", () => {
         outputSchema
       );
       server.tool(
-        "bad_envelope",
-        "Return a malformed result envelope",
+        "scalar_envelope",
+        "Return modern scalar structured content",
         defineSchema({}),
         () => ({ content: [], structuredContent: "not an object" })
       );
       await server.listen();
-    `);
-    const { client, cleanup } = await connectToServerScript(scriptPath);
+    `;
+    const { client, cleanup } = await connectToServerScript(source);
 
     try {
       const { tools } = await client.listTools();
@@ -135,10 +116,11 @@ describe("MCP typed output real stdio workflows", () => {
         data: [expect.objectContaining({ keyword: "type" })],
       });
       await expect(
-        client.callTool({ name: "bad_envelope", arguments: {} }),
+        client.callTool({ name: "scalar_envelope", arguments: {} }),
       ).resolves.toMatchObject({
-        isError: true,
-        content: [{ type: "text", text: "Error: Invalid tool result" }],
+        content: [],
+        structuredContent: "not an object",
+        resultType: "complete",
       });
     } finally {
       await cleanup();
@@ -146,7 +128,7 @@ describe("MCP typed output real stdio workflows", () => {
   });
 
   it("round-trips toolcraft result schemas through a spawned MCP server, including invalid result failures", async () => {
-    const scriptPath = await createServerScript(`
+    const source = `
       import { defineCommand, defineGroup, S } from ${JSON.stringify(toolcraftEntry)};
       import { runMCP } from ${JSON.stringify(toolcraftMcpEntry)};
 
@@ -200,8 +182,8 @@ describe("MCP typed output real stdio workflows", () => {
           casing: "snake"
         }
       );
-    `);
-    const { client, cleanup } = await connectToServerScript(scriptPath);
+    `;
+    const { client, cleanup } = await connectToServerScript(source);
 
     try {
       const { tools } = await client.listTools();

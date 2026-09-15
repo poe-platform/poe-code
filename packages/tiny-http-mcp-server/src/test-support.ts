@@ -235,6 +235,7 @@ async function fetchInMemory(server: http.Server, url: URL, init: RequestInit): 
   response.headerValues = new Headers();
   response.headersSent = false;
   response.writableEnded = false;
+  response.destroyed = false;
   const setResponseHeader = (name: string, value: number | string | readonly string[]) => {
     response.headerValues.delete(name);
     if (Array.isArray(value) && name.toLowerCase() === "set-cookie") {
@@ -297,6 +298,19 @@ async function fetchInMemory(server: http.Server, url: URL, init: RequestInit): 
     }
     return response;
   }) as unknown as http.ServerResponse["end"];
+  response.destroy = ((error?: Error) => {
+    if (!response.destroyed) {
+      response.destroyed = true;
+      try {
+        if (error === undefined) streamController?.close();
+        else streamController?.error(error);
+      } catch {
+        // The consumer may have cancelled the stream already.
+      }
+      response.emit("close");
+    }
+    return response;
+  }) as http.ServerResponse["destroy"];
   response.flushHeaders = (() => {
     response.headersSent = true;
   }) as http.ServerResponse["flushHeaders"];

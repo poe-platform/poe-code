@@ -4,6 +4,7 @@ import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } fr
 import { assignIds } from "./assign-ids.js";
 import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
+import { createSyntaxDiagnostic } from "./syntax-diagnostic.js";
 import {
   createExportDefaultDeclaration,
   createExportNamedDeclaration,
@@ -304,6 +305,7 @@ export type AssignmentExpression = BaseNode & {
   type: "AssignmentExpression";
   operator: AssignmentOperator;
   left: AssignmentTarget;
+  parenthesizedLeft?: true;
   right: Expression;
 };
 
@@ -679,7 +681,7 @@ export function parseModule(source: string, filename = "<input>", owner?: Compil
   try {
     const result = assignIds(
       new Parser(
-        tokenize(source, { allowRegexLiterals: true, compilation }),
+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),
         source,
         compilation
       ).parseModule()
@@ -708,7 +710,7 @@ export function parseExecutableModule(
   try {
     const result = assignIds(
       new Parser(
-        tokenize(source, { allowRegexLiterals: true, compilation }),
+        tokenize(source, { allowRegexLiterals: true, statementList: true, compilation }),
         source,
         compilation,
         "top-level",
@@ -753,7 +755,7 @@ export function parseEvalScript(
     if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();
     const grammar = {await: false, yield: false, strict: context.strict === true};
     const parser = new Parser(tokenize(source, {
-      allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
+      allowRegexLiterals: true, statementList: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
       allowHtmlComments: true, compilation
     }), source, compilation, "normal", {
       grammar, newTarget: context.newTarget === true,
@@ -768,7 +770,7 @@ export function parseEvalScript(
     return {node, strict: grammar.strict};
   } catch (error) {
     if (error instanceof SandboxError) throw error;
-    throw new SyntaxError(error instanceof Error ? error.message : String(error));
+    throw createSyntaxDiagnostic(source, "<eval>", error);
   } finally { compilation.dispose(); }
 }
 
@@ -791,15 +793,15 @@ export function parseDynamicFunction(
     const parameterSource = `(${parameters}\n)`;
     const bodySource = `{\n${body}\n}`;
     const source = `${prefix} anonymous(${parameters}\n) ${bodySource}`;
-    const createParser = (text: string) => new Parser(
-      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
+    const createParser = (text: string, statementList = false) => new Parser(
+      tokenize(text, {allowRegexLiterals: true, statementList, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
       kind, {...ordinaryFunctionContext, grammar: {
         await: kind === "async" || kind === "async-generator",
         yield: kind === "generator" || kind === "async-generator", strict: false
       }}, false
     );
     createParser(parameterSource).parseDynamicParameters();
-    createParser(bodySource).parseDynamicBody();
+    createParser(bodySource, true).parseDynamicBody();
     const node = assignIds(createParser(source).parseDynamicExpression());
     if (source.includes("#")) validatePrivateNames(node);
     return node;
@@ -1065,6 +1067,7 @@ class Parser {
         type: "AssignmentExpression",
         operator,
         left: this.toAssignmentTarget(left.node),
+        ...(left.parenthesized ? { parenthesizedLeft: true as const } : {}),
         right: right.node,
         span: createSpan(left.node.span.start, right.node.span.end)
       },
@@ -1276,13 +1279,16 @@ class Parser {
     if (!allowDeclarations && (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration" ||
         (statement.type === "VariableDeclaration" && statement.kind !== "var")))
       throw new DisallowedSyntaxError("declaration in a statement body", statement.span.start);
-    if (this.lexicalContext.grammar !== undefined &&
+    if (this.lexicalContext.grammar !== undefined && this.previousToken().value !== ";" &&
       ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement"].includes(statement.type)) {
       const next = this.currentToken();
       if (next.type !== "eof" && next.value !== ";" && next.value !== "}" &&
         next.start.line === statement.span.end.line)
         throw unexpectedTokenError(next);
     }
+    if (!allowDeclarations && this.previousToken().value !== ";" &&
+      ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement", "DoWhileStatement"].includes(statement.type))
+      this.consumePunctuator(";");
     return statement;
   }
 
@@ -1309,6 +1315,16 @@ class Parser {
     }
 
     this.assertAllowedStatementStart(token);
+
+    if (token.type === "identifier" && token.value === "debugger") {
+      this.index++;
+      const semicolon = this.consumePunctuator(";");
+      const next = this.currentToken();
+      if (semicolon === undefined && next.type !== "eof" && next.value !== "}" &&
+        !hasLineBreakBetween(token, next)) throw unexpectedTokenError(next);
+      // No debugging facility is exposed: DebuggerStatement has empty completion.
+      return { type: "EmptyStatement", span: createSpan(token.start, semicolon?.end ?? token.end) };
+    }
 
     if (token.value === "class") return this.parseClass(true) as ClassDeclaration;
     if (token.value === "return" && !this.lexicalContext.return)
@@ -1526,16 +1542,6 @@ class Parser {
       const test = this.parseExpression({ allowSequence: true }).node;
       this.expectPunctuator(")");
       const consequent = this.parseIfClause();
-      if (consequent.type !== "BlockStatement") {
-        while (
-          this.currentToken().type === "punctuator" &&
-          this.currentToken().value === ";" &&
-          this.peekToken(1).type === "keyword" &&
-          this.peekToken(1).value === "else"
-        ) {
-          this.index += 1;
-        }
-      }
       const elseToken = this.consumeKeyword("else");
       const alternate = elseToken === undefined ? undefined : this.parseIfClause();
       return {
@@ -2014,7 +2020,9 @@ class Parser {
     const next = this.peekToken(1);
     // Statement-only positions allow sloppy `let` as an expression, but never `let [`.
     return next.value === "[" || (allowDeclarations &&
-      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next)));
+      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next) ||
+        ((next.type === "keyword" || next.type === "escaped-keyword") &&
+          (next.value === "await" || next.value === "yield"))));
   }
 
   private parseVariableDeclaration(allowIn = true): VariableDeclaration {
@@ -2060,7 +2068,8 @@ class Parser {
     const offset = token.value === "await" && this.peekToken(1).value === "using" ? 1 : 0;
     const using = offset === 0 ? token : this.peekToken(1);
     const binding = this.peekToken(offset + 1);
-    if (using.value !== "using" || hasLineBreakBetween(using, binding) || !isIdentifierLikeToken(binding)) return undefined;
+    if (using.value !== "using" || hasLineBreakBetween(using, binding) ||
+        (!isIdentifierLikeToken(binding) && !this.isContextualIdentifier(binding))) return undefined;
     if (offset === 1 && hasLineBreakBetween(token, using)) throw unexpectedTokenError(using);
     return offset === 1 ? "async" : "sync";
   }
@@ -2119,7 +2128,7 @@ class Parser {
 
   private parseClassBody(declaration: boolean): ClassNode {
     const start = this.expectKeyword("class");
-    const id = isIdentifierLikeToken(this.currentToken()) && this.currentToken().value !== "extends"
+    const id = (isIdentifierLikeToken(this.currentToken()) || this.isContextualIdentifier(this.currentToken())) && this.currentToken().value !== "extends"
       ? this.parseBindingIdentifier()
       : undefined;
     if (declaration && id === undefined) throw unexpectedTokenError(this.currentToken());
@@ -2193,20 +2202,27 @@ class Parser {
   private parseClassElement(derived: boolean): ClassElement {
     const start = this.currentToken();
     let isStatic = false;
-    if (start.type !== "private-identifier" && start.value === "static" && !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
+    if (start.type !== "private-identifier" && start.value === "static" &&
+        start.end.offset - start.start.offset === start.value.length &&
+        !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
       this.index++;
       isStatic = true;
       if (this.currentToken().value === "{") {
         const body = this.withLexicalContext({
           newTarget: true, superProperty: true, superCall: false,
-          arguments: false, return: false, await: false, strictAwait: true
+          arguments: false, return: false, await: false, strictAwait: true,
+          ...(this.lexicalContext.grammar === undefined ? {} : {
+            grammar: {...this.lexicalContext.grammar, await: true}
+          })
         }, () => this.withFunctionContext("normal", () => this.parseBlockStatement([])));
         return { type: "StaticBlock", body, span: createSpan(start.start, body.span.end) };
       }
     }
     const methodStart = this.currentToken();
     let async = false;
-    if (methodStart.type !== "private-identifier" && methodStart.value === "async" && !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
+    if (methodStart.type !== "private-identifier" && methodStart.value === "async" &&
+        methodStart.end.offset - methodStart.start.offset === methodStart.value.length &&
+        !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
         (this.peekToken(1).value === "*" || this.isObjectMethodStart())) {
       this.index++;
       async = true;
@@ -3178,6 +3194,10 @@ class Parser {
       }
 
       if (this.currentToken().type === "template") {
+        if (continuesOptionalChain) {
+          const { line, column } = this.currentToken().start;
+          throw new SyntaxError(`Tagged templates are not allowed in optional chains at line ${line}, column ${column}.`);
+        }
         expression = {
           node: this.parseTaggedTemplate(expression.node),
           parenthesized: false
@@ -3364,7 +3384,9 @@ class Parser {
 
     if (this.consumePunctuator(".") !== undefined) {
       const target = this.currentToken();
-      if (target.value !== "target" || !this.lexicalContext.newTarget)
+      if (target.type !== "identifier" || target.value !== "target" ||
+          target.end.offset - target.start.offset !== target.value.length ||
+          !this.lexicalContext.newTarget)
         throw new DisallowedSyntaxError(newToken.value, newToken.start);
       this.index++;
       return { node: { type: "NewTargetExpression", span: createSpan(newToken.start, target.end) }, parenthesized: false };
@@ -3539,6 +3561,7 @@ class Parser {
   private parseObjectExpression(): ObjectExpression {
     const start = this.expectPunctuator("{");
     const properties: Array<Property | SpreadElement> = [];
+    let hasPrototypeSetter = false;
 
     const emptyEnd = this.consumePunctuator("}");
     if (emptyEnd !== undefined) {
@@ -3559,7 +3582,17 @@ class Parser {
           span: createSpan(spreadStart.start, argument.node.span.end)
         });
       } else {
-        properties.push(this.parseObjectProperty());
+        const property = this.parseObjectProperty();
+        if (!property.computed && !property.shorthand && property.kind === undefined &&
+            !(property.value.type === "FunctionExpression" && property.value.method === true) &&
+            (property.key.type === "Identifier" ? property.key.name === "__proto__" :
+              property.key.type === "StringLiteral" && property.key.value === "__proto__")) {
+          if (hasPrototypeSetter) {
+            throw new Error(`Duplicate __proto__ prototype setter at line ${property.key.span.start.line}, column ${property.key.span.start.column}.`);
+          }
+          hasPrototypeSetter = true;
+        }
+        properties.push(property);
       }
 
       if (this.consumePunctuator(",") !== undefined) {
@@ -3934,10 +3967,12 @@ class Parser {
     }
 
     if (node.type === "ArrayExpression") {
+      if (this.parenthesizedNodes.has(node)) throw invalidAssignmentTargetError(node.span.start);
       return this.arrayExpressionToPattern(node);
     }
 
     if (node.type === "ObjectExpression") {
+      if (this.parenthesizedNodes.has(node)) throw invalidAssignmentTargetError(node.span.start);
       return this.objectExpressionToPattern(node);
     }
 
@@ -4159,9 +4194,7 @@ class Parser {
 
     const paramToken = this.peekToken(1);
     if (hasLineBreakBetween(token, paramToken)) {
-      throw new Error(
-        `Unexpected line break after 'async' at line ${paramToken.start.line}, column ${paramToken.start.column}.`
-      );
+      return false;
     }
 
     const arrowToken = this.peekToken(2);
@@ -4301,6 +4334,7 @@ class Parser {
       token.type === "identifier" &&
       (token.value === "switch" ||
         token.value === "var" ||
+        token.value === "debugger" ||
         (this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":"))
     );
   }

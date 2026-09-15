@@ -143,6 +143,8 @@ describe("createMCPServer human-in-loop wiring", () => {
           }
         })
       ).resolves.toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",
@@ -308,6 +310,8 @@ describe("createMCPServer fetch runtime options plumbing", () => {
           arguments: {}
         })
       ).resolves.toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",
@@ -383,6 +387,8 @@ describe("createMCPServer hermetic runtime options plumbing", () => {
 
     try {
       await expect(client.callTool({ name: "inspect", arguments: {} })).resolves.toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [{ type: "text", text: "contents" }]
       });
       expect(injectedFs.readFile).toHaveBeenCalledWith("/virtual/input.txt");
@@ -418,6 +424,8 @@ describe("createMCPServer hermetic runtime options plumbing", () => {
 
     try {
       await expect(client.callTool({ name: "deploy", arguments: {} })).resolves.toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [{ type: "text", text: "deployed" }]
       });
     } finally {
@@ -483,6 +491,8 @@ describe("createMCPServer diagnostic runtime options plumbing", () => {
           arguments: {}
         })
       ).resolves.toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",

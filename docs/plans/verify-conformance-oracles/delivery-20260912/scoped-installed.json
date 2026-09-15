@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "name": "oracle-artifact-consumer",
+  "dependencies": {
+    "@poe-platform/safe-bash": {
+      "version": "0.1.562",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.562.tgz",
+      "overridden": false
+    },
+    "@poe-platform/safe-fs": {
+      "version": "0.1.562",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.562.tgz",
+      "overridden": false
+    },
+    "@poe-platform/safe-js": {
+      "version": "0.1.562",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.562.tgz",
+      "overridden": false
+    }
+  }
+}

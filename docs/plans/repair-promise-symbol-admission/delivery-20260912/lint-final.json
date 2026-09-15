@@ -1,0 +1,23 @@
+{
+  "command": "npm run lint",
+  "sourceBase": "11a7a80571a633cd452fde83a3fd57290fc019a4",
+  "node": "22.23.2",
+  "icu": "78.2",
+  "rawLogSha256": "21319ff601950684505e89bb4f7848a2b9ccb5336f4b1fd12e9204cc7191116d",
+  "lintRoot": [
+    {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0,
+      "scope": {
+        "configured": 11493,
+        "linted": 11493,
+        "ignored": 2041,
+        "unconfigured": 41792,
+        "ignoredDirectories": 193,
+        "heldExcluded": 5
+      }
+    }
+  ]
+}

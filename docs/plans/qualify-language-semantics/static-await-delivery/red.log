@@ -1,0 +1,201 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts (14 tests | 9 failed) 94ms
+   × rejects static-block await bindings: try {} catch (await) {} 6ms
+   × rejects static-block await bindings: try {} catch ({value: await}) {} 2ms
+   × rejects static-block await bindings: try {} catch ([await]) {} 1ms
+   × rejects static-block await bindings: {let await;} 1ms
+   × rejects static-block await bindings: var await; 1ms
+   × rejects static-block await bindings: function await() {} 1ms
+   × rejects static-block await bindings: const f = (await) => await; 1ms
+   × preserves catch/finally order for eval early errors in original and replay 76ms
+   × recognizes contextual resource bindings inside a static block's arrow body 1ms
+   ✓ allows neighboring static-block bindings across function boundaries: try {} catch (allowed) {} 1ms
+   ✓ allows neighboring static-block bindings across function boundaries: try {} catch ({await: allowed}) {} 0ms
+   ✓ allows neighboring static-block bindings across function boundaries: function f(await) { return await; } 0ms
+   ✓ allows neighboring static-block bindings across function boundaries: const f = function(await) { return await; }; 0ms
+   ✓ allows neighboring static-block bindings across function boundaries: class Nested { method(await) { return await; } } 0ms
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch (await) {}
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch ({value: await}) {}
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch ([await]) {}
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: {let await;}
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: var await;
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: function await() {}
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: const f = (await) => await;
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > preserves catch/finally order for eval early errors in original and replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     "executed",
+      "finally",
+    ],
+  }
+
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:30:20
+     28|   expect(lint(source).filter(diagnostic => diagnostic.severity === "er…
+     29|   const original = await run(source);
+     30|   expect(original).toMatchObject({ok: true, returnValue: [true, "final…
+       |                    ^
+     31|   const replayed = await run(source, {snapshot: JSON.parse(await dump(…
+     32|   expect(replayed).toMatchObject({ok: true, returnValue: [true, "final…
+
+FAIL packages/safe-js/src/parse/static-catch-await.test.ts > recognizes contextual resource bindings inside a static block's arrow body
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 35."
+
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:37:45
+     35| it("recognizes contextual resource bindings inside a static block's ar…
+     36|   const script = `class C { static { (() => { using await = null; })()…
+     37|   expect(() => parseEvalScript(script)).not.toThrow();
+       |                                             ^
+     38|   expect(await run(`eval(${JSON.stringify(script)}); return 'disposed'…
+     39|     ok: true, returnValue: "disposed"
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch (await) {}
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch ({value: await}) {}
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: try {} catch ([await]) {}
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: {let await;}
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: var await;
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: function await() {}
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > rejects static-block await bindings: const f = (await) => await;
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:19:41
+     17|   const source = `class C { static { ${body} } }`;
+     18|   expect(() => new Script(source)).toThrow(SyntaxError);
+     19|   expect(() => parseEvalScript(source)).toThrow();
+       |                                         ^
+     20| });
+     21|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > preserves catch/finally order for eval early errors in original and replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     true,
++     "executed",
+      "finally",
+    ],
+  }
+
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:30:20
+     28|   expect(lint(source).filter(diagnostic => diagnostic.severity === "er…
+     29|   const original = await run(source);
+     30|   expect(original).toMatchObject({ok: true, returnValue: [true, "final…
+       |                    ^
+     31|   const replayed = await run(source, {snapshot: JSON.parse(await dump(…
+     32|   expect(replayed).toMatchObject({ok: true, returnValue: [true, "final…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  packages/safe-js/src/parse/static-catch-await.test.ts > recognizes contextual resource bindings inside a static block's arrow body
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 35."
+
+ ❯ packages/safe-js/src/parse/static-catch-await.test.ts:37:45
+     35| it("recognizes contextual resource bindings inside a static block's ar…
+     36|   const script = `class C { static { (() => { using await = null; })()…
+     37|   expect(() => parseEvalScript(script)).not.toThrow();
+       |                                             ^
+     38|   expect(await run(`eval(${JSON.stringify(script)}); return 'disposed'…
+     39|     ok: true, returnValue: "disposed"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 5 passed (14)
+   Start at  10:43:53
+   Duration  3.41s (transform 2.50s, setup 64ms, import 3.06s, tests 94ms, environment 0ms)
+

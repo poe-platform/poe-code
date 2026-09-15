@@ -1,0 +1,411 @@
+
+> poe-code@0.0.0-dev build
+> node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs
+
+
+> @poe-code/agent-defs@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-human-in-loop@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-traces@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/cached-resource@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/frontmatter@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/poe-acp-client@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/process-runner@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+
+> @poe-code/user-error@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> auth-store@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> github-review@0.1.0 build
+> tsc
+
+
+> poe-oauth@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> terminal-png@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json
+
+
+> tiny-oauth-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tokenfill@0.0.1 build
+> tsc && node ./scripts/copy-corpus.mjs
+
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/providers@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc
+
+
+> @poe-code/task-list@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/workspace-resolver@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/worktree@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth@0.0.1 build
+> tsc
+
+
+> opencode-poe-auth@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-stdio-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> toolcraft-design@0.0.2 postbuild
+> node scripts/smoke-built-exports.mjs
+
+
+> @poe-code/agent-trace-viewer@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/config-extends@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/config-mutations@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/e2e-test-runner@1.0.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json
+
+
+> @poe-code/package-lint@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/process-launcher@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> safe-bash-playground@0.0.1 build
+> tsc --noEmit && npm run build:site
+
+
+> terminal-png-mcp@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> safe-bash-playground@0.0.1 build:site
+> node scripts/build.mjs
+
+vite v6.4.3 building for production...
+transforming...
+
+> tiny-mcp-client@0.1.0 build
+> node scripts/build.mjs
+
+
+> tiny-stdio-mcp-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-landing-page@0.0.1 build
+> rm -rf dist && tsc
+
+✓ 365 modules transformed.
+Circular chunk: browser-text-programs -> browser-commands -> browser-text-programs. Please adjust the manual chunk logic for these chunks.
+Circular chunk: browser-commands -> browser-structured -> browser-commands. Please adjust the manual chunk logic for these chunks.
+rendering chunks...
+computing gzip size...
+dist/site/safe-bash-engine.LICENSE.txt                  1.07 kB │ gzip:   0.66 kB
+dist/site/browser-hashes.LICENSE.txt                    1.11 kB │ gzip:   0.69 kB
+dist/site/index.html                                   18.46 kB │ gzip:   4.14 kB
+dist/site/browser-platform.LICENSE.txt                 42.18 kB │ gzip:   5.65 kB
+dist/site/assets/bz2-pANi4B14.js                      162.23 kB
+dist/site/assets/xz-sB1v1Y1Q.js                       203.25 kB
+dist/site/assets/zstd-CtR4R30v.js                   1,183.59 kB
+dist/site/assets/execution-worker-BfklKN7T.js       1,663.50 kB
+dist/site/assets/index-Czt0fF1Z.css                    23.51 kB │ gzip:   5.83 kB
+dist/site/assets/browser-builtins-D9FLfLXg.js           0.49 kB │ gzip:   0.27 kB
+dist/site/assets/yield-BMO6Oh1S.js                      0.93 kB │ gzip:   0.49 kB
+dist/site/assets/preload-helper-Ct5FWWRu.js             1.23 kB │ gzip:   0.72 kB
+dist/site/assets/browser-shell-F8TIt24q.js              2.44 kB │ gzip:   1.24 kB
+dist/site/assets/index-Dc6ZUX2M.js                     20.15 kB │ gzip:   7.48 kB
+dist/site/assets/session-BQkn4FLy.js                   20.50 kB │ gzip:   8.54 kB
+dist/site/assets/browser-structured-DXfkvdmf.js        48.73 kB │ gzip:  16.29 kB
+dist/site/assets/workers-CfLjyBXV.js                   54.27 kB │ gzip:  17.76 kB
+dist/site/assets/browser-filesystem-C4oe0GM2.js        60.49 kB │ gzip:  17.85 kB
+dist/site/assets/browser-text-programs-fFLZBV7E.js     65.24 kB │ gzip:  20.95 kB
+dist/site/assets/browser-platform-Do18PO8S.js          82.91 kB │ gzip:  28.15 kB
+dist/site/assets/browser-workers-DC0BwojY.js          217.01 kB │ gzip:  67.09 kB
+dist/site/assets/browser-commands-Bf-SKPNH.js       2,455.32 kB │ gzip: 588.85 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.94s
+
+> @poe-code/agent-mcp-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-skill-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs
+
+
+> @poe-code/poe-code-config@0.0.1 build
+> rm -rf dist && tsc
+
+
+> tiny-http-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-harness-tools@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-hook-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-http-mcp-oauth-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft@0.0.51 build
+> rm -rf dist && tsc && cp src/composition.json dist/composition.json
+
+
+> @poe-code/markdown-reader@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-spawn@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/pipeline@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/ralph@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> agent-stash@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> terminal-pilot@0.0.1 build
+> rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs
+
+
+> toolcraft-openapi@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/acp-telemetry@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/agent-child-process@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-gaslight@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/experiment-loop@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs
+
+
+> @poe-code/github-workflows@0.0.1 build
+> tsx scripts/generate-gh-workflows.ts && tsc && tsx scripts/build-assets.ts
+
+
+> @poe-code/memory@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+Generated .github/workflows/gh-fix-vulnerabilities.yml
+Generated .github/workflows/gh-github-issue-comment-created.yml
+Generated .github/workflows/gh-github-issue-opened.yml
+Generated .github/workflows/gh-github-pull-request-comment-created.yml
+Generated .github/workflows/gh-github-pull-request-opened.yml
+Generated .github/workflows/gh-github-pull-request-synchronized.yml
+Generated .github/workflows/gh-update-dependencies.yml
+Generated .github/workflows/gh-update-documentation.yml
+
+> @poe-code/poe-agent@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node -e "require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')"
+
+
+> @poe-code/safe-js@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs
+
+
+> agent-code-review@0.1.0 build
+> rm -rf dist && tsc
+
+
+> terminal-pilot-mcp@0.0.1 build
+> rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+chmod 0755 dist/cli.js
+chmod 0755 dist/cli.js
+
+> @poe-code/safe-js@0.0.1 postbuild
+> node --test scripts/built-imports.test.mjs
+
+TAP version 13
+# Subtest: Workerd public entry bundles without native filesystem authority
+ok 1 - Workerd public entry bundles without native filesystem authority
+  ---
+  duration_ms: 127.48975
+  type: 'test'
+  ...
+# Subtest: built platform resolution does not add a nested canonical filesystem package scope
+ok 2 - built platform resolution does not add a nested canonical filesystem package scope
+  ---
+  duration_ms: 0.162375
+  type: 'test'
+  ...
+# Subtest: built . export initializes in a fresh native ESM process
+ok 3 - built . export initializes in a fresh native ESM process
+  ---
+  duration_ms: 337.921166
+  type: 'test'
+  ...
+# Subtest: built ./core export initializes in a fresh native ESM process
+ok 4 - built ./core export initializes in a fresh native ESM process
+  ---
+  duration_ms: 227.739083
+  type: 'test'
+  ...
+# Subtest: built ./cli export initializes in a fresh native ESM process
+ok 5 - built ./cli export initializes in a fresh native ESM process
+  ---
+  duration_ms: 30.417583
+  type: 'test'
+  ...
+# Subtest: built ./workerd export initializes in a fresh native ESM process
+ok 6 - built ./workerd export initializes in a fresh native ESM process
+  ---
+  duration_ms: 242.793333
+  type: 'test'
+  ...
+# Subtest: built SDK and snapshot helpers initialize together without preloading value modules
+ok 7 - built SDK and snapshot helpers initialize together without preloading value modules
+  ---
+  duration_ms: 287.5805
+  type: 'test'
+  ...
+# Subtest: built replay-data helpers initialize without preloading the SDK
+ok 8 - built replay-data helpers initialize without preloading the SDK
+  ---
+  duration_ms: 198.993209
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1516.36
+
+> @poe-code/braintrust@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/agent-harness@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs
+
+
+> toolcraft-codemode@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/superintendent@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs
+
+
+> build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/maestro@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/plan-browser@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/maestro-tui@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"workspaces":71,"builds":70,"edges":211,"layers":11,"noBuild":[{"name":"@poe-code/py-poe-spawn","path":"packages/py-poe-spawn","status":"NO_DECLARED_BUILD_NOT_A_PASS"}],"manifestless":["packages/safejs"]}
+
+> poe-code@0.0.0-dev codegen:plan-schemas
+> tsx scripts/generate-plan-schemas.ts
+
+
+> poe-code@0.0.0-dev codegen:harness-schemas
+> tsx scripts/generate-harness-schemas.ts
+
+Bundle complete: dist/index.js + dist/bin.cjs

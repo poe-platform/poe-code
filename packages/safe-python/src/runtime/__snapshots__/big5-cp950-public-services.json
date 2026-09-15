@@ -1,0 +1,63 @@
+{
+  "pin": [
+    [
+      3,
+      14,
+      7
+    ],
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "darwin",
+    "little"
+  ],
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100,
+    "hashSeed": [
+      "1",
+      "2"
+    ]
+  },
+  "rows": [
+    {
+      "name": "big5",
+      "source": "import codecs\ninfo = codecs.lookup('big5')\nprint(info.name)\ndecoder = info.incrementaldecoder()\nprint(repr(decoder.decode(b'\\xa4')), decoder.getstate())\nprint(repr(decoder.decode(b'\\xa4', True)), decoder.getstate())\ndef recover(error):\n    print(type(error).__name__, error.start, error.end, error.reason)\n    assert input() == 'continue'\n    return ('?', -1)\ncodecs.register_error('big5-service', recover)\nprint(info.decode(b'\\xffA', 'big5-service'))\nprint(info.encode('\\ud800A', 'big5-service'))\n",
+      "oracle": "big5\n'' (b'\\xa4', 0)\n'中' (b'', 0)\nUnicodeDecodeError 0 1 illegal multibyte sequence\n('?A', 2)\nUnicodeEncodeError 0 1 illegal multibyte sequence\n(b'?A', 2)\n",
+      "actual": {
+        "status": "exception",
+        "error": "LookupError: unknown encoding: big5",
+        "stdout": "",
+        "writes": 0,
+        "reads": 0
+      },
+      "oracleExecution": {
+        "status": 0,
+        "stderr": "",
+        "timeoutMs": 10000
+      }
+    },
+    {
+      "name": "cp950",
+      "source": "import codecs\ninfo = codecs.lookup('cp950')\nprint(info.name)\ndecoder = info.incrementaldecoder()\nprint(repr(decoder.decode(b'\\xa4')), decoder.getstate())\nprint(repr(decoder.decode(b'\\xa4', True)), decoder.getstate())\ndef recover(error):\n    print(type(error).__name__, error.start, error.end, error.reason)\n    assert input() == 'continue'\n    return ('?', -1)\ncodecs.register_error('big5-service', recover)\nprint(info.decode(b'\\xffA', 'big5-service'))\nprint(info.encode('\\ud800A', 'big5-service'))\n",
+      "oracle": "cp950\n'' (b'\\xa4', 0)\n'中' (b'', 0)\nUnicodeDecodeError 0 1 illegal multibyte sequence\n('?A', 2)\nUnicodeEncodeError 0 1 illegal multibyte sequence\n(b'?A', 2)\n",
+      "actual": {
+        "status": "exception",
+        "error": "LookupError: unknown encoding: cp950",
+        "stdout": "",
+        "writes": 0,
+        "reads": 0
+      },
+      "oracleExecution": {
+        "status": 0,
+        "stderr": "",
+        "timeoutMs": 10000
+      }
+    }
+  ],
+  "adapters": {
+    "input": "readSync on owned descriptor",
+    "output": "complete writeSync loops and fsyncSync on owned descriptor",
+    "cleanup": "all descriptors closed; owned temporary directory removed in finally"
+  }
+}

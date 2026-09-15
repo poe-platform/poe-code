@@ -1,0 +1,290 @@
+{
+  "node-22.23.2-workers-2-1": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 848.6270829999994,
+      "testTotalMs": 1688.2575409999954
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1222.0527500000007,
+      "testTotalMs": 1513.7216260000005
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 463.31025000000045,
+      "testTotalMs": 463.31025000000045
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1209.4662089999993,
+      "testTotalMs": 8321.465460000001
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 204.0789590000004,
+      "testTotalMs": 12981.548094000023
+    }
+  },
+  "node-22.23.2-workers-2-2": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 1049.2150839999995,
+      "testTotalMs": 1975.0114170000015
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1310.8816670000015,
+      "testTotalMs": 1567.0246660000103
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 548.1048749999973,
+      "testTotalMs": 548.1048749999973
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1710.6782910000002,
+      "testTotalMs": 9802.332457999999
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 359.49916699999994,
+      "testTotalMs": 14697.556093000001
+    }
+  },
+  "node-22.23.2-workers-2-3": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 783.832375,
+      "testTotalMs": 1563.8105429999978
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1167.057999999999,
+      "testTotalMs": 1417.1143319999974
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 486.90283400000044,
+      "testTotalMs": 486.90283400000044
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1275.452541999999,
+      "testTotalMs": 9198.818499999998
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 246,
+      "testTotalMs": 13093.650262000028
+    }
+  },
+  "node-20.20.0-workers-2-1": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 836.321833,
+      "testTotalMs": 1720.480916000004
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1426.1831249999996,
+      "testTotalMs": 1775.8678339999951
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 568.4954999999973,
+      "testTotalMs": 568.4954999999973
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1842.8310000000001,
+      "testTotalMs": 10007.398710000001
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 133.2621249999993,
+      "testTotalMs": 17459.474018999987
+    }
+  },
+  "node-20.20.0-workers-2-2": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 974.8563329999997,
+      "testTotalMs": 1931.989875000003
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1393.1929170000003,
+      "testTotalMs": 1736.254210000001
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 560.5405419999988,
+      "testTotalMs": 560.5405419999988
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1498.0865000000013,
+      "testTotalMs": 10147.732752000004
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 120.55429200000071,
+      "testTotalMs": 17656.570743000004
+    }
+  },
+  "node-20.20.0-workers-2-3": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 814.8029169999991,
+      "testTotalMs": 1684.1833759999972
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1280.6759170000005,
+      "testTotalMs": 1599.141499999998
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 551.2938329999997,
+      "testTotalMs": 551.2938329999997
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1313.772041,
+      "testTotalMs": 8985.538581999997
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 112.16762500000004,
+      "testTotalMs": 15432.724497999974
+    }
+  },
+  "node-24.14.0-workers-2-1": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 702.7567500000005,
+      "testTotalMs": 1343.8078330000008
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 1029.7096250000013,
+      "testTotalMs": 1313.0525010000001
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 439.19379200000003,
+      "testTotalMs": 439.19379200000003
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1048.240334,
+      "testTotalMs": 7535.919541999999
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 613.6389580000005,
+      "testTotalMs": 11519.792082000004
+    }
+  },
+  "node-24.14.0-workers-2-2": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 727.6345419999998,
+      "testTotalMs": 1370.7854580000003
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 956.1874590000007,
+      "testTotalMs": 1179.4235430000008
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 409.9690840000003,
+      "testTotalMs": 409.9690840000003
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1014.637917,
+      "testTotalMs": 7560.778
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 606.2932910000009,
+      "testTotalMs": 11566.468995000021
+    }
+  },
+  "node-24.14.0-workers-2-3": {
+    "safe-js/src/run.completed-replay.test.ts": {
+      "passed": 10,
+      "failed": 0,
+      "maxTestMs": 796.2824170000004,
+      "testTotalMs": 1472.3255430000045
+    },
+    "agent-harness/src/testing/replay-equivalence.test.ts": {
+      "passed": 7,
+      "failed": 0,
+      "maxTestMs": 970.2491660000014,
+      "testTotalMs": 1201.5283330000002
+    },
+    "safe-js/test/adversarial/snapshot-mutation.test.ts": {
+      "passed": 1,
+      "failed": 0,
+      "maxTestMs": 444.24354200000016,
+      "testTotalMs": 444.24354200000016
+    },
+    "safe-js/src/interp/float32-camera.test.ts": {
+      "passed": 11,
+      "failed": 0,
+      "maxTestMs": 1013.5442080000012,
+      "testTotalMs": 7515.762545000001
+    },
+    "safe-js/src/interp/methods/string-split.independent.test.ts": {
+      "passed": 808,
+      "failed": 0,
+      "maxTestMs": 629.9736669999993,
+      "testTotalMs": 11605.333667999994
+    }
+  }
+}

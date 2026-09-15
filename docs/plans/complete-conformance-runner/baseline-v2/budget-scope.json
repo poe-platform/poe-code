@@ -1,0 +1,22 @@
+{
+  "scope": "Supplemental read-only source audit; manifest unlimited values refer only to unset configurable BudgetOptions, not absence of static guards or host resource limits",
+  "unchangedStaticGuards": {
+    "regexSteps": 2000,
+    "regexCompile": {
+      "sourceLength": 4096,
+      "flagsLength": 8,
+      "depth": 64,
+      "allocations": 16384
+    },
+    "cooperativeDeadlineCheckInterval": 1024,
+    "parserConditionalExpressionDepth": 256,
+    "parserIfStatementDepth": 2048,
+    "dataGraphDepth": 1024
+  },
+  "sourceHashes": {
+    "packages/safe-js/src/interp/budget.ts": "461e0ddcf15a0500fe71f5097a6f9fec12b1384207020fb51c181390ce0a10b5",
+    "packages/safe-js/src/parse/parser.ts": "a3383fd3e6c71a77856e997ec1782d098fa60abd3687920823f29d2b8cd9da06",
+    "packages/safe-js/src/graph-depth.ts": "d3511614c525ecbc23c5696b7ceaae9fb1616d01fea010d14562470ed42a8d26"
+  },
+  "sourceHash": "babb6a32e2a69931606306fe865366da0fd52a3d368c220b314b8f83a80321cc"
+}

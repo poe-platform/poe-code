@@ -1,0 +1,597 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "rows": [
+    {
+      "name": "(object).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'object.__subclasshook__() takes exactly one argument (0 given)', ('object.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(object).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(object).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(object).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'object.__subclasshook__() takes exactly one argument (2 given)', ('object.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(object).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'object.__subclasshook__() takes no keyword arguments', ('object.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(object).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(object).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'object.__subclasshook__() takes no keyword arguments', ('object.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(C).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (0 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(C).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(C).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(C).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (2 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(C).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(C).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(C()).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (0 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(C()).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(C()).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(C()).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (2 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(C()).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(C()).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(C()).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(int).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes exactly one argument (0 given)', ('int.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(int).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(int).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(int).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes exactly one argument (2 given)', ('int.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(int).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes no keyword arguments', ('int.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(int).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(int).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes no keyword arguments', ('int.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(1).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes exactly one argument (0 given)', ('int.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(1).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(1).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(1).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes exactly one argument (2 given)', ('int.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(1).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes no keyword arguments', ('int.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(1).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(1).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'int.__subclasshook__() takes no keyword arguments', ('int.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "([]).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'list.__subclasshook__() takes exactly one argument (0 given)', ('list.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "([]).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "([]).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "([]).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'list.__subclasshook__() takes exactly one argument (2 given)', ('list.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "([]).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'list.__subclasshook__() takes no keyword arguments', ('list.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "([]).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",([]).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'list.__subclasshook__() takes no keyword arguments', ('list.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "({}).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'dict.__subclasshook__() takes exactly one argument (0 given)', ('dict.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "({}).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "({}).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "({}).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'dict.__subclasshook__() takes exactly one argument (2 given)', ('dict.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "({}).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'dict.__subclasshook__() takes no keyword arguments', ('dict.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "({}).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",({}).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'dict.__subclasshook__() takes no keyword arguments', ('dict.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(set()).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'set.__subclasshook__() takes exactly one argument (0 given)', ('set.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(set()).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(set()).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(set()).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'set.__subclasshook__() takes exactly one argument (2 given)', ('set.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(set()).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'set.__subclasshook__() takes no keyword arguments', ('set.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(set()).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(set()).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'set.__subclasshook__() takes no keyword arguments', ('set.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(None).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'NoneType.__subclasshook__() takes exactly one argument (0 given)', ('NoneType.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(None).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(None).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(None).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'NoneType.__subclasshook__() takes exactly one argument (2 given)', ('NoneType.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(None).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'NoneType.__subclasshook__() takes no keyword arguments', ('NoneType.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(None).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(None).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'NoneType.__subclasshook__() takes no keyword arguments', ('NoneType.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(b'a').__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'bytes.__subclasshook__() takes exactly one argument (0 given)', ('bytes.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(b'a').__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(b'a').__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(b'a').__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'bytes.__subclasshook__() takes exactly one argument (2 given)', ('bytes.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(b'a').__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'bytes.__subclasshook__() takes no keyword arguments', ('bytes.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(b'a').__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(b'a').__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'bytes.__subclasshook__() takes no keyword arguments', ('bytes.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "('a').__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'str.__subclasshook__() takes exactly one argument (0 given)', ('str.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "('a').__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "('a').__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "('a').__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'str.__subclasshook__() takes exactly one argument (2 given)', ('str.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "('a').__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'str.__subclasshook__() takes no keyword arguments', ('str.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "('a').__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",('a').__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'str.__subclasshook__() takes no keyword arguments', ('str.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes exactly one argument (0 given)', ('callable_iterator.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes exactly one argument (2 given)', ('callable_iterator.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes no keyword arguments', ('callable_iterator.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(type(iter(lambda:1,None))).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(type(iter(lambda:1,None))).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes no keyword arguments', ('callable_iterator.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes exactly one argument (0 given)', ('callable_iterator.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes exactly one argument (2 given)', ('callable_iterator.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes no keyword arguments', ('callable_iterator.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "(iter(lambda:1,None)).__subclasshook__(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",(iter(lambda:1,None)).__subclasshook__(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__subclasshook__() takes no keyword arguments', ('callable_iterator.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d.__get__(None,C)()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (0 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "d.__get__(None,C)(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d.__get__(None,C)(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d.__get__(None,C)(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (2 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "d.__get__(None,C)(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d.__get__(None,C)(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,C)(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d.__get__(C(),C)()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (0 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "d.__get__(C(),C)(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d.__get__(C(),C)(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d.__get__(C(),C)(object,object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)(object,object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes exactly one argument (2 given)', ('Outer.Inner.__subclasshook__() takes exactly one argument (2 given)',))"
+    },
+    {
+      "name": "d.__get__(C(),C)(x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)(x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d.__get__(C(),C)(object,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C(),C)(object,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d()",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d() is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__subclasshook__' of 'object' object needs an argument\", (\"descriptor '__subclasshook__' of 'object' object needs an argument\",))"
+    },
+    {
+      "name": "d(object)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(object) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'object.__subclasshook__() takes exactly one argument (0 given)', ('object.__subclasshook__() takes exactly one argument (0 given)',))"
+    },
+    {
+      "name": "d(object,42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(object,42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d(C,42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(C,42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d(None,42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(None,42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__subclasshook__' for type 'object' needs a type, not a 'NoneType' as arg 2\", (\"descriptor '__subclasshook__' for type 'object' needs a type, not a 'NoneType' as arg 2\",))"
+    },
+    {
+      "name": "d(1,42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(1,42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__subclasshook__' for type 'object' needs a type, not a 'int' as arg 2\", (\"descriptor '__subclasshook__' for type 'object' needs a type, not a 'int' as arg 2\",))"
+    },
+    {
+      "name": "d(C,42,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(C,42,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'Outer.Inner.__subclasshook__() takes no keyword arguments', ('Outer.Inner.__subclasshook__() takes no keyword arguments',))"
+    },
+    {
+      "name": "d(None,x=1)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d(None,x=1) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__subclasshook__' for type 'object' needs a type, not a 'NoneType' as arg 2\", (\"descriptor '__subclasshook__' for type 'object' needs a type, not a 'NoneType' as arg 2\",))"
+    },
+    {
+      "name": "d.__get__(None,None)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,None) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', '__get__(None, None) is invalid', ('__get__(None, None) is invalid',))"
+    },
+    {
+      "name": "d.__get__(C,object)(42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(C,object)(42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "d.__get__(None,42)",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\ntry:actual=(\"value\",d.__get__(None,42) is NotImplemented)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__subclasshook__' for type 'object' needs a type, not a 'int' as arg 2\", (\"descriptor '__subclasshook__' for type 'object' needs a type, not a 'int' as arg 2\",))"
+    },
+    {
+      "name": "canonical descriptor metadata",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\n\nm=C.__subclasshook__\nactual=(type(d).__name__,d.__objclass__ is object,d.__name__,d.__qualname__,d.__doc__,d.__text_signature__,type(m).__name__,m.__self__ is C,m.__name__,m.__qualname__,m.__doc__,m.__text_signature__,m.__module__,d.__get__(C(),C).__self__ is C)\n",
+      "expected": "('classmethod_descriptor', True, '__subclasshook__', 'object.__subclasshook__', 'Abstract classes can override this to customize issubclass().\\n\\nThis is invoked early on by abc.ABCMeta.__subclasscheck__().\\nIt should return True, False or NotImplemented.  If it returns\\nNotImplemented, the normal algorithm is used.  Otherwise, it\\noverrides the normal algorithm (and the outcome is cached).\\n', '($type, object, /)', 'builtin_function_or_method', True, '__subclasshook__', 'Outer.Inner.__subclasshook__', 'Abstract classes can override this to customize issubclass().\\n\\nThis is invoked early on by abc.ABCMeta.__subclasscheck__().\\nIt should return True, False or NotImplemented.  If it returns\\nNotImplemented, the normal algorithm is used.  Otherwise, it\\noverrides the normal algorithm (and the outcome is cached).\\n', '($type, object, /)', None, True)"
+    },
+    {
+      "name": "overrides versus explicit base descriptor",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\n\nevents=[]\nclass Meta(type):\n def __getattribute__(self,name):\n  events.append(('meta',name))\n  return type.__getattribute__(self,name)\nclass Child(metaclass=Meta):\n @classmethod\n def __subclasshook__(cls,other):\n  events.append('override');return True\nc=Child()\na=Child.__subclasshook__(object)\nb=d(Child,object)\nc.__subclasshook__=lambda other:'instance'\nr=c.__subclasshook__(object)\nx=d.__get__(c,Child)(object)\nactual=(a,b is NotImplemented,r,x is NotImplemented,events)\n",
+      "expected": "(True, True, 'instance', True, [('meta', '__subclasshook__'), 'override'])"
+    },
+    {
+      "name": "argument protocol is not inspected",
+      "source": "class C:pass\nC.__name__='Name'\nC.__qualname__='Outer.Inner'\nd=object.__dict__['__subclasshook__']\n\nevents=[]\nclass Argument:\n def __bool__(self):events.append('truth');raise RuntimeError()\n def __repr__(self):events.append('repr');raise RuntimeError()\n def __getattribute__(self,name):events.append(name);raise RuntimeError()\na=Argument()\nactual=(object.__subclasshook__(a) is NotImplemented,d(C,a) is NotImplemented,events)\n",
+      "expected": "(True, True, [])"
+    },
+    {
+      "name": "mutable module object.__subclasshook__",
+      "source": "m=object.__subclasshook__\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module [].append",
+      "source": "m=[].append\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module dict.fromkeys",
+      "source": "m=dict.fromkeys\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module len",
+      "source": "m=len\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "(('builtins', 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module bytes.__new__",
+      "source": "m=bytes.__new__\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module iter(b'a').__reduce__",
+      "source": "m=iter(b'a').__reduce__\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "mutable module iter(lambda:1,None).__reduce__",
+      "source": "m=iter(lambda:1,None).__reduce__\nD=type(m).__dict__['__module__']\noriginal=m.__module__\nfirst=(original,type(D).__name__,D.__objclass__ is type(m),D.__name__,D.__doc__,m.__module__ is original)\nmarker=[]\nm.__module__=marker\nsecond=(m.__module__ is marker,D.__get__(m,type(m)) is marker)\nD.__set__(m,42)\nthird=m.__module__\ndel m.__module__\nfourth=m.__module__\nD.__delete__(m)\nactual=(first,second,third,fourth,m.__module__)\n",
+      "expected": "((None, 'member_descriptor', True, '__module__', None, True), (True, True), 42, None, None)"
+    },
+    {
+      "name": "bound module mutation is per object",
+      "source": "\na=object.__subclasshook__;b=object.__subclasshook__\nmarker=[]\na.__module__=marker\nactual=(a is b,a==b,a.__module__ is marker,b.__module__,object.__subclasshook__.__module__)\n",
+      "expected": "(False, True, True, None, None)"
+    },
+    {
+      "name": "allocator lookup native",
+      "source": "\nevents=[]\nclass Meta(type):\n def __getattribute__(cls,name):\n  events.append(name)\n  return type.__getattribute__(cls,name)\nclass C(metaclass=Meta):\n pass\n\nc=C()\nactual=(type(c) is C,events)\n",
+      "expected": "(True, [])"
+    },
+    {
+      "name": "allocator lookup python",
+      "source": "\nevents=[]\nclass Meta(type):\n def __getattribute__(cls,name):\n  events.append(name)\n  return type.__getattribute__(cls,name)\nclass C(metaclass=Meta):\n def __new__(cls):\n  events.append('allocate');return object.__new__(cls)\n\nc=C()\nactual=(type(c) is C,events)\n",
+      "expected": "(True, ['__new__', 'allocate'])"
+    },
+    {
+      "name": "allocator lookup staticmethod",
+      "source": "\nevents=[]\nclass Meta(type):\n def __getattribute__(cls,name):\n  events.append(name)\n  return type.__getattribute__(cls,name)\nclass C(metaclass=Meta):\n __new__=staticmethod(object.__new__)\n\nc=C()\nactual=(type(c) is C,events)\n",
+      "expected": "(True, ['__new__'])"
+    },
+    {
+      "name": "canonical builtin modules",
+      "source": "actual=[(f.__name__,f.__module__) for f in [abs,all,any,ascii,bin,callable,chr,compile,delattr,dir,divmod,eval,exec,format,getattr,globals,hasattr,hash,hex,id,input,isinstance,issubclass,iter,len,locals,max,min,next,oct,ord,pow,print,repr,round,setattr,sorted,sum,vars]]\n",
+      "expected": "[('abs', 'builtins'), ('all', 'builtins'), ('any', 'builtins'), ('ascii', 'builtins'), ('bin', 'builtins'), ('callable', 'builtins'), ('chr', 'builtins'), ('compile', 'builtins'), ('delattr', 'builtins'), ('dir', 'builtins'), ('divmod', 'builtins'), ('eval', 'builtins'), ('exec', 'builtins'), ('format', 'builtins'), ('getattr', 'builtins'), ('globals', 'builtins'), ('hasattr', 'builtins'), ('hash', 'builtins'), ('hex', 'builtins'), ('id', 'builtins'), ('input', 'builtins'), ('isinstance', 'builtins'), ('issubclass', 'builtins'), ('iter', 'builtins'), ('len', 'builtins'), ('locals', 'builtins'), ('max', 'builtins'), ('min', 'builtins'), ('next', 'builtins'), ('oct', 'builtins'), ('ord', 'builtins'), ('pow', 'builtins'), ('print', 'builtins'), ('repr', 'builtins'), ('round', 'builtins'), ('setattr', 'builtins'), ('sorted', 'builtins'), ('sum', 'builtins'), ('vars', 'builtins')]"
+    }
+  ],
+  "oracleIsolation": "Each row executed in a fresh CPython process; mutable builtin objects are never shared between oracle cases.",
+  "oracleFixtureCorrections": [
+    {
+      "name": "canonical builtin modules",
+      "previous": "[('abs', 'builtins'), ('all', 'builtins'), ('any', 'builtins'), ('ascii', 'builtins'), ('bin', 'builtins'), ('callable', 'builtins'), ('chr', 'builtins'), ('compile', 'builtins'), ('delattr', 'builtins'), ('dir', 'builtins'), ('divmod', 'builtins'), ('eval', 'builtins'), ('exec', 'builtins'), ('format', 'builtins'), ('getattr', 'builtins'), ('globals', 'builtins'), ('hasattr', 'builtins'), ('hash', 'builtins'), ('hex', 'builtins'), ('id', 'builtins'), ('input', 'builtins'), ('isinstance', 'builtins'), ('issubclass', 'builtins'), ('iter', 'builtins'), ('len', None), ('locals', 'builtins'), ('max', 'builtins'), ('min', 'builtins'), ('next', 'builtins'), ('oct', 'builtins'), ('ord', 'builtins'), ('pow', 'builtins'), ('print', 'builtins'), ('repr', 'builtins'), ('round', 'builtins'), ('setattr', 'builtins'), ('sorted', 'builtins'), ('sum', 'builtins'), ('vars', 'builtins')]",
+      "isolated": "[('abs', 'builtins'), ('all', 'builtins'), ('any', 'builtins'), ('ascii', 'builtins'), ('bin', 'builtins'), ('callable', 'builtins'), ('chr', 'builtins'), ('compile', 'builtins'), ('delattr', 'builtins'), ('dir', 'builtins'), ('divmod', 'builtins'), ('eval', 'builtins'), ('exec', 'builtins'), ('format', 'builtins'), ('getattr', 'builtins'), ('globals', 'builtins'), ('hasattr', 'builtins'), ('hash', 'builtins'), ('hex', 'builtins'), ('id', 'builtins'), ('input', 'builtins'), ('isinstance', 'builtins'), ('issubclass', 'builtins'), ('iter', 'builtins'), ('len', 'builtins'), ('locals', 'builtins'), ('max', 'builtins'), ('min', 'builtins'), ('next', 'builtins'), ('oct', 'builtins'), ('ord', 'builtins'), ('pow', 'builtins'), ('print', 'builtins'), ('repr', 'builtins'), ('round', 'builtins'), ('setattr', 'builtins'), ('sorted', 'builtins'), ('sum', 'builtins'), ('vars', 'builtins')]"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "pin": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little",
+    "encode": 1896,
+    "decode": 1722
+  },
+  "oracleSource": "import sys, unicodedata, json, binascii, platform\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nassert sys.platform == 'darwin' and sys.byteorder == 'little'\ns = json.load(sys.stdin)\nfor raw, sep, group, expected in s['encode']:\n    value = bytes.fromhex(raw)\n    actual = binascii.hexlify(value) if sep is None else binascii.hexlify(value, bytes([sep]), group)\n    assert actual.hex() == expected, (raw, sep, group)\nfor raw, expected, message in s['decode']:\n    try:\n        actual = binascii.unhexlify(bytes.fromhex(raw))\n    except binascii.Error as error:\n        assert str(error) == message, raw\n    else:\n        assert message is None and actual.hex() == expected, raw\nprint(json.dumps(dict(version=sys.version, unicode=unicodedata.unidata_version, platform=platform.platform(), byteorder=sys.byteorder, encode=len(s['encode']), decode=len(s['decode']))))\n",
+  "records": [
+    {
+      "name": "core",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text, \"utf-8\"))\n",
+      "input": "codec service\n",
+      "expected": {
+        "status": 0,
+        "stdout": "codec service\nb'codec service'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "codec service\nb'codec service'\n"
+      },
+      "reads": 14,
+      "writes": 4,
+      "flushes": 2
+    },
+    {
+      "name": "hexadecimal",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text.encode(), \"hex_codec\"))\n",
+      "input": "codec service\n",
+      "expected": {
+        "status": 0,
+        "stdout": "codec service\nb'636f6465632073657276696365'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "actual": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: hex_codec')",
+        "stdout": "codec service\n"
+      },
+      "reads": 14,
+      "writes": 2,
+      "flushes": 2
+    }
+  ]
+}

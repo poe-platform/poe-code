@@ -36,6 +36,8 @@ export interface OpenSpec {
     tty?: boolean;
     input?: string | Buffer;
     captureOutput?: boolean;
+    /** Keep stdout callbacks and draining, without retaining its full text when false. */
+    captureStdout?: boolean;
     activityTimeoutMs?: number;
     activityTimeoutSource?: "all" | "stdout";
     onStdout?(chunk: string): void;

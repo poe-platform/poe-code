@@ -1,0 +1,45 @@
+{
+  "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+  "localSourceCommits": [
+    "c33305ee9876ecfc3e84dff6c4797a70e582d478 fix(safe-js): inspect registered runtime snapshot accessor state",
+    "0bc61b2aa6ff43b362eec1e054ed345b2b12a800 fix(safe-js): separate reported async prefix execution ownership",
+    "f2cb67084c4c661b1c7dd6b8f163f308877be42a fix(safe-js): remove redundant regex sequence generator work",
+    "cc646c0e211df387b120391e749c1ec5f0dfffcd fix(safe-js): admit split arrays before validating output strings",
+    "aef4271adeeb694f704c9c9a55bfa4b61911c60a fix(safe-js): account for retained Promise property symbols",
+    "cf7e8f7bc0935ee61b0186fddabee053d09c230d fix(safe-js): preserve accounting after symbol descriptor removal",
+    "acb7fe08a72bb8a3a1d6915cebe1881ad2c32721 fix(safe-js): charge aggregate regex scans to caller budgets"
+  ],
+  "finalRuntimeHashCheck": "unchanged",
+  "sharedStagedSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "buildExit": 0,
+  "lintExit": 0,
+  "CLI": [
+    {
+      "command": [
+        "node",
+        "packages/safe-js/dist/cli.js",
+        "--max-steps",
+        "102",
+        "docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/budget-control.safejs"
+      ],
+      "exit": 0,
+      "stdout": "{\"ok\":true,\"returnValue\":false}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "packages/safe-js/dist/cli.js",
+        "--max-steps",
+        "100",
+        "docs/plans/qualify-resource-and-timing-behavior/remote-scan-20260914/budget-control.safejs"
+      ],
+      "exit": 3,
+      "stdout": "",
+      "stderr": "SandboxError: Sandbox budget exceeded for steps: 101 > 100.\n\nBudget exceeded: steps (101 > 100)\n"
+    }
+  ],
+  "remoteDelivery": "pending",
+  "publication": "pending",
+  "acceptance": "incomplete: maintained Python failures and cleanup EPERM"
+}

@@ -1,0 +1,100 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "adapter": "Explicit readSync, partial-write-aware writeSync, fsyncSync; temporary descriptors closed and files removed",
+  "rows": [
+    {
+      "name": "native lookup initializes the standard search before custom callbacks",
+      "sourceSha256": "f9c2a570697deb3190517d76366f92d89f56e5167c7d4f9af7a05d79ca56ac29",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "encoder aliases use the live registry while native fast paths bypass it",
+      "sourceSha256": "d5f2ea11b090572230d894b22d5c265441a551791832a713a02bdae9c514f7aa",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "lookup alone initializes the owned encoding inventory",
+      "sourceSha256": "3c4eaed04bfe3c51491c62575bb1f1d25fbd7a72fa50bf3c033bd3fb095a89bc",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "all native non-fast-path families consult replacement registry search",
+      "sourceSha256": "b748dec0ac8be9eae84f5af65786bb1da3d9e4c8452852bb362b5db7c92b480f",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "native non-fast-path codecs observe nontext flags and result validation",
+      "sourceSha256": "1c0217cbc05ad3e5b98f66fb5dd10e49d361565fdcd4fbf4ac727102813cde56",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "native non-fast-path codecs retain recursive callback exception identity and notes",
+      "sourceSha256": "657a6a7123f1ff58207d336447b0aebfec1b5f06d3e1ced2bb485e8614df9396",
+      "oracleStatus": 0,
+      "oracleStdout": "finished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "finished\n",
+      "callbackIO": false
+    },
+    {
+      "name": "search callback I/O through a native non-fast-path codec",
+      "sourceSha256": "1cfffd3d818100f5a975c7f721c65acf0d2bb59486eea3cd0f5387b7a27147a1",
+      "oracleStatus": 0,
+      "oracleStdout": "encoded\nfinished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "encoded\nfinished\n",
+      "callbackIO": true
+    },
+    {
+      "name": "encode callback I/O through a native non-fast-path codec",
+      "sourceSha256": "db3ff5ffee0b285ac4915a141c014f561af4ab2de9d8aa2d959d796b44ef1e91",
+      "oracleStatus": 0,
+      "oracleStdout": "encoded\nfinished\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "guestStdout": "encoded\nfinished\n",
+      "callbackIO": true
+    }
+  ]
+}

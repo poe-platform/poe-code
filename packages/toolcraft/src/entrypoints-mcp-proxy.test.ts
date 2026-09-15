@@ -25,6 +25,8 @@ type MockClientPlan = {
   pages?: Array<{ tools: MockTool[]; nextCursor?: string }>;
   serverInfo?: { name: string; version: string };
   callToolResult?: unknown;
+  callToolError?: Error;
+  closeError?: Error;
 };
 
 const clientState = {
@@ -61,6 +63,7 @@ class MockMcpClient {
   });
   readonly callTool = vi.fn(async (params: unknown) => {
     void params;
+    if (this.plan.callToolError !== undefined) throw this.plan.callToolError;
     return (
       this.plan.callToolResult ?? {
         content: [{ type: "text", text: "ok" }]
@@ -69,6 +72,7 @@ class MockMcpClient {
   });
   readonly close = vi.fn(async () => {
     this.state = "closed";
+    if (this.plan.closeError !== undefined) throw this.plan.closeError;
   });
   private plan: MockClientPlan = {};
 
@@ -77,7 +81,8 @@ class MockMcpClient {
   }
 }
 
-vi.mock("toolcraft-design", () => ({
+vi.mock("toolcraft-design", async (importOriginal) => ({
+  ...await importOriginal<typeof import("toolcraft-design")>(),
   configureTheme: vi.fn(),
   createLogger: (emitter?: (message: string) => void) => ({
     info: (message: string) => emitter?.(message),
@@ -269,6 +274,116 @@ describe("MCP proxy entrypoints", () => {
     process.argv = [...originalArgv];
   });
 
+  it.each([
+    { name: "success", plan: { callToolResult: { content: [{ type: "text", text: "ok" }] } }, exit: 0 },
+    { name: "protocol failure", plan: { callToolResult: { content: [{ type: "text", text: "upstream failed" }], isError: true } }, exit: 1 },
+    { name: "thrown failure", plan: { callToolError: new Error("upstream threw") }, exit: 1 }
+  ])("closes the invoked CLI proxy after $name", async ({ plan, exit }) => {
+    const root = createProxyRoot();
+    writeCache();
+    setClientPlans(plan);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    process.exitCode = undefined;
+    try {
+      await runCLI(root, { argv: ["node", "audit", "github", "create_issue", "--title", "test", "--yes", "--output", "json"], controls: { yes: true, output: true }, errorReports: false });
+      expect(process.exitCode ?? 0).toBe(exit);
+      expect(clientState.instances).toHaveLength(1);
+      expect(clientState.instances[0]?.callTool).toHaveBeenCalledTimes(1);
+      expect(clientState.instances[0]?.close).toHaveBeenCalledTimes(1);
+      expect(clientState.instances[0]?.state).toBe("closed");
+    } finally {
+      process.exitCode = undefined;
+    }
+  });
+
+  it.each([false, true])("reports cleanup failure without replacing command output, protocol failure: %s", async (failed) => {
+    const root = createProxyRoot();
+    writeCache();
+    setClientPlans({ callToolResult: { content: [{ type: "text", text: failed ? "upstream failed" : "ok" }], ...(failed ? { isError: true } : {}) }, closeError: new Error("close failed") });
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    process.exitCode = undefined;
+    try {
+      await expect(runCLI(root, { argv: ["node", "audit", "github", "create_issue", "--title", "test", "--yes", "--output", "json"], controls: { yes: true, output: true }, errorReports: false })).resolves.toBeUndefined();
+      expect(process.exitCode).toBe(1);
+      const errorOutput = stderr.mock.calls.map(([chunk]) => String(chunk)).join("");
+      expect(errorOutput).toContain("close failed");
+      if (failed) expect(errorOutput).toContain("upstream failed");
+      else expect(JSON.parse(stdout.mock.calls.map(([chunk]) => String(chunk)).join(""))).toEqual({ result: "ok" });
+      expect(clientState.instances[0]?.close).toHaveBeenCalledTimes(1);
+    } finally {
+      process.exitCode = undefined;
+    }
+  });
+
+  it("reconnects for a second CLI invocation and closes both clients", async () => {
+    const root = createProxyRoot();
+    writeCache();
+    setClientPlans({}, {});
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    process.exitCode = undefined;
+    try {
+      for (const title of ["first", "second"]) {
+        await runCLI(root, { argv: ["node", "audit", "github", "create_issue", "--title", title, "--yes", "--output", "json"], controls: { yes: true, output: true }, errorReports: false });
+        expect(process.exitCode ?? 0).toBe(0);
+      }
+      expect(clientState.instances).toHaveLength(2);
+      for (const client of clientState.instances) {
+        expect(client.callTool).toHaveBeenCalledTimes(1);
+        expect(client.close).toHaveBeenCalledTimes(1);
+      }
+    } finally {
+      process.exitCode = undefined;
+    }
+  });
+
+  it("does not dispose an unrelated SDK root when a CLI call completes", async () => {
+    writeCache();
+    setClientPlans({}, {});
+    const sdk = createSDK(createProxyRoot(), { errorReports: false });
+    await sdk.github.createIssue({ title: "before" });
+    const sdkClient = clientState.instances[0];
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    process.exitCode = undefined;
+    try {
+      await runCLI(createProxyRoot(), { argv: ["node", "audit", "github", "create_issue", "--title", "cli", "--yes", "--output", "json"], controls: { yes: true, output: true }, errorReports: false });
+      expect(sdkClient?.state).toBe("ready");
+      expect(sdkClient?.close).not.toHaveBeenCalled();
+      expect(clientState.instances[1]?.close).toHaveBeenCalledTimes(1);
+      await sdk.github.createIssue({ title: "after" });
+      expect(sdkClient?.callTool).toHaveBeenCalledTimes(2);
+    } finally {
+      process.exitCode = undefined;
+    }
+  });
+
+  it("does not close a pre-existing connection when CLI proxy resolution fails", async () => {
+    const root = createProxyRoot();
+    writeCache();
+    setClientPlans({}, { pages: [{ tools: [tool("create_issue")] }] });
+    const sdk = createSDK(root, { errorReports: false });
+    await sdk.github.createIssue({ title: "before" });
+    const sdkClient = clientState.instances[0];
+    vi.spyOn(mockFsPromises, "rename").mockRejectedValue(new Error("cache write failed"));
+    process.env.TOOLCRAFT_MCP_REFRESH = "github";
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    process.exitCode = undefined;
+    try {
+      await runCLI(root, { argv: ["node", "audit", "github", "--help"], errorReports: false });
+      expect(process.exitCode).toBe(1);
+      expect(sdkClient?.close).not.toHaveBeenCalled();
+      await sdk.github.createIssue({ title: "after" });
+      expect(sdkClient?.callTool).toHaveBeenCalledTimes(2);
+    } finally {
+      process.exitCode = undefined;
+      delete process.env.TOOLCRAFT_MCP_REFRESH;
+    }
+  });
+
   it("resolves proxy children before CLI help renders commands", async () => {
     const root = createProxyRoot();
     writeCache();
@@ -385,7 +500,7 @@ describe("MCP proxy entrypoints", () => {
     expect(clientState.instances[0]?.callTool).toHaveBeenCalledWith({
       name: "create_issue",
       arguments: { title: "Bug" }
-    });
+    }, { signal: undefined });
   });
 
   it("keeps MCP discovery progress on stderr during runMCP startup", async () => {

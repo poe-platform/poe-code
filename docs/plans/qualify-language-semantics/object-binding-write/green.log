@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/snapshot/dynamic-with.test.ts (6 tests) 639ms
+ ✓ packages/safe-js/src/interp/object-binding-write.test.ts (11 tests) 833ms
+   ✓ replays a retained with-environment update with its source and authority  412ms
+ ✓ packages/safe-js/src/interp/globals/eval-with-completion.test.ts (12 tests) 303ms
+ ✓ packages/safe-js/src/interp/object-binding-read.test.ts (5 tests) 552ms
+   ✓ restores an object environment without exposing host authority  371ms
+ ✓ packages/safe-js/src/snapshot/with-environment.test.ts (7 tests) 30ms
+ ✓ packages/safe-js/src/interp/guest-proxy-with.test.ts (7 tests) 183ms
+ ✓ packages/safe-js/src/interp/jobs.test.ts (5 tests) 5ms
+ ✓ packages/safe-js/src/interp/global-scope.test.ts (3 tests) 3ms
+
+ Test Files  8 passed (8)
+      Tests  56 passed (56)
+   Start at  11:17:48
+   Duration  4.63s (transform 3.37s, setup 113ms, import 5.78s, tests 2.55s, environment 0ms)
+

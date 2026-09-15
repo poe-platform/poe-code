@@ -1,0 +1,181 @@
+{
+  "identity": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "driver": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync,readFileSync} from 'node:fs';\nimport {codecSurrogatepassNameCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-surrogatepass-name-cases.ts';\nconst executable='/opt/homebrew/bin/python3.14';\nconst identity=spawnSync(executable,['-I','-c','import sys, unicodedata, platform; print(sys.version); print(unicodedata.unidata_version); print(platform.platform()); print(sys.byteorder)'],{encoding:'utf8'});\nif(identity.status!==0||!identity.stdout.startsWith('3.14.7 ')||!identity.stdout.includes('\\n16.0.0\\n'))throw Error('reference mismatch');\nconst cases=codecSurrogatepassNameCases.map(row=>{const result=spawnSync(executable,['-I','-c',row.source],{encoding:'utf8'});if(result.status!==0)throw Error(result.stderr);return {...row,status:result.status,stdout:result.stdout,stderr:result.stderr};});\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/codec-surrogatepass-names-3.14.7.json',JSON.stringify({identity:identity.stdout,driver:readFileSync('/tmp/codec-surrogatepass-reference.mts','utf8'),cases},null,2)+'\\n');\nconsole.log(cases.length+' unchanged programs; 800 names');\n",
+  "cases": [
+    {
+      "name": "[\"utf\",\"\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"utf8\",\"utf8le\",\"utf8LE\",\"utf8be\",\"utf8BE\",\"utf8-le\",\"utf8_be\",\"utf8\\u0000suffix\",\"utf16\",\"utf16le\",\"utf16LE\",\"utf16be\",\"utf16BE\",\"utf16-le\",\"utf16_be\",\"utf16\\u0000suffix\",\"utf32\",\"utf32le\",\"utf32LE\",\"utf32be\",\"utf32BE\",\"utf32-le\",\"utf32_be\",\"utf32\\u0000suffix\",\"utf65001\",\"utf65001le\",\"utf65001LE\",\"utf65001be\",\"utf65001BE\",\"utf65001-le\",\"utf65001_be\",\"utf65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"utf\",\"-\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"utf-8\",\"utf-8le\",\"utf-8LE\",\"utf-8be\",\"utf-8BE\",\"utf-8-le\",\"utf-8_be\",\"utf-8\\u0000suffix\",\"utf-16\",\"utf-16le\",\"utf-16LE\",\"utf-16be\",\"utf-16BE\",\"utf-16-le\",\"utf-16_be\",\"utf-16\\u0000suffix\",\"utf-32\",\"utf-32le\",\"utf-32LE\",\"utf-32be\",\"utf-32BE\",\"utf-32-le\",\"utf-32_be\",\"utf-32\\u0000suffix\",\"utf-65001\",\"utf-65001le\",\"utf-65001LE\",\"utf-65001be\",\"utf-65001BE\",\"utf-65001-le\",\"utf-65001_be\",\"utf-65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"utf\",\"_\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"utf_8\",\"utf_8le\",\"utf_8LE\",\"utf_8be\",\"utf_8BE\",\"utf_8-le\",\"utf_8_be\",\"utf_8\\u0000suffix\",\"utf_16\",\"utf_16le\",\"utf_16LE\",\"utf_16be\",\"utf_16BE\",\"utf_16-le\",\"utf_16_be\",\"utf_16\\u0000suffix\",\"utf_32\",\"utf_32le\",\"utf_32LE\",\"utf_32be\",\"utf_32BE\",\"utf_32-le\",\"utf_32_be\",\"utf_32\\u0000suffix\",\"utf_65001\",\"utf_65001le\",\"utf_65001LE\",\"utf_65001be\",\"utf_65001BE\",\"utf_65001-le\",\"utf_65001_be\",\"utf_65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"utf\",\" \"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"utf 8\",\"utf 8le\",\"utf 8LE\",\"utf 8be\",\"utf 8BE\",\"utf 8-le\",\"utf 8_be\",\"utf 8\\u0000suffix\",\"utf 16\",\"utf 16le\",\"utf 16LE\",\"utf 16be\",\"utf 16BE\",\"utf 16-le\",\"utf 16_be\",\"utf 16\\u0000suffix\",\"utf 32\",\"utf 32le\",\"utf 32LE\",\"utf 32be\",\"utf 32BE\",\"utf 32-le\",\"utf 32_be\",\"utf 32\\u0000suffix\",\"utf 65001\",\"utf 65001le\",\"utf 65001LE\",\"utf 65001be\",\"utf 65001BE\",\"utf 65001-le\",\"utf 65001_be\",\"utf 65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"utf\",\"--\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"utf--8\",\"utf--8le\",\"utf--8LE\",\"utf--8be\",\"utf--8BE\",\"utf--8-le\",\"utf--8_be\",\"utf--8\\u0000suffix\",\"utf--16\",\"utf--16le\",\"utf--16LE\",\"utf--16be\",\"utf--16BE\",\"utf--16-le\",\"utf--16_be\",\"utf--16\\u0000suffix\",\"utf--32\",\"utf--32le\",\"utf--32LE\",\"utf--32be\",\"utf--32BE\",\"utf--32-le\",\"utf--32_be\",\"utf--32\\u0000suffix\",\"utf--65001\",\"utf--65001le\",\"utf--65001LE\",\"utf--65001be\",\"utf--65001BE\",\"utf--65001-le\",\"utf--65001_be\",\"utf--65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"UTF\",\"\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"UTF8\",\"UTF8le\",\"UTF8LE\",\"UTF8be\",\"UTF8BE\",\"UTF8-le\",\"UTF8_be\",\"UTF8\\u0000suffix\",\"UTF16\",\"UTF16le\",\"UTF16LE\",\"UTF16be\",\"UTF16BE\",\"UTF16-le\",\"UTF16_be\",\"UTF16\\u0000suffix\",\"UTF32\",\"UTF32le\",\"UTF32LE\",\"UTF32be\",\"UTF32BE\",\"UTF32-le\",\"UTF32_be\",\"UTF32\\u0000suffix\",\"UTF65001\",\"UTF65001le\",\"UTF65001LE\",\"UTF65001be\",\"UTF65001BE\",\"UTF65001-le\",\"UTF65001_be\",\"UTF65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"UTF\",\"-\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"UTF-8\",\"UTF-8le\",\"UTF-8LE\",\"UTF-8be\",\"UTF-8BE\",\"UTF-8-le\",\"UTF-8_be\",\"UTF-8\\u0000suffix\",\"UTF-16\",\"UTF-16le\",\"UTF-16LE\",\"UTF-16be\",\"UTF-16BE\",\"UTF-16-le\",\"UTF-16_be\",\"UTF-16\\u0000suffix\",\"UTF-32\",\"UTF-32le\",\"UTF-32LE\",\"UTF-32be\",\"UTF-32BE\",\"UTF-32-le\",\"UTF-32_be\",\"UTF-32\\u0000suffix\",\"UTF-65001\",\"UTF-65001le\",\"UTF-65001LE\",\"UTF-65001be\",\"UTF-65001BE\",\"UTF-65001-le\",\"UTF-65001_be\",\"UTF-65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"UTF\",\"_\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"UTF_8\",\"UTF_8le\",\"UTF_8LE\",\"UTF_8be\",\"UTF_8BE\",\"UTF_8-le\",\"UTF_8_be\",\"UTF_8\\u0000suffix\",\"UTF_16\",\"UTF_16le\",\"UTF_16LE\",\"UTF_16be\",\"UTF_16BE\",\"UTF_16-le\",\"UTF_16_be\",\"UTF_16\\u0000suffix\",\"UTF_32\",\"UTF_32le\",\"UTF_32LE\",\"UTF_32be\",\"UTF_32BE\",\"UTF_32-le\",\"UTF_32_be\",\"UTF_32\\u0000suffix\",\"UTF_65001\",\"UTF_65001le\",\"UTF_65001LE\",\"UTF_65001be\",\"UTF_65001BE\",\"UTF_65001-le\",\"UTF_65001_be\",\"UTF_65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"UTF\",\" \"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"UTF 8\",\"UTF 8le\",\"UTF 8LE\",\"UTF 8be\",\"UTF 8BE\",\"UTF 8-le\",\"UTF 8_be\",\"UTF 8\\u0000suffix\",\"UTF 16\",\"UTF 16le\",\"UTF 16LE\",\"UTF 16be\",\"UTF 16BE\",\"UTF 16-le\",\"UTF 16_be\",\"UTF 16\\u0000suffix\",\"UTF 32\",\"UTF 32le\",\"UTF 32LE\",\"UTF 32be\",\"UTF 32BE\",\"UTF 32-le\",\"UTF 32_be\",\"UTF 32\\u0000suffix\",\"UTF 65001\",\"UTF 65001le\",\"UTF 65001LE\",\"UTF 65001be\",\"UTF 65001BE\",\"UTF 65001-le\",\"UTF 65001_be\",\"UTF 65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"UTF\",\"--\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"UTF--8\",\"UTF--8le\",\"UTF--8LE\",\"UTF--8be\",\"UTF--8BE\",\"UTF--8-le\",\"UTF--8_be\",\"UTF--8\\u0000suffix\",\"UTF--16\",\"UTF--16le\",\"UTF--16LE\",\"UTF--16be\",\"UTF--16BE\",\"UTF--16-le\",\"UTF--16_be\",\"UTF--16\\u0000suffix\",\"UTF--32\",\"UTF--32le\",\"UTF--32LE\",\"UTF--32be\",\"UTF--32BE\",\"UTF--32-le\",\"UTF--32_be\",\"UTF--32\\u0000suffix\",\"UTF--65001\",\"UTF--65001le\",\"UTF--65001LE\",\"UTF--65001be\",\"UTF--65001BE\",\"UTF--65001-le\",\"UTF--65001_be\",\"UTF--65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"Utf\",\"\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"Utf8\",\"Utf8le\",\"Utf8LE\",\"Utf8be\",\"Utf8BE\",\"Utf8-le\",\"Utf8_be\",\"Utf8\\u0000suffix\",\"Utf16\",\"Utf16le\",\"Utf16LE\",\"Utf16be\",\"Utf16BE\",\"Utf16-le\",\"Utf16_be\",\"Utf16\\u0000suffix\",\"Utf32\",\"Utf32le\",\"Utf32LE\",\"Utf32be\",\"Utf32BE\",\"Utf32-le\",\"Utf32_be\",\"Utf32\\u0000suffix\",\"Utf65001\",\"Utf65001le\",\"Utf65001LE\",\"Utf65001be\",\"Utf65001BE\",\"Utf65001-le\",\"Utf65001_be\",\"Utf65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"Utf\",\"-\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"Utf-8\",\"Utf-8le\",\"Utf-8LE\",\"Utf-8be\",\"Utf-8BE\",\"Utf-8-le\",\"Utf-8_be\",\"Utf-8\\u0000suffix\",\"Utf-16\",\"Utf-16le\",\"Utf-16LE\",\"Utf-16be\",\"Utf-16BE\",\"Utf-16-le\",\"Utf-16_be\",\"Utf-16\\u0000suffix\",\"Utf-32\",\"Utf-32le\",\"Utf-32LE\",\"Utf-32be\",\"Utf-32BE\",\"Utf-32-le\",\"Utf-32_be\",\"Utf-32\\u0000suffix\",\"Utf-65001\",\"Utf-65001le\",\"Utf-65001LE\",\"Utf-65001be\",\"Utf-65001BE\",\"Utf-65001-le\",\"Utf-65001_be\",\"Utf-65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"Utf\",\"_\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"Utf_8\",\"Utf_8le\",\"Utf_8LE\",\"Utf_8be\",\"Utf_8BE\",\"Utf_8-le\",\"Utf_8_be\",\"Utf_8\\u0000suffix\",\"Utf_16\",\"Utf_16le\",\"Utf_16LE\",\"Utf_16be\",\"Utf_16BE\",\"Utf_16-le\",\"Utf_16_be\",\"Utf_16\\u0000suffix\",\"Utf_32\",\"Utf_32le\",\"Utf_32LE\",\"Utf_32be\",\"Utf_32BE\",\"Utf_32-le\",\"Utf_32_be\",\"Utf_32\\u0000suffix\",\"Utf_65001\",\"Utf_65001le\",\"Utf_65001LE\",\"Utf_65001be\",\"Utf_65001BE\",\"Utf_65001-le\",\"Utf_65001_be\",\"Utf_65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\xd8\\x00', 1)\n(b'\\x00\\xd8', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\n(b'\\x00\\x00\\xd8\\x00', 1)\n(b'\\x00\\xd8\\x00\\x00', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"Utf\",\" \"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"Utf 8\",\"Utf 8le\",\"Utf 8LE\",\"Utf 8be\",\"Utf 8BE\",\"Utf 8-le\",\"Utf 8_be\",\"Utf 8\\u0000suffix\",\"Utf 16\",\"Utf 16le\",\"Utf 16LE\",\"Utf 16be\",\"Utf 16BE\",\"Utf 16-le\",\"Utf 16_be\",\"Utf 16\\u0000suffix\",\"Utf 32\",\"Utf 32le\",\"Utf 32LE\",\"Utf 32be\",\"Utf 32BE\",\"Utf 32-le\",\"Utf 32_be\",\"Utf 32\\u0000suffix\",\"Utf 65001\",\"Utf 65001le\",\"Utf 65001LE\",\"Utf 65001be\",\"Utf 65001BE\",\"Utf 65001-le\",\"Utf 65001_be\",\"Utf 65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"Utf\",\"--\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"Utf--8\",\"Utf--8le\",\"Utf--8LE\",\"Utf--8be\",\"Utf--8BE\",\"Utf--8-le\",\"Utf--8_be\",\"Utf--8\\u0000suffix\",\"Utf--16\",\"Utf--16le\",\"Utf--16LE\",\"Utf--16be\",\"Utf--16BE\",\"Utf--16-le\",\"Utf--16_be\",\"Utf--16\\u0000suffix\",\"Utf--32\",\"Utf--32le\",\"Utf--32LE\",\"Utf--32be\",\"Utf--32BE\",\"Utf--32-le\",\"Utf--32_be\",\"Utf--32\\u0000suffix\",\"Utf--65001\",\"Utf--65001le\",\"Utf--65001LE\",\"Utf--65001be\",\"Utf--65001BE\",\"Utf--65001-le\",\"Utf--65001_be\",\"Utf--65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"cp\",\"\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"cp8\",\"cp8le\",\"cp8LE\",\"cp8be\",\"cp8BE\",\"cp8-le\",\"cp8_be\",\"cp8\\u0000suffix\",\"cp16\",\"cp16le\",\"cp16LE\",\"cp16be\",\"cp16BE\",\"cp16-le\",\"cp16_be\",\"cp16\\u0000suffix\",\"cp32\",\"cp32le\",\"cp32LE\",\"cp32be\",\"cp32BE\",\"cp32-le\",\"cp32_be\",\"cp32\\u0000suffix\",\"cp65001\",\"cp65001le\",\"cp65001LE\",\"cp65001be\",\"cp65001BE\",\"cp65001-le\",\"cp65001_be\",\"cp65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n(b'\\xed\\xa0\\x80', 1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"cp\",\"-\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"cp-8\",\"cp-8le\",\"cp-8LE\",\"cp-8be\",\"cp-8BE\",\"cp-8-le\",\"cp-8_be\",\"cp-8\\u0000suffix\",\"cp-16\",\"cp-16le\",\"cp-16LE\",\"cp-16be\",\"cp-16BE\",\"cp-16-le\",\"cp-16_be\",\"cp-16\\u0000suffix\",\"cp-32\",\"cp-32le\",\"cp-32LE\",\"cp-32be\",\"cp-32BE\",\"cp-32-le\",\"cp-32_be\",\"cp-32\\u0000suffix\",\"cp-65001\",\"cp-65001le\",\"cp-65001LE\",\"cp-65001be\",\"cp-65001BE\",\"cp-65001-le\",\"cp-65001_be\",\"cp-65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"cp\",\"_\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"cp_8\",\"cp_8le\",\"cp_8LE\",\"cp_8be\",\"cp_8BE\",\"cp_8-le\",\"cp_8_be\",\"cp_8\\u0000suffix\",\"cp_16\",\"cp_16le\",\"cp_16LE\",\"cp_16be\",\"cp_16BE\",\"cp_16-le\",\"cp_16_be\",\"cp_16\\u0000suffix\",\"cp_32\",\"cp_32le\",\"cp_32LE\",\"cp_32be\",\"cp_32BE\",\"cp_32-le\",\"cp_32_be\",\"cp_32\\u0000suffix\",\"cp_65001\",\"cp_65001le\",\"cp_65001LE\",\"cp_65001be\",\"cp_65001BE\",\"cp_65001-le\",\"cp_65001_be\",\"cp_65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"cp\",\" \"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"cp 8\",\"cp 8le\",\"cp 8LE\",\"cp 8be\",\"cp 8BE\",\"cp 8-le\",\"cp 8_be\",\"cp 8\\u0000suffix\",\"cp 16\",\"cp 16le\",\"cp 16LE\",\"cp 16be\",\"cp 16BE\",\"cp 16-le\",\"cp 16_be\",\"cp 16\\u0000suffix\",\"cp 32\",\"cp 32le\",\"cp 32LE\",\"cp 32be\",\"cp 32BE\",\"cp 32-le\",\"cp 32_be\",\"cp 32\\u0000suffix\",\"cp 65001\",\"cp 65001le\",\"cp 65001LE\",\"cp 65001be\",\"cp 65001BE\",\"cp 65001-le\",\"cp 65001_be\",\"cp 65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"cp\",\"--\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"cp--8\",\"cp--8le\",\"cp--8LE\",\"cp--8be\",\"cp--8BE\",\"cp--8-le\",\"cp--8_be\",\"cp--8\\u0000suffix\",\"cp--16\",\"cp--16le\",\"cp--16LE\",\"cp--16be\",\"cp--16BE\",\"cp--16-le\",\"cp--16_be\",\"cp--16\\u0000suffix\",\"cp--32\",\"cp--32le\",\"cp--32LE\",\"cp--32be\",\"cp--32BE\",\"cp--32-le\",\"cp--32_be\",\"cp--32\\u0000suffix\",\"cp--65001\",\"cp--65001le\",\"cp--65001LE\",\"cp--65001be\",\"cp--65001BE\",\"cp--65001-le\",\"cp--65001_be\",\"cp--65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"CP\",\"\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"CP8\",\"CP8le\",\"CP8LE\",\"CP8be\",\"CP8BE\",\"CP8-le\",\"CP8_be\",\"CP8\\u0000suffix\",\"CP16\",\"CP16le\",\"CP16LE\",\"CP16be\",\"CP16BE\",\"CP16-le\",\"CP16_be\",\"CP16\\u0000suffix\",\"CP32\",\"CP32le\",\"CP32LE\",\"CP32be\",\"CP32BE\",\"CP32-le\",\"CP32_be\",\"CP32\\u0000suffix\",\"CP65001\",\"CP65001le\",\"CP65001LE\",\"CP65001be\",\"CP65001BE\",\"CP65001-le\",\"CP65001_be\",\"CP65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"CP\",\"-\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"CP-8\",\"CP-8le\",\"CP-8LE\",\"CP-8be\",\"CP-8BE\",\"CP-8-le\",\"CP-8_be\",\"CP-8\\u0000suffix\",\"CP-16\",\"CP-16le\",\"CP-16LE\",\"CP-16be\",\"CP-16BE\",\"CP-16-le\",\"CP-16_be\",\"CP-16\\u0000suffix\",\"CP-32\",\"CP-32le\",\"CP-32LE\",\"CP-32be\",\"CP-32BE\",\"CP-32-le\",\"CP-32_be\",\"CP-32\\u0000suffix\",\"CP-65001\",\"CP-65001le\",\"CP-65001LE\",\"CP-65001be\",\"CP-65001BE\",\"CP-65001-le\",\"CP-65001_be\",\"CP-65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"CP\",\"_\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"CP_8\",\"CP_8le\",\"CP_8LE\",\"CP_8be\",\"CP_8BE\",\"CP_8-le\",\"CP_8_be\",\"CP_8\\u0000suffix\",\"CP_16\",\"CP_16le\",\"CP_16LE\",\"CP_16be\",\"CP_16BE\",\"CP_16-le\",\"CP_16_be\",\"CP_16\\u0000suffix\",\"CP_32\",\"CP_32le\",\"CP_32LE\",\"CP_32be\",\"CP_32BE\",\"CP_32-le\",\"CP_32_be\",\"CP_32\\u0000suffix\",\"CP_65001\",\"CP_65001le\",\"CP_65001LE\",\"CP_65001be\",\"CP_65001BE\",\"CP_65001-le\",\"CP_65001_be\",\"CP_65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"CP\",\" \"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"CP 8\",\"CP 8le\",\"CP 8LE\",\"CP 8be\",\"CP 8BE\",\"CP 8-le\",\"CP 8_be\",\"CP 8\\u0000suffix\",\"CP 16\",\"CP 16le\",\"CP 16LE\",\"CP 16be\",\"CP 16BE\",\"CP 16-le\",\"CP 16_be\",\"CP 16\\u0000suffix\",\"CP 32\",\"CP 32le\",\"CP 32LE\",\"CP 32be\",\"CP 32BE\",\"CP 32-le\",\"CP 32_be\",\"CP 32\\u0000suffix\",\"CP 65001\",\"CP 65001le\",\"CP 65001LE\",\"CP 65001be\",\"CP 65001BE\",\"CP 65001-le\",\"CP 65001_be\",\"CP 65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    },
+    {
+      "name": "[\"CP\",\"--\"]",
+      "source": "import codecs\nhandler = codecs.lookup_error('surrogatepass')\nfor name in [\"CP--8\",\"CP--8le\",\"CP--8LE\",\"CP--8be\",\"CP--8BE\",\"CP--8-le\",\"CP--8_be\",\"CP--8\\u0000suffix\",\"CP--16\",\"CP--16le\",\"CP--16LE\",\"CP--16be\",\"CP--16BE\",\"CP--16-le\",\"CP--16_be\",\"CP--16\\u0000suffix\",\"CP--32\",\"CP--32le\",\"CP--32LE\",\"CP--32be\",\"CP--32BE\",\"CP--32-le\",\"CP--32_be\",\"CP--32\\u0000suffix\",\"CP--65001\",\"CP--65001le\",\"CP--65001LE\",\"CP--65001be\",\"CP--65001BE\",\"CP--65001-le\",\"CP--65001_be\",\"CP--65001\\u0000suffix\"]:\n    error = UnicodeEncodeError(name, '\\ud800', 0, 1, 'reason')\n    try:\n        print(repr(handler(error)))\n    except UnicodeEncodeError as caught:\n        print('error', caught is error)\n",
+      "status": 0,
+      "stdout": "error True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\nerror True\n",
+      "stderr": ""
+    }
+  ]
+}

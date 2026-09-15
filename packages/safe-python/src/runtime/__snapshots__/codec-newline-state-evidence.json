@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-13",
+  "reference": "CPython 3.14.7 / Unicode 16.0.0",
+  "red": {
+    "passed": 0,
+    "failed": 3
+  },
+  "focused": {
+    "passed": 110,
+    "failed": 0,
+    "files": 7
+  },
+  "nativeWide": {
+    "passed": 0,
+    "failed": 10,
+    "message": "No module named 'sys'"
+  },
+  "oracle": {
+    "cases": 66,
+    "matched": true,
+    "driver": "import {execFileSync} from 'node:child_process';\nimport assert from 'node:assert/strict';\nimport {UniversalNewlineDecoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/newline-decoder.ts';\nimport {CodePointString} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/code-point-string.ts';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nconst inputs=[[],[13],[10],[13,10],[65,13,10,66,13,67,10],[0xd800,13,10,0xdc00],[0x1f40d,13,0xe9],[0x10d,0xd00,0xd0000],[13,13,10]];\nconst rows=[];\nfor(const translate of [false,true])for(const points of inputs)for(let split=0;split<=points.length;split++)rows.push({translate,points,split});\nconst oracle=JSON.parse(execFileSync('/opt/homebrew/bin/python3.14',['-c',`import io,json,sys,unicodedata\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nout=[]\nfor row in json.load(sys.stdin):\n d=io.IncrementalNewlineDecoder(None,row['translate'])\n text=''.join(map(chr,row['points']))\n first=d.decode(text[:row['split']])\n state=d.getstate()\n second=d.decode(text[row['split']:],True)\n result=[list(map(ord,first)),state[1],list(map(ord,second)),d.newlines,d.getstate()[1]]\n d.reset()\n result.extend([d.newlines,d.getstate()[1]])\n out.append(result)\nprint(json.dumps(out))`],{input:JSON.stringify(rows),encoding:'utf8'}));\nconst actual=rows.map(({translate,points,split})=>{\n const meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000});\n const decoder=new UniversalNewlineDecoder(translate);\n const first=[...decoder.decode(new CodePointString(Uint32Array.from(points.slice(0,split))),false,meter)];\n const state=Number(decoder.getstate(meter).pendingCR);\n const second=[...decoder.decode(new CodePointString(Uint32Array.from(points.slice(split))),true,meter)];\n const result=[first,state,second,decoder.newlines,Number(decoder.getstate(meter).pendingCR)];\n decoder.reset(meter);\n result.push(decoder.newlines,Number(decoder.getstate(meter).pendingCR));\n return result;\n});\nassert.deepEqual(actual,oracle);\nconsole.log(JSON.stringify({cases:rows.length,matched:true,reference:'CPython 3.14.7 / Unicode 16.0.0',scope:'newline kernel; public io integration remains unverified'}));\n"
+  },
+  "sources": [
+    {
+      "path": "packages/safe-python/src/runtime/newline-decoder.ts",
+      "sha256": "a7c9ec5803989776927a02750408d91e5831ae555ccaf9db5df50b0643098a11"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/codec-newline-state-allocation.test.ts",
+      "sha256": "5274957f3a1c584d4b46b47b18e67717184be500f0b295589a26ea8be0ea1dfd"
+    }
+  ],
+  "complete": false
+}

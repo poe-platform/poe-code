@@ -1,0 +1,22 @@
+[
+  "node",
+  "--import",
+  "tsx",
+  "packages/safe-js/test/conformance/command.ts",
+  "--corpus",
+  "/tmp/safejs-baseline-test262-419d3e0",
+  "--report",
+  "docs/plans/qualify-language-semantics/reentry-delivery/upstream.jsonl",
+  "--include",
+  "built-ins/GeneratorPrototype/next/context-method-invocation.js",
+  "--include",
+  "built-ins/GeneratorPrototype/next/from-state-executing.js",
+  "--include",
+  "built-ins/GeneratorPrototype/return/from-state-completed.js",
+  "--include",
+  "built-ins/GeneratorPrototype/return/from-state-executing.js",
+  "--include",
+  "built-ins/GeneratorPrototype/throw/from-state-completed.js",
+  "--include",
+  "built-ins/GeneratorPrototype/throw/from-state-executing.js"
+]

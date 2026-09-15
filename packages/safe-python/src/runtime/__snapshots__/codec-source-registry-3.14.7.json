@@ -1,0 +1,33 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "cases": [
+    {
+      "name": "source decoder receives an ownerless buffer after newline translation",
+      "source": "\nimport codecs\nevents = []\nviews = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual source conversion')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual codec result indexing')\ndef decode(*args):\n    view = args[0]\n    views.append(view)\n    events.append((len(args), type(view).__name__, view.obj, view.readonly,\n                   view.format, view.shape, view.strides, view.suboffsets,\n                   view.tobytes()))\n    return Pair((Text('value = 42\\n'), object()))\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-contract\\r\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\nprint(events)\nview = views[0]\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    print(type(error).__name__, error.args)\n",
+      "input": "continue\n",
+      "stdout": "42\n['source_contract', (1, 'memoryview', None, True, 'B', (36,), (1,), (), b'# coding: source-contract\\nvalue = 1\\n')]\nValueError ('operation forbidden on released memoryview object',)\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "source callback failures retain native tokenizer conversion",
+      "source": "\nimport codecs\nfailure = None\ndef decode(*args):\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nfor failure in (ValueError('value failure'), LookupError('lookup failure'),\n                TypeError('type failure'), RuntimeError('runtime failure')):\n    try:\n        compile(b'# coding: source-failure\\nvalue = 1', 'source.py', 'exec')\n    except BaseException as error:\n        print(type(error).__name__, error.args, error is failure)\n        print(getattr(error, '__notes__', None), error.__context__ is None)\n        print(getattr(error, 'filename', None), getattr(error, 'lineno', None),\n              getattr(error, 'offset', None), getattr(error, 'text', None))\n",
+      "input": "continue\n",
+      "stdout": "SyntaxError ('value failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('lookup failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nTypeError ('type failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\nRuntimeError ('runtime failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "source codec callbacks use the supplied input and output services",
+      "source": "\nimport codecs\ndef decode(*args):\n    print('decode')\n    assert input() == 'continue'\n    return ('value = 42\\n', 0)\ndef search(name):\n    print('search', name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-service\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\n",
+      "input": "continue\n",
+      "stdout": "search source_service\ndecode\n42\n",
+      "stderr": "",
+      "exit": 0
+    }
+  ]
+}

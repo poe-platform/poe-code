@@ -12,10 +12,10 @@ import { mapIteratorSnapshot } from "../interp/iteration.js";
 import { atomicWaitStates, atomicWaitOrders } from "../interp/atomic-wait-state.js";
 import { waitForAtomicValue } from "../interp/atomic-wait.js";
 import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
-import { runResources } from "../interp/resources.js";
+import { runResources, withRunResources } from "../interp/resources.js";
 import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationContext } from "../interp/async.js";
 import { createBuiltinBindings } from "../interp/globals.js";
-import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
+import { listIntrinsicIdentities, resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
 import { createMappedSandboxArguments, mappedArgumentStates } from "../interp/arguments.js";
 import type { DynamicSource } from "../parse/dynamic-source.js";
@@ -255,6 +255,7 @@ export function restore(
 ): RestoredSnapshot {
   const budget = options.budget ?? new Budget();
   const operation = budget.acquireCompileOwner(false, owner);
+  const finishData = budget.provisionDataUsage(0);
   const compilation = new CompileScope(operation.owner);
   const finalizationActivation: FinalizationActivation = {phase:"pending",pending:[],rollback:[]};
   let failure: {reason: unknown} | undefined;
@@ -394,11 +395,35 @@ export function restore(
     finalizationActivation.rollback.length = 0;
     for (const dispatch of finalizationActivation.pending.splice(0)) dispatch();
     let activation: Promise<void> | undefined;
+    let activationOwner: ReturnType<typeof runResources.getStore>;
     restored = {
       activateAtomicWaits() {
-        return activation ??= (async () => {
-          for (const wait of state.atomicWaits.sort((a, b) => a.order - b.order)) await wait.activate();
-        })();
+        if (state.atomicWaits.length > 0) {
+          const owner = runResources.getStore();
+          if (owner === undefined)
+            return Promise.reject(new TypeError("Atomic wait activation requires a run resource owner."));
+          if (activationOwner !== undefined && activationOwner !== owner)
+            return Promise.reject(new TypeError("Atomic wait activation belongs to another run resource owner."));
+          if (owner.signal.aborted) return Promise.reject(owner.signal.reason);
+          activationOwner = owner;
+        }
+        return activation ??= state.atomicWaits.length === 0 ? Promise.resolve() : new Promise<void>((resolve, reject) => {
+          // A failed registration must roll back this queue without cancelling
+          // other waits owned by the caller. Keep its child lifetime open after
+          // successful activation, until the caller disposes its resources.
+          let release!: () => void;
+          const lifetime = new Promise<void>(done => { release = done; });
+          const task = withRunResources(activationOwner!.signal, async () => {
+            for (const wait of state.atomicWaits.sort((a, b) => a.order - b.order)) await wait.activate();
+            resolve();
+            await lifetime;
+          });
+          const detach = activationOwner!.add(async () => { release(); await task; });
+          void task.catch(error => {
+            detach?.();
+            reject(error);
+          });
+        });
       },
       ast,
       budget,
@@ -432,11 +457,11 @@ export function restore(
   }
   if (failure !== undefined || cleanupErrors.length > 0) {
     for (const view of intrinsicBudgets.values()) {
-      if (view === budget) continue;
       try { releaseObjectPrototype(view); }
       catch (error) { cleanupErrors.push(error); }
     }
   }
+  finishData(failure === undefined && cleanupErrors.length === 0);
   if (cleanupErrors.length > 0) {
     throw new AggregateError(failure === undefined ? cleanupErrors : [failure.reason,...cleanupErrors],
       "SafeJS snapshot restoration cleanup failed.");
@@ -827,6 +852,8 @@ function initializeIntrinsicRealm(state: RestoreState, realm = 0): Budget {
   const installed = state.intrinsicBudgets.get(realm);
   if (installed !== undefined) return installed;
   const budget = realm === 0 ? state.budget : state.budget.forkRealm();
+  if (listIntrinsicIdentities(budget).length !== 0)
+    throw new TypeError("Snapshot restoration requires a fresh intrinsic realm budget.");
   state.intrinsicBudgets.set(realm, budget);
   const nodes = Object.values(state.heap).filter(node => node.kind === "intrinsic" && (node.realm ?? 0) === realm);
   const prototype = nodes.find(node => node.kind === "intrinsic" && node.id === '["%FunctionPrototype%"]');
@@ -1357,6 +1384,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
             const expected = Reflect.apply(Atomics.load, Atomics, [view, saved.index]) as number | bigint;
             const pending = await waitForAtomicValue(view, saved.index,
               expected, timeout, state.budget);
+            if (!pending.async && pending.value === "not-equal")
+              throw new TypeError("Concurrent shared mutation prevents atomic wait restoration.");
             atomicWaitOrders.set(state.budget, Math.max(atomicWaitOrders.get(state.budget) ?? 0, saved.order));
             waitState.startedAt = pending.async ? pending.startedAt ?? performance.now() : performance.now();
             const signal = runResources.getStore()?.signal;

@@ -1,0 +1,58 @@
+{
+  "target": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin little\n",
+  "cases": [
+    {
+      "name": "store",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        pass\n        pass\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": []
+    },
+    {
+      "name": "discard",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        pass\n        pass\n        pass\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is False\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": []
+    },
+    {
+      "name": "failure",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        pass\n        raise failure\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is False\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": []
+    },
+    {
+      "name": "attribute",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        pass\n        raise AttributeError('publication refused')\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is False\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": [
+        {
+          "category": "ImportWarning",
+          "message": "Cannot set an attribute on 'encodings' for child module 'cp037'"
+        }
+      ]
+    },
+    {
+      "name": "reenter",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        pass\n        assert __import__('encodings.cp037', fromlist=['getregentry']) is value\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": []
+    },
+    {
+      "name": "service",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        assert input() == 'continue'\n        pass\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "status": 0,
+      "stderr": "",
+      "stdout": "verified\n",
+      "warnings": []
+    }
+  ]
+}

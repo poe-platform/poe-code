@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-09-12T20:16:30.553216+00:00",
+  "localSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "verifiedRemoteMain": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "tag": {
+    "v15.0.28": "6d167d01ae30e5510a82a38513f470438a2c9244"
+  },
+  "workflows": {
+    "root": {
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34714789948",
+      "headSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "conclusion": "success"
+    },
+    "scoped": {
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34714789746",
+      "headSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "conclusion": "success"
+    },
+    "schema": {
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34714789757",
+      "headSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "conclusion": "success"
+    }
+  },
+  "packages": [
+    {
+      "name": "poe-code",
+      "version": "15.0.28",
+      "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34714789948/attempts/1"
+    },
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.563",
+      "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1"
+    },
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.563",
+      "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.563",
+      "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1"
+    }
+  ],
+  "ciSafeJS": {
+    "passed": 29074,
+    "skipped": 47,
+    "failed": 0,
+    "passingFiles": 1309,
+    "skippedFiles": 2,
+    "adversarialCorpusMs": 718,
+    "unchangedCorpusLimitMs": 750
+  },
+  "installedSmokePassed": true,
+  "npmSignatureAudit": {
+    "exitCode": 0,
+    "signaturesVerified": 213,
+    "attestationsVerified": 42
+  },
+  "unrelatedWorkPreserved": true
+}

@@ -1,0 +1,64 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/globals/bigint-constructor.test.ts (5 tests | 1 failed) 271ms
+   × keeps the constructor prototype descriptor immutable 42ms
+   ✓ allows BigInt heritage and use as newTarget without allowing construction 23ms
+   ✓ rejects direct, derived and reflected construction before coercion 33ms
+   ✓ keeps call coercion, receiver brands and host prototypes isolated 25ms
+   ✓ preserves derived constructor rejection through pending and completed replay 147ms
+FAIL packages/safe-js/src/interp/globals/bigint-constructor.test.ts > keeps the constructor prototype descriptor immutable
+AssertionError: expected [ true, true, false, false ] to deeply equal [ true, false, false, false ]
+
+- Expected
++ Received
+
+  [
+    true,
+-   false,
++   true,
+    false,
+    false,
+  ]
+
+ ❯ packages/safe-js/src/interp/globals/bigint-constructor.test.ts:9:19
+      7|   expect((await run(`const d = Object.getOwnPropertyDescriptor(BigInt,…
+      8|     return [d.value === BigInt.prototype, d.writable, d.enumerable, d.…
+      9|   )).returnValue).toEqual([true, false, false, false]);
+       |                   ^
+     10| });
+     11|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/globals/bigint-constructor.test.ts > keeps the constructor prototype descriptor immutable
+AssertionError: expected [ true, true, false, false ] to deeply equal [ true, false, false, false ]
+
+- Expected
++ Received
+
+  [
+    true,
+-   false,
++   true,
+    false,
+    false,
+  ]
+
+ ❯ packages/safe-js/src/interp/globals/bigint-constructor.test.ts:9:19
+      7|   expect((await run(`const d = Object.getOwnPropertyDescriptor(BigInt,…
+      8|     return [d.value === BigInt.prototype, d.writable, d.enumerable, d.…
+      9|   )).returnValue).toEqual([true, false, false, false]);
+       |                   ^
+     10| });
+     11|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  17:47:12
+   Duration  1.88s (transform 1.21s, setup 30ms, import 1.52s, tests 271ms, environment 0ms)
+

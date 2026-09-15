@@ -1,0 +1,105 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts (2 tests | 2 failed) 110ms
+   × rejects unowned activation before registering and permits a later owned attempt 60ms
+   × rejects activation by a different owner even after the first owner disposes 49ms
+FAIL packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts > rejects unowned activation before registering and permits a later owned attempt
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:22:75
+     20|     const restoredView = restored.currentScope.lookup("view").value as…
+     21|     try {
+     22|       await expect(runResources.exit(() => restored.activateAtomicWait…
+       |                                                                           ^
+     23|         .rejects.toThrow("Atomic wait activation requires a run resour…
+     24|       expect(Atomics.notify(restoredView, 0)).toBe(0);
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:11:3
+
+FAIL packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts > rejects activation by a different owner even after the first owner disposes
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:49:50
+     47|     });
+     48|     await withRunResources(undefined, async () => {
+     49|       await expect(restored.activateAtomicWaits()).rejects.toThrow("At…
+       |                                                  ^
+     50|     });
+     51|     expect(Atomics.notify(restored.currentScope.lookup("view").value a…
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:33
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:48:11
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:14
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts > rejects unowned activation before registering and permits a later owned attempt
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:22:75
+     20|     const restoredView = restored.currentScope.lookup("view").value as…
+     21|     try {
+     22|       await expect(runResources.exit(() => restored.activateAtomicWait…
+       |                                                                           ^
+     23|         .rejects.toThrow("Atomic wait activation requires a run resour…
+     24|       expect(Atomics.notify(restoredView, 0)).toBe(0);
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:11:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts > rejects activation by a different owner even after the first owner disposes
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:49:50
+     47|     });
+     48|     await withRunResources(undefined, async () => {
+     49|       await expect(restored.activateAtomicWaits()).rejects.toThrow("At…
+       |                                                  ^
+     50|     });
+     51|     expect(Atomics.notify(restored.currentScope.lookup("view").value a…
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:33
+ ❯ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts:48:11
+ ❯ withRunResources packages/safe-js/src/interp/resources.ts:55:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  23:08:54
+   Duration  1.89s (transform 1.33s, setup 31ms, import 1.68s, tests 110ms, environment 0ms)
+

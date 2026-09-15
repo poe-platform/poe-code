@@ -1,0 +1,475 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapter": "Node node:fs.writeSync(1, text), subprocess stdout pipe",
+  "seeds": [
+    [
+      1,
+      2
+    ],
+    [
+      17,
+      23
+    ]
+  ],
+  "sessions": [
+    {
+      "name": "utf_7: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_7: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_7: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=False",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=True",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "ascii: final=omitted",
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_7: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_7: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_7: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_8: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_le: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_16_be: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_le: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "utf_32_be: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "unicode_escape: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=False",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "raw_unicode_escape: final=True",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    },
+    {
+      "name": "ascii: final=omitted",
+      "hashSeed": [
+        "17",
+        "23"
+      ],
+      "status": "ok",
+      "writes": 1344
+    }
+  ],
+  "exactStdoutMatch": true,
+  "expectedStdoutSha256": "35af8c0079a39cf020cea985ec806f40916c14ebfe2fa899c7d370a7c3727d65",
+  "actualStdoutSha256": "35af8c0079a39cf020cea985ec806f40916c14ebfe2fa899c7d370a7c3727d65",
+  "utf8Bytes": 504212,
+  "exit": 0
+}

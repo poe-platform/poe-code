@@ -1,0 +1,501 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "rows": [
+    {
+      "source": "bytes(None)",
+      "expected": "('TypeError', \"cannot convert 'NoneType' object to bytes\")"
+    },
+    {
+      "source": "bytes(None, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(None, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(None, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(0)",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes(0, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(0, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(0, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(0, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(1)",
+      "expected": "('bytes', \"b'\\\\x00'\")"
+    },
+    {
+      "source": "bytes(1, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(1, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(1, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(1, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(-1)",
+      "expected": "('ValueError', 'negative count')"
+    },
+    {
+      "source": "bytes(-1, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(-1, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(-1, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(-1, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(True)",
+      "expected": "('bytes', \"b'\\\\x00'\")"
+    },
+    {
+      "source": "bytes(True, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(True, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(True, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(True, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(False)",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes(False, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(False, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(False, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(False, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(1.0)",
+      "expected": "('TypeError', \"cannot convert 'float' object to bytes\")"
+    },
+    {
+      "source": "bytes(1.0, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(1.0, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(1.0, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(1.0, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('', 'ascii')",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes('', errors='strict')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('abc')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('abc', 'ascii')",
+      "expected": "('bytes', \"b'abc'\")"
+    },
+    {
+      "source": "bytes('abc', errors='strict')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('abc', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('abc', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('\u00e9')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('\u00e9', 'ascii')",
+      "expected": "('UnicodeEncodeError', \"'ascii' codec can't encode character '\\\\xe9' in position 0: ordinal not in range(128)\")"
+    },
+    {
+      "source": "bytes('\u00e9', errors='strict')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('\u00e9', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('\u00e9', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(b'')",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes(b'', 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(b'', errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(b'', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(b'', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(b'abc')",
+      "expected": "('bytes', \"b'abc'\")"
+    },
+    {
+      "source": "bytes(b'abc', 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(b'abc', errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(b'abc', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(b'abc', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes([])",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes([], 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes([], errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes([], encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes([], 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes([0,255])",
+      "expected": "('bytes', \"b'\\\\x00\\\\xff'\")"
+    },
+    {
+      "source": "bytes([0,255], 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes([0,255], errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes([0,255], encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes([0,255], 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes([256])",
+      "expected": "('ValueError', 'bytes must be in range(0, 256)')"
+    },
+    {
+      "source": "bytes([256], 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes([256], errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes([256], encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes([256], 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes([None])",
+      "expected": "('TypeError', \"'NoneType' object cannot be interpreted as an integer\")"
+    },
+    {
+      "source": "bytes([None], 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes([None], errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes([None], encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes([None], 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(())",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes((), 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes((), errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes((), encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes((), 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes((65,))",
+      "expected": "('bytes', \"b'A'\")"
+    },
+    {
+      "source": "bytes((65,), 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes((65,), errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes((65,), encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes((65,), 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(iter([65]))",
+      "expected": "('bytes', \"b'A'\")"
+    },
+    {
+      "source": "bytes(iter([65]), 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(iter([65]), errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(iter([65]), encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(iter([65]), 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes({})",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes({}, 'ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes({}, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes({}, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes({}, 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes()",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes(source=[65])",
+      "expected": "('bytes', \"b'A'\")"
+    },
+    {
+      "source": "bytes(encoding='ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(encoding=1, errors=2)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not int\")"
+    },
+    {
+      "source": "bytes(encoding='a\\0', errors=2)",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', 'a\\0')",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', '\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', '\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'bad\\0')",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', error='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'error'. Did you mean 'errors'?\")"
+    },
+    {
+      "source": "bytes(soruce=[])",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'soruce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(1,2,3,4)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes(source=1, encoding=2, errors=3, foo=4)",
+      "expected": "('TypeError', 'bytes() takes at most 3 keyword arguments (4 given)')"
+    },
+    {
+      "source": "bytes.__new__()",
+      "expected": "('TypeError', 'bytes.__new__(): not enough arguments')"
+    },
+    {
+      "source": "bytes.__new__(1)",
+      "expected": "('TypeError', 'bytes.__new__(X): X is not a type object (int)')"
+    },
+    {
+      "source": "bytes.__new__(str)",
+      "expected": "('TypeError', 'bytes.__new__(str): str is not a subtype of bytes')"
+    },
+    {
+      "source": "bytes.__new__(bytes, source=[65])",
+      "expected": "('bytes', \"b'A'\")"
+    },
+    {
+      "source": "bytes(2**64)",
+      "expected": "('OverflowError', \"cannot fit 'int' into an index-sized integer\")"
+    },
+    {
+      "source": "bytes(-2**64)",
+      "expected": "('OverflowError', \"cannot fit 'int' into an index-sized integer\")"
+    },
+    {
+      "source": "bytes(2**63-1)",
+      "expected": "('OverflowError', 'byte string is too large')"
+    },
+    {
+      "source": "bytes([2**64])",
+      "expected": "('ValueError', 'bytes must be in range(0, 256)')"
+    }
+  ]
+}

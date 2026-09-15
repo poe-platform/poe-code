@@ -72,6 +72,37 @@ GitHub-only bootstrap and configure its trusted publisher for this repository
 and `release-safe.yml` before enabling publication. No npm settings, registry
 state or credentials are changed by the implementation work.
 
+### Toolcraft Artifact Preparation
+
+The root build rewrites workspace declaration imports for the `poe-code`
+tarball layout. Those declarations are not the standalone package profile.
+`toolcraft` and `toolcraft-openapi` therefore run their maintained, uncached
+workspace build closures in `prepack`, before staging bundled dependencies.
+Normal `npm pack` prepares portable declarations even after a root build;
+do not bypass lifecycle scripts when creating these standalone artifacts.
+Installation of the completed tarballs does not require build scripts.
+
+Packing rebuilds the selected workspace and its declared build dependencies.
+Run packaging checks serially: build and packing hooks mutate workspace
+`dist` directories and temporarily stage bundled dependencies. Build output
+goes to stderr so `npm pack --json` retains machine-readable stdout. The root
+package retains its own `prepack` build and declaration-layout preparation.
+
+The Toolcraft prepack build and recursive workspace packs retain the invoking
+Node/npm executables instead of resolving npm again through lifecycle `PATH`.
+The maintained Toolcraft smoke launchers use the same manager-selection helper
+for packing, installation, and registry checks.
+Direct invocation of the bundle helper without npm lifecycle metadata retains
+its ordinary `PATH` fallback. The invoking npm still needs to support the
+selected runtime; an installed-package runtime check alone does not validate
+the package-building toolchain on that runtime.
+
+Use `npm run smoke:toolcraft-sdk-types` for strict packed SDK declarations,
+alongside `npm run smoke:toolcraft-standalone` and
+`npm run smoke:toolcraft-entrypoints` for standalone runtime and bundle checks.
+The standalone generator fixture uses `skipLibCheck: true`; it does not prove
+that all dependency declarations typecheck strictly.
+
 ### Other Workspaces
 
 Workspace packages use dedicated release workflows, for example

@@ -1,0 +1,13 @@
+{
+  "version": "15.0.36",
+  "sourceSha": "3878df66430ba223dbc66c13ceed4cef270a696d",
+  "commands": [
+    "npm install --prefix /tmp/qualify-builtins-root-consumer-20260914 --ignore-scripts --no-audit --no-fund --save-exact poe-code@15.0.36",
+    "npm audit signatures --prefix /tmp/qualify-builtins-root-consumer-20260914"
+  ],
+  "nodeControls": "installed-root-controls.json",
+  "bunControls": "installed-root-bun-controls.json",
+  "signatures": 208,
+  "attestations": 38,
+  "exitCode": 0
+}

@@ -1,4 +1,4 @@
-import type { JSONSchema } from "./types.js";
+import type { JSONSchema, OutputSchema } from "./types.js";
 
 type SchemaPropertyType = "string" | "number" | "integer" | "boolean" | "object" | "array";
 
@@ -34,6 +34,10 @@ type InferSchema<T extends SchemaDefinition> = {
 };
 
 export interface TypedSchema<T> extends JSONSchema {
+  __type?: T;
+}
+
+export interface TypedOutputSchema<T> extends OutputSchema {
   __type?: T;
 }
 

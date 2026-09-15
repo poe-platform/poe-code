@@ -1,0 +1,41 @@
+{
+  "@poe-platform/safe-js": {
+    "exit": 0,
+    "result": {
+      "version": "0.1.569",
+      "dist.integrity": "sha512-7mDrXpKwOKfzIyHnsYEhvygu3VxCI907J585LQhr0J+NJv8WYdWmykMRp8eDOPOjjcqeFyT8bjLbFBpTezr4Wg==",
+      "dist.attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.569",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      }
+    }
+  },
+  "@poe-platform/safe-fs": {
+    "exit": 0,
+    "result": {
+      "version": "0.1.569",
+      "dist.integrity": "sha512-gsIXR2Sfm1Sq1PqNZFeihHKyk8voP/tGLkaNmlP5N5Oc3fCedCM3tZePruZinLDl7LeEstnBEjLNYj5BaMERcQ==",
+      "dist.attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.569",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      }
+    }
+  },
+  "@poe-platform/safe-bash": {
+    "exit": 0,
+    "result": {
+      "version": "0.1.569",
+      "dist.integrity": "sha512-AmUAGMC+GySYUw+DE2CAfbk8nDPqrLU9FnEpUMAf0KjekOtxeeh0DEfijcEogwTrA0OqQqVFvayLQt9ths4qLQ==",
+      "dist.attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.569",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      }
+    }
+  }
+}

@@ -50,6 +50,38 @@ console.log(palette.header('Title'));
 
 Each example below shows the NDJSON output captured with `OUTPUT_FORMAT=json`.
 
+## Interactive primitives
+
+Scrollable viewports, collapsible event groups, indexed task trees, concurrent progress, command registries, overlay focus stacks, bounded metrics and inline notices. Dashboard Ctrl+G shows repaint dispatch FPS and paint/input latency; getPerformance() exposes cumulative slow frames and the longest paint. Idle FPS is zero; terminal presentation is not observable.
+
+### primitives
+
+Known progress uses a percentage; unknown work uses an ellipsis. Metrics retain bounded samples. Notices do not take focus. Use createViewport, createEventGroups, createTaskTree, createCommandRegistry, createOverlayManager and createNotices for stateful interaction.
+
+```typescript
+const metric = createMetric({ capacity: 64, unit: "ms" });
+metric.push(4);
+metric.render(40);
+renderProgressGroup([{ label: "Upload", completed: 3, total: 4 }], 40);
+renderNotice({ level: "info", text: "Working" }, 40);
+```
+
+```json
+{"type":"primitive","text":"Recent activity"}
+{"type":"primitive","text":"  Run tests"}
+{"type":"primitive","text":"  Finish"}
+{"type":"primitive","text":"▾ ● Pipeline"}
+{"type":"primitive","text":"  ▾ ✓ Tests · 20ms"}
+{"type":"primitive","text":"▾ Tools"}
+{"type":"primitive","text":"  │ Read source"}
+{"type":"primitive","text":"● Upload 75%"}
+{"type":"primitive","text":"● Agent working …"}
+{"type":"primitive","text":"2 ms ▁▄▂█▅▄▂▁"}
+{"type":"primitive","text":"▲ Retrying; output remains focused"}
+{"type":"primitive","text":"g Toggle group"}
+{"type":"primitive","text":"Focus: palette"}
+```
+
 ## Layout Patterns
 
 Standard command layout patterns. These show complete UI flows from start to finish.
@@ -622,10 +654,10 @@ reference[1].
  active completed task
  inactive pending task
 
- Feature   Alignment  Status
+ Feature   Alignment  Status 
 ├──────────┼───────────┼────────┤
- Headings   center     Ready
- Tables     aligned     100%
+ Headings   center     Ready 
+ Tables     aligned     100% 
 
  Note
  Alerts are rendered as styled notes.

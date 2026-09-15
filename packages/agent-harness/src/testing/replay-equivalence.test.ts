@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
@@ -32,12 +30,12 @@ describe("assertReplayEquivalent", () => {
     expect(api.assertReplayEquivalent).toBe(assertReplayEquivalent);
   });
 
-  it("gates the coverage-demo harness with deterministic modules", async () => {
-    const mdPath = "/repo/templates/coverage-demo/coverage-demo.md";
+  it("gates a deterministic harness through captured and completed snapshots", async () => {
+    const mdPath = "/repo/harness/deterministic.md";
     vol.fromJSON({
-      [mdPath]: readCoverageDemoTemplate("coverage-demo.md"),
-      "/repo/templates/coverage-demo/coverage-demo.ajs":
-        readCoverageDemoTemplate("coverage-demo.ajs")
+      [mdPath]: "---\nkind: deterministic\nversion: 1\n---\n",
+      "/repo/harness/deterministic.ajs":
+        'import { now } from "time"; export default async (frontmatter) => ({ kind: frontmatter.kind, value: await now() });'
     });
 
     await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).resolves.toBeUndefined();
@@ -172,8 +170,4 @@ function deterministicModulesFor() {
       event() {}
     }
   };
-}
-
-function readCoverageDemoTemplate(fileName: "coverage-demo.ajs" | "coverage-demo.md"): string {
-  return readFileSync(new URL(`../templates/coverage-demo/${fileName}`, import.meta.url), "utf8");
 }

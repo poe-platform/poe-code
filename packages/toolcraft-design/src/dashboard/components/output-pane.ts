@@ -1,3 +1,4 @@
+import { selectViewportTail } from "../../viewport.js";
 import { getTheme } from "../../internal/theme-detect.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
@@ -17,15 +18,21 @@ export type VisualLine = {
   segments?: StyledSegment[];
 };
 
-export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: OutputItem[]): void {
+export function renderOutputPane(
+  buffer: ScreenBuffer,
+  rect: Rect,
+  items: OutputItem[],
+  scrollOffset = 0
+): number {
   buffer.clearRect(rect);
 
   if (rect.width <= 0 || rect.height <= 0) {
-    return;
+    return 0;
   }
 
-  const visualLines = computeVisualLines(items, rect.width);
-  const startLine = Math.max(visualLines.length - rect.height, 0);
+  const { rows: visualLines, offset: actualOffset } = selectViewportTail(
+    items, rect.height, scrollOffset, item => computeVisualLines([item], rect.width)
+  );
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
     y: rect.y,
@@ -34,7 +41,7 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: Output
   };
 
   for (let row = 0; row < rect.height; row += 1) {
-    const line = visualLines[startLine + row];
+    const line = visualLines[row];
     if (line === undefined) {
       continue;
     }
@@ -69,6 +76,7 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: Output
 
     buffer.putInRect(textRect, row, line.text, line.style);
   }
+  return actualOffset;
 }
 
 export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {
@@ -117,7 +125,11 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
 }
 
 function hasCursorControls(text: string): boolean {
-  return text.includes("\r") || text.includes("\b");
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x0a && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) return true;
+  }
+  return false;
 }
 
 function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegment[][] {

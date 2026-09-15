@@ -1,0 +1,9 @@
+{
+  "utc": "2026-09-12T06:28:58.470799+00:00",
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "status": "superseded-unqualified-oracle",
+  "reason": "Validated missing dynamic-import fixture loader can falsely satisfy pinned rejection-only tests. Raw results immutable but not a qualified compatibility baseline. Runner module-feature capability gate repair requires fresh source manifest and full reexecution.",
+  "reuseInNextBaseline": false,
+  "scheduling": "Paused maxWorkers0; active owned selections draining; no new selections",
+  "relatedEvidence": "../dynamic-import-independent-reproduction.md"
+}

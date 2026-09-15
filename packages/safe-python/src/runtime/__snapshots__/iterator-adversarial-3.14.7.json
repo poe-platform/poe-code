@@ -1,0 +1,405 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "machine": "arm64",
+    "maxsize": 9223372036854775807
+  },
+  "cases": [
+    {
+      "name": "zip strict=False StopIteration at input 0",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=False ValueError at input 0",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=False StopIteration at input 1",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=False ValueError at input 1",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=False StopIteration at input 2",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=False ValueError at input 2",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4)]]"
+    },
+    {
+      "name": "zip strict=True StopIteration at input 0",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('zip() argument 2 is longer than argument 1',), False), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('zip() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "zip strict=True ValueError at input 0",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'ValueError', ('zip() argument 2 is longer than argument 1',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4), ('next', 1, 3)]]"
+    },
+    {
+      "name": "zip strict=True StopIteration at input 1",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('zip() argument 2 is shorter than argument 1',), False), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('zip() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "zip strict=True ValueError at input 1",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('zip() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "zip strict=True StopIteration at input 2",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('zip() argument 3 is shorter than arguments 1-2',), False), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4), ('next', 1, 4), ('next', 2, 4)]]"
+    },
+    {
+      "name": "zip strict=True ValueError at input 2",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=zip(I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4), ('next', 1, 4), ('next', 2, 4)]]"
+    },
+    {
+      "name": "zip strict callback precedence arity=0 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=zip(strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ok', ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=0 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=zip(strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=1 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not iterable\", ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=1 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=2 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not iterable\", ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=2 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=3 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not iterable\", ['bool'])"
+    },
+    {
+      "name": "zip strict callback precedence arity=3 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=zip(None,None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "map strict=False StopIteration at input 0",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=False ValueError at input 0",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=False StopIteration at input 1",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=False ValueError at input 1",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=False StopIteration at input 2",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=False ValueError at input 2",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=False)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4)]]"
+    },
+    {
+      "name": "map strict=True StopIteration at input 0",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('map() argument 2 is longer than argument 1',), False), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('map() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "map strict=True ValueError at input 0",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==0 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 11, 21)), ('value', (3, 12, 22)), ('error', 'ValueError', ('map() argument 2 is longer than argument 1',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 0, 2), ('next', 1, 1), ('next', 2, 1), ('next', 0, 3), ('next', 1, 2), ('next', 2, 2), ('next', 0, 4), ('next', 1, 3)]]"
+    },
+    {
+      "name": "map strict=True StopIteration at input 1",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('map() argument 2 is shorter than argument 1',), False), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('map() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "map strict=True ValueError at input 1",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==1 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 21)), ('value', (3, 13, 22)), ('error', 'ValueError', ('map() argument 3 is longer than arguments 1-2',), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 1), ('next', 0, 3), ('next', 1, 3), ('next', 2, 2), ('next', 0, 4), ('next', 1, 4), ('next', 2, 3)]]"
+    },
+    {
+      "name": "map strict=True StopIteration at input 2",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('map() argument 3 is shorter than arguments 1-2',), False), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4), ('next', 1, 4), ('next', 2, 4)]]"
+    },
+    {
+      "name": "map strict=True ValueError at input 2",
+      "source": "events=[]\nstop=ValueError('payload')\nclass I:\n def __init__(self,n): self.n=n; self.i=0\n def __iter__(self): events.append(('iter',self.n)); return self\n def __next__(self):\n  self.i+=1\n  events.append(('next',self.n,self.i))\n  if self.n==2 and self.i==1: raise stop\n  if self.i>3: raise StopIteration\n  return self.n*10+self.i\nr=map(lambda *x:x,I(0),I(1),I(2),strict=True)\nresult=[]\nfor unused in range(4):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'ValueError', ('payload',), True), ('value', (2, 12, 22)), ('value', (3, 13, 23)), ('error', 'StopIteration', (), False), [('iter', 0), ('iter', 1), ('iter', 2), ('next', 0, 1), ('next', 1, 1), ('next', 2, 1), ('next', 0, 2), ('next', 1, 2), ('next', 2, 2), ('next', 0, 3), ('next', 1, 3), ('next', 2, 3), ('next', 0, 4), ('next', 1, 4), ('next', 2, 4)]]"
+    },
+    {
+      "name": "map strict callback precedence arity=0 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=map(strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', 'map() must have at least two arguments.', ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=0 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=map(strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=1 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=map(None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', 'map() must have at least two arguments.', ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=1 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=map(None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=2 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=map(None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not iterable\", ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=2 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=map(None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=3 error=False",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if False: raise ValueError('truth')\n  return True\ntry:\n r=map(None,None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not iterable\", ['bool'])"
+    },
+    {
+      "name": "map strict callback precedence arity=3 error=True",
+      "source": "events=[]\nclass Strict:\n def __bool__(self):\n  events.append('bool')\n  if True: raise ValueError('truth')\n  return True\ntry:\n r=map(None,None,None,strict=Strict())\n result=('ok',events)\nexcept Exception as e: result=(type(e).__name__,str(e),events)\n",
+      "expected": "('ValueError', 'truth', ['bool'])"
+    },
+    {
+      "name": "filter(None,I()) resumable source",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __next__(self):\n  events.append('next')\n  if len(events)==2: raise stop\n  return 9\nr=filter(None,I())\nresult=[]\nfor unused in range(3):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', 9), ('value', 9), ['iter', 'next', 'next', 'next']]"
+    },
+    {
+      "name": "filter(bool,I()) resumable source",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __next__(self):\n  events.append('next')\n  if len(events)==2: raise stop\n  return 9\nr=filter(bool,I())\nresult=[]\nfor unused in range(3):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', 9), ('value', 9), ['iter', 'next', 'next', 'next']]"
+    },
+    {
+      "name": "enumerate(I(),9223372036854775807) resumable source",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __next__(self):\n  events.append('next')\n  if len(events)==2: raise stop\n  return 9\nr=enumerate(I(),9223372036854775807)\nresult=[]\nfor unused in range(3):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', (9223372036854775807, 9)), ('value', (9223372036854775808, 9)), ['iter', 'next', 'next', 'next']]"
+    },
+    {
+      "name": "iter(I()) resumable source",
+      "source": "events=[]\nstop=StopIteration('payload')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __next__(self):\n  events.append('next')\n  if len(events)==2: raise stop\n  return 9\nr=iter(I())\nresult=[]\nfor unused in range(3):\n try: result.append(('value',next(r)))\n except Exception as e: result.append(('error',type(e).__name__,e.args,e is stop))\nresult.append(events)\n",
+      "expected": "[('error', 'StopIteration', ('payload',), True), ('value', 9), ('value', 9), ['iter', 'next', 'next', 'next']]"
+    },
+    {
+      "name": "iter([]) exhaustion via next(r)",
+      "source": "r=iter([])\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter([]) exhaustion via r.__next__()",
+      "source": "r=iter([])\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(()) exhaustion via next(r)",
+      "source": "r=iter(())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(()) exhaustion via r.__next__()",
+      "source": "r=iter(())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter('') exhaustion via next(r)",
+      "source": "r=iter('')\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter('') exhaustion via r.__next__()",
+      "source": "r=iter('')\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(range(0)) exhaustion via next(r)",
+      "source": "r=iter(range(0))\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(range(0)) exhaustion via r.__next__()",
+      "source": "r=iter(range(0))\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}) exhaustion via next(r)",
+      "source": "r=iter({})\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}) exhaustion via r.__next__()",
+      "source": "r=iter({})\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.keys()) exhaustion via next(r)",
+      "source": "r=iter({}.keys())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.keys()) exhaustion via r.__next__()",
+      "source": "r=iter({}.keys())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.values()) exhaustion via next(r)",
+      "source": "r=iter({}.values())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.values()) exhaustion via r.__next__()",
+      "source": "r=iter({}.values())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.items()) exhaustion via next(r)",
+      "source": "r=iter({}.items())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter({}.items()) exhaustion via r.__next__()",
+      "source": "r=iter({}.items())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(set()) exhaustion via next(r)",
+      "source": "r=iter(set())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(set()) exhaustion via r.__next__()",
+      "source": "r=iter(set())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "reversed([]) exhaustion via next(r)",
+      "source": "r=reversed([])\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "reversed([]) exhaustion via r.__next__()",
+      "source": "r=reversed([])\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "reversed(()) exhaustion via next(r)",
+      "source": "r=reversed(())\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "reversed(()) exhaustion via r.__next__()",
+      "source": "r=reversed(())\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "zip() exhaustion via next(r)",
+      "source": "r=zip()\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "zip() exhaustion via r.__next__()",
+      "source": "r=zip()\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "map(None,[]) exhaustion via next(r)",
+      "source": "r=map(None,[])\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "map(None,[]) exhaustion via r.__next__()",
+      "source": "r=map(None,[])\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "filter(None,[]) exhaustion via next(r)",
+      "source": "r=filter(None,[])\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "filter(None,[]) exhaustion via r.__next__()",
+      "source": "r=filter(None,[])\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "enumerate([]) exhaustion via next(r)",
+      "source": "r=enumerate([])\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "enumerate([]) exhaustion via r.__next__()",
+      "source": "r=enumerate([])\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(lambda: 1,1) exhaustion via next(r)",
+      "source": "r=iter(lambda: 1,1)\nresult=[]\nfor unused in range(2):\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "iter(lambda: 1,1) exhaustion via r.__next__()",
+      "source": "r=iter(lambda: 1,1)\nresult=[]\nfor unused in range(2):\n try: r.__next__()\n except StopIteration as e: result.append((e.args,e.value,str(e),repr(e)))\nresult.append(next(r,'default'))\n",
+      "expected": "[((), None, '', 'StopIteration()'), ((), None, '', 'StopIteration()'), 'default']"
+    },
+    {
+      "name": "explicit StopIteration payload ''",
+      "source": "stop=StopIteration('')\nclass I:\n def __iter__(self): return self\n def __next__(self): raise stop\nresult=[]\nfor r in [I(),zip(I()),map(lambda x:x,I()),filter(None,I()),enumerate(I())]:\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,e is stop))\n",
+      "expected": "[(('',), '', True), (('',), '', True), (('',), '', True), (('',), '', True), (('',), '', True)]"
+    },
+    {
+      "name": "explicit StopIteration payload None",
+      "source": "stop=StopIteration(None)\nclass I:\n def __iter__(self): return self\n def __next__(self): raise stop\nresult=[]\nfor r in [I(),zip(I()),map(lambda x:x,I()),filter(None,I()),enumerate(I())]:\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,e is stop))\n",
+      "expected": "[((None,), None, True), ((None,), None, True), ((None,), None, True), ((None,), None, True), ((None,), None, True)]"
+    },
+    {
+      "name": "explicit StopIteration payload 'payload'",
+      "source": "stop=StopIteration('payload')\nclass I:\n def __iter__(self): return self\n def __next__(self): raise stop\nresult=[]\nfor r in [I(),zip(I()),map(lambda x:x,I()),filter(None,I()),enumerate(I())]:\n try: next(r)\n except StopIteration as e: result.append((e.args,e.value,e is stop))\n",
+      "expected": "[(('payload',), 'payload', True), (('payload',), 'payload', True), (('payload',), 'payload', True), (('payload',), 'payload', True), (('payload',), 'payload', True)]"
+    }
+  ]
+}

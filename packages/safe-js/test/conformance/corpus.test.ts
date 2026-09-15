@@ -1,8 +1,21 @@
 import { execFileSync } from "node:child_process";
 import { vol } from "memfs";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { runTest262Corpus, TEST262_REVISION } from "./corpus.js";
+import { runTest262Corpus, enumerateTest262, TEST262_REVISION } from "./corpus.js";
+import { aggregateReports } from "./report.js";
 
+vi.mock("./isolate.js", async () => {
+  const { executeTest262 } = await import("./execute.js");
+  return { WORKER_STARTUP_TIMEOUT_MS: 10000, createTest262Executor: (options: { timeoutMs: number }) => ({
+    execute: async (input: { filename: string; source: string; mode: "strict"; harness: Map<string, string> }) => {
+      const result = await executeTest262(input.filename, input.source, { ...options, harness: input.harness, mode: input.mode });
+      if (result.kind !== "test") throw new Error("Expected test variant");
+      return result.results[0];
+    },
+    dispose: async () => undefined
+  }) };
+});
+vi.mock("./provenance.js", async importOriginal => ({ ...await importOriginal<typeof import("./provenance.js")>(), sourceProvenance: vi.fn(async () => ({ sourceSha: "source", sourceHash: "hash", sourceHashes: {} })) }));
 vi.mock("node:child_process", () => ({ execFileSync: vi.fn() }));
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -68,4 +81,42 @@ it("rejects a corpus that changes during execution", async () => {
     return ++statusChecks === 1 ? "" : " M test/example.js";
   });
   await expect(runTest262Corpus({ corpus: "/corpus", timeoutMs: 1000 })).rejects.toThrow("clean checkout");
+});
+
+it("enumerates all variants before bounded selection and records effective budgets", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "1" });
+  const report = await runTest262Corpus({ corpus: "/corpus", timeoutMs: 1000, offset: 1, limit: 1 });
+  expect(report.manifest.files).toHaveLength(2);
+  expect(report.selected).toEqual(["b.js"]);
+  expect(report.manifest.files[0].variants.map(variant => variant.mode)).toEqual(["sloppy", "strict"]);
+  expect(report.execution.effectiveBudget.maxSteps).toBe("unlimited");
+  expect(report.complete).toBe(true);
+});
+
+it("resumes bounded selections from a current manifest and rejects tampered or stale configuration", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "1" });
+  const manifest = await enumerateTest262({ corpus: "/corpus", timeoutMs: 1000 });
+  vol.fromJSON({ "/manifest.json": JSON.stringify(manifest) });
+  const report = await runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000, offset: 1, limit: 1 });
+  expect(report.selected).toEqual(["b.js"]);
+  await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 2000 })).rejects.toThrow("Stale manifest");
+  vol.fromJSON({ "/manifest.json": JSON.stringify({ ...manifest, id: "changed" }) });
+  await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000 })).rejects.toThrow("Invalid manifest digest");
+});
+
+it("preserves the full source and asset manifest while cross-checking disjoint selected reports", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "2",
+    "/corpus/test/dep_FIXTURE.js": "export {}", "/corpus/test/data.json": "{\"fixture\":true}" });
+  const manifest = await enumerateTest262({ corpus: "/corpus", timeoutMs: 1000 });
+  vol.fromJSON({ "/manifest.json": JSON.stringify(manifest) });
+  const options = { corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000 };
+  const first = await runTest262Corpus({ ...options, offset: 0, limit: 1 });
+  const rest = await runTest262Corpus({ ...options, offset: 1, limit: 2 });
+  expect(first.manifest).toEqual(manifest);
+  expect(rest.manifest).toEqual(manifest);
+  expect(Object.keys(manifest.fixtureAssets)).toEqual(["data.json"]);
+  expect(manifest.files.map(file => file.filename)).toEqual(["a.js", "b.js", "dep_FIXTURE.js"]);
+  expect(() => aggregateReports(manifest, [first])).toThrow("Incomplete corpus coverage");
+  expect(aggregateReports(manifest, [first, rest])).toMatchObject({ success: true, enumeratedVariants: 4,
+    unexecutedVariants: [], counts: { files: 3, fixtures: 1, variants: 4, passed: 4 } });
 });

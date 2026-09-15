@@ -1,0 +1,445 @@
+{
+  "oracle": {
+    "oracle": {
+      "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "unicode": "16.0.0",
+      "byteorder": "little",
+      "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+    },
+    "rows": [
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "compile",
+        "result": "ok"
+      },
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "exec",
+        "result": "ok"
+      },
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "eval",
+        "result": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "compile",
+        "result": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "exec",
+        "result": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "eval",
+        "result": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "compile",
+        "result": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "exec",
+        "result": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "eval",
+        "result": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "compile",
+        "result": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "exec",
+        "result": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "eval",
+        "result": "ok"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "render callback bare raise preserves caller handled exception",
+      "source": "\nouter = RuntimeError('caller')\nclass Failure(ValueError):\n    def __str__(self):\n        raise\nfailure = Failure('decoder')\ndef decode():\n    raise failure\ntry:\n    raise outer\nexcept RuntimeError:\n    try:\n        trigger()\n    except RuntimeError as error:\n        assert error is outer\n        assert error.__context__ is None\n    else:\n        assert False\n    try:\n        raise\n    except RuntimeError as error:\n        assert error is outer\nassert failure.__context__ is outer\n"
+    },
+    {
+      "name": "filename callback bare raise preserves caller handled exception",
+      "source": "\nouter = RuntimeError('caller')\nclass Failure(SyntaxError):\n    def __setattr__(self, name, value):\n        if name == 'filename':\n            raise\n        super().__setattr__(name, value)\nfailure = Failure('decoder')\ndef decode():\n    raise failure\ntry:\n    raise outer\nexcept RuntimeError:\n    try:\n        trigger()\n    except RuntimeError as error:\n        assert error is outer\n        assert error.__context__ is None\n    else:\n        assert False\n    try:\n        raise\n    except RuntimeError as error:\n        assert error is outer\nassert failure.__context__ is outer\n"
+    },
+    {
+      "name": "translated source error chains caller without inheriting decoder cause",
+      "source": "\nouter = RuntimeError('caller')\ncause = TypeError('decoder cause')\nfailure = ValueError('decoder')\ndef decode():\n    raise failure from cause\ntry:\n    raise outer\nexcept RuntimeError:\n    try:\n        trigger()\n    except SyntaxError as error:\n        assert error.__context__ is outer\n        assert error.__cause__ is None\n        assert error.__suppress_context__ is False\n    else:\n        assert False\nassert failure.__context__ is outer\nassert failure.__cause__ is cause\nassert failure.__suppress_context__ is True\n"
+    },
+    {
+      "name": "reentrant source rendering restores caller context",
+      "source": "\nouter = RuntimeError('caller')\ninner = LookupError('inner')\nevents = []\nclass Failure(ValueError):\n    def __str__(self):\n        global decode\n        def decode():\n            raise inner\n        try:\n            trigger()\n        except SyntaxError as error:\n            assert error.msg == 'inner'\n            assert error.__context__ is outer\n            events.append('inner')\n        return 'outer rendering'\nfailure = Failure('decoder')\ndef decode():\n    raise failure\ntry:\n    raise outer\nexcept RuntimeError:\n    try:\n        trigger()\n    except SyntaxError as error:\n        assert error.msg == 'outer rendering'\n        assert error.__context__ is outer\n        events.append('outer')\n    else:\n        assert False\nassert events == ['inner', 'outer']\nassert failure.__context__ is outer\nassert inner.__context__ is outer\n"
+    }
+  ],
+  "oracleDriver": "import codecs,json,sys,unicodedata,traceback,platform\ncases=json.load(open('/tmp/codec-source-context-cases.json')); rows=[]\nfor case in cases:\n for mode in ('compile','exec','eval'):\n  ns={'__name__':'__main__'}\n  target='guest-codec.py' if mode=='compile' else '<string>'\n  def decoder(*args):ns['decode']();raise AssertionError('decoder returned')\n  def search(name):return codecs.CodecInfo(None,decoder,name=name) if name=='guest_fault' else None\n  def trigger():\n   source=b'# coding: guest-fault\\n1'\n   return compile(source,target,'exec') if mode=='compile' else (exec(source,{}) if mode=='exec' else eval(source,{}))\n  ns.update(trigger=trigger,target=target,preserve_filename=mode=='compile')\n  codecs.register(search)\n  try:\n   exec(case['source'],ns)\n   result='ok'\n  except BaseException as error:result=traceback.format_exc()\n  finally:codecs.unregister(search)\n  rows.append(dict(name=case['name'],mode=mode,result=result))\njson.dump(dict(oracle=dict(version=sys.version,unicode=unicodedata.unidata_version,byteorder=sys.byteorder,platform=platform.platform()),rows=rows),open('/tmp/codec-source-context-oracle.json','w'),indent=2)\nfor row in rows:\n if row['result']!='ok':print(row['mode'],row['name'],ascii(row['result']))\nprint('matches',sum(row['result']=='ok' for row in rows),'total',len(rows))\n",
+  "services": {
+    "reads": 58,
+    "writes": 74,
+    "rows": [
+      {
+        "name": "ValueError live string protocol",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "ValueError live string protocol",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "ValueError live string protocol",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "LookupError live string protocol",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "LookupError live string protocol",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "LookupError live string protocol",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "IndexError live string protocol",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "IndexError live string protocol",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "IndexError live string protocol",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "UnicodeError live string protocol",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "UnicodeError live string protocol",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "UnicodeError live string protocol",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "KeyError renders the original key through guest repr",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "KeyError renders the original key through guest repr",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "KeyError renders the original key through guest repr",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "SyntaxError updates filename using the live setter and retains args",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "SyntaxError updates filename using the live setter and retains args",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "SyntaxError updates filename using the live setter and retains args",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "rendering failure propagates without a second translation",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "rendering failure propagates without a second translation",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "rendering failure propagates without a second translation",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "invalid str return is a TypeError",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "invalid str return is a TypeError",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "invalid str return is a TypeError",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "untranslated exceptions preserve identity without rendering",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "untranslated exceptions preserve identity without rendering",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "untranslated exceptions preserve identity without rendering",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "filename setter failures preserve identity",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "filename setter failures preserve identity",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "filename setter failures preserve identity",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "render callback bare raise preserves caller handled exception",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "filename callback bare raise preserves caller handled exception",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "translated source error chains caller without inheriting decoder cause",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "compile",
+        "status": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "exec",
+        "status": "ok"
+      },
+      {
+        "name": "reentrant source rendering restores caller context",
+        "mode": "eval",
+        "status": "ok"
+      },
+      {
+        "phase": "decode",
+        "outcome": "return",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "decode",
+        "outcome": "throw",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "decode",
+        "outcome": "fatal",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "decode",
+        "outcome": "fatal-abort",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "str",
+        "outcome": "return",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "str",
+        "outcome": "throw",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "str",
+        "outcome": "fatal",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "str",
+        "outcome": "fatal-abort",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "repr",
+        "outcome": "return",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "repr",
+        "outcome": "throw",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "repr",
+        "outcome": "fatal",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "repr",
+        "outcome": "fatal-abort",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "filename",
+        "outcome": "return",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "filename",
+        "outcome": "throw",
+        "status": "ok",
+        "reason": "cancelled",
+        "same": true
+      },
+      {
+        "phase": "filename",
+        "outcome": "fatal",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      },
+      {
+        "phase": "filename",
+        "outcome": "fatal-abort",
+        "status": "ok",
+        "reason": "allocation",
+        "same": true
+      }
+    ]
+  },
+  "serviceDriver": "import {openSync,closeSync,readSync,writeSync,fsyncSync,readFileSync,writeFileSync} from 'node:fs';\nimport {sourceCodecGuestFaultCases} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/source-codec-guest-fault-cases.ts\";\nimport {CallStack} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/call-stack.ts\";\nimport {ExecutionBudget,ExecutionLimitError} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts\";\nimport {RuntimeCodecRegistry} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.ts\";\nimport {RuntimeValues,type RuntimeValue} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-values.ts\";\nimport {RuntimeTypeRegistry} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-type-registry.ts\";\nimport {RuntimeExceptionExecution,RuntimeRaisedException} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-execution.ts\";\nimport {RuntimeExecutionKeys} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-execution-keys.ts\";\nimport {createRuntimeBuiltins} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-builtins.ts\";\nimport {RuntimeCodePrograms} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-code-programs.ts\";\nimport {createRuntimeCompilation} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-compilation.ts\";\nimport {createRuntimeDynamicExecution} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-dynamic-execution.ts\";\nimport {executeRuntimeProgram,type RuntimeProgramContext} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-program.ts\";\nimport {compileSourceProgram} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/source-program-compilation.ts\";\nimport {standardExceptionCatalog,type StandardExceptionName} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/standard-exception-catalog.ts\";\nimport {runtimeExceptionPayload} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-state.ts\";\nimport {OrderedKeyMap} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/ordered-key-map.ts\";\nfunction runCase(source:string,mode:string,options:{signal?:AbortSignal;service?:()=>void;input?:Uint8Array;decoded?:string}={}){\n  const meter=new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:16000000,signal:options.signal});\n  const values=new RuntimeValues(meter),calls=new CallStack<object>(100,meter);\n  const hash={none:values.none,identity:values.identity.hash.bind(values.identity),string:()=>23n,bytes:()=>29n};\n  const keys=new RuntimeExecutionKeys(values,hash,meter,calls);\n  const types=new RuntimeTypeRegistry(values,keys,meter),exceptions=new RuntimeExceptionExecution(types,values,meter);\n  const globals=new Map<string,RuntimeValue>(),programs=new RuntimeCodePrograms(meter,values);\n  const unused=():never=>{throw Error(\"unexpected service\");};\n  const builtins=createRuntimeBuiltins(values,meter,{hash,identity:values.identity,buildClass:{registry:types,keys},print:{stdout:unused,lookupWrite:unused,flush:unused}});\n  for(const name of Object.keys(standardExceptionCatalog) as StandardExceptionName[])builtins.set(name,types.exceptionType(name));\n  for(const [name,value] of Object.entries({object:types.object,type:types.type,str:types.stringType(),int:types.integerType(),tuple:types.tupleType(),super:types.superType()}))builtins.set(name,value);\n  const context:RuntimeProgramContext={values,calls,keys,globals,builtins,exceptions,objectType:types.object,hooks:{\n    expressions:()=>({warn:unused}),statements:()=>({setAttribute:unused,deleteAttribute:unused,executeUnhandled:unused}),callable:()=>false,invoke:unused,name:()=>\"function()\",\n    keywordName:value=>{if(value.kind!==\"str\")return unused();return String.fromCodePoint(...value.value);},\n    specialMethods:()=>({slots:()=>undefined,typeOf:value=>types.nativeType(value)??unused()})\n  }};\n  builtins.set(\"service\",values.builtinFunction({name:\"service\",invoke(){options.service?.();return values.none;}}));\n  globals.set(\"__name__\",values.string(\"__main__\"));\n  const target=values.string(mode===\"compile\"?\"guest-codec.py\":\"<string>\",\"fresh\");\n  globals.set(\"target\",target);\n  globals.set(\"preserve_filename\",values.boolean(mode===\"compile\"));\n  builtins.set(\"trigger\",values.builtinFunction({name:\"trigger\",invoke(_args,_kwargs,_meter,invocation){\n    const codecs=new RuntimeCodecRegistry(values,meter);\n    const callback=values.builtinFunction({name:\"decoder\",invoke(){invocation!.call(globals.get(\"decode\")!,[]);throw Error(\"decoder unexpectedly returned\");}});\n    const info=values.tuple([values.none,callback,values.none,values.none]);\n    codecs.register(values.builtinFunction({name:\"search\",invoke:()=>info}),invocation!);\n    const compilation=()=>({stripDocstring:false,enterRecursiveCall:()=>calls.enter({}),decodeSource:(encoding:string,source:Uint8Array)=>{\n      if(options.decoded!==undefined)return options.decoded;\n      codecs.transform(\"decode\",values.bytes(source),encoding,undefined,invocation!);\n      throw Error(\"decoder unexpectedly returned\");\n    }});\n    const input=values.bytes(options.input??Uint8Array.from(Array.from(\"# coding: guest-fault\\n1\",character=>character.charCodeAt(0))));\n    if(mode===\"compile\")return createRuntimeCompilation(values,programs,{compilation,code:types.code.bind(types)}).compile({source:input,filename:{displayName:\"guest-codec.py\",value:target},mode:\"exec\",flags:0,optimize:-1,featureVersion:-1},invocation,meter);\n    const namespace=values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(keys,meter));\n    return createRuntimeDynamicExecution(context,programs,{compilation,globals:()=>namespace,locals:()=>namespace,builtins:()=>namespace}).execute({mode:mode as \"exec\"|\"eval\",source:input,globals:namespace,locals:namespace,closure:values.none},invocation,meter);\n  }}));\n  let failure:unknown;\n  try{executeRuntimeProgram(compileSourceProgram(source,{stripDocstring:false,enterRecursiveCall:()=>calls.enter({})},values,meter),context,meter);}\n  catch(error){failure=error instanceof RuntimeRaisedException?{type:error.value.type.value.name,args:runtimeExceptionPayload(error.value)?.args.items}:error;}\n  return {failure,meter};\n}\nconst sourcePath='/tmp/codec-context-service-input.py',outputPath='/tmp/codec-context-service-output.jsonl';\nwriteFileSync(sourcePath,'# coding: guest-fault\\n1');\nconst output=openSync(outputPath,'w');const rows=[];let reads=0,writes=0;\ntry{\n for(const row of sourceCodecGuestFaultCases)for(const mode of ['compile','exec','eval']){\n  const fd=openSync(sourcePath,'r');const bytes=new Uint8Array(1024);let n;\n  try{n=readSync(fd,bytes);reads++;}finally{closeSync(fd);}\n  const result=runCase(row.source,mode,{input:bytes.slice(0,n)});\n  const entry={name:row.name,mode,status:result.failure===undefined?'ok':'failure'};\n  if(result.failure!==undefined)entry.detail=String(result.failure);\n  writeSync(output,JSON.stringify(entry)+'\\n');writes++;rows.push(entry);\n }\n for(const phase of ['decode','str','repr','filename'])for(const outcome of ['return','throw','fatal','fatal-abort']){\n  const controller=new AbortController(),fatal=new ExecutionLimitError('allocation');let calls=0;\n  const operation=phase==='decode'?\"service(); raise ValueError('decode')\":\"raise failure\";\n  const definition=phase==='str'?\"class Failure(ValueError):\\n    def __str__(self):\\n        service()\\n        return 'rendered'\\nfailure = Failure('before')\"\n    :phase==='repr'?\"class Key:\\n    def __repr__(self):\\n        service()\\n        return 'key'\\nfailure = KeyError(Key())\"\n      :phase==='filename'?\"class Failure(SyntaxError):\\n    def __setattr__(self, name, value):\\n        if name == 'filename':\\n            service()\\n        super().__setattr__(name, value)\\nfailure = Failure('before')\":\"\";\n  const fd=openSync(sourcePath,'r'),input=new Uint8Array(1024);let n;\n  try{n=readSync(fd,input);reads++;}finally{closeSync(fd);}\n  const result=runCase(definition+'\\ndef decode():\\n    '+operation+\"\\ntry:\\n    trigger()\\nexcept BaseException:\\n    raise AssertionError('cancellation became catchable')\\n\",'compile',{\n   signal:controller.signal,input:input.slice(0,n),service(){\n    calls++;writeSync(output,JSON.stringify({event:'service',phase,outcome})+'\\n');writes++;\n    if(outcome==='fatal')throw fatal;\n    controller.abort();\n    if(outcome==='fatal-abort')throw fatal;\n    if(outcome==='throw')throw Error('service failed after cancellation');\n   }\n  });\n  const same=!outcome.startsWith('fatal')||result.failure===fatal;\n  const entry={phase,outcome,status:result.failure instanceof ExecutionLimitError&&calls===1&&same?'ok':'failure',reason:result.failure?.reason,same};\n  writeSync(output,JSON.stringify(entry)+'\\n');writes++;rows.push(entry);\n }\n fsyncSync(output);\n}finally{closeSync(output);}\nwriteFileSync('/tmp/codec-context-services.json',JSON.stringify({reads,writes,rows},null,2));\nconsole.log({matches:rows.filter(r=>r.status==='ok').length,total:rows.length,reads,writes});\n",
+  "checks": {
+    "focused": {
+      "command": "npm run test:unit --workspace=@poe-code/safe-python -- source-codec-guest-fault --maxWorkers=1",
+      "passed": 61,
+      "failed": 0
+    },
+    "full": {
+      "command": "npm run test:unit --workspace=@poe-code/safe-python -- codec --maxWorkers=2",
+      "exit": 1,
+      "passed": 21200,
+      "failed": 79,
+      "files": 168,
+      "seconds": 191.21,
+      "output": "\n> @poe-code/safe-python@0.0.0-dev test:unit\n> vitest run --config vitest.config.ts codec --maxWorkers=2\n\n\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python\n\n ❯ src/session-codec-native-slots.test.ts (59 tests | 3 failed) 1217ms\n   × native codec slots: 'hash inheritance failure 1' 18ms\n   × native codec slots: 'hash inheritance failure 2' 23ms\n   × native codec slots: 'hash inheritance failure 3' 18ms\n ❯ src/session-codec-native-failures.test.ts (118 tests | 8 failed) 1425ms\n   × native codec failure: 'u16: text.encode(encoding)' 18ms\n   × native codec failure: 'u16: str.encode(text, encoding)' 19ms\n   × native codec failure: 'u16: bytes(text, encoding)' 14ms\n   × native codec failure: 'u16: bytes.__new__(bytes, text, encod…' 15ms\n   × native codec failure: 'u32: text.encode(encoding)' 17ms\n   × native codec failure: 'u32: str.encode(text, encoding)' 15ms\n   × native codec failure: 'u32: bytes(text, encoding)' 15ms\n   × native codec failure: 'u32: bytes.__new__(bytes, text, encod…' 15ms\n ❯ src/session-codec-frozen-execution.test.ts (25 tests | 1 failed) 574ms\n   × frozen execution: 'late frozen import failure retains es…' 32ms\n ❯ src/session-charmap-codec-api.test.ts (19 tests | 4 failed) 446ms\n   × preserves 'encode' 'mapping' failure identity 19ms\n   × preserves 'encode' 'handler' failure identity 16ms\n   × preserves 'decode' 'mapping' failure identity 18ms\n   × preserves 'decode' 'handler' failure identity 21ms\n ❯ src/session-utf7-codec-api.test.ts (18 tests | 1 failed) 365ms\n   × preserves decoder guest failures, traceback and native-call note behavior 25ms\n ❯ src/session-codec-public-contracts.test.ts (20 tests | 9 failed) 465ms\n   × public codec contract: 'byte escape types, argument precedenc…' 45ms\n   × public codec contract: 'Punycode public decoder factories ret…' 46ms\n   × public codec contract: 'charmap surrogateescape retains origi…' 21ms\n   × public codec contract: 'callback failures preserve identity, …' 26ms\n   × public codec contract: 'all standard handlers through publish…' 20ms\n   × public codec contract: 'custom codecs shared by encode/decode…' 18ms\n   × public codec contract: 'decoder subtype identity and tuple ov…' 33ms\n   × public codec contract: 'stream reader/writer adapters over a …' 13ms\n   × public codec contract: 'UTF-16/32 rejected replacements resto…' 17ms\n ❯ src/runtime/runtime-core-codec-functions.test.ts (41 tests | 3 failed) 271ms\n   × retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields 18ms\n   × retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields 17ms\n   × retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields 10ms\n ❯ src/session-codec-module.test.ts (10 tests | 1 failed) 248ms\n   × shares imported registrations with native text methods and constructors 27ms\n ❯ src/session-codec-native-wide-modules.test.ts (10 tests | 10 failed) 238ms\n   × native wide codec module: 'utf-16 registry and module API' 68ms\n   × native wide codec module: 'utf-16 incremental encoder state and …' 24ms\n   × native wide codec module: 'utf-16 every incremental split and st…' 19ms\n   × native wide codec module: 'utf-16 missing BOM and truncated inpu…' 19ms\n   × native wide codec module: 'utf-16 stream adapters BOM and reset' 19ms\n   × native wide codec module: 'utf-32 registry and module API' 19ms\n   × native wide codec module: 'utf-32 incremental encoder state and …' 17ms\n   × native wide codec module: 'utf-32 every incremental split and st…' 19ms\n   × native wide codec module: 'utf-32 missing BOM and truncated inpu…' 17ms\n   × native wide codec module: 'utf-32 stream adapters BOM and reset' 16ms\n ❯ src/session-core-codec-buffers.test.ts (18 tests | 18 failed) 195ms\n   × public codec buffer contract: 'ascii inherited buffer failure preced…' 44ms\n   × public codec buffer contract: 'ascii validates buffer hook result be…' 14ms\n   × public codec buffer contract: 'ascii uses and releases an overridden…' 14ms\n   × public codec buffer contract: 'ascii rejects a strided memoryview' 7ms\n   × public codec buffer contract: 'latin_1 inherited buffer failure prec…' 11ms\n   × public codec buffer contract: 'latin_1 validates buffer hook result …' 8ms\n   × public codec buffer contract: 'latin_1 uses and releases an overridd…' 6ms\n   × public codec buffer contract: 'latin_1 rejects a strided memoryview' 8ms\n   × public codec buffer contract: 'utf_8 inherited buffer failure preced…' 11ms\n   × public codec buffer contract: 'utf_8 validates buffer hook result be…' 9ms\n   × public codec buffer contract: 'utf_8 uses and releases an overridden…' 8ms\n   × public codec buffer contract: 'utf_8 rejects a strided memoryview' 5ms\n   × keeps cancellation in 'ascii' buffer acquisition fatal (throws=false) 13ms\n   × keeps cancellation in 'ascii' buffer acquisition fatal (throws=true) 8ms\n   × keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false) 7ms\n   × keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true) 9ms\n   × keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false) 7ms\n   × keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true) 6ms\n ❯ src/session-codec-platform-modules.test.ts (6 tests | 3 failed) 182ms\n   × platform codec: 'mbcs import failure and registry cache' 69ms\n   × platform codec: 'oem import failure and registry cache' 25ms\n   × platform codec: 'Windows code-page factory imports laz…' 21ms\n ❯ src/session-codec-decoder-consumers.test.ts (8 tests | 8 failed) 221ms\n   × registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …' 71ms\n   × registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …' 25ms\n   × registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…' 22ms\n   × registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…' 24ms\n   × registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…' 20ms\n   × registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…' 22ms\n   × registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…' 17ms\n   × registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…' 19ms\n ❯ src/session-codec-stream-mutation.test.ts (4 tests | 1 failed) 156ms\n   × 'stream reader bytearray and memoryvie…' 25ms\n ❯ src/session-codec-source-registry.test.ts (4 tests | 4 failed) 141ms\n   × source registry: 'source decoder receives an ownerless …' 62ms\n   × source registry: 'source callback failures retain nativ…' 34ms\n   × source registry: 'source codec callbacks use the suppli…' 20ms\n   × keeps cancellation in source decoder callbacks terminal 24ms\n ❯ src/session-codec-stream-traceback.test.ts (1 test | 1 failed) 55ms\n   × retains caller and codec frames with pinned instruction positions 55ms\n ❯ src/session-codec-rot13-undefined-integration.test.ts (4 tests | 4 failed) 108ms\n   × 'ROT13 bytes consumer nontext rejection' 32ms\n   × 'undefined bytes consumer' 11ms\n   × 'guest module spec' 37ms\n   × 'undefined traceback' 27ms\n\n⎯⎯⎯⎯⎯⎯ Failed Tests 79 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/session-charmap-codec-api.test.ts > preserves 'encode' 'mapping' failure identity\n FAIL  src/session-charmap-codec-api.test.ts > preserves 'decode' 'mapping' failure identity\nAssertionError: mapping traceback: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ run src/session-charmap-codec-api.test.ts:13:32\n     11|     if(message.status===\"ok\")detail=String(message.value.primitive);\n     12|   }\n     13|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     14| }\n     15|\n ❯ src/session-charmap-codec-api.test.ts:135:5\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/79]⎯\n\n FAIL  src/session-charmap-codec-api.test.ts > preserves 'encode' 'handler' failure identity\n FAIL  src/session-charmap-codec-api.test.ts > preserves 'decode' 'handler' failure identity\nAssertionError: handler traceback: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ run src/session-charmap-codec-api.test.ts:13:32\n     11|     if(message.status===\"ok\")detail=String(message.value.primitive);\n     12|   }\n     13|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     14| }\n     15|\n ❯ src/session-charmap-codec-api.test.ts:135:5\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/79]⎯\n\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'\n FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'\nAssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-decoder-consumers.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/79]⎯\n\n FAIL  src/session-codec-frozen-execution.test.ts > frozen execution: 'late frozen import failure retains es…'\nAssertionError: 'code' object has no attribute 'co_consts': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-frozen-execution.test.ts:42:33\n     40|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     41|   }\n     42|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     43|   expect(stdout).toBe(output);\n     44|   // The mutated base class and the imported module cannot leak to a n…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/79]⎯\n\n FAIL  src/session-codec-module.test.ts > shares imported registrations with native text methods and constructors\nAssertionError: unknown encoding: public_text: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ run src/session-codec-module.test.ts:13:32\n     11|     if(message.status===\"ok\")detail=String(message.value.primitive);\n     12|   }\n     13|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     14| }\n     15|\n ❯ src/session-codec-module.test.ts:77:3\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/79]⎯\n\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: text.encode(encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: str.encode(text, encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: bytes(text, encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: bytes.__new__(bytes, text, encod…'\nAssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-native-failures.test.ts:14:32\n     12|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     13|   }\n     14|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/79]⎯\n\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: text.encode(encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: str.encode(text, encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: bytes(text, encoding)'\n FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: bytes.__new__(bytes, text, encod…'\nAssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-native-failures.test.ts:14:32\n     12|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     13|   }\n     14|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/79]⎯\n\n FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 1'\n FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 2'\n FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 3'\nAssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-native-slots.test.ts:15:41\n     13|     if (diagnostic.status === \"ok\") detail = diagnostic.value.primitiv…\n     14|   }\n     15|   expect(result.status, String(detail)).toBe(\"ok\");\n       |                                         ^\n     16| });\n     17|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/79]⎯\n\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 registry and module API'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 incremental encoder state and …'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 every incremental split and st…'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 missing BOM and truncated inpu…'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 stream adapters BOM and reset'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 registry and module API'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 incremental encoder state and …'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 every incremental split and st…'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 missing BOM and truncated inpu…'\n FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 stream adapters BOM and reset'\nAssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-native-wide-modules.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/79]⎯\n\n FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'mbcs import failure and registry cache'\n FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'oem import failure and registry cache'\n FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'Windows code-page factory imports laz…'\nAssertionError: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-platform-modules.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'byte escape types, argument precedenc…'\nAssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'Punycode public decoder factories ret…'\nAssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'charmap surrogateescape retains origi…'\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'all standard handlers through publish…'\nAssertionError: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'callback failures preserve identity, …'\nAssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'custom codecs shared by encode/decode…'\nAssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'decoder subtype identity and tuple ov…'\nAssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'stream reader/writer adapters over a …'\nAssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/79]⎯\n\n FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'UTF-16/32 rejected replacements resto…'\nAssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-public-contracts.test.ts:23:32\n     21|     if(diagnostic.status===\"ok\")detail=String(diagnostic.value.primiti…\n     22|   }\n     23|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     24|   expect(output).toBe(expected!.stdout);\n     25| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/79]⎯\n\n FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'ROT13 bytes consumer nontext rejection'\nAssertionError: expected 'LookupError unknown encoding: rot13\\n' to be 'LookupError \\'rot13\\' is not a text e…' // Object.is equality\n\n- Expected\n+ Received\n\n- LookupError 'rot13' is not a text encoding; use codecs.decode() to handle arbitrary codecs\n+ LookupError unknown encoding: rot13\n\n\n ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18\n     12|   });\n     13|   expect(session.exec(source).status).toBe('ok');\n     14|   expect(output).toBe(expected);\n       |                  ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/79]⎯\n\n FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'undefined bytes consumer'\nAssertionError: expected 'LookupError unknown encoding: undefin…' to be 'UnicodeError undefined encoding\\n' // Object.is equality\n\n- Expected\n+ Received\n\n- UnicodeError undefined encoding\n+ LookupError unknown encoding: undefined\n\n\n ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18\n     12|   });\n     13|   expect(session.exec(source).status).toBe('ok');\n     14|   expect(output).toBe(expected);\n       |                  ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/79]⎯\n\n FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'guest module spec'\nAssertionError: expected 'AttributeError module \\'encodings.rot…' to be 'encodings.rot_13\\n' // Object.is equality\n\n- Expected\n+ Received\n\n- encodings.rot_13\n+ AttributeError module 'encodings.rot_13' has no attribute '__spec__'\n\n\n ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18\n     12|   });\n     13|   expect(session.exec(source).status).toBe('ok');\n     14|   expect(output).toBe(expected);\n       |                  ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/79]⎯\n\n FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'undefined traceback'\nAssertionError: expected 'False\\n' to be 'True\\n' // Object.is equality\n\n- Expected\n+ Received\n\n- True\n+ False\n\n\n ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18\n     12|   });\n     13|   expect(session.exec(source).status).toBe('ok');\n     14|   expect(output).toBe(expected);\n       |                  ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/79]⎯\n\n FAIL  src/session-codec-source-registry.test.ts > source registry: 'source decoder receives an ownerless …'\n FAIL  src/session-codec-source-registry.test.ts > source registry: 'source codec callbacks use the suppli…'\nTypeError: guest value is not a primitive\n ❯ Object.get primitive [as primitive] src/session.ts:263:24\n    261|         case \"bool\": case \"int\": case \"float\": return value.value;\n    262|         case \"str\": charge(value.value.length * 4); return text(value);\n    263|         default: throw new TypeError(\"guest value is not a primitive\");\n       |                        ^\n    264|       }\n    265|     } });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/79]⎯\n\n FAIL  src/session-codec-source-registry.test.ts > source registry: 'source callback failures retain nativ…'\nAssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }\n\n- Expected\n+ Received\n\n  {\n-   \"output\": \"SyntaxError ('value failure', ('source.py', 0, -1, None)) False\n+   \"output\": \"SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\n  None True\n  source.py 0 -1 None\n- SyntaxError ('lookup failure', ('source.py', 0, -1, None)) False\n+ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\n  None True\n  source.py 0 -1 None\n- TypeError ('type failure',) True\n- [\\\"decoding with 'source-failure' codec failed\\\"] True\n- None None None None\n- RuntimeError ('runtime failure',) True\n- [\\\"decoding with 'source-failure' codec failed\\\"] True\n- None None None None\n+ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\n+ None True\n+ source.py 0 -1 None\n+ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\n+ None True\n+ source.py 0 -1 None\n  \",\n    \"result\": {\n      \"status\": \"ok\",\n    },\n  }\n\n ❯ src/session-codec-source-registry.test.ts:15:28\n     13|   });\n     14|   const result = session.exec(source);\n     15|   expect({result, output}).toEqual({result: {status: \"ok\"}, output: re…\n       |                            ^\n     16| });\n     17|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/79]⎯\n\n FAIL  src/session-codec-source-registry.test.ts > keeps cancellation in source decoder callbacks terminal\nTypeError: guest value is not a primitive\n ❯ Object.get primitive [as primitive] src/session.ts:263:24\n    261|         case \"bool\": case \"int\": case \"float\": return value.value;\n    262|         case \"str\": charge(value.value.length * 4); return text(value);\n    263|         default: throw new TypeError(\"guest value is not a primitive\");\n       |                        ^\n    264|       }\n    265|     } });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/79]⎯\n\n FAIL  src/session-codec-stream-mutation.test.ts > 'stream reader bytearray and memoryvie…'\nAssertionError: exception: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-codec-stream-mutation.test.ts:20:37\n     18|     if (message.status === 'ok') diagnostic += ': ' + String(message.v…\n     19|   }\n     20|   expect(result.status, diagnostic).toBe('ok');\n       |                                     ^\n     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…\n     22| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/79]⎯\n\n FAIL  src/session-codec-stream-traceback.test.ts > retains caller and codec frames with pinned instruction positions\nAssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n\n- Expected\n+ Received\n\n- <module> 3 66\n- encode 204 12\n-\n\n ❯ src/session-codec-stream-traceback.test.ts:19:18\n     17| `;\n     18|   expect(session.exec(source,{filename:'<codec-trace>'})).toMatchObjec…\n     19|   expect(output).toBe('<module> 3 66\\nencode 204 12\\n');\n       |                  ^\n     20| });\n     21|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii inherited buffer failure preced…'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 inherited buffer failure prec…'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 inherited buffer failure preced…'\nAssertionError: decoder ignored __buffer__: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-core-codec-buffers.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii validates buffer hook result be…'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 validates buffer hook result …'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 validates buffer hook result be…'\nAssertionError: invalid buffer hook result accepted: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-core-codec-buffers.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii uses and releases an overridden…'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 uses and releases an overridd…'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 uses and releases an overridden…'\nAssertionError: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-core-codec-buffers.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii rejects a strided memoryview'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 rejects a strided memoryview'\n FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 rejects a strided memoryview'\nAssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ src/session-core-codec-buffers.test.ts:14:33\n     12|     if (diagnostic.status === \"ok\") detail = String(diagnostic.value.p…\n     13|   }\n     14|   expect(result.status, detail).toBe(\"ok\");\n       |                                 ^\n     15| });\n     16|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)\nAssertionError: throws=false: expected [] to deeply equal [ 'cancel' ]\n\n- Expected\n+ Received\n\n- [\n-   \"cancel\",\n- ]\n+ []\n\n ❯ src/session-core-codec-buffers.test.ts:34:40\n     32|     print('recovered')\n     33| `);\n     34|     expect(writes, `throws=${throws}`).toEqual([\"cancel\"]);\n       |                                        ^\n     35|     expect(result).toMatchObject({status: \"terminated\", reason: \"cance…\n     36|     expect(session.eval(\"1\")).toMatchObject({status: \"terminated\", rea…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/79]⎯\n\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)\n FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)\nAssertionError: throws=true: expected [] to deeply equal [ 'cancel' ]\n\n- Expected\n+ Received\n\n- [\n-   \"cancel\",\n- ]\n+ []\n\n ❯ src/session-core-codec-buffers.test.ts:34:40\n     32|     print('recovered')\n     33| `);\n     34|     expect(writes, `throws=${throws}`).toEqual([\"cancel\"]);\n       |                                        ^\n     35|     expect(result).toMatchObject({status: \"terminated\", reason: \"cance…\n     36|     expect(session.eval(\"1\")).toMatchObject({status: \"terminated\", rea…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/79]⎯\n\n FAIL  src/session-utf7-codec-api.test.ts > preserves decoder guest failures, traceback and native-call note behavior\nAssertionError: UTF-7 callback traceback: expected 'exception' to be 'ok' // Object.is equality\n\nExpected: \"ok\"\nReceived: \"exception\"\n\n ❯ run src/session-utf7-codec-api.test.ts:13:32\n     11|     if(message.status===\"ok\")detail=String(message.value.primitive);\n     12|   }\n     13|   expect(result.status,detail).toBe(\"ok\");\n       |                                ^\n     14| }\n     15|\n ❯ src/session-utf7-codec-api.test.ts:194:3\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/79]⎯\n\n FAIL  src/runtime/runtime-core-codec-functions.test.ts > retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields\n FAIL  src/runtime/runtime-core-codec-functions.test.ts > retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields\n FAIL  src/runtime/runtime-core-codec-functions.test.ts > retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields\nError: AssertionError: [\"assert error.__traceback__ is not None\"]\n ❯ Object.run src/runtime/runtime-core-codec-functions.test.ts:41:351\n\n ❯ src/runtime/runtime-core-codec-functions.test.ts:167:13\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/79]⎯\n\n\n Test Files  16 failed | 152 passed (168)\n      Tests  79 failed | 21200 passed (21279)\n   Start at  05:29:12\n   Duration  191.21s (transform 12.90s, setup 0ms, import 106.95s, tests 257.92s, environment 9ms)\n\nnpm error Lifecycle script `test:unit` failed with error:\nnpm error code 1\nnpm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error workspace @poe-code/safe-python@0.0.0-dev\nnpm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error command failed\nnpm error command sh -c vitest run --config vitest.config.ts codec --maxWorkers=2\n"
+    },
+    "typecheck": {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exit": 0
+    },
+    "lint": {
+      "command": "npx eslint packages/safe-python/src/source-codec-guest-fault-cases.ts",
+      "exit": 0
+    },
+    "casesSha256": "f8a5dce6bbbc597eb86e1359394686319acde23d4ed5416dd29dff7ba25363aa"
+  }
+}

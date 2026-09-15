@@ -17,7 +17,10 @@ import {
   renderAcpStream,
   applyMiddlewares,
   sessionCapture,
+  sessionMetadataCapture,
   usageCapture,
+  getCapturedUsage,
+  captureAbortUsage,
   spawnLog,
   runCommand,
   type AcpSpawnContext as InternalAcpSpawnContext
@@ -30,8 +33,7 @@ import type {
   AcpEvent,
   SpawnOptions,
   SpawnResult,
-  SpawnRetryOptions,
-  SpawnUsage
+  SpawnRetryOptions
 } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 import { runInWorktree } from "./worktree.js";
@@ -197,7 +199,7 @@ export function spawn(
         ...(options.traceSink ? [createTraceSinkMiddleware(options.traceSink)] : [])
       ];
       const middlewares = [
-        sessionCapture,
+        options.captureSession === false ? sessionMetadataCapture : sessionCapture,
         usageCapture,
         spawnLog,
         ...(!captureOtel ? consumerMiddlewares : [])
@@ -301,17 +303,17 @@ export function spawn(
         await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
-        const final = await done;
-        const threadId = middlewareContext.threadId ?? final.threadId;
-
+        const final = await done.catch((error) => {
+          throw captureAbortUsage(error, middlewareContext.usage);
+        });
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          ...(threadId ? { threadId } : {}),
-          ...(final.usage ? { usage: final.usage } : {}),
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
-          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
+          get threadId() { return middlewareContext.threadId ?? final.threadId; },
+          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
+          get logFile() { return middlewareContext.logFile; },
+          get logError() { return middlewareContext.logError; },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -373,18 +375,19 @@ export function spawn(
         await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
-        const final = await done;
-        const threadId = middlewareContext.threadId ?? final.threadId;
-        const usage = final.usage ?? getCapturedUsage(middlewareContext.usage);
+        const final = await done.catch((error) => {
+          throw captureAbortUsage(error, middlewareContext.usage);
+        });
 
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          ...(threadId ? { threadId } : {}),
-          ...(usage ? { usage } : {}),
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
-          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
+          // The child may finish before a buffered event stream is consumed.
+          get threadId() { return middlewareContext.threadId ?? final.threadId; },
+          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
+          get logFile() { return middlewareContext.logFile; },
+          get logError() { return middlewareContext.logError; },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -477,22 +480,6 @@ async function forwardEvents<T>(
 
 function isWorktreeEnabled(worktree: SpawnOptions["worktree"]): boolean {
   return worktree === true;
-}
-
-function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined {
-  if (!usage) {
-    return undefined;
-  }
-
-  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
-    return usage;
-  }
-
-  if (usage.cachedTokens !== undefined || usage.costUsd !== undefined) {
-    return usage;
-  }
-
-  return undefined;
 }
 
 function pickRuntimeOverrides(

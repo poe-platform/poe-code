@@ -1,0 +1,4 @@
+
+> @poe-code/safe-js@0.0.1 test:conformance
+> tsx test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --report /Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/current-pinned-fixtures.jsonl --include built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js --include built-ins/Reflect/ownKeys/return-on-corresponding-order.js --include built-ins/Promise/promise.js --include built-ins/Promise/property-order.js
+

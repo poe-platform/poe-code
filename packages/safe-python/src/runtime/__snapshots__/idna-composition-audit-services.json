@@ -1,0 +1,49 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "driver": "import {openSync,closeSync,readSync,writeSync,fsyncSync,readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {spawnSync} from 'node:child_process';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst programs=[\n {name:'public registry and incremental IDNA',source:\"text = input()\\nprint(text)\\nimport codecs\\ninfo = codecs.lookup('idna')\\nencoded = info.encode(text)[0]\\nprint(encoded)\\nfor split in range(len(encoded) + 1):\\n    decoder = info.incrementaldecoder()\\n    print(decoder.decode(encoded[:split], False) + decoder.decode(encoded[split:], True))\\n\"},\n {name:'IDNA text conversions',source:\"text = input()\\nprint(text)\\nencoded = text.encode('idna')\\nprint(encoded)\\nprint(encoded.decode('idna'))\\n\"}\n];\nconst input='bücher.example\\n';\nconst pin=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c','import sys,unicodedata,json; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=sys.platform,byteorder=sys.byteorder)))'],{encoding:'utf8',timeout:10000});\nif(pin.error||pin.status!==0||pin.stderr!=='')throw Error('oracle identity unavailable');\nconst oracle=JSON.parse(pin.stdout);\nif(!oracle.version.startsWith('3.14.7 ')||oracle.unicode!=='16.0.0'||oracle.platform!=='darwin'||oracle.byteorder!=='little')throw Error('oracle pin mismatch');\nconst directory=mkdtempSync(join(tmpdir(),'safe-python-idna-'));\nconst records=[];\ntry{\n for(const row of programs){\n  const expected=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',row.source],{input,encoding:'utf8',timeout:10000});\n  if(expected.error||expected.status!==0||expected.stderr!=='')throw Error('oracle program failed');\n  writeFileSync(join(directory,'input'),input);\n  const inputFd=openSync(join(directory,'input'),'r'),outputFd=openSync(join(directory,'output'),'w');\n  let reads=0,writes=0,flushes=0,actual;\n  try{\n   const session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},\n    input:{readLine(){const bytes=[];const byte=Buffer.alloc(1);while(readSync(inputFd,byte,0,1,null)){reads++;bytes.push(byte[0]);if(byte[0]===10)break;}return Buffer.from(bytes).toString('utf8');}},\n    output:{write(text){const data=Buffer.from(text);let offset=0;while(offset<data.length){const count=writeSync(outputFd,data,offset,data.length-offset);if(count===0)throw Error('zero write');offset+=count;writes++;}},flush(){fsyncSync(outputFd);flushes++;}}\n   });\n   const result=session.exec(row.source);\n   actual={status:result.status};\n   if(result.status==='exception'){\n    session.globals.set('failure',result.exception);\n    const description=session.eval('repr(failure)');\n    if(description.status!=='ok')throw Error('diagnostic failed');\n    actual.exception=description.value.primitive;\n   }\n  }finally{closeSync(inputFd);closeSync(outputFd);}\n  actual.stdout=readFileSync(join(directory,'output'),'utf8');\n  records.push({...row,input,expected:{status:expected.status,signal:expected.signal,stderr:expected.stderr,stdout:expected.stdout},actual,reads,writes,flushes});\n }\n}finally{rmSync(directory,{recursive:true,force:true});}\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/idna-composition-audit-services.json',JSON.stringify({oracle,driver:readFileSync('/tmp/safe-python-idna-services.mts','utf8'),records},null,2)+'\\n');\nconsole.log(JSON.stringify(records.map(({name,actual,reads,writes,flushes})=>({name,actual,reads,writes,flushes})),null,2));\n",
+  "records": [
+    {
+      "name": "public registry and incremental IDNA",
+      "source": "text = input()\nprint(text)\nimport codecs\ninfo = codecs.lookup('idna')\nencoded = info.encode(text)[0]\nprint(encoded)\nfor split in range(len(encoded) + 1):\n    decoder = info.incrementaldecoder()\n    print(decoder.decode(encoded[:split], False) + decoder.decode(encoded[split:], True))\n",
+      "input": "bücher.example\n",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stderr": "",
+        "stdout": "bücher.example\nb'xn--bcher-kva.example'\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\nbücher.example\n"
+      },
+      "actual": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: idna')",
+        "stdout": "bücher.example\n"
+      },
+      "reads": 16,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "IDNA text conversions",
+      "source": "text = input()\nprint(text)\nencoded = text.encode('idna')\nprint(encoded)\nprint(encoded.decode('idna'))\n",
+      "input": "bücher.example\n",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stderr": "",
+        "stdout": "bücher.example\nb'xn--bcher-kva.example'\nbücher.example\n"
+      },
+      "actual": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: idna')",
+        "stdout": "bücher.example\n"
+      },
+      "reads": 16,
+      "writes": 2,
+      "flushes": 1
+    }
+  ]
+}

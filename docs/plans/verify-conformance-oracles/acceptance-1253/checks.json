@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "command": "npx vitest run packages/safe-js/test/conformance",
+      "exitCode": 0,
+      "files": 12,
+      "passed": 212,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 5.57,
+      "testSeconds": 3.11
+    },
+    {
+      "command": "npx eslint packages/safe-js/test/conformance",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check -- packages/safe-js/test/conformance",
+      "exitCode": 0
+    },
+    {
+      "command": "curl --fail --silent --location https://262.ecma-international.org/16.0/ | shasum -a 256",
+      "exitCode": 0,
+      "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713"
+    }
+  ],
+  "localCommits": [],
+  "remoteDelivery": null,
+  "release": null
+}

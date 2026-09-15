@@ -1,0 +1,85 @@
+{
+  "identity": {
+    "query": "import sys,platform,unicodedata,json; print(json.dumps(dict(version=sys.version,implementation=platform.python_implementation(),platform=platform.platform(),unicode=unicodedata.unidata_version,byteorder=sys.byteorder)))",
+    "status": 0,
+    "stderr": "",
+    "result": {
+      "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "implementation": "CPython",
+      "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+      "unicode": "16.0.0",
+      "byteorder": "little"
+    }
+  },
+  "probes": [
+    {
+      "kind": "punycode-encode",
+      "count": 5000,
+      "initialSeed": 971,
+      "generator": "xorshift32: seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed >>> 0; each length, point and final flag uses a fresh draw",
+      "inputShape": "length next()%30; points next()%0x110000",
+      "oracle": {
+        "executable": "/opt/homebrew/bin/python3.14",
+        "args": [
+          "-I",
+          "-c",
+          "import json,sys; print(json.dumps([list(\"\".join(map(chr,row)).encode(\"punycode\")) for row in json.load(sys.stdin)]))"
+        ],
+        "status": 0,
+        "stderr": ""
+      },
+      "inputsSha256": "5951c55eae084b8125c6fbed6ed96bc24722cd3f995ceed64a9e848089ed9c6d",
+      "expectedSha256": "f4cf219cbfaa4c976ff21d80eb9887710721d58452b1ae2b54cbc7428c9d59c7",
+      "actualSha256": "f4cf219cbfaa4c976ff21d80eb9887710721d58452b1ae2b54cbc7428c9d59c7",
+      "mismatches": [],
+      "limitations": "Exploratory kernel evidence only; not exhaustive or public-registry/service/traceback certification."
+    },
+    {
+      "kind": "idna-buffer-decode",
+      "count": 7000,
+      "initialSeed": 71291,
+      "generator": "xorshift32: seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed >>> 0; each length, point and final flag uses a fresh draw",
+      "inputShape": {
+        "length": "next()%25",
+        "points": "alphabet[next()%alphabet.length]",
+        "alphabet": [
+          46,
+          120,
+          110,
+          45,
+          45,
+          97,
+          98,
+          99,
+          48,
+          57,
+          65,
+          90,
+          12290,
+          65294,
+          65377,
+          128,
+          223,
+          8203,
+          55296
+        ],
+        "final": "!!(next()%2)"
+      },
+      "oracle": {
+        "executable": "/opt/homebrew/bin/python3.14",
+        "args": [
+          "-I",
+          "-c",
+          "import json,sys,encodings.idna\nout=[]\nfor row in json.load(sys.stdin):\n try:\n  text,n=encodings.idna.IncrementalDecoder()._buffer_decode(''.join(map(chr,row['points'])),'strict',row['final']);out.append([list(map(ord,text)),n])\n except Exception as e: out.append([type(e).__name__,str(e),getattr(e,'start',None),getattr(e,'end',None)])\nprint(json.dumps(out))"
+        ],
+        "status": 0,
+        "stderr": ""
+      },
+      "inputsSha256": "2f113e8c183d20d6b6a9194173bc439457410873e00f6281ffab301b146d483b",
+      "expectedSha256": "d361f9ebc3505ce5499746fd48261a47e809c0aead8b22f35438bb80ff10c257",
+      "actualSha256": "d361f9ebc3505ce5499746fd48261a47e809c0aead8b22f35438bb80ff10c257",
+      "mismatches": [],
+      "limitations": "Exploratory kernel evidence only; not exhaustive or public-registry/service/traceback certification."
+    }
+  ]
+}

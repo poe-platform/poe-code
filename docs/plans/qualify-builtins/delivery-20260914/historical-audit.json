@@ -1,0 +1,14 @@
+{
+  "historicalSourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "reportsVerified": 216,
+  "fixturesVerified": 53876,
+  "harnessHashesVerified": 44,
+  "categoriesVerified": 108,
+  "counts": {
+    "unsupported": 3318,
+    "passed": 93220,
+    "failed": 6388
+  },
+  "nonpasses": 6777,
+  "disposition": "Historical evidence, not current clean-candidate passes"
+}

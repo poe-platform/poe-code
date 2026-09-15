@@ -1,0 +1,13 @@
+{
+  "source": "import binascii\nfor checksum, width in ((binascii.crc32, 32), (binascii.crc_hqx, 16)):\n    assert checksum.__module__ == 'binascii'\n    assert checksum.__text_signature__ == ('($module, data, crc=0, /)' if width == 32 else '($module, data, crc, /)')\n    for seed in (0, 1, -1, -(1 << 100), (1 << 100) + 7):\n        assert checksum(b'', seed) == seed & ((1 << width) - 1)\n        assert type(checksum(b'', seed)) is int\n    events = []\n    class Seed:\n        def __index__(self):\n            events.append('index')\n            return -1\n    assert checksum(b'abc', Seed()) == checksum(b'abc', -1)\n    assert events == ['index']\n    data = bytearray(range(256))\n    view = memoryview(data)\n    expected = checksum(bytes(data), 0)\n    assert checksum(view, 0) == expected\n    for split in range(len(data) + 1):\n        assert checksum(view[split:], checksum(view[:split], 0)) == expected\n    try:\n        checksum(view[::2], 0)\n    except BufferError:\n        pass\n    else:\n        assert False\n    view.release()\n    try:\n        checksum(view, 0)\n    except ValueError:\n        pass\n    else:\n        assert False\n    data.extend(b'Z')\n    failure = ValueError('seed failed')\n    class Failure:\n        def __index__(self):\n            raise failure\n    try:\n        checksum(data, Failure())\n    except ValueError as caught:\n        assert caught is failure and caught.__traceback__ is not None\n    else:\n        assert False\n    data.extend(b'Z')\nassert binascii.crc32(b'123456789') == 0xcbf43926\nassert binascii.crc_hqx(b'123456789', 0) == 0x31c3\n",
+  "oracle": {
+    "executable": "/opt/homebrew/bin/python3.14",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "interpreter": {
+    "status": "exception",
+    "diagnostic": "No module named 'binascii'"
+  }
+}

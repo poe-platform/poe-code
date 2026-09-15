@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/guest-proxy-integrity.test.ts (12 tests) 336ms
+ ✓ packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts (8 tests) 574ms
+ ✓ packages/safe-js/src/interp/guest-proxy-extensibility.test.ts (18 tests) 17ms
+
+ Test Files  3 passed (3)
+      Tests  38 passed (38)
+   Start at  18:27:19
+   Duration  2.69s (transform 2.67s, setup 81ms, import 3.96s, tests 927ms, environment 0ms)
+

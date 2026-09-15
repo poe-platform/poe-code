@@ -1,0 +1,899 @@
+diff --git a/packages/safe-js/src/core.ts b/packages/safe-js/src/core.ts
+index 6870daa1f..9a6f0aa75 100644
+--- a/packages/safe-js/src/core.ts
++++ b/packages/safe-js/src/core.ts
+@@ -1,5 +1,7 @@
+ export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
+ export { run } from "./run.js";
++export type { RunPromise } from "./run.js";
++export type { ExecutionControl } from "./interp/jobs.js";
+ export { createRealm, type SafeJSRealm, type RealmOptions, type RealmResult, type RealmLimits } from "./realm.js";
+ export { defineExtension, type SafeJSExtension, type ExtensionDefinition, type ExtensionManifest, type ExtensionContext, type ExtensionExports, type CallbackOptions, type CallbackInvocation } from "./extensions.js";
+ export type { HostObject, HostObjectDefinition, HostObjectIndexedDefinition, HostObjectNamedDefinition, GuestReference } from "./interp/host-capabilities.js";
+diff --git a/packages/safe-js/src/index.ts b/packages/safe-js/src/index.ts
+index 72a10e1ae..dc2e406c9 100644
+--- a/packages/safe-js/src/index.ts
++++ b/packages/safe-js/src/index.ts
+@@ -22,6 +22,8 @@ export const deepCopyFromSandbox: {
+ } = copyFromSandboxInternal;
+ export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
+ export { run } from "./run.js";
++export type { RunPromise } from "./run.js";
++export type { ExecutionControl } from "./interp/jobs.js";
+ export { createRealm, type SafeJSRealm, type RealmOptions, type RealmResult, type RealmLimits } from "./realm.js";
+ export { defineExtension, type SafeJSExtension, type ExtensionDefinition, type ExtensionManifest, type ExtensionContext, type ExtensionExports, type CallbackOptions, type CallbackInvocation } from "./extensions.js";
+ export type { HostObject, HostObjectDefinition, HostObjectIndexedDefinition, HostObjectNamedDefinition, GuestReference } from "./interp/host-capabilities.js";
+diff --git a/packages/safe-js/src/interp/interpreter.ts b/packages/safe-js/src/interp/interpreter.ts
+index 017981301..2f8156440 100644
+--- a/packages/safe-js/src/interp/interpreter.ts
++++ b/packages/safe-js/src/interp/interpreter.ts
+@@ -587,6 +587,8 @@ export async function evaluateNode(
+   context: EvaluationContext,
+   onReference?: (reference: BindingReference) => void
+ ): Promise<EvaluationResult> {
++  const checkpoint = SandboxJobQueue.checkpoint();
++  if (checkpoint !== undefined) await checkpoint;
+   context.assertActive?.();
+   if (context.generatorResume?.completed === true) context.generatorResume = undefined;
+   if (context.inferredName !== undefined && node.type !== "ClassExpression" &&
+diff --git a/packages/safe-js/src/interp/jobs.ts b/packages/safe-js/src/interp/jobs.ts
+index c68397d48..cf62d3923 100644
+--- a/packages/safe-js/src/interp/jobs.ts
++++ b/packages/safe-js/src/interp/jobs.ts
+@@ -1,5 +1,22 @@
+ import { AsyncLocalStorage } from "node:async_hooks";
+-import type { Budget } from "./budget.js";
++import { setImmediate as yieldToHost } from "node:timers/promises";
++import { SandboxError, type Budget } from "./budget.js";
++
++export type ExecutionControl = {
++  readonly executionState: "running" | "pausing" | "paused" | "finished";
++  pause(): Promise<void>;
++  resume(): void;
++};
++
++type PauseRequest = {
++  acknowledged: boolean;
++  acknowledgement: Promise<void>;
++  acknowledge(): void;
++  reject(reason: unknown): void;
++  continuation: Promise<void>;
++  resume(): void;
++  interrupt(reason: unknown): void;
++};
+ 
+ type ExecutionJob = {
+   queue: SandboxJobQueue;
+@@ -16,6 +33,110 @@ export class SandboxJobQueue {
+   private ready: Array<() => void> = [];
+   private readonly idle: Array<() => void> = [];
+   private generation = 0;
++  private controlled = false;
++  private nodesUntilHostTurn = 4096;
++  private pauseRequest?: PauseRequest;
++  private finished = false;
++  private interruption?: { reason: unknown };
++  private detachSignal?: () => void;
++
++  get executionState(): ExecutionControl["executionState"] {
++    return this.finished
++      ? "finished"
++      : this.pauseRequest === undefined
++        ? "running"
++        : this.pauseRequest.acknowledged
++          ? "paused"
++          : "pausing";
++  }
++
++  enableControl(signal?: AbortSignal): void {
++    this.controlled = true;
++    if (signal === undefined) return;
++    const abort = () => this.interrupt(signal.reason);
++    signal.addEventListener("abort", abort, { once: true });
++    this.detachSignal = () => signal.removeEventListener("abort", abort);
++    if (signal.aborted) abort();
++  }
++
++  pause(): Promise<void> {
++    if (this.finished) return Promise.reject(new Error("Execution is finished."));
++    if (this.interruption !== undefined) return Promise.reject(this.interruption.reason);
++    let owner = activeJob.getStore();
++    while (owner !== undefined && !owner.ownsExecution) owner = owner.prefixParent;
++    if (owner?.queue === this) return Promise.reject(new SandboxError("reentry"));
++    if (this.pauseRequest !== undefined) return this.pauseRequest.acknowledgement;
++    let acknowledge!: () => void;
++    let reject!: (reason: unknown) => void;
++    let resume!: () => void;
++    let interrupt!: (reason: unknown) => void;
++    const acknowledgement = new Promise<void>((resolve, fail) => {
++      acknowledge = resolve;
++      reject = fail;
++    });
++    const continuation = new Promise<void>((resolve, fail) => {
++      resume = resolve;
++      interrupt = fail;
++    });
++    void continuation.catch(() => undefined);
++    this.pauseRequest = {
++      acknowledged: false,
++      acknowledgement,
++      acknowledge,
++      reject,
++      continuation,
++      resume,
++      interrupt
++    };
++    if (!this.running) this.advance();
++    return acknowledgement;
++  }
++
++  resume(): void {
++    if (this.finished) throw new Error("Execution is finished.");
++    const request = this.pauseRequest;
++    if (request === undefined) return;
++    if (!request.acknowledged) throw new Error("Wait for pause acknowledgement before resuming.");
++    this.pauseRequest = undefined;
++    request.resume();
++    this.advance();
++  }
++
++  interrupt(reason: unknown): void {
++    this.interruption ??= { reason };
++    const request = this.pauseRequest;
++    this.pauseRequest = undefined;
++    request?.reject(reason);
++    request?.interrupt(reason);
++    this.advance();
++  }
++
++  finish(): void {
++    if (this.finished) return;
++    this.finished = true;
++    this.controlled = false;
++    this.detachSignal?.();
++    this.detachSignal = undefined;
++    this.interrupt(new Error("Execution is finished."));
++  }
++
++  static checkpoint(): Promise<void> | undefined {
++    const queue = activeJob.getStore()?.queue;
++    if (queue === undefined || !queue.controlled) return;
++    if (queue.pauseRequest !== undefined) {
++      queue.pauseRequest.acknowledged = true;
++      queue.pauseRequest.acknowledge();
++      return queue.pauseRequest.continuation;
++    }
++    if (--queue.nodesUntilHostTurn > 0) return;
++    queue.nodesUntilHostTurn = 4096;
++    return yieldToHost().then(() => {
++      if (queue.pauseRequest === undefined) return;
++      queue.pauseRequest.acknowledged = true;
++      queue.pauseRequest.acknowledge();
++      return queue.pauseRequest.continuation;
++    });
++  }
+ 
+   bind<T>(task: () => T): T {
+     return activeJob.run({queue: this, ownsExecution: false}, task);
+@@ -59,7 +180,8 @@ export class SandboxJobQueue {
+     let idleTurns = 0;
+     while (idleTurns < 20) {
+       const generation = this.generation;
+-      if (this.running) await new Promise<void>((resolve) => this.idle.push(resolve));
++      if (this.running || this.pending.length > 0 || this.ready.length > 0)
++        await new Promise<void>((resolve) => this.idle.push(resolve));
+       await Promise.resolve();
+       idleTurns = generation === this.generation ? idleTurns + 1 : 0;
+     }
+@@ -67,6 +189,13 @@ export class SandboxJobQueue {
+ 
+   private advance(): void {
+     if (this.running) return;
++    if (this.pauseRequest !== undefined) {
++      this.pauseRequest.acknowledged = true;
++      this.pauseRequest.acknowledge();
++      if (this.pending.length === 0 && this.ready.length === 0)
++        for (const resolve of this.idle.splice(0)) resolve();
++      return;
++    }
+     if (this.ready.length === 0 && this.pending.length > 0) {
+       const empty = this.ready;
+       this.ready = this.pending.reverse();
+@@ -81,6 +210,19 @@ export class SandboxJobQueue {
+   }
+ }
+ 
++export function attachExecutionControl<T extends object>(
++  target: T,
++  queue: SandboxJobQueue,
++  signal?: AbortSignal
++): T & ExecutionControl {
++  queue.enableControl(signal);
++  return Object.defineProperties(target, {
++    executionState: { get: () => queue.executionState },
++    pause: { value: queue.pause.bind(queue) },
++    resume: { value: queue.resume.bind(queue) }
++  }) as T & ExecutionControl;
++}
++
+ export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T> {
+   const job = activeJob.getStore();
+   return job === undefined ? Promise.resolve().then(task) : job.queue.run(task);
+diff --git a/packages/safe-js/src/realm.ts b/packages/safe-js/src/realm.ts
+index 219fd7e05..9019eaabd 100644
+--- a/packages/safe-js/src/realm.ts
++++ b/packages/safe-js/src/realm.ts
+@@ -9,7 +9,7 @@ import { CompileScope } from "./interp/regex/compile-guard.js";
+ import { createBuiltinBindings } from "./interp/globals.js";
+ import { releaseObjectPrototype } from "./interp/object-model.js";
+ import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
+-import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./interp/jobs.js";
++import { attachExecutionControl, SandboxJobQueue, runAsyncPrefix, suspendJob, type ExecutionControl } from "./interp/jobs.js";
+ import { withCancellationSignal, awaitSandboxValue } from "./interp/cancel.js";
+ import { enterRunningState } from "./interp/running-state.js";
+ import { runResources } from "./interp/resources.js";
+@@ -94,7 +94,7 @@ export type RealmResult =
+       returnValue?: unknown;
+     })
+   | Omit<Extract<InterpreterResult, { ok: false }>, "snapshot">;
+-export type SafeJSRealm = {
++export type SafeJSRealm = ExecutionControl & {
+   readonly extensions: readonly SafeJSExtension["manifest"][];
+   evaluate(source: string, options?: { filename?: string }): Promise<RealmResult>;
+   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
+@@ -119,7 +119,7 @@ class RealmState {
+   readonly compilation: CompileScope;
+   readonly controller = new AbortController();
+   readonly phase = new AsyncLocalStorage<HostPhase>();
+-  readonly queue = new SandboxJobQueue();
++  readonly queue: SandboxJobQueue;
+   readonly tracker = createSandboxPromiseRejectionTracker();
+   readonly bridge: RealmBridge;
+   readonly limits: Required<RealmLimits>;
+@@ -150,7 +150,8 @@ class RealmState {
+   nestedDepth = 0;
+   failure?: { reason: unknown };
+ 
+-  constructor(readonly options: RealmOptions) {
++  constructor(readonly options: RealmOptions, queue = new SandboxJobQueue()) {
++    this.queue = queue;
+     const limitInput = readDataRecord(options.limits ?? {}, "Realm limits");
+     this.limits = {
+       extensions: 32,
+@@ -251,6 +252,7 @@ class RealmState {
+           modules.set(name, occupied);
+         }
+       }
++      this.controller.signal.addEventListener("abort", () => this.queue.interrupt(this.controller.signal.reason), { once: true });
+       options.signal?.addEventListener("abort", this.abort, { once: true });
+       if (options.signal?.aborted) this.abort();
+       this.budget.setRetainedValues(this, this.retainedRoots);
+@@ -913,7 +915,7 @@ class RealmState {
+       this.compilation.dispose();
+       this.lease.release();
+       if (errors.length > 0) throw new AggregateError(errors, "Realm cleanup failed.");
+-    })();
++    })().finally(() => this.queue.finish());
+     return this.disposal;
+   }
+ }
+@@ -950,7 +952,7 @@ function assertNames(actual: readonly string[], expected: readonly string[], lab
+ 
+ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
+   const state = new RealmState(readRealmOptions(options));
+-  return Object.freeze({
++  return Object.freeze(attachExecutionControl({
+     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
+     evaluate: state.evaluate,
+     startCallback: state.startCallback,
+@@ -958,10 +960,10 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
+     releaseCallback: state.releaseCallback,
+     releaseGuestReference: state.releaseGuestReference,
+     close: state.close
+-  });
++  }, state.queue));
+ }
+ 
+-export async function runWithExtensions(source: string, options: RunOptions): Promise<RunResult> {
++export async function runWithExtensions(source: string, options: RunOptions, jobs?: SandboxJobQueue): Promise<RunResult> {
+   if (
+     options.snapshot !== undefined ||
+     options.snapshotBackend !== undefined ||
+@@ -971,7 +973,7 @@ export async function runWithExtensions(source: string, options: RunOptions): Pr
+     throw new TypeError(
+       "Live extension runs do not support snapshots or entryPointArgs; use a persistent realm."
+     );
+-  const state = new RealmState(readRealmOptions(options, true));
++  const state = new RealmState(readRealmOptions(options, true), jobs);
+   try {
+     const result = await state.perform(() => state.evaluateRaw(source, options.filename));
+     if (result.ok) encodeReplayData(result.returnValue);
+diff --git a/packages/safe-js/src/restore.test.ts b/packages/safe-js/src/restore.test.ts
+index e21c71705..91754e0ed 100644
+--- a/packages/safe-js/src/restore.test.ts
++++ b/packages/safe-js/src/restore.test.ts
+@@ -6,6 +6,74 @@ import { run } from "./run.js";
+ import { SnapshotValidationError } from "./snapshot/validation.js";
+ 
+ describe("restore", () => {
++  it.each([
++    [{ clock: { next: -1 } }, "$.clock.next"],
++    [{ random: { seed: 1, state: -1 } }, "$.random.state"]
++  ])("rejects invalid scalar state before reading the heap: %j", (state, path) => {
++    let reads = 0;
++    const snapshot = Object.defineProperty({ version: 1, sourceHash: hashSource("1"), ...state }, "heap", {
++      enumerable: true, get() { reads++; throw new Error("heap read"); }
++    });
++    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({
++      name: "SnapshotValidationError", path
++    }));
++    expect(reads).toBe(0);
++  });
++
++  it.each(["clock", "random", "next", "seed", "state", "initialState", "resumeState"])(
++    "preserves ordinary traversal for scalar accessor %s", field => {
++      let reads = 0;
++      const error = new Error("getter ran");
++      const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
++      const target = field === "clock" || field === "random" ? snapshot : field === "next" ? snapshot.clock : snapshot.random;
++      Object.defineProperty(target, field, { enumerable: true, get() { reads++; throw error; } });
++      expect(() => restore(snapshot, { source: "1" })).toThrow(error);
++      expect(reads).toBe(1);
++    }
++  );
++
++  it("skips scalar preflight for a proxy prototype without invoking its has trap", () => {
++    let traps = 0;
++    const prototype = new Proxy({}, { has() { traps++; throw new Error("has trap ran"); } });
++    const snapshot = Object.assign(Object.create(prototype), { version: 1, sourceHash: hashSource("1") });
++    expect(restore(snapshot, { source: "1" })).toBe(snapshot);
++    expect(traps).toBe(0);
++  });
++
++  it.each(["clock", "random"])("rechecks %s scalar state after payload traversal", field => {
++    const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
++    Object.defineProperty(snapshot, "extra", { enumerable: true, get() {
++      if (field === "clock") snapshot.clock.next = -1;
++      else snapshot.random.state = -1;
++      return 0;
++    } });
++    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({
++      name: "SnapshotValidationError", path: field === "clock" ? "$.clock.next" : "$.random.state"
++    }));
++  });
++
++  it.each(["clock", "initialState"])("preserves late validation for inherited scalar %s", field => {
++    let reads = 0;
++    const snapshot = { version: 1, sourceHash: hashSource("1"), random: { seed: 1, state: 1 } };
++    const original = Object.getOwnPropertyDescriptor(Object.prototype, field);
++    try {
++      Object.defineProperty(Object.prototype, field, { configurable: true, get() { reads++; return -1; } });
++      expect(() => restore(snapshot, { source: "1" })).toThrow(SnapshotValidationError);
++      expect(reads).toBe(2);
++    } finally {
++      if (original) Object.defineProperty(Object.prototype, field, original);
++      else Reflect.deleteProperty(Object.prototype, field);
++    }
++  });
++
++  it.each([
++    [{ heap: { "1": { kind: "mystery" } } }, "unknownTag"],
++    [{ extra: "x".repeat(1_000_001) }, "budgetExceeded"]
++  ])("valid scalar state does not bypass payload validation: case %#", (payload, code) => {
++    const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 }, ...payload };
++    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({ name: "SnapshotValidationError", code }));
++  });
++
+   it("does not transfer runtime snapshot trust to a copied envelope", async () => {
+     const source = "host.extra=7;return host()";
+     const result = await run(source, { bindings: { host: () => 1 } });
+diff --git a/packages/safe-js/src/run.completed-replay.test.ts b/packages/safe-js/src/run.completed-replay.test.ts
+index 2dfd673d0..54e0bf4c1 100644
+--- a/packages/safe-js/src/run.completed-replay.test.ts
++++ b/packages/safe-js/src/run.completed-replay.test.ts
+@@ -88,14 +88,24 @@ describe("completed snapshot replay", () => {
+         reads += 1;
+         return index + 10;
+       };
+-      const source = `const values = []; for (let index = 0; index < ${width}; index++) { payload.count++; values.push([payload.count, Math.random(), await read(index)]); } return values;`;
++      // Literal entries exercise replay without repeating guest loop/push machinery.
++      const values = Array.from({ length: width }, (_, index) =>
++        `[++payload.count, Math.random(), await read(${index})]`
++      );
++      const source = `return [${values.join(",\n")}];`;
+       const original = await run(source, { bindings: { read, payload: { count: 3 } } });
+       expect(original.ok).toBe(true);
++      if (!original.ok) throw new Error("Expected successful execution");
++      expect(original.returnValue).toHaveLength(width);
++      expect(original.returnValue).toEqual(Array.from({ length: width }, (_, index) => [
++        index + 4, expect.any(Number), index + 10
++      ]));
++      expect(reads).toBe(width);
+       let snapshot = JSON.parse(serializeSafeJSSnapshot(original.snapshot));
+       for (let iteration = 0; iteration < 3; iteration++) {
+         const resumed = await run(source, { snapshot, bindings: { read } });
+         expect(resumed.ok).toBe(true);
+-        if (!original.ok || !resumed.ok) throw new Error("Expected successful replay");
++        if (!resumed.ok) throw new Error("Expected successful replay");
+         expect(resumed.returnValue).toEqual(original.returnValue);
+         expect(reads).toBe(width);
+         snapshot = JSON.parse(serializeSafeJSSnapshot(resumed.snapshot));
+diff --git a/packages/safe-js/src/run.control.test.ts b/packages/safe-js/src/run.control.test.ts
+new file mode 100644
+index 000000000..9cec311a3
+--- /dev/null
++++ b/packages/safe-js/src/run.control.test.ts
+@@ -0,0 +1,274 @@
++import { setImmediate as turn } from "node:timers/promises";
++import { describe, expect, it, vi } from "vitest";
++import { Budget, createRealm, declareHostOperation, dump, run } from "./index.js";
++
++function deferred<T>() {
++  let resolve!: (value: T) => void;
++  const promise = new Promise<T>((complete) => {
++    resolve = complete;
++  });
++  return { promise, resolve };
++}
++
++describe.each([false, true])("execution controls with extensions=%s", (extensions) => {
++  it("holds guest continuations after a pending host operation settles", async () => {
++    const entered = deferred<void>();
++    const gate = deferred<number>();
++    const mark = vi.fn();
++    const task = run("const value = await wait(); mark(value); return value;", {
++      ...(extensions ? { extensions: [] } : {}),
++      bindings: {
++        wait: () => {
++          entered.resolve();
++          return gate.promise;
++        },
++        mark
++      }
++    });
++    try {
++      await entered.promise;
++      await task.pause();
++      expect(task.executionState).toBe("paused");
++      gate.resolve(7);
++      await turn();
++      await turn();
++      expect(mark).not.toHaveBeenCalled();
++      task.resume();
++      expect(await task).toMatchObject({ ok: true, returnValue: 7 });
++      expect(mark).toHaveBeenCalledExactlyOnceWith(7);
++      expect(task.executionState).toBe("finished");
++      await expect(task.pause()).rejects.toThrow("finished");
++    } finally {
++      gate.resolve(7);
++      if (task.executionState === "paused") task.resume();
++      await task.catch(() => undefined);
++    }
++  });
++
++  it("allows a host turn to pause CPU-bound guest work", async () => {
++    const budget = new Budget({ maxSteps: 100000 });
++    const task = run("let n = 0; for (let i = 0; i < 2000; i++) n++; return n;", {
++      budget,
++      ...(extensions ? { extensions: [] } : {})
++    });
++    try {
++      await turn();
++      await task.pause();
++      const stoppedAt = budget.stepsUsed;
++      expect(stoppedAt).toBeGreaterThan(0);
++      await turn();
++      expect(budget.stepsUsed).toBe(stoppedAt);
++      task.resume();
++      expect(await task).toMatchObject({ ok: true, returnValue: 2000 });
++      expect(budget.stepsUsed).toBeGreaterThan(stoppedAt);
++    } finally {
++      if (task.executionState === "paused") task.resume();
++      await task.catch(() => undefined);
++    }
++  });
++
++  it("cancels a paused run without allowing a later guest effect", async () => {
++    const controller = new AbortController();
++    const entered = deferred<void>();
++    const gate = deferred<void>();
++    const mark = vi.fn();
++    const reason = new Error("parent cancelled child");
++    const task = run("await wait(); mark();", {
++      signal: controller.signal,
++      ...(extensions ? { extensions: [] } : {}),
++      bindings: {
++        wait: () => {
++          entered.resolve();
++          return gate.promise;
++        },
++        mark
++      }
++    });
++    const outcome = task.catch((error: unknown) => error);
++    try {
++      await entered.promise;
++      await task.pause();
++      controller.abort(reason);
++      expect(await outcome).toMatchObject({ name: "Error", message: reason.message });
++      expect(mark).not.toHaveBeenCalled();
++      expect(task.executionState).toBe("finished");
++    } finally {
++      controller.abort(reason);
++      gate.resolve();
++      await outcome;
++    }
++  });
++
++  it("preserves an async function's synchronous prefix across a CPU pause", async () => {
++    const order: string[] = [];
++    const task = run(
++      "async function child() { for (let i = 0; i < 2000; i++) {} mark('child'); } const pending = child(); mark('parent'); await pending;",
++      {
++        ...(extensions ? { extensions: [] } : {}),
++        bindings: {
++          mark: (value: string) => {
++            order.push(value);
++          }
++        }
++      }
++    );
++    try {
++      await turn();
++      await task.pause();
++      expect(order).toEqual([]);
++      await turn();
++      expect(order).toEqual([]);
++      task.resume();
++      await task;
++      expect(order).toEqual(["child", "parent"]);
++    } finally {
++      if (task.executionState === "paused") task.resume();
++      await task.catch(() => undefined);
++    }
++  });
++});
++
++it("hands a checkpoint to a replacement only after stopping the paused original", async () => {
++  const entered = deferred<void>();
++  const gate = deferred<string>();
++  const controller = new AbortController();
++  const charge = vi.fn(() => {
++    entered.resolve();
++    return gate.promise;
++  });
++  const receipt = vi.fn();
++  const source =
++    'import { charge, receipt } from "work"; const value = await charge(); receipt(value); return value;';
++  const task = run(source, {
++    signal: controller.signal,
++    modules: {
++      work: {
++        charge: declareHostOperation(charge, "read-side-effect"),
++        receipt: declareHostOperation(receipt, "read-side-effect")
++      }
++    }
++  });
++  const outcome = task.catch((error: unknown) => error);
++  try {
++    await entered.promise;
++    await task.pause();
++    gate.resolve("confirmed");
++    await turn();
++    expect(receipt).not.toHaveBeenCalled();
++    const snapshot = JSON.parse(await dump(task));
++    controller.abort(new Error("handoff"));
++    expect(await outcome).toMatchObject({ name: "Error", message: "handoff" });
++    expect(() => task.resume()).toThrow("finished");
++    expect(receipt).not.toHaveBeenCalled();
++    const duplicate = vi.fn(() => {
++      throw new Error("must not repeat the charge");
++    });
++    const replacement = await run(source, {
++      snapshot,
++      modules: {
++        work: {
++          charge: declareHostOperation(duplicate, "read-side-effect"),
++          receipt: declareHostOperation(receipt, "read-side-effect")
++        }
++      }
++    });
++    expect(replacement).toMatchObject({ ok: true, returnValue: "confirmed" });
++    expect(charge).toHaveBeenCalledTimes(1);
++    expect(duplicate).not.toHaveBeenCalled();
++    expect(receipt).toHaveBeenCalledExactlyOnceWith("confirmed");
++  } finally {
++    gate.resolve("confirmed");
++    controller.abort(new Error("test cleanup"));
++    await outcome;
++  }
++});
++
++it("lets a parent pause and resume successive children independently", async () => {
++  const events: string[] = [];
++  let childNumber = 0;
++  const parent = await run("return [await child(), await child()];", {
++    bindings: {
++      child: async () => {
++        const number = ++childNumber;
++        const budget = new Budget({ maxSteps: 100000 });
++        const task = run("let n = 0; for (let i = 0; i < 2000; i++) n++; return n;", { budget });
++        try {
++          await turn();
++          await task.pause();
++          const stoppedAt = budget.stepsUsed;
++          events.push(`parent owns paused child ${number}`);
++          await turn();
++          expect(budget.stepsUsed).toBe(stoppedAt);
++          task.resume();
++          const result = await task;
++          events.push(`child ${number} finished`);
++          if (!result.ok) throw new Error(result.error.message);
++          return result.returnValue;
++        } finally {
++          if (task.executionState === "paused") task.resume();
++          await task.catch(() => undefined);
++        }
++      }
++    }
++  });
++  expect(parent).toMatchObject({ ok: true, returnValue: [2000, 2000] });
++  expect(events).toEqual([
++    "parent owns paused child 1",
++    "child 1 finished",
++    "parent owns paused child 2",
++    "child 2 finished"
++  ]);
++});
++
++it("dumps a paused live run without waiting for another guest yield", async () => {
++  const entered = deferred<void>();
++  const gate = deferred<void>();
++  const task = run("await wait(); return 9;", {
++    bindings: {
++      wait: () => {
++        entered.resolve();
++        return gate.promise;
++      }
++    }
++  });
++  try {
++    await entered.promise;
++    await task.pause();
++    const snapshot = JSON.parse(await dump(task));
++    expect(snapshot.sourceHash).toEqual(expect.any(String));
++    expect(snapshot.hostCalls).toHaveLength(1);
++    expect(task.executionState).toBe("paused");
++  } finally {
++    gate.resolve();
++    if (task.executionState === "paused") task.resume();
++    await task;
++  }
++});
++
++it("closes a paused persistent realm and revokes further execution", async () => {
++  const entered = deferred<void>();
++  const gate = deferred<void>();
++  const mark = vi.fn();
++  const realm = createRealm({
++    bindings: {
++      wait: () => {
++        entered.resolve();
++        return gate.promise;
++      },
++      mark
++    }
++  });
++  const task = realm.evaluate("await wait(); mark();").catch((error: unknown) => error);
++  try {
++    await entered.promise;
++    await realm.pause();
++    await realm.close();
++    expect(await task).toMatchObject({ name: "Error", message: "SafeJS realm is closed." });
++    expect(mark).not.toHaveBeenCalled();
++    expect(realm.executionState).toBe("finished");
++    await expect(realm.evaluate("return 1;")).rejects.toThrow();
++  } finally {
++    gate.resolve();
++    await realm.close();
++  }
++});
+diff --git a/packages/safe-js/src/run.ts b/packages/safe-js/src/run.ts
+index c4e4d91d6..f0eef7a84 100644
+--- a/packages/safe-js/src/run.ts
++++ b/packages/safe-js/src/run.ts
+@@ -1,4 +1,5 @@
+ import { createHostCallbackContext } from "#safe-js-platform";
++import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
+ import { runWithExtensions, type RealmOptions } from "./realm.js";
+ 
+ import { hashParsedAst, hashSource } from "./parse/hash.js";
+@@ -170,18 +171,27 @@ type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknow
+   : never;
+ 
+ export type RunResult = WithRunSnapshot<InterpreterResult>;
++export type RunPromise = Promise<RunResult> & ExecutionControl;
+ 
+ const DEFAULT_MAX_CALL_DEPTH = 1_000;
+ 
+-export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
+-  if (options.extensions !== undefined || options.builtinOverrides !== undefined)
+-    return runWithExtensions(source, options);
++export function run(source: string, options: RunOptions = {}): RunPromise {
++  const jobs = new SandboxJobQueue();
++  if (options.extensions !== undefined || options.builtinOverrides !== undefined) {
++    const result = runWithExtensions(source, options, jobs).finally(() => jobs.finish());
++    return attachExecutionControl(result, jobs, options.signal);
++  }
++  let capturePausedSnapshot: (() => RunSnapshot) | undefined;
+   const lifecycle = {
+     hostCallbackDepth: 0,
+     hostCallbackContext: createHostCallbackContext()
+   };
+-  const dumpController = createDumpController(lifecycle);
++  const dumpController = createDumpController(lifecycle, {
++    isPaused: () => jobs.executionState === "paused",
++    snapshot: () => capturePausedSnapshot?.()
++  });
+   const promiseTracker = createSandboxPromiseRejectionTracker();
++  const detachExecutionFailure = promiseTracker.onFatalRejection((error) => jobs.interrupt(error));
+   let completedSnapshot: RunSnapshot | undefined;
+   const execute = async () => {
+     const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
+@@ -409,9 +419,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
+               random,
+               sourceHash
+             });
++          capturePausedSnapshot = createFailureSnapshot;
+           let snapshotIteration = 0;
+ 
+           const topLevelResult = await interpret(createExecutableNode(module), {
++            jobs,
+             compilation,
+             budget,
+             captureReplayState: random.generator.snapshot,
+@@ -458,6 +470,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
+             entryPointArgs === undefined || !topLevelResult.ok
+               ? topLevelResult
+               : await callEntryPoint({
++                  jobs,
+                   args: entryPointArgs,
+                   budget,
+                   compilation,
+@@ -593,7 +606,12 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
+     throw error;
+   });
+ 
+-  return attachDumpController(result, dumpController);
++  const controlled = result.finally(() => {
++    capturePausedSnapshot = undefined;
++    detachExecutionFailure();
++    jobs.finish();
++  });
++  return attachExecutionControl(attachDumpController(controlled, dumpController), jobs, options.signal);
+ }
+ 
+ async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void> {
+@@ -632,6 +650,7 @@ async function throwIfUnhandledPromiseRejected(
+ }
+ 
+ async function callEntryPoint(input: {
++  jobs: SandboxJobQueue;
+   compilation: CompileScope;
+   args: readonly SandboxValue[];
+   budget: Budget;
+@@ -662,6 +681,7 @@ async function callEntryPoint(input: {
+   });
+ 
+   return interpret(createEntryPointAwait(input.args.length, input.module.span), {
++    jobs: input.jobs,
+     compilation: input.compilation,
+     signal: input.signal,
+     budget: input.budget,
+diff --git a/packages/safe-js/src/snapshot/dump.ts b/packages/safe-js/src/snapshot/dump.ts
+index 6a33280ae..96c365b06 100644
+--- a/packages/safe-js/src/snapshot/dump.ts
++++ b/packages/safe-js/src/snapshot/dump.ts
+@@ -43,7 +43,10 @@ export function attachDumpController(
+   return result;
+ }
+ 
+-export function createDumpController(lifecycle?: RunLifecycle): DumpController {
++export function createDumpController(lifecycle?: RunLifecycle, pause?: {
++  isPaused(): boolean;
++  snapshot(): RunSnapshot | undefined;
++}): DumpController {
+   let finished = false;
+   let failed:
+     | {
+@@ -100,6 +103,8 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
+       if (failed !== undefined) {
+         return Promise.reject(failed.error);
+       }
++      const paused = pausedSnapshot();
++      if (paused !== undefined) return paused;
+ 
+       if (latestSnapshot !== undefined || latestSnapshotFactory !== undefined) {
+         try {
+@@ -113,6 +118,8 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
+     },
+     requestSnapshot(options = {}) {
+       assertDumpAllowed(options);
++      const paused = pausedSnapshot();
++      if (paused !== undefined) return paused;
+       if (failed !== undefined) {
+         if (
+           (options.onFailure === "checkpoint" ||
+@@ -169,10 +176,21 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
+     }
+   };
+ 
++  function pausedSnapshot(): Promise<string> | undefined {
++    if (pause?.isPaused() !== true) return;
++    try {
++      const snapshot = pause.snapshot();
++      if (snapshot === undefined) throw new Error("Execution paused before snapshot initialization.");
++      return Promise.resolve(serializeRunSnapshot(snapshot));
++    } catch (error) {
++      return Promise.reject(error);
++    }
++  }
++
+   function assertDumpAllowed(options: DumpOptions): void {
+     if (
+       (lifecycle?.hostCallbackDepth ?? 0) > 0 &&
+-      (options.mode !== "replay" || lifecycle?.hostCallbackContext.getStore() === true)
++      ((options.mode !== "replay" && pause?.isPaused() !== true) || lifecycle?.hostCallbackContext.getStore() === true)
+     ) {
+       throw new SandboxError("reentry");
+     }
+diff --git a/packages/safe-js/src/snapshot/validation.ts b/packages/safe-js/src/snapshot/validation.ts
+index c23227cff..fb10e153d 100644
+--- a/packages/safe-js/src/snapshot/validation.ts
++++ b/packages/safe-js/src/snapshot/validation.ts
+@@ -137,6 +137,7 @@ export function validateDumpEnvelope(
+     limits,
+     validateTaggedPayloads: false
+   };
++  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
+   validateGenericValue(root, "$", 0, state);
+   validateRunSnapshotState(root, state);
+   validateDumpHeap(root, state);
+@@ -312,7 +313,25 @@ function validateDumpReferences(
+   }
+ }
+ 
+-function validateRunSnapshotState(root: Record<string, unknown>, state: ValidationState): void {
++function hasPlainDataFields(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
++  if (value === null || typeof value !== "object" || types.isProxy(value)) return false;
++  const prototype = Object.getPrototypeOf(value);
++  if (prototype !== null && prototype !== Object.prototype) return false;
++  return keys.every(key => {
++    const descriptor = Object.getOwnPropertyDescriptor(value, key);
++    return descriptor === undefined
++      ? prototype === null || Object.getOwnPropertyDescriptor(prototype, key) === undefined
++      : Object.hasOwn(descriptor, "value");
++  });
++}
++
++function canPreflightRunSnapshotScalars(root: Record<string, unknown>): boolean {
++  if (!hasPlainDataFields(root, ["clock", "random"])) return false;
++  return (root.clock === undefined || hasPlainDataFields(root.clock, ["next"])) &&
++    (root.random === undefined || hasPlainDataFields(root.random, ["seed", "state", "initialState", "resumeState"]));
++}
++
++function validateRunSnapshotScalars(root: Record<string, unknown>): void {
+   if (root.clock !== undefined) {
+     const clock = requireRecord(root.clock, "$.clock");
+     requireSafeInteger(clock.next, "$.clock.next", 0);
+@@ -325,6 +344,10 @@ function validateRunSnapshotState(root: Record<string, unknown>, state: Validati
+       if (random[field] !== undefined) requireSafeInteger(random[field], `$.random.${field}`, 0);
+     }
+   }
++}
++
++function validateRunSnapshotState(root: Record<string, unknown>, state: ValidationState): void {
++  validateRunSnapshotScalars(root);
+   if (root.loopIterations !== undefined) {
+     const iterations = requireRecord(root.loopIterations, "$.loopIterations");
+     for (const [nodeId, value] of Object.entries(iterations)) {

@@ -1,0 +1,43 @@
+{
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "sourceHash": "babb6a32e2a69931606306fe865366da0fd52a3d368c220b314b8f83a80321cc",
+  "files": 53876,
+  "fixtures": 294,
+  "variants": 102926,
+  "modes": {
+    "sloppy": 52031,
+    "strict": 50022,
+    "raw": 32,
+    "module": 841
+  },
+  "metadataErrors": 0,
+  "fixtureAssets": 20,
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "independentCrosscheck": true
+}

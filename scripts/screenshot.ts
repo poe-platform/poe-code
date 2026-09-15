@@ -6,7 +6,6 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
-import { renderTerminalPng } from "terminal-png";
 
 export function stripLeadingDashes(value: string): string {
   let cleaned = value;
@@ -418,6 +417,7 @@ export async function runScreenshot(
     return;
   }
 
+  const { renderTerminalPng } = await import("terminal-png");
   const commandProcess = spawn(spawnSpec.command, spawnSpec.args, {
     stdio: [screenshotKeys.length > 0 ? "pipe" : "ignore", "pipe", "pipe"],
     env: spawnSpec.env
@@ -487,6 +487,7 @@ async function runPtyScreenshot(opts: {
   screenshotKeys: readonly string[];
   captureDelayMs?: number;
 }): Promise<void> {
+  const { renderTerminalPng } = await import("terminal-png");
   const { TerminalPilot } = await import("terminal-pilot");
   const pilot = await (TerminalPilot as { launch(): Promise<PseudoTerminalPilot> }).launch();
   const size = resolvePtySize(process.env);

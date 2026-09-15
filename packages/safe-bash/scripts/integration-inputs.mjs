@@ -181,7 +181,7 @@ export function integrationExclusions(boundaries) {
 
 export function discoverTests(root, boundaries, fileSystem = fs) {
   const directories = [nativeData, ...boundaries.heldEvidenceDirectories, ...boundaries.fixtureDirectories.map(fixture => fixture.path)];
-  const files = fileSystem.globSync("tests/**/*.test.ts", {
+  const files = fileSystem.globSync(["tests/**/*.test.ts", "src/commands/op/op.test.ts"], {
     cwd: root,
     exclude: path => directories.some(directory => path === directory || path.startsWith(`${directory}/`)),
   }).sort();

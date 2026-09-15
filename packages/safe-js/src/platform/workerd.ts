@@ -3,6 +3,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { SandboxError } from "../interp/budget.js";
 import type { HostCallbackContext } from "../interp/host-callback-context.js";
 
+export const cloneSharedBufferWrapper: (value: SharedArrayBuffer) => SharedArrayBuffer = structuredClone;
+
 export function createHostCallbackContext(): HostCallbackContext {
   let storage: AsyncLocalStorage<boolean> | undefined = new AsyncLocalStorage<boolean>();
   return {

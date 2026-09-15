@@ -1,20 +1,25 @@
+import type { ContentAnnotations } from "../types.js";
 import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
 import { readRemoteBytes, type FromUrlOptions } from "./remote.js";
 
 export interface TextResourceContents {
   uri: string;
+  _meta?: Record<string, unknown>;
   mimeType: string;
   text: string;
 }
 
 export interface BlobResourceContents {
   uri: string;
+  _meta?: Record<string, unknown>;
   mimeType: string;
   blob: string;
 }
 
 export interface EmbeddedResource {
   type: "resource";
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
   resource: TextResourceContents | BlobResourceContents;
 }
 

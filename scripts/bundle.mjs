@@ -187,6 +187,19 @@ consumerBuilds.push(
 );
 
 const { entryPoints: providerEntryPoints, sourceNames: providerSourceNames } = await getProviderEntryPoints(rootDir);
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "packages/safe-bash/src/commands/op/index.ts")],
+    bundle: true,
+    platform: "node",
+    target: "es2022",
+    format: "esm",
+    outfile: path.join(rootDir, "packages/safe-bash/dist/commands/op/index.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin]
+  })
+);
 if (providerEntryPoints.length > 0) {
   consumerBuilds.push(
     await esbuild.build({

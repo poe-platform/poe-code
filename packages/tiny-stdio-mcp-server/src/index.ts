@@ -3,6 +3,7 @@ export { createServer } from "./server.js";
 export type {
   CustomMethodHandler,
   MessageHandler,
+  MessageRequestContext,
   MessageSession,
   MessageSessionContext,
   Server
@@ -10,7 +11,7 @@ export type {
 
 // Schema
 export { defineSchema } from "./schema.js";
-export type { TypedSchema } from "./schema.js";
+export type { TypedSchema, TypedOutputSchema } from "./schema.js";
 
 // Content helpers
 export {
@@ -19,7 +20,7 @@ export {
   File,
   toContentBlocks,
   fileTypeFromBuffer,
-  DEFAULT_FROM_URL_MAX_BYTES,
+  DEFAULT_FROM_URL_MAX_BYTES
 } from "./content/index.js";
 export type {
   ImageContent,
@@ -30,7 +31,7 @@ export type {
   ContentBlock,
   TextContent,
   FileTypeResult,
-  FromUrlOptions,
+  FromUrlOptions
 } from "./content/index.js";
 export type { ToolReturn } from "./content/index.js";
 
@@ -38,6 +39,8 @@ export type { ToolReturn } from "./content/index.js";
 export type {
   ServerOptions,
   ToolHandler,
+  HandlerRequestContext,
+  InputRequiredResult,
   ToolDefinition,
   Tool,
   ToolAnnotations,
@@ -63,6 +66,7 @@ export type {
   HandleResult,
   ContentItem,
   JSONSchema,
+  OutputSchema,
   JSONSchemaProperty,
   Transport,
   SDKTransport,
@@ -72,6 +76,8 @@ export type {
   JSONRPCMessage,
   JSONRPCNotification,
   InitializeResult,
+  Implementation,
+  DiscoverResult
 } from "./types.js";
 
 export { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";

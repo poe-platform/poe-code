@@ -84,6 +84,7 @@ export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./acp/renderer.js";
+export { streamAcpEventsToDashboard } from "./acp/dashboard-stream.js";
 export { createToolRenderState, sessionUpdateToEvents } from "./acp/session-update-converter.js";
 export type { ToolRenderState } from "./acp/session-update-converter.js";
 export type { LogEntry, MalformedSpawnLogRecord, ReadSpawnLogOptions } from "./acp/replay.js";
@@ -107,8 +108,8 @@ export type {
   SessionToolCall,
   SpawnContext as AcpSpawnContext
 } from "./acp/middleware.js";
-export { sessionCapture } from "./acp/middlewares/session-capture.js";
-export { usageCapture } from "./acp/middlewares/usage-capture.js";
+export { sessionCapture, sessionMetadataCapture } from "./acp/middlewares/session-capture.js";
+export { usageCapture, getCapturedUsage, captureAbortUsage } from "./acp/middlewares/usage-capture.js";
 export { spawnLog } from "./acp/middlewares/spawn-log.js";
 
 export type {

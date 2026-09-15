@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/async-rejection-policy-qualification.test.ts (4 tests) 100ms
+ ✓ packages/safe-js/test/async-job-order-qualification.test.ts (8 tests) 1353ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  04:39:28
+   Duration  3.87s (transform 3.14s, setup 75ms, import 4.20s, tests 1.45s, environment 0ms)

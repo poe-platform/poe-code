@@ -1,0 +1,49 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\n",
+  "cases": [
+    {
+      "name": "registry aliases and module identity",
+      "output": "rot-13 False True\nrot-13 False True\nrot-13 False True\nrot-13 False True\nundefined True True\nencodings.rot_13 encodings\n256 78 233\n"
+    },
+    {
+      "name": "ROT13 full byte range and supplementary scalars",
+      "output": "'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f !\"#$%&\\'()*+,-./0123456789:;<=>?@NOPQRSTUVWXYZABCDEFGHIJKLM[\\\\]^_`nopqrstuvwxyzabcdefghijklm{|}~\\x7f\\x80\\x81\\x82\\x83\\x84\\x85\\x86\\x87\\x88\\x89\\x8a\\x8b\\x8c\\x8d\\x8e\\x8f\\x90\\x91\\x92\\x93\\x94\\x95\\x96\\x97\\x98\\x99\\x9a\\x9b\\x9c\\x9d\\x9e\\x9f\\xa0\\xa1\\xa2\\xa3\\xa4\\xa5\\xa6\\xa7\\xa8\\xa9\\xaa\\xab\\xac\\xad\\xae\\xaf\\xb0\\xb1\\xb2\\xb3\\xb4\\xb5\\xb6\\xb7\\xb8\\xb9\\xba\\xbb\\xbc\\xbd\\xbe\\xbf\\xc0\\xc1\\xc2\\xc3\\xc4\\xc5\\xc6\\xc7\\xc8\\xc9\\xca\\xcb\\xcc\\xcd\\xce\\xcf\\xd0\\xd1\\xd2\\xd3\\xd4\\xd5\\xd6\\xd7\\xd8\\xd9\\xda\\xdb\\xdc\\xdd\\xde\\xdf\\xe0\\xe1\\xe2\\xe3\\xe4\\xe5\\xe6\\xe7\\xe8\\xe9\\xea\\xeb\\xec\\xed\\xee\\xef\\xf0\\xf1\\xf2\\xf3\\xf4\\xf5\\xf6\\xf7\\xf8\\xf9\\xfa\\xfb\\xfc\\xfd\\xfe\\xff\\ud800\\udcff\\U0001f40d'\nTrue\nUryyb, 世界!\nUryyb, 世界!\nUryyb, 世界!\nUryyb, 世界!\n"
+    },
+    {
+      "name": "ROT13 shared mutable mapping and session cache",
+      "output": "('expandedP', 3) ('expandedP', 3)\nexpandedP expandedP\n('ZBC', 3) ZBC\n"
+    },
+    {
+      "name": "ROT13 subtype evaluation order and callback failures",
+      "output": "('AB', 17)\n[65, 66, 'len']\nTrue [\"encoding with 'rot13' codec failed\"]\n"
+    },
+    {
+      "name": "ROT13 incremental state and arbitrary final values",
+      "output": "custom 0\nNo 🐍M \nNone 0 None 0\ncustom (b'', 0)\nNo 🐍M \nNone (b'', 0) None (b'', 0)\n"
+    },
+    {
+      "name": "ROT13 domain errors and encoder text rejection",
+      "output": "TypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\n'rot13' is not a text encoding; use codecs.encode() to handle arbitrary codecs\n'rot13' is not a text encoding; use codecs.encode() to handle arbitrary codecs\n"
+    },
+    {
+      "name": "ROT13 writers filters and failure order",
+      "output": "None None\nNone ['NOP', 'NoPq', 'Uryyb']\n('Hello', 5)\n"
+    },
+    {
+      "name": "undefined transformations always fail including empty input",
+      "output": "UnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nundefined encoding [\"encoding with 'undefined' codec failed\"]\nundefined encoding [\"decoding with 'undefined' codec failed\"]\n"
+    },
+    {
+      "name": "stream reads preserve text-domain failures and empty reads",
+      "output": "TypeError can't concat str to bytes\n[-1] b'' \nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\n[-1] b'' \n\n[-1] b'' \nTypeError can't concat str to bytes\n[-1] b'' \nUnicodeError undefined encoding\n[-1] b'' \n\n[-1] b'' \n"
+    },
+    {
+      "name": "ROT13 mapping invalid values and deletion order",
+      "output": "ValueError character mapping must be in range(0x110000) [\"encoding with 'rot13' codec failed\"]\nValueError character mapping must be in range(0x110000) [\"encoding with 'rot13' codec failed\"]\nTypeError character mapping must return integer, None or str [\"encoding with 'rot13' codec failed\"]\nTypeError character mapping must return integer, None or str [\"encoding with 'rot13' codec failed\"]\nB\nB\n"
+    },
+    {
+      "name": "undefined incremental and stream construction state",
+      "output": "ignored 0 None None 0\nignored (b'', 0) None None (b'', 0)\nTrue ignored\nundefined encoding\nTrue ignored\nundefined encoding\n"
+    }
+  ]
+}

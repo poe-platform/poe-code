@@ -1,0 +1,249 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import {readFileSync,writeFileSync} from 'node:fs';\nimport {decodeByteSource} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/byte-source-decoding.ts';\nimport {PythonRuntimeError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/error.ts';\nimport {ExecutionBudget,ExecutionLimitError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nconst reference=JSON.parse(readFileSync('/tmp/codec-source-fault-reference.json','utf8'));\nconst source=new TextEncoder().encode('# coding: source-fault-review\\nignored');\nconst rows=reference.rows.map(row=>{\n const failure=new PythonRuntimeError(row.name,'decoder failure');\n let actual;\n try{decodeByteSource(source,'fault.py',new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000}),()=>{throw failure;});actual={unexpectedSuccess:true};}\n catch(error){actual={type:error.name,message:error.message,same:error===failure};}\n return {...row,actual,typeMatches:actual.type===row.expected.type};\n});\nconst cancellation=[];\nfor(const row of reference.rows){\n const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000,signal:controller.signal});\n let terminal=false,retryTerminal=false;\n try{decodeByteSource(source,'fault.py',meter,()=>{controller.abort();throw new PythonRuntimeError(row.name,'decoder failure');});}\n catch(error){terminal=error instanceof ExecutionLimitError;}\n try{meter.checkpoint();}catch(error){retryTerminal=error instanceof ExecutionLimitError;}\n cancellation.push({name:row.name,terminal,retryTerminal});\n}\nconst output={...reference,driver:readFileSync('/tmp/codec-source-fault-review.mts','utf8'),oracleDriver:reference.driver,rows,cancellation,boundary:'External audit of native SourceByteDecoder failure handling, not public guest registry routing or final real-service compatibility evidence. Only exception type is compared across these different boundaries; raw native message rendering is retained without claiming equivalence.'};\nwriteFileSync('packages/safe-python/src/runtime/__snapshots__/codec-source-fault-review.json',JSON.stringify(output,null,2)+'\\n');\nconsole.log({typeMatches:rows.filter(row=>row.typeMatches).length,typeMismatches:rows.filter(row=>!row.typeMatches).map(row=>row.name),terminal:cancellation.filter(row=>row.terminal&&row.retryTerminal).length});\n",
+  "rows": [
+    {
+      "name": "LookupError",
+      "source": "import codecs\nfailure = LookupError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder failure (fault.py, line 0)",
+        "same": false,
+        "filename": "fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "LookupError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": false
+    },
+    {
+      "name": "IndexError",
+      "source": "import codecs\nfailure = IndexError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder failure (fault.py, line 0)",
+        "same": false,
+        "filename": "fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "IndexError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": false
+    },
+    {
+      "name": "KeyError",
+      "source": "import codecs\nfailure = KeyError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'decoder failure' (fault.py, line 0)",
+        "same": false,
+        "filename": "fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "KeyError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": false
+    },
+    {
+      "name": "ValueError",
+      "source": "import codecs\nfailure = ValueError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder failure (fault.py, line 0)",
+        "same": false,
+        "filename": "fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "ValueError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": false
+    },
+    {
+      "name": "UnicodeError",
+      "source": "import codecs\nfailure = UnicodeError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder failure (fault.py, line 0)",
+        "same": false,
+        "filename": "fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "UnicodeError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": false
+    },
+    {
+      "name": "TypeError",
+      "source": "import codecs\nfailure = TypeError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "TypeError",
+        "message": "decoder failure",
+        "same": true,
+        "filename": null,
+        "line": null,
+        "offset": null,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "TypeError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": true
+    },
+    {
+      "name": "RuntimeError",
+      "source": "import codecs\nfailure = RuntimeError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "decoder failure",
+        "same": true,
+        "filename": null,
+        "line": null,
+        "offset": null,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "RuntimeError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": true
+    },
+    {
+      "name": "OverflowError",
+      "source": "import codecs\nfailure = OverflowError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "OverflowError",
+        "message": "decoder failure",
+        "same": true,
+        "filename": null,
+        "line": null,
+        "offset": null,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "OverflowError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": true
+    },
+    {
+      "name": "MemoryError",
+      "source": "import codecs\nfailure = MemoryError('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n",
+      "expected": {
+        "type": "MemoryError",
+        "message": "decoder failure",
+        "same": true,
+        "filename": null,
+        "line": null,
+        "offset": null,
+        "text": null,
+        "endLine": null,
+        "endOffset": null
+      },
+      "actual": {
+        "type": "MemoryError",
+        "message": "decoder failure",
+        "same": true
+      },
+      "typeMatches": true
+    }
+  ],
+  "oracleDriver": "import codecs, json, platform, sys, unicodedata\nfrom pathlib import Path\nrows=[]\nfor name in ['LookupError','IndexError','KeyError','ValueError','UnicodeError','TypeError','RuntimeError','OverflowError','MemoryError']:\n    source=f'''import codecs\nfailure = {name}('decoder failure')\ndef decode(data, errors='strict'):\n    raise failure\ndef search(name):\n    if name == 'source_fault_review':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ntry:\n    compile(b'# coding: source-fault-review\\\\nignored', 'fault.py', 'exec')\nexcept BaseException as error:\n    result = dict(type=type(error).__name__, message=str(error), same=error is failure,\n        filename=getattr(error, 'filename', None), line=getattr(error, 'lineno', None),\n        offset=getattr(error, 'offset', None), text=getattr(error, 'text', None),\n        endLine=getattr(error, 'end_lineno', None), endOffset=getattr(error, 'end_offset', None))\nfinally:\n    codecs.unregister(search)\n'''\n    namespace={}\n    exec(source,namespace)\n    rows.append(dict(name=name,source=source,expected=namespace['result']))\nPath('/tmp/codec-source-fault-reference.json').write_text(json.dumps(dict(oracle=dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder),driver=Path(__file__).read_text(),rows=rows),indent=2)+'\\n')\nprint([(row['name'],row['expected']['type'],row['expected']['message']) for row in rows])\n",
+  "cancellation": [
+    {
+      "name": "LookupError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "IndexError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "KeyError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "ValueError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "UnicodeError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "TypeError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "RuntimeError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "OverflowError",
+      "terminal": true,
+      "retryTerminal": true
+    },
+    {
+      "name": "MemoryError",
+      "terminal": true,
+      "retryTerminal": true
+    }
+  ],
+  "boundary": "External audit of native SourceByteDecoder failure handling, not public guest registry routing or final real-service compatibility evidence. Only exception type is compared across these different boundaries; raw native message rendering is retained without claiming equivalence."
+}

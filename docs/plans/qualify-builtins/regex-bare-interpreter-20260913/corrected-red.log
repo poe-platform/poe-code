@@ -1,0 +1,67 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts (4 tests | 1 failed) 87ms
+   × splits with a regex literal when using the interpreter without installed globals 9ms
+   ✓ preserves string fallback after delete RegExp.prototype[Symbol.split] 32ms
+   ✓ preserves string fallback after RegExp.prototype[Symbol.split] = undefined 18ms
+   ✓ respects an explicitly null regex prototype and its string conversion 27ms
+FAIL packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts > splits with a regex literal when using the interpreter without installed globals
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ 'a', 'a' ] }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "a",
+-     "a",
++     "abba",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts:9:6
+      7|   const parsed = parseModule("return 'abba'.split(/b+/)");
+      8|   expect(await interpret({ type: "BlockStatement", body: parsed.body, …
+      9|     .toMatchObject({ ok: true, returnValue: ["a", "a"] });
+       |      ^
+     10| });
+     11|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts > splits with a regex literal when using the interpreter without installed globals
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ 'a', 'a' ] }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "a",
+-     "a",
++     "abba",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts:9:6
+      7|   const parsed = parseModule("return 'abba'.split(/b+/)");
+      8|   expect(await interpret({ type: "BlockStatement", body: parsed.body, …
+      9|     .toMatchObject({ ok: true, returnValue: ["a", "a"] });
+       |      ^
+     10| });
+     11|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:58:40
+   Duration  1.90s (transform 1.34s, setup 32ms, import 1.72s, tests 87ms, environment 0ms)
+

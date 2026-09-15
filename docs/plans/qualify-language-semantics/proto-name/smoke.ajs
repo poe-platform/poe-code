@@ -1,0 +1,2 @@
+const proto = Object.getPrototypeOf({__proto__: function () { return 7; }});
+return [proto.name, proto(), proto.constructor("return typeof process")()];

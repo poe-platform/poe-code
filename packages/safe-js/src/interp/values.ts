@@ -1,3 +1,5 @@
+import { readNativeMap, readNativeSet } from "./native-collections.js";
+import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
@@ -22,7 +24,7 @@ import { getCollectionProperties, collectionGuestProperties, copyCollectionPrope
 export { getCollectionProperties } from "./collection-properties.js";
 export { getRegexProperties } from "./regexp-properties.js";
 import { retainedAccessorClosures } from "./accessors.js";
-import { retainValues } from "./resources.js";
+import { retainValues, runResources } from "./resources.js";
 import { errorPrototypes } from "./error-prototypes.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
@@ -105,6 +107,7 @@ const sandboxPromiseBrand = Symbol("SandboxPromise");
 const sandboxRegexBrand = Symbol("SandboxRegex");
 const sandboxRegexPattern = Symbol("SandboxRegexPattern");
 const sandboxRetainedValues = Symbol("SandboxRetainedValues");
+export const snapshotRuntimeGetters = new WeakSet<() => unknown>();
 for (const marker of [sandboxClosureBrand, sandboxGeneratorBrand, sandboxPromiseBrand, sandboxRegexBrand, sandboxRegexPattern, sandboxRetainedValues]) internalSymbols.add(marker);
 
 export type SandboxPrimitive = string | number | bigint | boolean | symbol | null | undefined;
@@ -126,6 +129,24 @@ export type SandboxValue =
   | SandboxSet
   | SandboxPromise
   | SandboxRegex;
+
+// Copied ordinary data can have null-backed storage without a semantic null prototype.
+export const copiedPlainObjects = new WeakSet<object>();
+
+export function assertNativeProxyCopyable(value: unknown): void {
+  if ((typeof value !== "object" || value === null) && typeof value !== "function") return;
+  if (nodeTypes.isProxy(value)) {
+    if (isNumericTypedArray(value) || isTrackedIntrinsicObject(value) ||
+        mappedArgumentStates.has(value as import("./arguments.js").SandboxArguments) || isSandboxModuleNamespace(value)) return;
+    throw new TypeError("Unsupported proxy sandbox value.");
+  }
+  let prototype = Object.getPrototypeOf(value);
+  for (let depth = 1; prototype !== null; depth++) {
+    assertSandboxDataDepth(depth);
+    if (nodeTypes.isProxy(prototype)) throw new TypeError("Unsupported proxy sandbox value.");
+    prototype = Object.getPrototypeOf(prototype);
+  }
+}
 
 export type SandboxObject = {
   [key: string]: SandboxValue;
@@ -242,6 +263,7 @@ export type SandboxGenerator = {
 type CopyFromSandboxOptions = {
   wrapClosure?: (value: SandboxClosure) => unknown;
   unwrapHostObject?: (value: SandboxObject) => unknown;
+  onSharedBuffer?: (value: SharedArrayBuffer) => void;
   compilation?: CompileScope;
 };
 
@@ -321,9 +343,9 @@ export function createSandboxClosure(input: {
   }
 
   if (input.guest === true) registerGuestClosure(closure);
-  Object.defineProperty(closure, "properties", {
-    get: () => getGuestFunctionProperties(closure)
-  });
+  const readProperties = () => getGuestFunctionProperties(closure);
+  snapshotRuntimeGetters.add(readProperties);
+  Object.defineProperty(closure, "properties", { get: readProperties });
   if (input.guest !== true && input.properties !== undefined) {
     const properties = typeof input.properties === "function" ? input.properties(closure) : input.properties;
     const target = materializeFunctionProperties(closure, properties);
@@ -416,6 +438,8 @@ export function createSandboxPromise(
       return readPromiseCancellation(sandboxPromise, original);
     }
   } as SandboxPromise;
+
+  snapshotRuntimeGetters.add(Object.getOwnPropertyDescriptor(sandboxPromise, "promise")!.get!);
 
   if (metadata.trackReplay !== false)
     promiseReplayContext.getStore()?.registerPromiseValue(sandboxPromise, original);
@@ -920,8 +944,9 @@ export function measureSandboxData(
       let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
       // Capture before visiting: retained callbacks can mutate later properties.
       for (const key of symbols) {
-        if (!internalSymbols.has(key))
-          (descriptors ??= []).push([key, Object.getOwnPropertyDescriptor(value, key)!]);
+        if (internalSymbols.has(key)) continue;
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
       }
       if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;
@@ -1177,6 +1202,7 @@ export function measureSandboxData(
       for (const key of Reflect.ownKeys(getPromiseProperties(value))) {
         const descriptor = Object.getOwnPropertyDescriptor(getPromiseProperties(value), key)!;
         usage += typeof key === "string" ? key.length + 1 : 1;
+        if (typeof key === "symbol") visit(key, depth + 1);
         if ("value" in descriptor) visit(descriptor.value, depth + 1);
         else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
       }
@@ -1342,6 +1368,7 @@ function copyToSandbox(
   depth = 0
 ): SandboxValue {
   assertSandboxDataDepth(depth);
+  assertNativeProxyCopyable(value);
   if (state.structuredClone && (isSandboxPromise(value) || nodeTypes.isPromise(value)))
     throw new DOMException("Promises cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && typeof value === "symbol")
@@ -1578,6 +1605,7 @@ function copyToSandbox(
         });
       }
     }
+    if (!state.structuredClone && runResources.getStore()?.hostDataMetadata !== false && !Object.isExtensible(original)) Object.preventExtensions(copy);
     return copy;
   }
 
@@ -1625,7 +1653,8 @@ function copyToSandbox(
     nativePromises.set(value, sandboxPromise);
     const properties = getPromiseProperties(sandboxPromise);
     for (const [key, descriptor] of descriptors) {
-      Object.defineProperty(properties, state.compilation?.owner?.budget.allocateString(key) ?? key, { ...descriptor,
+      if (typeof key === "symbol" && key.description !== undefined) state.compilation?.owner?.budget.allocateString(key.description);
+      Object.defineProperty(properties, typeof key === "string" ? state.compilation?.owner?.budget.allocateString(key) ?? key : key, { ...descriptor,
         value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(properties);
@@ -1724,10 +1753,11 @@ function copyToSandbox(
       return existing;
     }
 
+    const native = readNativeMap(value, state.structuredClone);
     const copy = createSandboxMap();
     state.seen.set(value, copy);
     if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
-    for (const [key, entry] of value) {
+    for (const [key, entry] of native.entries) {
       copy.entries.set(
         copyToSandbox(key, state, `${path}.<key>`, cloneSandboxCollections, depth + 1),
         copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
@@ -1742,10 +1772,11 @@ function copyToSandbox(
       return existing;
     }
 
+    const native = readNativeSet(value, state.structuredClone);
     const copy = createSandboxSet();
     state.seen.set(value, copy);
     if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
-    for (const entry of value) {
+    for (const entry of native.entries) {
       copy.values.add(
         copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
       );
@@ -1799,7 +1830,10 @@ function copyToSandbox(
     const copy = createPlainObject(
       !state.structuredClone && (!cloneSandboxCollections || Object.getPrototypeOf(value) === null)
     );
-    if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
+    if (!state.structuredClone && (hasNullObjectPrototype(value) ||
+        (!cloneSandboxCollections && runResources.getStore()?.hostDataMetadata !== false && !copiedPlainObjects.has(value) && !hasExplicitSandboxPrototype(value) && Object.getPrototypeOf(value) === null)))
+      setSandboxPrototype(copy, null);
+    copiedPlainObjects.add(copy);
     state.seen.set(value, copy);
     const errorType = sandboxErrorTypes.get(value);
     if (errorType !== undefined) sandboxErrorTypes.set(copy, errorType);
@@ -1844,7 +1878,7 @@ function copyFromSandbox(
     return options.unwrapHostObject(value);
   }
 
-  if (nodeTypes.isProxy(value) && !isNumericTypedArray(value) && !isTrackedIntrinsicObject(value) && !mappedArgumentStates.has(value as import("./arguments.js").SandboxArguments)) throw new TypeError("Unsupported proxy sandbox value.");
+  assertNativeProxyCopyable(value);
   if (sandboxErrorTypes.has(value) && hasExplicitSandboxPrototype(value)) {
     const prototype = getSandboxPrototype(value);
     let nativePrototype: object | null = null;
@@ -1990,6 +2024,7 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = isSandboxDataView(value) ? copyDataViewStorage(value, state) : copyArrayBufferStorage(value, state);
     state.seen.set(value, copy);
+    if (isSandboxSharedArrayBuffer(copy)) options.onSharedBuffer?.(copy);
     if (isSandboxDataView(value)) copyFromSandbox(dataViewBuffer(value), state, `${path}.buffer`, options, depth + 1);
     for (const [key, descriptor] of isSandboxDataView(value) ? dataViewDataProperties(value) : arrayBufferDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor,
@@ -2421,7 +2456,7 @@ function describeValue(value: unknown): string {
   }
 
   if (typeof value === "object" && value !== null) {
-    return value.constructor?.name ?? "Object";
+    return nativeConstructorName(value) ?? "Object";
   }
 
   return typeof value;

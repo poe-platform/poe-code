@@ -1,0 +1,28 @@
+[
+  {
+    "package": "safe-fs",
+    "version": "0.1.563",
+    "command": [
+      "node",
+      "--input-type=module",
+      "-e",
+      "import assert from 'node:assert/strict';import {createMemoryFileSystem} from '@poe-platform/safe-fs';const fs=createMemoryFileSystem();await fs.writeFile('/oracle.txt',new TextEncoder().encode('oracle'));assert.equal(new TextDecoder().decode(await fs.readFile('/oracle.txt')),'oracle');console.log('SafeFS: explicit memory filesystem write/read passed');"
+    ],
+    "exitCode": 0,
+    "stdout": "SafeFS: explicit memory filesystem write/read passed\n",
+    "stderr": ""
+  },
+  {
+    "package": "@poe-platform/safe-bash",
+    "version": "0.1.563",
+    "command": [
+      "node",
+      "--input-type=module",
+      "-e",
+      "import assert from 'node:assert/strict';import {Shell,createAgentCommands} from '@poe-platform/safe-bash';import {createMemoryFileSystem} from '@poe-platform/safe-fs';const shell=new Shell({fs:createMemoryFileSystem()});try{assert.equal((await shell.exec('printf oracle-artifact')).exitCode,127);const printf=createAgentCommands().find(c=>c.name==='printf');assert.ok(printf);shell.register(printf);const r=await shell.exec('printf oracle-artifact');assert.equal(r.exitCode,0);assert.equal(r.stdout,'oracle-artifact');console.log('Safe Bash: absent command rejected; explicitly registered printf with memory filesystem passed');}finally{await shell.dispose();}"
+    ],
+    "exitCode": 0,
+    "stdout": "Safe Bash: absent command rejected; explicitly registered printf with memory filesystem passed\n",
+    "stderr": ""
+  }
+]

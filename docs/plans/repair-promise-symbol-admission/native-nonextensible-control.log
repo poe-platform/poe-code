@@ -1,0 +1,16 @@
+node:internal/async_hooks:434
+  return object[async_id_symbol] = newAsyncId();
+                                 ^
+
+TypeError: Cannot add property Symbol(async_id_symbol), object is not extensible
+    at getOrSetAsyncId (node:internal/async_hooks:434:34)
+    at trackPromise (node:internal/async_hooks:321:35)
+    at promiseInitHook (node:internal/async_hooks:329:3)
+    at Promise.then (<anonymous>)
+    at file:///Users/kjopek/Workspace/poe-code/[eval1]:1:152
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:282:26)
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:278:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.2

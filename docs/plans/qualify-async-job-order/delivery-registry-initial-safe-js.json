@@ -1,0 +1,26 @@
+{
+  "version": "0.1.568",
+  "dist": {
+    "shasum": "8e106a786e0765375149e5c552b8320070b33bee",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.568.tgz",
+    "fileCount": 374,
+    "integrity": "sha512-wVxaBbhme5hFCV5KNUEOLNfLb/NOHNXl8fKcHKLDZzeqWFy7aTOOPPrK3rB9mUU4owSI4AxS8D5sYC1pB7sMgA==",
+    "signatures": [
+      {
+        "sig": "MEQCIGq1X45/NaO9tywKBCGM9qW/CN6UxhzK8/HCqXsdByMVAiAdVfHjb4AXDiWFsnuG9RUsnK1BV0eg9nOSwUbjvqJUew==",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEUCICGF3wzJ3gDtwBJi3dmfTV6I0vqv/TJwfBi1C1OuXs5UAiEA7eUtugSv9Xd85yRsqzAFy7QXH39+XsmbRBlaOYUjazk="
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.568",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 42938607
+  }
+}

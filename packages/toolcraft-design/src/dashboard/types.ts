@@ -1,6 +1,8 @@
 export type OutputItemKind = "info" | "success" | "error" | "tool" | "status";
 
 export type OutputItem = {
+  /** Reusing an id replaces its retained preview in place, without changing held history. */
+  id?: string;
   kind: OutputItemKind;
   text: string;
   ts: number;
@@ -16,7 +18,19 @@ export type DashboardStats = {
   currentAction?: string;
 };
 
-export type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry" | "view-log";
+export type Command =
+  | "quit"
+  | "forceQuit"
+  | "edit"
+  | "pause"
+  | "retry"
+  | "view-log"
+  | "scroll-up"
+  | "scroll-down"
+  | "page-up"
+  | "page-down"
+  | "follow"
+  | "render-stats";
 
 export type DashboardState = {
   output: OutputItem[];

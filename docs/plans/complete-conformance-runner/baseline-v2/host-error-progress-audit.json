@@ -1,0 +1,35 @@
+{
+  "counts": {
+    "reentry": 6,
+    "budgetExceeded": 22
+  },
+  "examples": {
+    "reentry": {
+      "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+      "result": {
+        "mode": "sloppy",
+        "status": "failed",
+        "reason": "host-error",
+        "detail": {
+          "phase": "host",
+          "message": "Sandbox object is already running.",
+          "code": "reentry"
+        }
+      }
+    },
+    "budgetExceeded": {
+      "filename": "built-ins/RegExp/S15.10.2.8_A3_T15.js",
+      "result": {
+        "mode": "sloppy",
+        "status": "failed",
+        "reason": "host-error",
+        "detail": {
+          "phase": "host",
+          "message": "Sandbox budget exceeded for dataDepth: 65 > 64.",
+          "code": "budgetExceeded",
+          "budget": "dataDepth"
+        }
+      }
+    }
+  }
+}

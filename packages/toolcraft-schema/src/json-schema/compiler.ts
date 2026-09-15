@@ -73,6 +73,7 @@ const builtInRegistry: Record<string, unknown> = {
 };
 
 export interface CompiledGraph {
+  formats: ReadonlyMap<string, (value: string) => boolean>;
   root: SchemaNode;
   locations: Map<string, SchemaNode>;
   resources: Map<string, SchemaNode>;
@@ -207,6 +208,11 @@ export function compileGraph(
   schema: unknown,
   options: CompileJsonSchemaOptions = {}
 ): CompiledGraph {
+  const formats = new Map(Object.entries(options.formats ?? {}));
+  for (const [name, validator] of formats) {
+    if (typeof validator !== "function") throw new Error(`Format validator must be a function: ${name}`);
+  }
+
   if (!isSchema(schema)) {
     throw new Error("JSON Schema must be a boolean or object.");
   }
@@ -503,6 +509,7 @@ export function compileGraph(
   }
 
   return {
+    formats,
     root,
     locations,
     resources,

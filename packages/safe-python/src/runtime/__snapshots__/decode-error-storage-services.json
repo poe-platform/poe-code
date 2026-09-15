@@ -1,0 +1,54 @@
+{
+  "source": "import codecs\nfor name, data in (('ascii', b'\\xffA'), ('utf_8', b'\\xffA'), ('utf_7', b'+A!'), ('utf_16_le', b'\\x00\\xdcA\\x00'), ('utf_32_le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00'), ('unicode_escape', b'\\x5cxZ'), ('raw_unicode_escape', b'\\x5cuZ')):\n    for outcome in ('return', 'negative', 'raise'):\n        seen = []\n        failure = ValueError('guest failure')\n        def recover(error):\n            input()\n            seen.append((error.encoding, error.object, error.start, error.end, error.reason))\n            if outcome == 'raise':\n                raise failure\n            return ('?', error.end if outcome == 'return' else -len(error.object)-1)\n        codecs.register_error('snapshot-service', recover)\n        try:\n            print(name, outcome, getattr(codecs, name + '_decode')(data, 'snapshot-service'))\n        except Exception as error:\n            print(name, outcome, type(error).__name__, error.args, error is failure, error.__traceback__ is not None)\n        print(seen)\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracle": {
+    "status": 0,
+    "stdout": "ascii return ('?A', 2)\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nascii negative IndexError ('position -1 from error handler out of bounds',) False True\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nascii raise ValueError ('guest failure',) True True\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nutf_8 return ('?A', 2)\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_8 negative IndexError ('position -1 from error handler out of bounds',) False True\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_8 raise ValueError ('guest failure',) True True\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_7 return ('?', 3)\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_7 negative IndexError ('position -1 from error handler out of bounds',) False True\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_7 raise ValueError ('guest failure',) True True\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_16_le return ('?A', 4)\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_16_le negative IndexError ('position -1 from error handler out of bounds',) False True\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_16_le raise ValueError ('guest failure',) True True\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_32_le return ('?A', 8)\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nutf_32_le negative IndexError ('position -1 from error handler out of bounds',) False True\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nutf_32_le raise ValueError ('guest failure',) True True\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nunicode_escape return ('?Z', 3)\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nunicode_escape negative IndexError ('position -1 from error handler out of bounds',) False True\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nunicode_escape raise ValueError ('guest failure',) True True\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nraw_unicode_escape return ('?Z', 3)\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\nraw_unicode_escape negative IndexError ('position -1 from error handler out of bounds',) False True\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\nraw_unicode_escape raise ValueError ('guest failure',) True True\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\n",
+    "stderr": ""
+  },
+  "rows": [
+    {
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 21,
+      "writes": 252,
+      "stdout": "ascii return ('?A', 2)\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nascii negative IndexError ('position -1 from error handler out of bounds',) False False\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nascii raise ValueError ('guest failure',) True False\n[('ascii', b'\\xffA', 0, 1, 'ordinal not in range(128)')]\nutf_8 return ('?A', 2)\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_8 negative IndexError ('position -1 from error handler out of bounds',) False False\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_8 raise ValueError ('guest failure',) True False\n[('utf-8', b'\\xffA', 0, 1, 'invalid start byte')]\nutf_7 return ('?', 3)\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_7 negative IndexError ('position -1 from error handler out of bounds',) False False\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_7 raise ValueError ('guest failure',) True False\n[('utf7', b'+A!', 0, 3, 'partial character in shift sequence')]\nutf_16_le return ('?A', 4)\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_16_le negative IndexError ('position -1 from error handler out of bounds',) False False\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_16_le raise ValueError ('guest failure',) True False\n[('utf-16-le', b'\\x00\\xdcA\\x00', 0, 2, 'illegal encoding')]\nutf_32_le return ('?A', 8)\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nutf_32_le negative IndexError ('position -1 from error handler out of bounds',) False False\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nutf_32_le raise ValueError ('guest failure',) True False\n[('utf-32-le', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)')]\nunicode_escape return ('?Z', 3)\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nunicode_escape negative IndexError ('position -1 from error handler out of bounds',) False False\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nunicode_escape raise ValueError ('guest failure',) True False\n[('unicodeescape', b'\\\\xZ', 0, 2, 'truncated \\\\xXX escape')]\nraw_unicode_escape return ('?Z', 3)\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\nraw_unicode_escape negative IndexError ('position -1 from error handler out of bounds',) False False\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\nraw_unicode_escape raise ValueError ('guest failure',) True False\n[('rawunicodeescape', b'\\\\uZ', 0, 2, 'truncated \\\\uXXXX escape')]\n",
+      "matches": false
+    },
+    {
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "matches": false,
+      "execIdentity": true,
+      "evalIdentity": true
+    },
+    {
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "matches": false,
+      "execIdentity": true,
+      "evalIdentity": true
+    }
+  ]
+}

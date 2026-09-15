@@ -468,6 +468,8 @@ function assertSource7Discovery(files) {
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/shell/background-jobs.test.ts",
+    "tests/shell/background-jobs-review.test.ts",
     "tests/shell/globstar.test.ts",
     "tests/shell/prefix-names.test.ts",
     "tests/shell/parameter-transforms.test.ts",
@@ -2129,12 +2131,25 @@ test("discovery preserves YQ and neighboring failures while pruning explicit dat
   ];
   const fileSystem = {
     globSync(pattern, options) {
-      assert.equal(pattern, "tests/**/*.test.ts");
+      assert.deepEqual(pattern, ["tests/**/*.test.ts", "src/commands/op/op.test.ts"]);
       assert.equal(options.cwd, "/package");
       return candidates.filter(path => !options.exclude(path));
     },
   };
   assert.deepEqual(discoverTests("/package", boundary, fileSystem), candidates.slice(0, 6).sort());
+});
+
+test("maintained discovery includes both exact op adapter suites", () => {
+  const names = ["src/commands/op/op.test.ts", "tests/commands/op-independent.test.ts"];
+  const files = discoverTests("/package", boundary, {
+    globSync(patterns, options) {
+      assert.deepEqual(patterns, ["tests/**/*.test.ts", names[0]]);
+      return names.filter(path => !options.exclude(path));
+    }
+  });
+  for (const name of names) {
+    assert.equal(files.filter(path => path === name).length, 1, name);
+  }
 });
 
 test("empty discovery fails rather than reporting a green suite", () => {

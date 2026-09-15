@@ -1,0 +1,5054 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "metadata": {
+    "a2b_base64": {
+      "doc": "Decode a line of base64 data.\n\n  strict_mode\n    When set to True, bytes that are not part of the base64 standard are not allowed.\n    The same applies to excess data after padding (= / ==).",
+      "textSignature": "($module, data, /, *, strict_mode=False)"
+    },
+    "b2a_base64": {
+      "doc": "Base64-code line of data.",
+      "textSignature": "($module, data, /, *, newline=True)"
+    }
+  },
+  "cases": [
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "001083"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "00"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "0000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Excess data after padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Excess data after padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Leading padding not allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Leading padding not allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "000000"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Incorrect padding"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "Error",
+        "message": "Only base64 data is allowed"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() got an unexpected keyword argument 'oops'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() got an unexpected keyword argument 'data'"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes exactly 1 positional argument (2 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (5 given)"
+      }
+    },
+    {
+      "name": "a2b_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "51513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "51513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "51513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "51513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "51513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "51513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5155493d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155493d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5155493d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155493d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155493d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4142"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5155493d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "51554a440a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "51554a44"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "51554a440a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "51554a44"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "51554a44"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "414243"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "51554a440a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "51554a4452413d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "51554a4452413d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "51554a4452413d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "51554a4452413d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "51554a4452413d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41424344"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "51554a4452413d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5155453950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155453950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5155453950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155453950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155453950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5155453950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5155464250513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155464250513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5155464250513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155464250513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155464250513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "4141413d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5155464250513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5155464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5155464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5155464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "51554539505546420a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155453950554642"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "51554539505546420a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155453950554642"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155453950554642"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41413d3d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "51554539505546420a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5154314251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5154314251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5154314251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5154314251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5154314251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "413d4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5154314251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5054303950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5054303950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5054303950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5054303950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5054303950513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "3d3d3d3d"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5054303950513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "5155454b5155453d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "5155454b5155453d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "5155454b5155453d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "5155454b5155453d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "5155454b5155453d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41410a4141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "5155454b5155453d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "4955464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "4955464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "4955464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "4955464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "4955464251513d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "21414141"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "4955464251513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "2f773d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "2f773d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "2f773d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "2f773d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "hex": "2f773d3d"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "ff"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "hex": "2f773d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "QQ=="
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "list",
+          []
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "list",
+          []
+        ]
+      ],
+      "kwargs": {
+        "newline": [
+          "str",
+          "false"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes exactly 1 positional argument (0 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() got an unexpected keyword argument 'oops'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() got an unexpected keyword argument 'data'"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "51513d3d0a"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes exactly 1 positional argument (2 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "oops": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "strict_mode": [
+          "int",
+          "1"
+        ],
+        "newline": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (5 given)"
+      }
+    },
+    {
+      "name": "b2a_base64",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_base64() takes at most 2 arguments (3 given)"
+      }
+    }
+  ],
+  "driver": "import binascii,json,sys,unicodedata\nassert sys.version_info[:3] == (3,14,7) and unicodedata.unidata_version == '16.0.0'\ncases=[]\ndef spec(x):\n if isinstance(x,bytes): return ['bytes',x.hex()]\n if isinstance(x,str): return ['str',x]\n if x is None: return ['none']\n if isinstance(x,list): return ['list',x]\n return ['int',str(x)]\nfor name in ['a2b_base64','b2a_base64']:\n f=getattr(binascii,name); option='strict_mode' if name=='a2b_base64' else 'newline'\n inputs=[b'', b'A',b'AB',b'ABC',b'ABCD',b'AA==',b'AAA=',b'AAAA',b'AA==AA',b'A=AA',b'====',b'AA\\nAA',b'!AAA',b'\\xff', '', 'QQ==','\u00e9','\\ud800',None,1,[]]\n calls=[([x],kw) for x in inputs for kw in [{},{option:0},{option:1},{option:None},{option:[]},{option:'false'}]]\n calls += [(args,kw) for args in [[],[b'A'],[b'A',1],[b'A',1,2]] for kw in [{'oops':1},{'data':b'A'},{'strict_mode':1,'newline':1},{}]]\n for args,kw in calls:\n  try: result={'hex':f(*args,**kw).hex()}\n  except BaseException as e: result={'error':type(e).__name__,'message':str(e)}\n  cases.append({'name':name,'args':[spec(x) for x in args],'kwargs':{k:spec(v) for k,v in kw.items()},'result':result})\nmetadata={name:{'doc':getattr(binascii,name).__doc__,'textSignature':getattr(binascii,name).__text_signature__} for name in ['a2b_base64','b2a_base64']}\nwith open('packages/safe-python/src/runtime/__snapshots__/base64-native-binding-3.14.7.json','w') as f:\n json.dump({'version':sys.version,'unicode':unicodedata.unidata_version,'metadata':metadata,'cases':cases,'driver':open(__file__).read()},f,indent=2)\nprint(len(cases))\n"
+}

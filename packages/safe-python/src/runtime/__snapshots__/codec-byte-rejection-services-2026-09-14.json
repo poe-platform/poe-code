@@ -1,0 +1,66 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "executable": "/opt/homebrew/bin/python3.14",
+  "metadataSource": "import sys, unicodedata, json; print(json.dumps(dict(version=sys.version, unicode=unicodedata.unidata_version, platform=sys.platform, byteorder=sys.byteorder)))",
+  "cases": [
+    {
+      "name": "readbuffer_encode",
+      "source": "import _codecs\nf = _codecs.readbuffer_encode\nfor args in [(), (b'', None, None), (None,), (b'', True), (b'', '\\0'), (b'A', None), ('é', None)]:\n    try:\n        print('result', repr(f(*args)))\n    except BaseException as error:\n        print(type(error).__name__, repr(error.args))\ntry:\n    f(b'', errors='strict')\nexcept BaseException as error:\n    print(type(error).__name__, repr(error.args))\n",
+      "sha256": "2ddb84478f30477bbe8d27bd9ed7317fd84d355403c0994590e3b40fba08cd7b",
+      "oracle": {
+        "status": 0,
+        "stdout": "TypeError ('readbuffer_encode expected at least 1 argument, got 0',)\nTypeError ('readbuffer_encode expected at most 2 arguments, got 3',)\nTypeError (\"a bytes-like object is required, not 'NoneType'\",)\nTypeError ('readbuffer_encode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nresult (b'\\xc3\\xa9', 2)\nTypeError ('_codecs.readbuffer_encode() takes no keyword arguments',)\n",
+        "stderr": ""
+      },
+      "guest": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "TypeError ('readbuffer_encode expected at least 1 argument, got 0',)\nTypeError ('readbuffer_encode expected at most 2 arguments, got 3',)\nTypeError (\"a bytes-like object is required, not 'NoneType'\",)\nTypeError ('readbuffer_encode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nresult (b'\\xc3\\xa9', 2)\nTypeError ('_codecs.readbuffer_encode() takes no keyword arguments',)\n",
+        "writes": 158,
+        "flushes": 0
+      }
+    },
+    {
+      "name": "escape_encode",
+      "source": "import _codecs\nf = _codecs.escape_encode\nfor args in [(), (b'', None, None), (None,), (b'', True), (b'', '\\0'), (b'A', None), ('é', None)]:\n    try:\n        print('result', repr(f(*args)))\n    except BaseException as error:\n        print(type(error).__name__, repr(error.args))\ntry:\n    f(b'', errors='strict')\nexcept BaseException as error:\n    print(type(error).__name__, repr(error.args))\n",
+      "sha256": "2e958b9359bc568f156f6d304ced4b4c7f600ad0a59433f7da14a93624ec7d9a",
+      "oracle": {
+        "status": 0,
+        "stdout": "TypeError ('escape_encode expected at least 1 argument, got 0',)\nTypeError ('escape_encode expected at most 2 arguments, got 3',)\nTypeError ('escape_encode() argument 1 must be bytes, not None',)\nTypeError ('escape_encode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nTypeError ('escape_encode() argument 1 must be bytes, not str',)\nTypeError ('_codecs.escape_encode() takes no keyword arguments',)\n",
+        "stderr": ""
+      },
+      "guest": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "TypeError ('escape_encode expected at least 1 argument, got 0',)\nTypeError ('escape_encode expected at most 2 arguments, got 3',)\nTypeError ('escape_encode() argument 1 must be bytes, not None',)\nTypeError ('escape_encode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nTypeError ('escape_encode() argument 1 must be bytes, not str',)\nTypeError ('_codecs.escape_encode() takes no keyword arguments',)\n",
+        "writes": 166,
+        "flushes": 0
+      }
+    },
+    {
+      "name": "escape_decode",
+      "source": "import _codecs\nf = _codecs.escape_decode\nfor args in [(), (b'', None, None), (None,), (b'', True), (b'', '\\0'), (b'A', None), ('é', None)]:\n    try:\n        print('result', repr(f(*args)))\n    except BaseException as error:\n        print(type(error).__name__, repr(error.args))\ntry:\n    f(b'', errors='strict')\nexcept BaseException as error:\n    print(type(error).__name__, repr(error.args))\n",
+      "sha256": "790884945d0a336fe42804e2be821b049305d007c8f30296e9533cdfc190afad",
+      "oracle": {
+        "status": 0,
+        "stdout": "TypeError ('escape_decode expected at least 1 argument, got 0',)\nTypeError ('escape_decode expected at most 2 arguments, got 3',)\nTypeError (\"a bytes-like object is required, not 'NoneType'\",)\nTypeError ('escape_decode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nresult (b'\\xc3\\xa9', 2)\nTypeError ('_codecs.escape_decode() takes no keyword arguments',)\n",
+        "stderr": ""
+      },
+      "guest": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "TypeError ('escape_decode expected at least 1 argument, got 0',)\nTypeError ('escape_decode expected at most 2 arguments, got 3',)\nTypeError (\"a bytes-like object is required, not 'NoneType'\",)\nTypeError ('escape_decode() argument 2 must be str or None, not bool',)\nValueError ('embedded null character',)\nresult (b'A', 1)\nresult (b'\\xc3\\xa9', 2)\nTypeError ('_codecs.escape_decode() takes no keyword arguments',)\n",
+        "writes": 152,
+        "flushes": 0
+      }
+    }
+  ]
+}

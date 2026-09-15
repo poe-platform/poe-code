@@ -1,0 +1,726 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "name": "bytes('').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', True, False), ('bytes', True, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b''), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "B('').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "('ValueError', 'empty separator')"
+    },
+    {
+      "name": "bytes('A').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('A').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('A').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('A').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('A').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('A').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('A').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('A').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('A').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'A'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('A').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('A').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'A')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'A'), (('bytes', False, False), ('bytes', False, True), ('bytes', False, True)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'A', b''), (('bytes', False, True), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'A'), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'A'), (('bytes', False, False), ('bytes', False, True), ('bytes', False, True)))"
+    },
+    {
+      "name": "B('AA').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'A', b''), (('bytes', False, True), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'A'), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'A', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'AA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'AA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('AA').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('AA').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'AA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('AA').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'AA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('AA').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('AA').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'AA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'AA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'BA'), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AB', b'A', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'BA'), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AB', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').partition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'BA'), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(bytes('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AB', b'A', b''), (('bytes', False, False), ('bytes', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').partition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'A')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'A', b'BA'), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(B('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'A')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'AB', b'A', b''), (('bytes', False, False), ('B', False, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').partition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(same('A'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').partition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(bytes('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('ABA').partition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'AA')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(B('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'AA')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('ABA').partition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(same('AA'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('bytes', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('bytes', True, False)))"
+    },
+    {
+      "name": "bytes('ABA').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "bytes('ABA').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = bytes(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('bytes', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').partition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(bytes('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = bytes(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('ABA').partition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'Z')\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'ABA', b'', b''), (('B', True, False), ('bytes', False, False), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(B('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = B(b'Z')\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'', b'ABA'), (('bytes', False, False), ('bytes', False, False), ('B', True, False)))"
+    },
+    {
+      "name": "B('ABA').partition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.partition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    },
+    {
+      "name": "B('ABA').rpartition(same('Z'))",
+      "source": "class B(bytes):\n    pass\nsource = B(b'ABA')\nseparator = source\ntry:\n    result = source.rpartition(separator)\n    actual = (result, tuple((type(item).__name__, item is source, item is separator) for item in result))\nexcept Exception as error:\n    actual = (type(error).__name__, str(error))\n",
+      "expected": "((b'', b'ABA', b''), (('bytes', False, False), ('B', True, True), ('bytes', False, False)))"
+    }
+  ]
+}

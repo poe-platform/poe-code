@@ -4,10 +4,11 @@ import type {
   JSONRPCMessage,
   JSONRPCNotification,
   JSONRPCRequest,
-  JSONRPCResponse,
+  JSONRPCResponse
 } from "tiny-stdio-mcp-server";
 
 export interface ClassifiedBody {
+  isBatch: boolean;
   entries: Array<JSONRPCMessage | null>;
   messages: JSONRPCMessage[];
   hasRequests: boolean;
@@ -37,10 +38,7 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function hasOwn(
-  value: Record<string, unknown>,
-  property: string
-): property is keyof typeof value {
+function hasOwn(value: Record<string, unknown>, property: string): property is keyof typeof value {
   return Object.prototype.hasOwnProperty.call(value, property);
 }
 
@@ -53,11 +51,7 @@ function isValidResponse(value: unknown): value is JSONRPCResponse {
     return false;
   }
 
-  if (
-    value.id !== null &&
-    typeof value.id !== "string" &&
-    typeof value.id !== "number"
-  ) {
+  if (value.id !== null && typeof value.id !== "string" && typeof value.id !== "number") {
     return false;
   }
 
@@ -82,10 +76,7 @@ function hasResponseFields(value: unknown): boolean {
   return isObjectRecord(value) && (hasOwn(value, "result") || hasOwn(value, "error"));
 }
 
-async function readStreamBody(
-  req: IncomingMessage,
-  maxBytes: number | undefined
-): Promise<string> {
+async function readStreamBody(req: IncomingMessage, maxBytes: number | undefined): Promise<string> {
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
 
@@ -106,7 +97,11 @@ async function readStreamBody(
     chunks.push(bytes);
   }
 
-  return Buffer.concat(chunks).toString("utf8");
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks));
+  } catch {
+    throw new Error("Parse error");
+  }
 }
 
 async function readRawBody(
@@ -193,11 +188,7 @@ export async function readAndClassifyBody(
 
     if (!parsed.success) {
       if (!isBatch) {
-        throw new JsonRpcMessageError(
-          parsed.id,
-          parsed.error.code,
-          parsed.error.message
-        );
+        throw new JsonRpcMessageError(parsed.id, parsed.error.code, parsed.error.message);
       }
 
       entries.push(null);
@@ -219,6 +210,7 @@ export async function readAndClassifyBody(
   }
 
   return {
+    isBatch,
     entries,
     messages,
     hasRequests: requests.length > 0,
@@ -226,6 +218,6 @@ export async function readAndClassifyBody(
     hasResponses: responses.length > 0,
     requests,
     notifications,
-    responses,
+    responses
   };
 }

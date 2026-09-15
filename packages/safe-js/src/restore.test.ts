@@ -21,26 +21,26 @@ describe("restore", () => {
   });
 
   it.each(["clock", "random", "next", "seed", "state", "initialState", "resumeState"])(
-    "preserves ordinary traversal for scalar accessor %s", field => {
+    "rejects scalar accessor %s without invoking it", field => {
       let reads = 0;
       const error = new Error("getter ran");
       const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
       const target = field === "clock" || field === "random" ? snapshot : field === "next" ? snapshot.clock : snapshot.random;
       Object.defineProperty(target, field, { enumerable: true, get() { reads++; throw error; } });
-      expect(() => restore(snapshot, { source: "1" })).toThrow(error);
-      expect(reads).toBe(1);
+      expect(() => restore(snapshot, { source: "1" })).toThrow(SnapshotValidationError);
+      expect(reads).toBe(0);
     }
   );
 
-  it("skips scalar preflight for a proxy prototype without invoking its has trap", () => {
+  it("rejects a proxy prototype without invoking its has trap", () => {
     let traps = 0;
     const prototype = new Proxy({}, { has() { traps++; throw new Error("has trap ran"); } });
     const snapshot = Object.assign(Object.create(prototype), { version: 1, sourceHash: hashSource("1") });
-    expect(restore(snapshot, { source: "1" })).toBe(snapshot);
+    expect(() => restore(snapshot, { source: "1" })).toThrow(SnapshotValidationError);
     expect(traps).toBe(0);
   });
 
-  it.each(["clock", "random"])("rechecks %s scalar state after payload traversal", field => {
+  it.each(["clock", "random"])("rejects payload accessors before they can mutate %s scalar state", field => {
     const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
     Object.defineProperty(snapshot, "extra", { enumerable: true, get() {
       if (field === "clock") snapshot.clock.next = -1;
@@ -48,18 +48,20 @@ describe("restore", () => {
       return 0;
     } });
     expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({
-      name: "SnapshotValidationError", path: field === "clock" ? "$.clock.next" : "$.random.state"
+      name: "SnapshotValidationError", path: "$.extra"
     }));
+    expect(snapshot.clock.next).toBe(0);
+    expect(snapshot.random.state).toBe(1);
   });
 
-  it.each(["clock", "initialState"])("preserves late validation for inherited scalar %s", field => {
+  it.each(["clock", "initialState"])("rejects inherited scalar accessor %s without invoking it", field => {
     let reads = 0;
     const snapshot = { version: 1, sourceHash: hashSource("1"), random: { seed: 1, state: 1 } };
     const original = Object.getOwnPropertyDescriptor(Object.prototype, field);
     try {
       Object.defineProperty(Object.prototype, field, { configurable: true, get() { reads++; return -1; } });
       expect(() => restore(snapshot, { source: "1" })).toThrow(SnapshotValidationError);
-      expect(reads).toBe(2);
+      expect(reads).toBe(0);
     } finally {
       if (original) Object.defineProperty(Object.prototype, field, original);
       else Reflect.deleteProperty(Object.prototype, field);
@@ -78,7 +80,9 @@ describe("restore", () => {
     const source = "host.extra=7;return host()";
     const result = await run(source, { bindings: { host: () => 1 } });
     expect(restore(result.snapshot, { source })).toBe(result.snapshot);
-    expect(() => restore({ ...result.snapshot }, { source })).toThrow("cannot be restored");
+    expect(() => restore({ ...result.snapshot }, { source })).toThrow(expect.objectContaining({
+      code: "invalidType", path: "$.bindings.eval"
+    }));
   });
 
   it("rejects an execution-semantics accessor without evaluating it", () => {

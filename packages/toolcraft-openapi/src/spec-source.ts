@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { UserError } from "toolcraft";
+import { UserError, redactHttpBody } from "toolcraft";
 import { renderSourceSnippet } from "toolcraft/source-snippet";
 import type { OpenApiDocument } from "./generate.js";
 import { classifyNetworkError } from "./network-error.js";
@@ -26,12 +26,14 @@ export type OpenApiHttpSourceResult =
   | {
       status: "modified";
       sourceText: string;
+      sourceUrl: string;
       etag?: string;
       cacheControl?: string;
       age?: string;
     }
   | {
       status: "not-modified";
+      sourceUrl?: string;
       etag?: string;
       cacheControl?: string;
       age?: string;
@@ -78,7 +80,7 @@ export async function readOpenApiSourceText(
     const result = await fetchOpenApiHttpSource(inputUrl, services.fetch);
     if (result.status === "not-modified") {
       throw new UserError(
-        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: received 304 without a cached document.`
+        `Failed to fetch ${JSON.stringify(sourceLabel)}: received 304 without a cached document.`
       );
     }
 
@@ -116,6 +118,7 @@ export async function fetchOpenApiHttpSource(
     if (response.status === 304) {
       return {
         status: "not-modified",
+        ...(response.url === "" ? {} : { sourceUrl: response.url }),
         ...readResponseCacheHeaders(response)
       };
     }
@@ -123,10 +126,12 @@ export async function fetchOpenApiHttpSource(
     if (!response.ok) {
       const contentType = response.headers.get("content-type") ?? "";
       const text = await response.text().catch(() => "");
-      const snippet = text.length === 0 ? "" : `\n  body: ${truncate(text, 500)}`;
+      const body = redactHttpBody(text);
+      const bodyText = typeof body === "string" ? body : JSON.stringify(body);
+      const snippet = text.length === 0 ? "" : `\n  body: ${truncate(bodyText, 500)}`;
 
       throw new OpenApiHttpStatusError(
-        `Failed to fetch ${JSON.stringify(url)}: ` +
+        `Failed to fetch ${JSON.stringify(redactSensitiveQueryValues(url))}: ` +
           `${response.status} ${response.statusText}` +
           (contentType ? ` (content-type: ${contentType})` : "") +
           snippet
@@ -137,6 +142,7 @@ export async function fetchOpenApiHttpSource(
       return {
         status: "modified",
         sourceText: await response.text(),
+        sourceUrl: response.url || url,
         ...readResponseCacheHeaders(response)
       };
     } catch (error) {
@@ -236,7 +242,7 @@ export function parseOpenApiDocument(sourceText: string, input: string | URL): O
     parsed = JSON.parse(sourceText) as unknown;
   } catch {
     try {
-      parsed = parseYaml(sourceText);
+      parsed = parseYaml(sourceText, { prettyErrors: false });
     } catch (error) {
       throw new UserError(
         `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText, formatSourceLabel(input))}`
@@ -254,6 +260,10 @@ export function parseOpenApiDocument(sourceText: string, input: string | URL): O
 }
 
 function tryParseUrl(value: string): URL | null {
+  if (path.parse(value).root.length > 0) {
+    return null;
+  }
+
   try {
     return new URL(value);
   } catch {
@@ -262,7 +272,8 @@ function tryParseUrl(value: string): URL | null {
 }
 
 function formatSourceLabel(source: string | URL): string {
-  return source instanceof URL ? source.toString() : source;
+  const url = source instanceof URL ? source : tryParseUrl(source);
+  return url === null ? String(source) : redactSensitiveQueryValues(url.toString());
 }
 
 function getErrorMessage(error: unknown): string {
@@ -284,11 +295,7 @@ function formatParseErrorMessage(error: unknown, sourceText: string, filePath: s
 
   const positionText = `at line ${linePosition.line} column ${linePosition.column}`;
 
-  const messageWithPosition = message.includes(positionText)
-    ? message
-    : `${message} (${positionText})`;
-
-  return `${messageWithPosition}\n${renderSourceSnippet({
+  return `${message} (${positionText})\n${renderSourceSnippet({
     source: sourceText,
     line: linePosition.line,
     column: linePosition.column,

@@ -1,0 +1,224 @@
+[
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "log": "red.log",
+    "exitCode": 1,
+    "result": "6 failed / 2 passed before repair"
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-extensibility.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-integrity.test.ts"
+    ],
+    "log": "green.log",
+    "exitCode": 0,
+    "result": "38 passed"
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-extensibility.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-integrity.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-integrity-query.test.ts",
+      "packages/safe-js/src/interp/object-extensibility.test.ts",
+      "packages/safe-js/src/interp/float16-array.test.ts"
+    ],
+    "log": "focused.log",
+    "exitCode": 0,
+    "result": "91 passed, zero skipped"
+  },
+  {
+    "argv": [
+      "npx",
+      "eslint",
+      "packages/safe-js/src/interp/guest-proxy-extensibility.ts",
+      "packages/safe-js/src/interp/globals/object-array.ts",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "log": "lint.log",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "build:workspaces",
+      "--",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "build.log",
+    "exitCode": 0,
+    "result": "workspace closure and eight built-import checks passed"
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "test:unit",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "package-test.log",
+    "exitCode": 143,
+    "complete": false,
+    "result": "one observed 5000ms O12 timeout; stopped before terminal report after investigation"
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/test/integration/input-error-projection.test.ts"
+    ],
+    "log": "o12-investigation.log",
+    "exitCode": 0,
+    "result": "19 passed; not a package gate"
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "test:unit",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "package-test-rerun.log",
+    "exitCode": 143,
+    "complete": false,
+    "result": "Stopped without a terminal summary for the independently validated query correction; no failures had been observed."
+  },
+  {
+    "recordedCommand": [
+      "--corpus",
+      "/tmp/safejs-regexp-test262-419d3e0",
+      "--include",
+      "built-ins/Object/freeze",
+      "--include",
+      "built-ins/Object/seal",
+      "--include",
+      "built-ins/Object/preventExtensions",
+      "--include",
+      "built-ins/Reflect/preventExtensions",
+      "--report",
+      "docs/plans/qualify-builtins/remaining-categories-20260913/repaired-corpus.jsonl"
+    ],
+    "report": "repaired-corpus.jsonl",
+    "exitCode": 1,
+    "complete": false
+  },
+  {
+    "recordedCommand": [
+      "--corpus",
+      "/tmp/safejs-regexp-test262-419d3e0",
+      "--include",
+      "built-ins/Object/freeze",
+      "--include",
+      "built-ins/Object/seal",
+      "--include",
+      "built-ins/Object/preventExtensions",
+      "--include",
+      "built-ins/Reflect/preventExtensions",
+      "--report",
+      "docs/plans/qualify-builtins/remaining-categories-20260913/qualified-corpus.jsonl"
+    ],
+    "report": "qualified-corpus.jsonl",
+    "exitCode": 1,
+    "complete": true
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-extensibility.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-integrity.test.ts",
+      "packages/safe-js/src/interp/guest-proxy-integrity-query.test.ts",
+      "packages/safe-js/src/interp/object-extensibility.test.ts",
+      "packages/safe-js/src/interp/float16-array.test.ts"
+    ],
+    "log": "final-focused.log",
+    "exitCode": 0,
+    "result": "93 passed, zero skipped"
+  },
+  {
+    "argv": [
+      "npx",
+      "eslint",
+      "packages/safe-js/src/interp/guest-proxy-extensibility.ts",
+      "packages/safe-js/src/interp/globals/object-array.ts",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "log": "final-lint.log",
+    "exitCode": 0,
+    "result": "passed"
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "build:workspaces",
+      "--",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "final-build.log",
+    "exitCode": 0,
+    "result": "workspace closure and eight built-import checks passed"
+  },
+  {
+    "argv": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts"
+    ],
+    "log": "query-red.log",
+    "exitCode": 1,
+    "result": "one failed / eleven passed before query repair"
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "test:unit",
+      "--workspace=@poe-code/safe-js"
+    ],
+    "log": "package-test-final.log",
+    "exitCode": 0,
+    "complete": true,
+    "result": "1398 files passed / two files skipped; 30065 tests passed / 47 skipped / zero failures"
+  },
+  {
+    "recordedCommand": [
+      "--corpus",
+      "/tmp/safejs-regexp-test262-419d3e0",
+      "--include",
+      "built-ins/Object/freeze",
+      "--include",
+      "built-ins/Object/seal",
+      "--include",
+      "built-ins/Object/preventExtensions",
+      "--include",
+      "built-ins/Object/isSealed",
+      "--include",
+      "built-ins/Object/isFrozen",
+      "--include",
+      "built-ins/Reflect/preventExtensions",
+      "--report",
+      "docs/plans/qualify-builtins/remaining-categories-20260913/integrity-final-corpus.jsonl"
+    ],
+    "report": "integrity-final-corpus.jsonl",
+    "exitCode": 1,
+    "complete": true
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "bigint-constructor",
+    "source": "class B extends BigInt {}const x=Reflect.construct(Object,[],BigInt);let error;try{new B()}catch(e){error=e.name}return [Object.getPrototypeOf(x)===BigInt.prototype,Object.getPrototypeOf(B)===BigInt,error,Object.getOwnPropertyDescriptor(BigInt,\"prototype\").writable];",
+    "expected": [
+      true,
+      true,
+      "TypeError",
+      false
+    ]
+  },
+  {
+    "id": "array-boxed-length",
+    "source": "const a=[];a.length=new Number(6);return [a.length,Object.keys(a).length];",
+    "expected": [
+      6,
+      0
+    ]
+  },
+  {
+    "id": "array-proxy-order",
+    "source": "const log=[];const a=[];const value=new Proxy({valueOf(){log.push(\"call\");return 6}},{get(t,k,r){log.push(String(k));return Reflect.get(t,k,r)}});a.length=value;return [a.length,log];",
+    "expected": [
+      6,
+      [
+        "Symbol(Symbol.toPrimitive)",
+        "valueOf",
+        "call",
+        "Symbol(Symbol.toPrimitive)",
+        "valueOf",
+        "call"
+      ]
+    ]
+  },
+  {
+    "id": "array-negative-control",
+    "source": "const a=[1,2,3];let calls=0,error;try{a.length={valueOf(){return ++calls}}}catch(e){error=e.name}return [error,calls,a];",
+    "expected": [
+      "RangeError",
+      2,
+      [
+        1,
+        2,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "tracking-integrity",
+    "source": "const a=new Uint8Array(new ArrayBuffer(0,{maxByteLength:8}));return [Reflect.preventExtensions(a),Object.isExtensible(a)];",
+    "expected": [
+      false,
+      true
+    ]
+  },
+  {
+    "id": "fixed-integrity",
+    "source": "const a=new Uint8Array(1);let error;try{Object.seal(a)}catch(e){error=e.name}return [error,Object.isExtensible(a),Object.isSealed(a),Object.isFrozen(a)];",
+    "expected": [
+      "TypeError",
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "id": "empty-integrity-control",
+    "source": "const a=new Uint8Array(0);Object.freeze(a);return [Object.isSealed(a),Object.isFrozen(a)];",
+    "expected": [
+      true,
+      true
+    ]
+  },
+  {
+    "id": "regexp-split",
+    "source": "return \"abc\".split(/b/);",
+    "expected": [
+      "a",
+      "c"
+    ]
+  },
+  {
+    "id": "regexp-deleted-hook-control",
+    "source": "const r=/b/;r[Symbol.split]=undefined;return \"abc\".split(r);",
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "id": "array-replay",
+    "source": "const a=[1,2,3];a.length=new Number(2);await 0;return a;",
+    "expected": [
+      1,
+      2
+    ],
+    "replay": true
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "startedUtc": "2026-09-12T13:14:04.500851+00:00",
+  "cwd": "/private/tmp/poe-code-conformance-delivery-5f6446c4",
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "command": [
+    "npm",
+    "run",
+    "test:conformance",
+    "--workspace=@poe-code/safe-js",
+    "--",
+    "--corpus",
+    "/private/tmp/safejs-baseline-test262-419d3e0",
+    "--enumerate",
+    "--timeout-ms",
+    "3000",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v4/manifest.json"
+  ],
+  "note": "Timestamp recorded shortly after process launch; exact command console captured by execution tool. No corpus workers while maintained package test runs."
+}

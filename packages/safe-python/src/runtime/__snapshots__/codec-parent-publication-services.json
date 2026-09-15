@@ -1,0 +1,44 @@
+{
+  "adapter": "Explicit fs.readSync line input; complete fs.writeSync output; fs.fsyncSync flush. Temporary resources closed and removed in finally.",
+  "rows": [
+    {
+      "mode": "normal",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        assert input() == 'continue'\n        pass\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "mode": "cancel-return",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        assert input() == 'continue'\n        pass\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "terminalIdentity": true
+    },
+    {
+      "mode": "cancel-throw",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('publication failed')\nclass Package(type(encodings)):\n    def __setattr__(self, name, value):\n        events.append(name)\n        assert value.__name__ == 'encodings.cp037'\n        assert input() == 'continue'\n        pass\n        super().__setattr__(name, value)\nencodings.__class__ = Package\ntry:\n    import encodings.cp037\nexcept ValueError as error:\n    assert False\nelse:\n    assert True\nassert events == ['cp037'], events\nchild = __import__('encodings.cp037', fromlist=['getregentry'])\nassert child.getregentry().name == 'cp037'\nassert events == ['cp037'], events\nassert ('cp037' in encodings.__dict__) is True\nprint('verified')\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "terminalIdentity": true
+    }
+  ]
+}

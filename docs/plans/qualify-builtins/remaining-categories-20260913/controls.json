@@ -1,0 +1,14 @@
+[
+  {"id":"QB-ARG-DIRECT-STRICT","source":"function f(){return arguments[Symbol.iterator]().next().value}return f(7);","expected":7},
+  {"id":"QB-ARG-DIRECT-MAPPED","source":"return eval('(function(a){a=9;return arguments[Symbol.iterator]().next().value})(7)');","expected":9},
+  {"id":"QB-ARG-IDENTITY","source":"function f(){const d=Object.getOwnPropertyDescriptor(arguments,Symbol.iterator);return [d.value===Array.prototype.values,d.writable,d.enumerable,d.configurable]}return f();","expected":[true,true,false,true]},
+  {"id":"QB-ARG-SPREAD-CONTROL","source":"function f(){return [...arguments]}return f(7,8);","expected":[7,8]},
+  {"id":"QB-ARG-BORROW-CONTROL","source":"function f(){const it=Array.prototype.values.call(arguments);return [it.next().value,it.next().done]}return f(7);","expected":[7,true]},
+  {"id":"QB-ARG-DELETE-CONTROL","source":"function f(){delete arguments[Symbol.iterator];try{return [...arguments]}catch(e){return e.name}}return f(7);","expected":"TypeError"},
+  {"id":"QB-ARG-REPLACE-CONTROL","source":"function f(){arguments[Symbol.iterator]=function*(){yield 9};return [...arguments]}return f(7);","expected":[9]},
+  {"id":"QB-ARG-EXHAUSTION-REPLAY","source":"async function f(){const it=arguments[Symbol.iterator]();it.next();it.next();await 0;arguments[1]=8;arguments.length=2;return it.next().done}return await f(7);","expected":true,"replay":true},
+  {"id":"QB-ARG-BORROW-REPLAY-CONTROL","source":"async function f(){const it=Array.prototype.values.call(arguments);it.next();it.next();await 0;arguments[1]=8;arguments.length=2;return it.next().done}return await f(7);","expected":true,"replay":true},
+  {"id":"QB-DATE-TIME-PRECISION","source":"return Date.UTC(1970,0,1,80063993375,29,1,-288230376151711740);","expected":29312},
+  {"id":"QB-DATE-DAY-PRECISION","source":"return Date.UTC(1970,0,213503982336,0,0,0,-18446744073709552000);","expected":34447360},
+  {"id":"QB-DATE-EPOCH-CONTROL","source":"return Date.UTC(1970,0,1);","expected":0}
+]

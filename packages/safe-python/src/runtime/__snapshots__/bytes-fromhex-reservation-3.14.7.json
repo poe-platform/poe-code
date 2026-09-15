@@ -1,0 +1,1266 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "name": "0 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "0 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "0 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "0 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "0 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 0\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "0 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "0 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "0 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "0 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "0 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 0\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "0 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "0 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "0 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "0 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "0 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 0\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1022 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1022 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1022 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1022 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1022 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1022\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1022 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1022 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1022 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1022 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1022 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1022\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1022 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1022 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1022 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1022 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1022 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1022\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1023 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1023 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1023 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1023 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1023 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1023\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1023 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1023 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1023 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1023 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], True, True, False, [])"
+    },
+    {
+      "name": "1023 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1023\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', True, False), ('bytes', True, False)])"
+    },
+    {
+      "name": "1023 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1023 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1023 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1023 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1023 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1023\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1024 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1024 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1024 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1024 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1024\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1024 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1024\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1024 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1024 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1024\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1025 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1025 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1025 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "1025 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 1025\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "1025 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 1025\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "1025 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "1025 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 1025\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / empty / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "2048 spaces / empty / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "2048 spaces / empty / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "2048 spaces / empty / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [], True, False, True, [])"
+    },
+    {
+      "name": "2048 spaces / empty / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '' + ' ' * 2048\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [], False, False, False, [('bytes', False, True), ('bytes', False, True)])"
+    },
+    {
+      "name": "2048 spaces / 41 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 41 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 41 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 41 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 41 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '41' + ' ' * 2048\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 4142 / str / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = str(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / str / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = str(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / str / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = str(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 4142 / bytes / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / bytes / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / bytes / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = bytes(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 4142 / S / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = S(text)\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / S / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = S(text)\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / S / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = S(text)\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    },
+    {
+      "name": "2048 spaces / 4142 / B / bytes.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = B(text , \"ascii\")\na = bytes.fromhex(source)\nb = bytes.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / B / b'ignored'.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = B(text , \"ascii\")\na = b'ignored'.fromhex(source)\nb = b'ignored'.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('bytes', [65, 66], False, False, False, [])"
+    },
+    {
+      "name": "2048 spaces / 4142 / B / Result.fromhex",
+      "source": "class S(str):\n    def __len__(self):\n        raise AssertionError('native length required')\nclass B(bytes):\n    def __len__(self):\n        raise AssertionError('native length required')\nseen = []\nclass Result(bytes):\n    def __new__(cls, source):\n        seen.append(source)\n        return bytes.__new__(cls, source)\ntext = '4142' + ' ' * 2048\nsource = B(text , \"ascii\")\na = Result.fromhex(source)\nb = Result.fromhex(source)\ncanonical = b'A'\nempty = b''\nactual = (type(a).__name__, list(a), a is b, a is canonical, a is empty, [(type(x).__name__, x is canonical, x is empty) for x in seen])\n",
+      "expected": "('Result', [65, 66], False, False, False, [('bytes', False, False), ('bytes', False, False)])"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts (12 tests | 1 failed) 650ms
+   ✓ refuses integrity changes on resizable Uint8Array views without mutation 125ms
+   ✓ refuses integrity changes on resizable Float16Array views without mutation 71ms
+   ✓ refuses integrity changes on resizable BigInt64Array views without mutation 66ms
+   ✓ refuses Proxy false success before ownKeys and descriptor traps 27ms
+   ✓ forwards refusal through an empty Proxy handler 22ms
+   ✓ preserves fixed-buffer and ordinary-object integrity controls 24ms
+   ✓ keeps a rejected view extensible through shrinking and regrowing its buffer 27ms
+   ✓ preserves rejected integrity changes across pending and completed replay 185ms
+   ✓ distinguishes fixed and length-tracking views of growable shared buffers 21ms
+   ✓ uses internal buffer state without consulting guest getters or prototypes 30ms
+   × queries fixed typed-array integrity from indexed descriptors 29ms
+   ✓ keeps empty fixed typed-array integrity queries true after freezing 22ms
+FAIL packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts > queries fixed typed-array integrity from indexed descriptors
+AssertionError: expected [ 'TypeError', true, false, true ] to deeply equal [ 'TypeError', false, false, true ]
+
+- Expected
++ Received
+
+  [
+    "TypeError",
+-   false,
++   true,
+    false,
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts:85:6
+     83|     let error;try{Object.seal(a)}catch(e){error=e.name}
+     84|     return [error,Object.isSealed(a),Object.isFrozen(a),Object.getOwnP…
+     85|     .toEqual(["TypeError", false, false, true]);
+       |      ^
+     86| });
+     87|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts > queries fixed typed-array integrity from indexed descriptors
+AssertionError: expected [ 'TypeError', true, false, true ] to deeply equal [ 'TypeError', false, false, true ]
+
+- Expected
++ Received
+
+  [
+    "TypeError",
+-   false,
++   true,
+    false,
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts:85:6
+     83|     let error;try{Object.seal(a)}catch(e){error=e.name}
+     84|     return [error,Object.isSealed(a),Object.isFrozen(a),Object.getOwnP…
+     85|     .toEqual(["TypeError", false, false, true]);
+       |      ^
+     86| });
+     87|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  18:47:14
+   Duration  4.04s (transform 2.22s, setup 39ms, import 3.27s, tests 650ms, environment 0ms)
+

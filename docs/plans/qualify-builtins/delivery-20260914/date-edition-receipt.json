@@ -1,0 +1,10 @@
+{
+  "url": "https://262.ecma-international.org/16.0/",
+  "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+  "bytes": 8169822,
+  "clauses": [
+    "sec-makedate",
+    "sec-maketime",
+    "sec-makeday"
+  ]
+}

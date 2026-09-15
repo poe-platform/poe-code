@@ -1,7 +1,7 @@
 import { lstat, readdir } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 
-export async function discoverTest262(corpus: string, selections: readonly string[] = ["."]): Promise<string[]> {
+export async function discoverTest262(corpus: string, selections: readonly string[] = ["."], includeAssets = false): Promise<string[]> {
   if (selections.length === 0) throw new Error("Test262 selection must not be empty");
   const root = resolve(corpus, "test");
   const files = new Set<string>();
@@ -10,7 +10,7 @@ export async function discoverTest262(corpus: string, selections: readonly strin
     if (info.isSymbolicLink()) throw new Error(`Test262 discovery rejects symbolic link: ${path}`);
     if (info.isDirectory()) {
       for (const name of await readdir(path)) await visit(join(path, name));
-    } else if (info.isFile() && path.endsWith(".js")) {
+    } else if (info.isFile() && (includeAssets || path.endsWith(".js"))) {
       files.add(relative(root, path).split(sep).join("/"));
     }
   };

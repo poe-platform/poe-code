@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { compileJsonSchema, formatIssues } from "./index.js";
 
 describe("compileJsonSchema", () => {
+  it.each(["https://json-schema.org/draft/2020-12/schema", "http://json-schema.org/draft-07/schema#"])(
+    "treats nullable as an annotation under %s", ($schema) => {
+      const validator = compileJsonSchema({ $schema, type: "string", nullable: true });
+      expect(validator.validate(null).ok).toBe(false);
+      expect(validator.validate("value").ok).toBe(true);
+    }
+  );
   it("validates boolean and object schemas", () => {
     expect(compileJsonSchema(true).validate("anything")).toEqual({
       ok: true,

@@ -1,0 +1,871 @@
+{
+  "python": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin\nlittle\n",
+  "sourceUrl": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c",
+  "sourceSha256": "fbfe5ac18847548ffd203a1b5e2d14f5464010c3cc6ecdc5adb790d4fd36ae8c",
+  "exceptionDriver": "import json,sys\nrow=json.load(sys.stdin)\ntry:\n    exec(compile(row['source'], '<string>', 'exec'))\nexcept BaseException as failure:\n    exec(row['exception'])\nelse:\n    raise AssertionError('expected compile failure')\n",
+  "cases": [
+    {
+      "name": "strict documentation UTF-8: subtype=false \\ud800",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = '\\ud800'\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 0\n    assert error.end == 1\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "strict documentation UTF-8: subtype=false a\\ud800\\udfffz",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = 'a\\ud800\\udfffz'\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 1\n    assert error.end == 3\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "strict documentation UTF-8: subtype=false a\\x00\\ud800",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = 'a\\x00\\ud800'\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 2\n    assert error.end == 3\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "strict documentation UTF-8: subtype=true \\ud800",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = Text('\\ud800')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 0\n    assert error.end == 1\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "strict documentation UTF-8: subtype=true a\\ud800\\udfffz",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = Text('a\\ud800\\udfffz')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 1\n    assert error.end == 3\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "strict documentation UTF-8: subtype=true a\\x00\\ud800",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def encode(self, *args):\n        raise AssertionError('virtual encoding')\ndoc = Text('a\\x00\\ud800')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nnamespace = {'__doc__': doc, '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError as error:\n    assert error.object is doc\n    assert error.encoding == 'utf-8'\n    assert error.start == 2\n    assert error.end == 3\n    assert error.reason == 'surrogates not allowed'\n    assert error.args == ('utf-8', doc, error.start, error.end, 'surrogates not allowed')\nelse:\n    raise AssertionError('surrogate documentation accepted')\nassert cell.cell_contents is None\nassert namespace['__doc__'] is doc\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(data, /)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(data, /)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(data, /)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(data, /)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(data, /)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(data, /)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(data, /)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(data, /)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(é,\\n 🐍=1)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(é,\\n 🐍=1)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Outer.Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(é,\\n 🐍=1)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(é,\\n 🐍=1)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(é,\\n 🐍=1)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(é,\\n 🐍=1)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Outer.Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(é,\\n 🐍=1)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(é,\\n 🐍=1)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder()\\n--\\n\\n\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder()\\n--\\n\\n\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"()\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"()\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder()\\n--\\n\\n\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder()\\n--\\n\\n\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"()\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"()\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n\\n)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\n\\n)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n\\n)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\n\\n)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\n--\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\n--\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Other(x)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Other(x)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == '(x)'\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Other(x)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Other(x)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == '(x)'\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\\nBefore\\u0000After\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\n--\\n\\nBefore\\u0000After\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\\nBefore\\u0000After\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\n--\\n\\nBefore\\u0000After\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x\\u0000)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x\\u0000)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x\\u0000)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x\\u0000)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder((x)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder((x)\\n--\\n\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"((x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"((x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder((x)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder((x)\\n--\\n\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"((x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"((x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\\nOne)\\n--\\n\\nTwo\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\n--\\n\\nOne)\\n--\\n\\nTwo\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\\nOne)\\n--\\n\\nTwo\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\n--\\n\\nOne)\\n--\\n\\nTwo\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\r\\n--\\r\\n\\r\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\r\\n--\\r\\n\\r\\nDocumentation\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\r\\n--\\r\\n\\r\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\r\\n--\\r\\n\\r\\nDocumentation\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"🐍(x)\\n--\\n\\nDocumentation\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"🐍(x)\\n--\\n\\nDocumentation\"\nDecoder = type(\"包.🐍\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"🐍(x)\\n--\\n\\nDocumentation\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"🐍(x)\\n--\\n\\nDocumentation\")\nDecoder = type(\"包.🐍\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == \"(x)\"\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"Decoder(x)\\n--\\n\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"Decoder(x)\\n--\\n\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"Decoder(x)\\n--\\n\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"\" subtype=false",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = \"\"\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "captured signature \"\" subtype=true",
+      "source": "\nimport codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\ndoc = Text(\"\")\nDecoder = type(\"Decoder\", (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert Decoder.__doc__ is doc\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ == None\nDecoder.__doc__ = 'changed'\nassert Decoder.__text_signature__ == None\nDecoder.__name__ = 'Other'\nassert Decoder.__text_signature__ == None\nclass Child(Decoder):\n    pass\nassert Child.__doc__ is None and Child.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "literal class documentation rejects surrogates during compilation",
+      "source": "\nimport codecs\nclass Decoder(codecs.IncrementalDecoder):\n    'a\\ud800\\udfffz'\n",
+      "exception": "assert type(failure) is UnicodeEncodeError\nassert failure.args == ('utf-8', 'a\\ud800\\udfffz', 1, 3, 'surrogates not allowed')\nassert (failure.encoding, failure.object, failure.start, failure.end, failure.reason) == failure.args\n",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "UnicodeEncodeError: 'utf-8' codec can't encode characters in position 1-2: surrogates not allowed\n",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "non-string documentation binds descriptors without string conversion",
+      "source": "\nimport codecs\nevents = []\nclass Documentation:\n    def __str__(self):\n        raise AssertionError('documentation string conversion')\n    def __get__(self, instance, owner):\n        events.append((instance, owner))\n        return self\ndoc = Documentation()\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), {'__doc__': doc})\nassert events == []\nassert Decoder.__doc__ is doc\nassert events == [(None, Decoder)]\nassert Decoder.__dict__['__doc__'] is doc\nassert Decoder.__text_signature__ is None\nDecoder.__doc__ = 'Decoder(x)\\n--\\n\\nLater'\nassert Decoder.__text_signature__ is None\nDecoder.__doc__ = '\\ud800'\nassert Decoder.__doc__ == '\\ud800'\nassert Decoder.__text_signature__ is None\nfor value in (None, 42, b'bytes', ['documentation']):\n    Other = type('Other', (codecs.IncrementalEncoder,), {'__doc__': value})\n    assert Other.__doc__ is value\n    assert Other.__text_signature__ is None\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "documentation conversion precedes reserved wrappers and class cells",
+      "source": "\nimport codecs\nevents = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            events.append(str(self))\n        return str.__eq__(self, other)\nnamespace = {Key('__module__'): 'probe', Key('__qualname__'): 'Decoder', Key('__doc__'): '\\ud800', Key('__new__'): None, Key('__classcell__'): None}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept UnicodeEncodeError:\n    pass\nelse:\n    raise AssertionError('documentation did not fail first')\nassert events == ['__module__', '__qualname__', '__qualname__', '__doc__'], events\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "documentation namespace failure at lookup 1",
+      "source": "\nimport codecs\nfailure = ValueError('documentation namespace')\nexpected = '__doc__'\nseen = []\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n            if len(seen) == 1:\n                raise failure\n        return str.__eq__(self, other)\nnamespace = {Key('__doc__'): 'Decoder(x)\\n--\\n\\nDocumentation', '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('documentation callback failure ignored')\nassert seen == [True] * 1, seen\nassert cell.cell_contents is None\nassert len(namespace) == 2\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "documentation namespace failure at lookup 2",
+      "source": "\nimport codecs\nfailure = ValueError('documentation namespace')\nexpected = '__doc__'\nseen = []\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n            if len(seen) == 2:\n                raise failure\n        return str.__eq__(self, other)\nnamespace = {Key('__doc__'): 'Decoder(x)\\n--\\n\\nDocumentation', '__classcell__': cell}\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), namespace)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('documentation callback failure ignored')\nassert seen == [True] * 2, seen\nassert cell.cell_contents.__name__ == 'Decoder'\nassert len(namespace) == 2\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "validation": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "services": {
+    "source": "import codecs\nline = input()\nclass Decoder(codecs.BufferedIncrementalDecoder):\n    __doc__ = line + '\\n--\\n\\nServiced decoder'\n    _buffer_decode = staticmethod(codecs.utf_8_decode)\ndef search(name):\n    if name == 'documentation_probe':\n        return codecs.CodecInfo(None, None, name='documentation_probe', incrementaldecoder=Decoder)\ncodecs.register(search)\nfactory = codecs.getincrementaldecoder('documentation-probe')\nassert factory is Decoder\nprint(factory.__text_signature__)\ndecoder = factory('surrogateescape')\nprint(repr(decoder.decode(b'\\xf0\\x9f', False)), decoder.getstate())\nprint(repr(decoder.decode(b'\\x90\\x8d\\xff', True)), decoder.getstate())\nfactory.__doc__ = 'changed'\nprint(factory.__text_signature__)\n",
+    "input": "Decoder(data, /)\n",
+    "driver": "import {readSync,writeSync,readFileSync} from 'node:fs';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst spec=JSON.parse(process.argv[2]);const controller=new AbortController();let reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\ninput:{readLine(){reads++;const buffer=Buffer.alloc(1);let text='';while(readSync(0,buffer,0,1,null)!==0){text+=buffer.toString('utf8');if(text.endsWith('\\n'))break;}if(spec.cancel){controller.abort();if(spec.throws)throw Error('service cancelled');}return text||undefined;}},\noutput:{write(text){writes++;writeSync(1,text);},flush(){}}});\nconst result=session.exec(spec.source);const final={result:{status:result.status,...(result.status==='terminated'?{reason:result.reason}:{})},reads,writes};\nif(result.status==='exception'){session.globals.set('failure',result.exception);const detail=session.eval('str(failure)');if(detail.status==='ok')final.detail=detail.value.primitive;}\nif(spec.cancel)final.subsequent=session.exec('assert False');writeSync(2,JSON.stringify(final)+'\\n');if(spec.cancel?result.status!=='terminated':result.status!=='ok')process.exitCode=1;\n",
+    "driverArgs": [
+      "--import",
+      "tsx",
+      "/tmp/safe-python-doc-services-driver.mjs",
+      "<JSON specification>"
+    ],
+    "reference": {
+      "status": 0,
+      "signal": null,
+      "stdout": "(data, /)\n'' (b'\\xf0\\x9f', 0)\n'🐍\\udcff' (b'', 0)\n(data, /)\n",
+      "stderr": ""
+    },
+    "actual": {
+      "status": 0,
+      "signal": null,
+      "stdout": "(data, /)\n'' (b'\\xf0\\x9f', 0)\n'🐍\\udcff' (b'', 0)\n(data, /)\n",
+      "stderr": "{\"result\":{\"status\":\"ok\"},\"reads\":1,\"writes\":12}\n"
+    },
+    "cancellation": [
+      {
+        "at": 1,
+        "throws": false,
+        "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), {Key('__doc__'): 'documentation'})\nexcept BaseException:\n    raise AssertionError('cancellation reached guest')\nraise AssertionError('cancellation ignored')\n",
+        "result": {
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\"},\"reads\":1,\"writes\":0,\"subsequent\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+        }
+      },
+      {
+        "at": 1,
+        "throws": true,
+        "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), {Key('__doc__'): 'documentation'})\nexcept BaseException:\n    raise AssertionError('cancellation reached guest')\nraise AssertionError('cancellation ignored')\n",
+        "result": {
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\"},\"reads\":1,\"writes\":0,\"subsequent\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+        }
+      },
+      {
+        "at": 2,
+        "throws": false,
+        "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), {Key('__doc__'): 'documentation'})\nexcept BaseException:\n    raise AssertionError('cancellation reached guest')\nraise AssertionError('cancellation ignored')\n",
+        "result": {
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\"},\"reads\":1,\"writes\":0,\"subsequent\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+        }
+      },
+      {
+        "at": 2,
+        "throws": true,
+        "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), {Key('__doc__'): 'documentation'})\nexcept BaseException:\n    raise AssertionError('cancellation reached guest')\nraise AssertionError('cancellation ignored')\n",
+        "result": {
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\"},\"reads\":1,\"writes\":0,\"subsequent\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+        }
+      }
+    ]
+  },
+  "gates": {
+    "initialCodecFilter": {
+      "passed": 10308,
+      "failed": 80,
+      "total": 10388,
+      "files": 127
+    },
+    "initialDocumentationRed": {
+      "passed": 17,
+      "failed": 25,
+      "total": 42
+    },
+    "focused": {
+      "passed": 70,
+      "failed": 0,
+      "total": 70,
+      "files": 2,
+      "pending": 0
+    },
+    "typeFinal": {
+      "passed": 1393,
+      "failed": 0,
+      "total": 1393,
+      "files": 15,
+      "pending": 0
+    },
+    "familyBeforeBudgetFix": {
+      "passed": 12037,
+      "failed": 88,
+      "total": 12125,
+      "files": 194,
+      "pending": 0,
+      "sha256": "1b1360fb73869b2d8c96bf138a49c174be5ec05669f0da77963b603481831442",
+      "resolved": [
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__doc__' lookup name when constructing codec subclasses"
+      ],
+      "added": [
+        "packages/safe-python/src/session-escape-encoding.test.ts\u0000public escape encoding: for policy in ['strict', 'ignore', 'replace', 'surrogateescape', 'surrogatepass', 'backslashreplace', 'xmlcharrefreplace', 'namereplace', 'missing']:\n    assert '\\ud800'.encode('unicode_escape', policy) == b'\\\\ud800'\n    assert '\\ud800'.encode('raw_unicode_escape', policy) == b'\\\\ud800'"
+      ],
+      "failures": [
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'handler' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'mapping' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'handler' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'mapping' failure identity",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "packages/safe-python/src/session-codec-frozen-execution.test.ts\u0000frozen execution: 'late frozen import failure retains es…'",
+        "packages/safe-python/src/session-codec-module.test.ts\u0000shares imported registrations with native text methods and constructors",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: str.encode(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: text.encode(encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: str.encode(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: text.encode(encoding)'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 every incremental split and st…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 incremental encoder state and …'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 registry and module API'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 stream adapters BOM and reset'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 every incremental split and st…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 incremental encoder state and …'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 registry and module API'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 stream adapters BOM and reset'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'Windows code-page factory imports laz…'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'mbcs import failure and registry cache'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'oem import failure and registry cache'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'Punycode public decoder factories ret…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'all standard handlers through publish…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'byte escape types, argument precedenc…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'callback failures preserve identity, …'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'charmap surrogateescape retains origi…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'custom codecs shared by encode/decode…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'decoder subtype identity and tuple ov…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'stream reader/writer adapters over a …'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'ROT13 bytes consumer nontext rejection'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'guest module spec'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined bytes consumer'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined traceback'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000keeps cancellation in source decoder callbacks terminal",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source callback failures retain nativ…'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source codec callbacks use the suppli…'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source decoder receives an ownerless …'",
+        "packages/safe-python/src/session-codec-stream-mutation.test.ts\u0000'stream reader bytearray and memoryvie…'",
+        "packages/safe-python/src/session-codec-stream-traceback.test.ts\u0000retains caller and codec frames with pinned instruction positions",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__eq__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__hash__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__new__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii inherited buffer failure preced…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii uses and releases an overridden…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii validates buffer hook result be…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 inherited buffer failure prec…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 uses and releases an overridd…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 validates buffer hook result …'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 inherited buffer failure preced…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 uses and releases an overridden…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 validates buffer hook result be…'",
+        "packages/safe-python/src/session-escape-encoding.test.ts\u0000public escape encoding: for policy in ['strict', 'ignore', 'replace', 'surrogateescape', 'surrogatepass', 'backslashreplace', 'xmlcharrefreplace', 'namereplace', 'missing']:\n    assert '\\ud800'.encode('unicode_escape', policy) == b'\\\\ud800'\n    assert '\\ud800'.encode('raw_unicode_escape', policy) == b'\\\\ud800'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'decoder policies, input variants and …'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'encoding helpers and public encoders …'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'stream adapters preserve serviced cal…'",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=false)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=true)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=false)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=true)",
+        "packages/safe-python/src/session-punycode.test.ts\u0000uses Punycode through real guest text consumers and exception storage",
+        "packages/safe-python/src/session-utf7-codec-api.test.ts\u0000preserves decoder guest failures, traceback and native-call note behavior"
+      ]
+    },
+    "typeVerified": {
+      "passed": 1393,
+      "failed": 0,
+      "total": 1393,
+      "files": 15,
+      "pending": 0
+    },
+    "familyVerified": {
+      "passed": 12038,
+      "failed": 87,
+      "total": 12125,
+      "files": 194,
+      "pending": 0,
+      "sha256": "ac06873fb20a5db9175cc5409ad15042de9b80ef0150e9e273d3c7700e908014",
+      "resolved": [
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__doc__' lookup name when constructing codec subclasses"
+      ],
+      "added": [],
+      "failures": [
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'handler' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'mapping' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'handler' failure identity",
+        "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'mapping' failure identity",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "packages/safe-python/src/session-codec-frozen-execution.test.ts\u0000frozen execution: 'late frozen import failure retains es…'",
+        "packages/safe-python/src/session-codec-module.test.ts\u0000shares imported registrations with native text methods and constructors",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: str.encode(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: text.encode(encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: str.encode(text, encoding)'",
+        "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: text.encode(encoding)'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 every incremental split and st…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 incremental encoder state and …'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 registry and module API'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 stream adapters BOM and reset'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 every incremental split and st…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 incremental encoder state and …'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 registry and module API'",
+        "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 stream adapters BOM and reset'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'Windows code-page factory imports laz…'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'mbcs import failure and registry cache'",
+        "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'oem import failure and registry cache'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'Punycode public decoder factories ret…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'all standard handlers through publish…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'byte escape types, argument precedenc…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'callback failures preserve identity, …'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'charmap surrogateescape retains origi…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'custom codecs shared by encode/decode…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'decoder subtype identity and tuple ov…'",
+        "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'stream reader/writer adapters over a …'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'ROT13 bytes consumer nontext rejection'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'guest module spec'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined bytes consumer'",
+        "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined traceback'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000keeps cancellation in source decoder callbacks terminal",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source callback failures retain nativ…'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source codec callbacks use the suppli…'",
+        "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source decoder receives an ownerless …'",
+        "packages/safe-python/src/session-codec-stream-mutation.test.ts\u0000'stream reader bytearray and memoryvie…'",
+        "packages/safe-python/src/session-codec-stream-traceback.test.ts\u0000retains caller and codec frames with pinned instruction positions",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__eq__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__hash__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-codec-type-name-interning.test.ts\u0000uses the interned '__new__' lookup name when constructing codec subclasses",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii inherited buffer failure preced…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii uses and releases an overridden…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii validates buffer hook result be…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 inherited buffer failure prec…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 uses and releases an overridd…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 validates buffer hook result …'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 inherited buffer failure preced…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 rejects a strided memoryview'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 uses and releases an overridden…'",
+        "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 validates buffer hook result be…'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'decoder policies, input variants and …'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'encoding helpers and public encoders …'",
+        "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'stream adapters preserve serviced cal…'",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=false)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=true)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=false)",
+        "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=true)",
+        "packages/safe-python/src/session-punycode.test.ts\u0000uses Punycode through real guest text consumers and exception storage",
+        "packages/safe-python/src/session-utf7-codec-api.test.ts\u0000preserves decoder guest failures, traceback and native-call note behavior"
+      ]
+    }
+  },
+  "supportedNativeExceptions": {
+    "source": "for cls in (MemoryError, OSError):\n    try:\n        raise cls('unavailable')\n    except BaseException as error:\n        assert type(error) is cls\n        assert error.args == ('unavailable',)\n        assert error.__context__ is None and error.__cause__ is None\n",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  }
+}

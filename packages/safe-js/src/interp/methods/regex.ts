@@ -177,7 +177,7 @@ export async function callRegexMethod(
     if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
     cursor = target.lastIndex;
     const lastIndex = await sandboxNumber(cursor, budget, context);
-    const match = executeRegex(target, input, lastIndex);
+    const match = executeRegex(target, input, lastIndex, budget);
     return toMatchArray(match, input, budget);
   } finally {
     budget.setRetainedValues(retained, undefined);
@@ -240,9 +240,9 @@ export async function regexToString(
   }
 }
 
-export function executeRegex(target: SandboxRegex, input: string, lastIndex: number): RegexMatch | null {
+export function executeRegex(target: SandboxRegex, input: string, lastIndex: number, budget?: Budget): RegexMatch | null {
   const pattern = getSandboxRegexPattern(target);
-  const match = matchRegex(pattern, input, lastIndex);
+  const match = matchRegex(pattern, input, lastIndex, budget);
   if (pattern.flags.global || pattern.flags.sticky) {
     target.lastIndex = match === null ? 0 : match.index + match.text.length;
   }

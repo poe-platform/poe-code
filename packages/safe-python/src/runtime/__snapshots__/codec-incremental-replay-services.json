@@ -1,0 +1,1631 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapters": "Node readSync(0) / writeSync(1)",
+  "processStatus": 0,
+  "rows": [
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 24\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 22\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 20\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 18\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 16\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 14\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 12\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 10\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 33\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 30\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 27\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 24\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 22\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 20\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 18\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 16\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 39\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 36\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 33\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 30\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 27\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 24\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 22\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 20\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 27\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 24\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 22\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 20\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 18\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 16\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 14\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 12\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 27\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 24\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 22\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 20\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 18\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 16\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 14\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 12\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 68\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 64\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 60\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 56\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 52\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 48\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 45\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 42\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 68\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 64\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 60\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 56\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 52\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 48\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 45\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 42\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 72\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 68\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 64\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 60\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 56\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 52\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 48\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 45\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 60\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 56\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 52\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 48\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 45\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 42\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 39\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 36\n"
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "callback retry verified\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 24\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 22\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 20\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 18\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 16\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 14\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 12\n"
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8 15 10\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 33\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 30\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 27\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 24\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 22\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 20\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 18\n"
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-8-sig 18 16\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 39\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 36\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 33\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 30\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 27\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 24\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 22\n"
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-7 20 20\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 27\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 24\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 22\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 20\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 18\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 16\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 14\n"
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-le 16 12\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 27\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 24\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 22\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 20\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 18\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 16\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 14\n"
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-16-be 16 12\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 68\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 64\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 60\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 56\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 52\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 48\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 45\n"
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-le 28 42\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 68\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 64\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 60\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 56\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 52\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 48\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 45\n"
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "utf-32-be 28 42\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 72\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 68\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 64\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 60\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 56\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 52\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 48\n"
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "unicode-escape 29 45\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 60\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 56\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 52\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 48\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 45\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 42\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 39\n"
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "raw-unicode-escape 26 36\n"
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "callback retry verified\n"
+    }
+  ],
+  "cancellation": {
+    "result": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "next": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "reads": 1,
+    "writes": 0
+  }
+}

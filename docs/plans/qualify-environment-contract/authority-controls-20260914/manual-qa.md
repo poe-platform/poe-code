@@ -1,0 +1,13 @@
+# Environment authority manual QA
+
+Execute from the repository root against the fingerprinted working candidate.
+No visible CLI output was changed; screenshots are inapplicable to this test-only increment.
+
+1. Run `npm run test --workspace=@poe-code/safe-js`, preserving the full log and terminal exit code. This is the maintained package gate, including pretest and filesystem type contracts. Report skips separately; focused controls cannot replace a failed or unfinished package gate.
+2. Run `npm exec vitest run packages/safe-js/src/environment-authority-negative-controls.test.ts packages/safe-js/src/environment-contract-qualification.test.ts packages/safe-js/src/modules/fs-race-boundary-qualification.test.ts packages/safe-js/src/realm-lifecycle-qualification.test.ts packages/safe-js/src/run.live-dump.test.ts packages/safe-js/src/run.source-modules.test.ts packages/safe-js/src/cli.fs-config.test.ts`. Inspect denial phases, matching SDK/CLI grants, callback revocation, cancellation, cleanup, and recovery refusal.
+3. Run `npm exec eslint packages/safe-js/src/environment-authority-negative-controls.test.ts` and `npm run build:workspaces -- --workspace=@poe-code/safe-js`.
+4. Execute each exact argv recorded in `runtime-controls.json`. Require direct ambient access denial, invalid node import denial, retained ECMAScript Promise control, and explicit registered-operation success without filesystem/network globals. A Workerd export imported on Node or Bun does not verify actual Workerd.
+5. Compare final source fingerprints and staged diff with `source.json`. Record every change; preserve unrelated inputs. Record local commits, remote delivery, and release separately. Do not use old publication receipts as evidence for this candidate.
+6. Check Workerd availability using `npm exec --yes --package=workerd -- workerd --version`. Preserve a failed installation as a failure, not a skip. If an independently available binary starts, record its exact version and path. Bundle the preserved `workerd-probe-source.txt` with esbuild using `platform: "neutral"`, `format: "esm"`, `conditions: ["workerd"]`, and `external: ["node:*"]`. Serve `workerd.capnp` with the exact binary in `workerd-result.json`; request its loopback HTTP socket, compare the recorded response, terminate the supervisor child, and record its exit. The 15-second startup limit supervises the host server; it does not change any guest budget or test timeout. A transient connection refusal before readiness is not a guest execution failure.
+
+Disposition and terminal receipts are recorded in the shared evidence ledger. All controls are deterministic; suite durations are observations, not performance assertions. No generated seed or minimized language finding is involved.

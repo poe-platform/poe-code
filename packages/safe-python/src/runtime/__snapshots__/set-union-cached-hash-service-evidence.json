@@ -1,0 +1,1931 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "adapter": "Explicit PythonSession output.write/flush using node:fs writeSync/fsyncSync on an owned file descriptor; host Python only an independent oracle.",
+  "sourceSha256": "eececfc9c5d0f540a206a94ac8174e6a360111402024743c8973cb5a463c5c21",
+  "outputBytes": 10167,
+  "outputSha256": "d260c93146d7d6d2a05a4e824cdfae27b89a5b3372a1992ad75fcf43f63c9e50",
+  "rows": [
+    {
+      "name": "frozenset/neither/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/left/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/right/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ok', True), [])\n",
+      "oracle": "(('ok', True), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', True), [])\n",
+      "oracle": "(('ok', True), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset/both/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', True), [])\n",
+      "oracle": "(('ok', True), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('AssertionError', ('override',)), [])\n",
+      "oracle": "(('AssertionError', ('override',)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/neither/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/left/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/right/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left == right",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left != right",
+      "status": "ok",
+      "guest": "(('ok', True), [])\n",
+      "oracle": "(('ok', True), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', False), [])\n",
+      "oracle": "(('ok', False), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=False/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ok', True), [])\n",
+      "oracle": "(('ok', True), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left == right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left != right",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left <= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left >= right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left < right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/left > right",
+      "status": "ok",
+      "guest": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "oracle": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/T.__eq__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    },
+    {
+      "name": "union/both/same-hash=True/T.__ne__(left, right)",
+      "status": "ok",
+      "guest": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "oracle": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true,
+      "retainedMatch": true
+    }
+  ]
+}

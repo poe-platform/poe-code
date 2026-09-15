@@ -1,0 +1,78 @@
+{
+  "observedUtc": "2026-09-12T04:54:02.169442+00:00",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "specification": {
+    "url": "https://262.ecma-international.org/16.0/#sec-host-promise-rejection-tracker",
+    "clause": "27.2.1.9 HostPromiseRejectionTracker",
+    "documentSha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+    "freshFetchMatchedExistingTarget": true,
+    "meaning": "The host hook returns unused; its default implementation returns unused. Unhandled rejection notification is host-defined, not an automatic uncaught Script exception."
+  },
+  "pinnedContracts": {
+    "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+    "INTERPRETING.md": "Test Results lines 183-188; async lines 355-365",
+    "CONTRIBUTING.md": "Writing Asynchronous Tests lines 356-376"
+  },
+  "fixtures": [
+    {
+      "filename": "built-ins/Promise/all/invoke-resolve-error-close.js",
+      "sha256": "90e6f3f1805a706f3ebb6e66a61680b245621e54e5e76a3b9a578d06dc60773d"
+    },
+    {
+      "filename": "built-ins/Promise/all/invoke-resolve-error-reject.js",
+      "sha256": "77f3af0405c9058c384326483acc8d20932113d7e602d2b35d90fbd44506610a"
+    }
+  ],
+  "baselineRecords": [
+    {
+      "type": "result",
+      "filename": "built-ins/Promise/all/invoke-resolve-error-close.js",
+      "sourceHash": "90e6f3f1805a706f3ebb6e66a61680b245621e54e5e76a3b9a578d06dc60773d",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "unhandled-rejection",
+          "detail": {
+            "phase": "runtime",
+            "message": "",
+            "type": "Test262Error"
+          }
+        },
+        {
+          "mode": "strict",
+          "status": "failed",
+          "reason": "unhandled-rejection",
+          "detail": {
+            "phase": "runtime",
+            "message": "",
+            "type": "Test262Error"
+          }
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "built-ins/Promise/all/invoke-resolve-error-reject.js",
+      "sourceHash": "77f3af0405c9058c384326483acc8d20932113d7e602d2b35d90fbd44506610a",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "classification": "runner-host-policy-nonpass",
+  "owner": "Test262 runner synchronous Promise-rejection result-policy qualification",
+  "runtimeRepairClaim": false,
+  "frozenSourceChanged": false,
+  "disposition": "Keep original nonpasses and full baseline counts. Do not promote to passes or attribute these records to ECMAScript defects. Track explicit conservative runner policy; future policy qualification requires TDD and separately hashed evidence."
+}

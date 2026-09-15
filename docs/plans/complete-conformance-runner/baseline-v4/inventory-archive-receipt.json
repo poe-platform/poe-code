@@ -1,0 +1,11 @@
+{
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "manifestId": "547fad76257b2e6e3d5aae1626ead11434d557f8f3d12b2b613aea238dee41a9",
+  "file": "independent-mismatch-inventory.json",
+  "bytes": 16419181,
+  "sha256": "9b196c676c2ce180e48a4ec9677565e1b4bc3bcbd217651ec88d2807521e70ad",
+  "archive": "independent-mismatch-inventory.json.gz",
+  "archiveBytes": 865640,
+  "archiveSha256": "4a919f7e05b17c4c71f59703fd62e4a7afdef5ca02377d76f86d14adacc4bedc",
+  "roundtripVerified": true
+}

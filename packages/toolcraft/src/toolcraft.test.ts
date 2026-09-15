@@ -1360,8 +1360,7 @@ describe("createMCPServer", () => {
         type: "object",
         properties: {
           limit: {
-            type: "integer",
-            nullable: true
+            type: ["integer", "null"]
           }
         },
         required: [],
@@ -1615,9 +1614,8 @@ describe("createMCPServer", () => {
         type: "object",
         properties: {
           mode: {
-            type: "string",
+            type: ["string", "null"],
             enum: ["off", "auto", "forced", null],
-            nullable: true
           }
         },
         required: [],
@@ -1782,6 +1780,8 @@ describe("createMCPServer", () => {
       );
       expect(secondHandler).not.toHaveBeenCalled();
       expect(callResult).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",
@@ -2066,6 +2066,8 @@ describe("createMCPServer", () => {
 
       expect(progress).toHaveBeenCalledWith("handler-called");
       expect(result).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",

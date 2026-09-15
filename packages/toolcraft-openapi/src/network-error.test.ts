@@ -30,6 +30,45 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("classifyNetworkError", () => {
+  it.each(["self", "pair", "unknown-code", "abort"])("terminates for a %s cause cycle", (kind) => {
+    const first = new Error("outer");
+    const second = kind === "pair" ? new Error("inner") : first;
+    if (kind === "unknown-code") Object.assign(first, { code: "UNCLASSIFIED" });
+    if (kind === "abort") first.name = "AbortError";
+    const causes = new Map([[first, second], [second, first]]);
+    let reads = 0;
+    for (const [error, cause] of causes) {
+      Object.defineProperty(error, "cause", {
+        get() {
+          reads += 1;
+          if (reads > causes.size * 2) throw new Error("Cause cycle traversed repeatedly");
+          return cause;
+        }
+      });
+    }
+
+    const classified = classifyNetworkError(first, "https://api.example.test");
+
+    if (kind === "abort") {
+      expect(classified).toBeInstanceOf(UserError);
+      expect(classified?.message).toBe("Request aborted: https://api.example.test/.");
+      expect(classified?.cause).toBe(first);
+    } else {
+      expect(classified).toBeNull();
+    }
+  });
+
+  it("preserves recognized network errors encountered before a repeated cause", () => {
+    const first = new Error("outer");
+    const second = Object.assign(new Error("inner", { cause: first }), { code: "ENOTFOUND" });
+    first.cause = second;
+
+    const classified = classifyNetworkError(first, "https://api.example.test");
+
+    expect(classified?.message).toBe("DNS lookup failed for api.example.test. Check the URL or your network.");
+    expect(classified?.cause).toBe(first);
+  });
+
   it("classifies fetch failed errors with an ECONNREFUSED cause", () => {
     const error = new TypeError("fetch failed", {
       cause: { code: "ECONNREFUSED", address: "127.0.0.1", port: 8080 }

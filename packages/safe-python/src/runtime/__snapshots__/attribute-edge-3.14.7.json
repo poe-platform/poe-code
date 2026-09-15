@@ -1,0 +1,231 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "getattr(x, name) / None",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=None\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / 1",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / 1.5",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1.5\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / b\"x\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=b\"x\"\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / []",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=[]\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / \"missing\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"missing\"\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / \"\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"\"\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute ''\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / \"a\\x00b\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"a\\x00b\"\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])"
+    },
+    {
+      "name": "getattr(x, name) / S(\"missing\")",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=S(\"missing\")\ntry:\n result=('ok', getattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), ['hash', 'hash'])"
+    },
+    {
+      "name": "getattr(x, name, 42) / None",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=None\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / 1",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / 1.5",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1.5\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / b\"x\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=b\"x\"\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / []",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=[]\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / \"missing\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"missing\"\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', 42), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / \"\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"\"\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', 42), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / \"a\\x00b\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"a\\x00b\"\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', 42), [])"
+    },
+    {
+      "name": "getattr(x, name, 42) / S(\"missing\")",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=S(\"missing\")\ntry:\n result=('ok', getattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', 42), ['hash', 'hash'])"
+    },
+    {
+      "name": "hasattr(x, name) / None",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=None\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])"
+    },
+    {
+      "name": "hasattr(x, name) / 1",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])"
+    },
+    {
+      "name": "hasattr(x, name) / 1.5",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1.5\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])"
+    },
+    {
+      "name": "hasattr(x, name) / b\"x\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=b\"x\"\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])"
+    },
+    {
+      "name": "hasattr(x, name) / []",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=[]\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])"
+    },
+    {
+      "name": "hasattr(x, name) / \"missing\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"missing\"\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "hasattr(x, name) / \"\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"\"\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "hasattr(x, name) / \"a\\x00b\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"a\\x00b\"\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "hasattr(x, name) / S(\"missing\")",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=S(\"missing\")\ntry:\n result=('ok', hasattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', False), ['hash', 'hash'])"
+    },
+    {
+      "name": "setattr(x, name, 42) / None",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=None\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / 1",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / 1.5",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1.5\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / b\"x\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=b\"x\"\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / []",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=[]\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / \"missing\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"missing\"\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / \"\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"\"\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / \"a\\x00b\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"a\\x00b\"\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', None), [])"
+    },
+    {
+      "name": "setattr(x, name, 42) / S(\"missing\")",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=S(\"missing\")\ntry:\n result=('ok', setattr(x, name, 42))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('ok', None), ['hash', 'hash'])"
+    },
+    {
+      "name": "delattr(x, name) / None",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=None\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / 1",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / 1.5",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=1.5\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / b\"x\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=b\"x\"\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / []",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=[]\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / \"missing\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"missing\"\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / \"\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"\"\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute ''\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / \"a\\x00b\"",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=\"a\\x00b\"\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])"
+    },
+    {
+      "name": "delattr(x, name) / S(\"missing\")",
+      "source": "events=[]\nclass S(str):\n def __str__(self): raise ValueError('str called')\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\n def __eq__(self, other):\n  events.append('eq')\n  return str.__eq__(self, other)\nclass C: pass\nx=C()\nname=S(\"missing\")\ntry:\n result=('ok', delattr(x, name))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), ['hash', 'hash'])"
+    }
+  ]
+}

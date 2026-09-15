@@ -1,0 +1,66 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "boundary": "Unchanged guest programs through PythonSession with actual writeSync/fsyncSync on owned descriptors. Lookup failures are blockers, not compatibility certification.",
+  "cases": [
+    {
+      "name": "gb2312",
+      "source": "import codecs\nseen = []\ndef recover(error):\n    seen.append(error)\n    if len(seen) == 2:\n        raise error\n    return ('?', -1)\ncodecs.register_error('encoder-initial-fault', recover)\nencoder = codecs.getincrementalencoder('gb2312')('encoder-initial-fault')\ntry:\n    encoder.encode('🐍🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0], error is seen[1])\nencoder.errors = 'strict'\ntry:\n    encoder.encode('A🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0])\n",
+      "expected": "('gb2312', '🐍🐍', 0, 1, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence True True\n('gb2312', 'A🐍', 1, 2, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence False\n",
+      "actual": {
+        "status": "exception",
+        "writes": 0,
+        "exception": "LookupError('unknown encoding: gb2312')",
+        "stdout": ""
+      }
+    },
+    {
+      "name": "gbk",
+      "source": "import codecs\nseen = []\ndef recover(error):\n    seen.append(error)\n    if len(seen) == 2:\n        raise error\n    return ('?', -1)\ncodecs.register_error('encoder-initial-fault', recover)\nencoder = codecs.getincrementalencoder('gbk')('encoder-initial-fault')\ntry:\n    encoder.encode('🐍🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0], error is seen[1])\nencoder.errors = 'strict'\ntry:\n    encoder.encode('A🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0])\n",
+      "expected": "('gbk', '🐍🐍', 0, 1, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence True True\n('gbk', 'A🐍', 1, 2, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence False\n",
+      "actual": {
+        "status": "exception",
+        "writes": 0,
+        "exception": "LookupError('unknown encoding: gbk')",
+        "stdout": ""
+      }
+    },
+    {
+      "name": "hz",
+      "source": "import codecs\nseen = []\ndef recover(error):\n    seen.append(error)\n    if len(seen) == 2:\n        raise error\n    return ('?', -1)\ncodecs.register_error('encoder-initial-fault', recover)\nencoder = codecs.getincrementalencoder('hz')('encoder-initial-fault')\ntry:\n    encoder.encode('🐍🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0], error is seen[1])\nencoder.errors = 'strict'\ntry:\n    encoder.encode('A🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0])\n",
+      "expected": "('hz', '🐍🐍', 0, 1, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence True True\n('hz', 'A🐍', 1, 2, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence False\n",
+      "actual": {
+        "status": "exception",
+        "writes": 0,
+        "exception": "LookupError('unknown encoding: hz')",
+        "stdout": ""
+      }
+    },
+    {
+      "name": "iso2022_jp",
+      "source": "import codecs\nseen = []\ndef recover(error):\n    seen.append(error)\n    if len(seen) == 2:\n        raise error\n    return ('?', -1)\ncodecs.register_error('encoder-initial-fault', recover)\nencoder = codecs.getincrementalencoder('iso2022_jp')('encoder-initial-fault')\ntry:\n    encoder.encode('🐍🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0], error is seen[1])\nencoder.errors = 'strict'\ntry:\n    encoder.encode('A🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0])\n",
+      "expected": "('iso2022_jp', '🐍🐍', 0, 1, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence True True\n('iso2022_jp', 'A🐍', 1, 2, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence False\n",
+      "actual": {
+        "status": "exception",
+        "writes": 0,
+        "exception": "LookupError('unknown encoding: iso2022_jp')",
+        "stdout": ""
+      }
+    },
+    {
+      "name": "iso2022_kr",
+      "source": "import codecs\nseen = []\ndef recover(error):\n    seen.append(error)\n    if len(seen) == 2:\n        raise error\n    return ('?', -1)\ncodecs.register_error('encoder-initial-fault', recover)\nencoder = codecs.getincrementalencoder('iso2022_kr')('encoder-initial-fault')\ntry:\n    encoder.encode('🐍🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0], error is seen[1])\nencoder.errors = 'strict'\ntry:\n    encoder.encode('A🐍', True)\nexcept UnicodeEncodeError as error:\n    print(error.args)\n    print(error.start, error.end, error.reason, error is seen[0])\n",
+      "expected": "('iso2022_kr', '🐍🐍', 0, 1, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence True True\n('iso2022_kr', 'A🐍', 1, 2, 'illegal multibyte sequence')\n1 2 illegal multibyte sequence False\n",
+      "actual": {
+        "status": "exception",
+        "writes": 0,
+        "exception": "LookupError('unknown encoding: iso2022_kr')",
+        "stdout": ""
+      }
+    }
+  ]
+}

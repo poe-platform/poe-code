@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "name": "core",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text, \"utf-8\"))\n",
+      "input": "codec service\n",
+      "expected": {
+        "status": 0,
+        "stdout": "codec service\nb'codec service'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "codec service\nb'codec service'\n"
+      },
+      "reads": 14,
+      "writes": 4,
+      "flushes": 2
+    },
+    {
+      "name": "uu",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text.encode(), \"uu_codec\"))\n",
+      "input": "codec service\n",
+      "expected": {
+        "status": 0,
+        "stdout": "codec service\nb'begin 666 <data>\\n-8V]D96,@<V5R=FEC90  \\n \\nend\\n'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "actual": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: uu_codec')",
+        "stdout": "codec service\n"
+      },
+      "reads": 14,
+      "writes": 2,
+      "flushes": 2
+    }
+  ],
+  "driver": "import {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {mkdtempSync,openSync,closeSync,writeFileSync,readFileSync,readSync,writeSync,fsyncSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {spawnSync} from 'node:child_process';\nconst records=[];\nfor(const name of ['core','uu']){\n const source='import codecs\\ntext = input()\\nprint(text, flush=True)\\n'+(name==='core'?'print(codecs.encode(text, \"utf-8\"))\\n':'print(codecs.encode(text.encode(), \"uu_codec\"))\\n');\n const input='codec service\\n';\n const expected=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',source],{input,encoding:'utf8',timeout:10000});\n if(expected.status!==0||expected.stderr)throw Error('oracle failed');\n const directory=mkdtempSync(join(tmpdir(),'safe-python-uu-storage-'));\n let reader:number|undefined,writer:number|undefined,reads=0,writes=0,flushes=0;\n try{\n  writeFileSync(join(directory,'input'),input);\n  reader=openSync(join(directory,'input'),'r');writer=openSync(join(directory,'output'),'w');\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],\n   input:{readLine(){let line='';const byte=Buffer.alloc(1);while(true){reads++;if(!readSync(reader!,byte,0,1,null))return line||null;line+=String.fromCharCode(byte[0]);if(byte[0]===10)return line;}}},\n   output:{write(text){const bytes=Buffer.from(text);for(let offset=0;offset<bytes.length;){writes++;offset+=writeSync(writer!,bytes,offset,bytes.length-offset);}},flush(){flushes++;fsyncSync(writer!);}}\n  });\n  const result=session.exec(source);let exception;\n  if(result.status==='exception'){session.globals.set('failure',result.exception);const detail=session.eval('repr(failure)');if(detail.status==='ok')exception=String(detail.value.primitive);}\n  closeSync(reader);reader=undefined;closeSync(writer);writer=undefined;\n  records.push({name,source,input,expected:{status:expected.status,stdout:expected.stdout,stderr:expected.stderr,signal:expected.signal},actual:{status:result.status,exception,stdout:readFileSync(join(directory,'output'),'utf8')},reads,writes,flushes});\n }finally{if(reader!==undefined)closeSync(reader);if(writer!==undefined)closeSync(writer);rmSync(directory,{recursive:true});}\n}\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/uu-storage-admission-services.json',JSON.stringify({records,driver:readFileSync('/tmp/uu-storage-services.mts','utf8')},null,2)+'\\n');\nconsole.log(JSON.stringify(records));\n"
+}

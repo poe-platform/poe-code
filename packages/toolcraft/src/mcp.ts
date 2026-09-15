@@ -3,12 +3,18 @@ import {
   createServer,
   JSON_RPC_ERROR_CODES,
   ToolError,
+  toContentBlocks,
+  type CustomMethodHandler,
+  type ContentItem,
   type ToolHandler,
+  type ToolReturn,
   type SDKTransport,
   type Server as TinyServer,
-  type TypedSchema
+  type TypedSchema,
+  type TypedOutputSchema,
+  type HandlerRequestContext
 } from "tiny-stdio-mcp-server";
-import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
+import { cloneDefaultValue, compileJsonSchema, formatIssues, isPlainRecord, nativeJsonSchema, toJsonSchema, unicodeLength, validate, type AnySchema, type JsonSchema, type NativeSchema, type ObjectSchema } from "toolcraft-schema";
 import type {
   Command,
   Group,
@@ -32,12 +38,17 @@ import {
 } from "./human-in-loop/types.js";
 import { assertHumanInLoopWired, mergeApprovalsRoot } from "./human-in-loop/wiring.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
+import { isMCPResult } from "./mcp-result.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { validateAppliedDefault } from "./applied-default.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { filterSchemaForScope } from "./schema-scope.js";
+import { validateCasedSchemaMembers } from "./schema-member-names.js";
 import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+import { resolveDiscriminatedBranch } from "./discriminator.js";
+import { validateUnionSchema } from "./union-validation.js";
 import { createRuntimeLogger } from "./runtime-logging.js";
 import { createEnv, createFs, validateServices } from "./runtime/io.js";
 import { createManagedStream, type ToolcraftStream } from "./stream.js";
@@ -50,6 +61,7 @@ type InvocationServicesResolver<TServices extends object> = (
   context: unknown
 ) => Partial<TServices> | Promise<Partial<TServices>>;
 interface MCPServerRuntime<TServices extends object> {
+  supportsStreaming?: boolean;
   createServer?(options: {
     name: string;
     version: string;
@@ -58,16 +70,7 @@ interface MCPServerRuntime<TServices extends object> {
   getRequestContext?(): unknown;
   requestServices?: InvocationServicesResolver<TServices>;
 }
-type ToolContent =
-  | { type: "text"; text: string }
-  | { type: "image"; data: string; mimeType: string }
-  | { type: "audio"; data: string; mimeType: string }
-  | {
-      type: "resource";
-      resource:
-        | { uri: string; mimeType: string; text: string }
-        | { uri: string; mimeType: string; blob: string };
-    };
+type ToolContent = ContentItem;
 
 export const MCP_STREAM_METHODS = {
   list: "toolcraft/streams/list",
@@ -82,10 +85,11 @@ interface ToolDefinition<TServices extends object> {
   commandPath: string;
   description: string;
   inputSchema: JsonSchema;
+  paramsSchema: ObjectSchema<any>;
   name: string;
   title?: string;
   outputSchema?: JsonSchema;
-  resultSchema?: ObjectSchema<any>;
+  resultSchema?: AnySchema;
 }
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
@@ -211,7 +215,7 @@ function isOptional(schema: AnySchema): boolean {
   return schema.kind === "optional";
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -219,42 +223,82 @@ function formatAvailableList(values: Iterable<string>): string {
   return `Available: ${[...values].sort().join(", ")}.`;
 }
 
-function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
-  const oneOf = schema.oneOf?.map((child) => applySchemaCasing(child, casing));
+function applySchemaCasing(
+  source: AnySchema,
+  casing: Casing,
+  direction: "input" | "output" = "output",
+  schema = toJsonSchema(source)
+): JsonSchema {
+  const canonical = unwrapOptional(source);
+  if ((canonical as NativeSchema)[nativeJsonSchema] !== undefined) return schema;
+  const branches = canonical.kind === "oneOf"
+    ? Object.values(canonical.branches)
+    : canonical.kind === "union" ? canonical.branches : [];
+  const oneOf = schema.oneOf?.map((child, index) => {
+    const branch = branches[index];
+    if (branch === undefined) return child;
+    const converted = applySchemaCasing(branch, casing, direction, child);
+    if (canonical.kind === "oneOf" && child.default !== undefined) {
+      converted.default = serializeResultValue(canonical, cloneDefaultValue(child.default), casing, "default", []);
+      if (!validate({ kind: "json" }, converted.default).ok) delete converted.default;
+    }
+    return converted;
+  });
   const additionalProperties =
-    typeof schema.additionalProperties === "object" && schema.additionalProperties !== null
-      ? applySchemaCasing(schema.additionalProperties, casing)
+    canonical.kind === "record"
+      ? applySchemaCasing(canonical.value, casing, direction, schema.additionalProperties as JsonSchema)
       : schema.additionalProperties;
+  const metadata: JsonSchema = { ...schema };
+  if (schema.default !== undefined) {
+    metadata.default = serializeResultValue(canonical, cloneDefaultValue(canonical.default), casing, "default", []);
+    if (!validate({ kind: "json" }, metadata.default).ok) delete metadata.default;
+  }
 
-  if (schema.type !== "object" || schema.properties === undefined) {
-    if (schema.type === "array" && schema.items !== undefined) {
+  if (canonical.kind !== "object") {
+    if (canonical.kind === "array") {
       return {
-        ...schema,
+        ...metadata,
         ...(additionalProperties === undefined ? {} : { additionalProperties }),
-        items: applySchemaCasing(schema.items, casing),
+        items: applySchemaCasing(canonical.item, casing, direction, schema.items),
         ...(oneOf === undefined ? {} : { oneOf })
       };
     }
 
     return {
-      ...schema,
+      ...metadata,
       ...(additionalProperties === undefined ? {} : { additionalProperties }),
       ...(oneOf === undefined ? {} : { oneOf })
     };
   }
 
   const properties = Object.fromEntries(
-    Object.entries(schema.properties).map(([key, value]) => [
+    Object.entries(schema.properties ?? {}).map(([key, value]) => [
       formatSegment(key, casing),
-      applySchemaCasing(value, casing)
+      Object.prototype.hasOwnProperty.call(canonical.shape, key)
+        ? applySchemaCasing(canonical.shape[key] as AnySchema, casing, direction, value)
+        : value
     ])
   );
-  const required = schema.required?.map((key) => formatSegment(key, casing));
+  const required = schema.required
+    ?.filter((key) => direction === "output"
+      || !Object.hasOwn(canonical.shape, key)
+      || unwrapOptional(canonical.shape[key] as AnySchema).default === undefined)
+    .map((key) => formatSegment(key, casing));
+  const aliasConditions: JsonSchema[] = direction === "input" && canonical.additionalProperties === true
+    ? Object.entries(canonical.shape).flatMap(([key, child]) => {
+      const childSchema = child as AnySchema;
+      const callerKey = formatSegment(key, casing);
+      return callerKey !== key && isOptional(childSchema) && unwrapOptional(childSchema).default === undefined
+        ? [{ anyOf: [{ not: { required: [key] } }, { required: [callerKey] }] }]
+        : [];
+    })
+    : [];
 
   return {
-    ...schema,
+    ...metadata,
     ...(additionalProperties === undefined ? {} : { additionalProperties }),
     properties,
+    ...(aliasConditions.length === 0 ? {} : { allOf: [...(schema.allOf ?? []), ...aliasConditions] }),
     ...(required === undefined ? {} : { required }),
     ...(oneOf === undefined ? {} : { oneOf })
   };
@@ -271,7 +315,7 @@ function collectParamSummaries(
   for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
     const childSchema = unwrapOptional(rawChildSchema);
     const nextPath = [...path, formatSegment(key, casing)];
-    const optional = inheritedOptional || isOptional(rawChildSchema);
+    const optional = inheritedOptional || isOptional(rawChildSchema) || childSchema.default !== undefined;
 
     if (childSchema.kind === "object") {
       summaries.push(...collectParamSummaries(childSchema, casing, nextPath, optional));
@@ -342,28 +386,6 @@ function formatToolName(path: string[]): string {
   return path.map((segment) => formatSegment(segment, "snake")).join("__");
 }
 
-function validateUniqueMCPParameterFields(schema: ObjectSchema<any>, casing: Casing): void {
-  const sourceKeysByField = new Map<string, string>();
-
-  for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
-    const field = formatSegment(key, casing);
-    const existingKey = sourceKeysByField.get(field);
-
-    if (existingKey !== undefined) {
-      throw new UserError(
-        `Parameters "${existingKey}" and "${key}" use conflicting MCP field "${field}".`
-      );
-    }
-
-    sourceKeysByField.set(field, key);
-
-    const childSchema = unwrapOptional(rawChildSchema);
-    if (childSchema.kind === "object") {
-      validateUniqueMCPParameterFields(childSchema, casing);
-    }
-  }
-}
-
 function enumerateTools<TServices extends object>(
   root: Group<TServices>,
   casing: Casing,
@@ -395,9 +417,12 @@ function enumerateTools<TServices extends object>(
         );
       }
 
-      validateUniqueMCPParameterFields(params, casing);
+      validateCasedSchemaMembers(params, (key) => formatSegment(key, casing), "MCP field");
       if (node.result !== undefined) {
-        validateUniqueMCPParameterFields(node.result, casing);
+        validateCasedSchemaMembers(node.result, (key) => formatSegment(key, casing), "MCP field");
+      }
+      if (node.stream !== undefined) {
+        validateCasedSchemaMembers(node.stream.event, (key) => formatSegment(key, casing), "MCP field");
       }
 
       const resolvedCommandPath = [...commandPath, node.name].join(".");
@@ -423,11 +448,12 @@ function enumerateTools<TServices extends object>(
           node.name,
           casing
         ),
-        inputSchema: applySchemaCasing(toJsonSchema(params), casing),
+        inputSchema: applySchemaCasing(params, casing, "input"),
+        paramsSchema: params,
         ...(node.result === undefined
           ? {}
           : {
-              outputSchema: applySchemaCasing(toJsonSchema(node.result), casing),
+              outputSchema: applySchemaCasing(node.result, casing),
               resultSchema: node.result
             })
       });
@@ -471,7 +497,7 @@ function renderPendingApproval(pending: HumanInLoopPending): {
     content: [
       {
         type: "text",
-        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show ${pending.approvalId}\`.`
+        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show --approval-id ${pending.approvalId}\`.`
       },
       {
         type: "text",
@@ -528,12 +554,23 @@ function describeReceived(value: unknown): string {
   if (value === null) return "null";
   if (value === undefined) return "missing";
   if (Array.isArray(value)) return `array(${value.length})`;
-  if (typeof value === "object") return "object";
+  if (typeof value === "object") return isPlainRecord(value) ? "object" : "non-plain object";
   if (typeof value === "string") {
     const s = value.length > 40 ? `${value.slice(0, 40)}…` : value;
     return `${JSON.stringify(s)}`;
   }
   return JSON.stringify(value);
+}
+
+function validateNativeMCPValue(schema: AnySchema, value: unknown, label: string, errors: ValidationError[]): unknown {
+  const result = validate(schema, value);
+  if (!result.ok) {
+    errors.push(...result.issues.map((issue) => ({
+      path: [label, ...issue.path].filter((part) => part !== "").join("."),
+      message: formatIssues([issue])
+    })));
+  }
+  return value;
 }
 
 function validateSchemaValue(
@@ -544,6 +581,14 @@ function validateSchemaValue(
   errors: ValidationError[]
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
+
+  if (isOptional(schema) && value === undefined) {
+    return validateAppliedDefault(unwrappedSchema, label, errors);
+  }
+
+  if ((unwrappedSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(unwrappedSchema, value, label, errors);
+  }
 
   if (value === null && unwrappedSchema.nullable === true) {
     return null;
@@ -601,11 +646,16 @@ function validateSchemaValue(
     case "object":
       return validateObjectSchema(unwrappedSchema, value, casing, label, errors);
 
-    case "json":
+    case "json": {
+      const validation = validate(unwrappedSchema, value);
+      if (!validation.ok) {
+        errors.push(...validation.issues.map((issue) => ({ path: label, message: issue.message })));
+      }
       return value;
+    }
 
     case "record": {
-      if (!isPlainObject(value)) {
+      if (!isPlainRecord(value)) {
         errors.push({
           path: label,
           message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -621,38 +671,22 @@ function validateSchemaValue(
     }
 
     case "oneOf": {
-      if (!isPlainObject(value)) {
+      const resolved = resolveDiscriminatedBranch(
+        unwrappedSchema, value, formatSegment(unwrappedSchema.discriminator, casing), label, errors
+      );
+      if (resolved === undefined) {
         return value;
       }
-      const discriminatorKey = formatSegment(unwrappedSchema.discriminator, casing);
-      const discriminator = value[discriminatorKey];
-      const branch =
-        typeof discriminator === "string" ? unwrappedSchema.branches[discriminator] : undefined;
-      if (branch === undefined) {
-        return value;
-      }
-      const { [discriminatorKey]: ignoredDiscriminator, ...branchValue } = value;
-      void ignoredDiscriminator;
       return {
-        [unwrappedSchema.discriminator]: discriminator,
-        ...validateObjectSchema(branch, branchValue, casing, label, errors)
+        ...validateObjectSchema(resolved.branch, resolved.value, casing, label, errors),
+        [unwrappedSchema.discriminator]: resolved.discriminator
       };
     }
 
     case "union": {
-      if (!isPlainObject(value)) {
-        return value;
-      }
-      const branch = unwrappedSchema.branches.find((candidate) =>
-        Object.keys(candidate.shape).every(
-          (key) =>
-            candidate.shape[key]?.kind === "optional" ||
-            Object.prototype.hasOwnProperty.call(value, formatSegment(key, casing))
-        )
+      return validateUnionSchema(unwrappedSchema, value, label, errors, (branch, branchErrors) =>
+        validateObjectSchema(branch, value, casing, label, branchErrors)
       );
-      return branch === undefined
-        ? value
-        : validateObjectSchema(branch, value, casing, label, errors);
     }
   }
 }
@@ -663,17 +697,18 @@ function validateStringConstraints(
   label: string,
   errors: ValidationError[]
 ): void {
-  if (schema.minLength !== undefined && value.length < schema.minLength) {
+  const length = unicodeLength(value);
+  if (schema.minLength !== undefined && length < schema.minLength) {
     errors.push({
       path: label,
-      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${length}.`
     });
   }
 
-  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+  if (schema.maxLength !== undefined && length > schema.maxLength) {
     errors.push({
       path: label,
-      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${length}.`
     });
   }
 
@@ -713,7 +748,10 @@ function validateObjectSchema(
   label: string,
   errors: ValidationError[]
 ): Record<string, unknown> {
-  if (!isPlainObject(value)) {
+  if ((schema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(schema, value, label, errors) as Record<string, unknown>;
+  }
+  if (!isPlainRecord(value)) {
     errors.push({
       path: label,
       message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -756,10 +794,10 @@ function validateObjectSchema(
     const hasValue = Object.prototype.hasOwnProperty.call(value, inputKey);
     const fieldLabel = label.length === 0 ? inputKey : `${label}.${inputKey}`;
 
-    if (!hasValue) {
+    if (!hasValue || (isOptional(rawChildSchema) && value[inputKey] === undefined)) {
       if (childSchema.default !== undefined) {
         Object.defineProperty(result, outputKey, {
-          value: childSchema.default,
+          value: validateAppliedDefault(childSchema, fieldLabel, errors),
           enumerable: true,
           configurable: true,
           writable: true
@@ -768,6 +806,13 @@ function validateObjectSchema(
       }
 
       if (isOptional(rawChildSchema)) {
+        if (inputKey !== outputKey && Object.hasOwn(result, outputKey)) {
+          const aliasLabel = label.length === 0 ? outputKey : `${label}.${outputKey}`;
+          errors.push({
+            path: aliasLabel,
+            message: `Unexpected parameter "${aliasLabel}". Use "${fieldLabel}" for this declared parameter.`
+          });
+        }
         continue;
       }
 
@@ -806,6 +851,16 @@ function serializeResultValue(
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
+  if ((unwrappedSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(unwrappedSchema, value, label, errors);
+  }
+
+  if (isOptional(schema) && value === undefined) {
+    return unwrappedSchema.default === undefined
+      ? undefined
+      : serializeResultValue(unwrappedSchema, cloneDefaultValue(unwrappedSchema.default), casing, label, errors);
+  }
+
   if (value === null && unwrappedSchema.nullable === true) {
     return null;
   }
@@ -822,12 +877,13 @@ function serializeResultValue(
         });
         return value;
       }
+      validateArrayConstraints(unwrappedSchema, value, label, errors);
       return value.map((item, index) =>
         serializeResultValue(unwrappedSchema.item, item, casing, `${label}[${index}]`, errors)
       );
 
     case "record":
-      if (!isPlainObject(value)) {
+      if (!isPlainRecord(value)) {
         errors.push({
           path: label,
           message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -842,58 +898,22 @@ function serializeResultValue(
       );
 
     case "oneOf": {
-      if (!isPlainObject(value)) {
-        errors.push({
-          path: label,
-          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
-        });
+      const resolved = resolveDiscriminatedBranch(
+        unwrappedSchema, value, unwrappedSchema.discriminator, label, errors
+      );
+      if (resolved === undefined) {
         return value;
       }
-      const discriminator = value[unwrappedSchema.discriminator];
-      const branch =
-        typeof discriminator === "string" ? unwrappedSchema.branches[discriminator] : undefined;
-      if (branch === undefined) {
-        const branchNames = Object.keys(unwrappedSchema.branches);
-        errors.push({
-          path:
-            label.length === 0
-              ? unwrappedSchema.discriminator
-              : `${label}.${unwrappedSchema.discriminator}`,
-          message: `Invalid value for "${label.length === 0 ? unwrappedSchema.discriminator : `${label}.${unwrappedSchema.discriminator}`}". Expected one of: ${branchNames.join(", ")}, got ${describeReceived(discriminator)}.`
-        });
-        return value;
-      }
-      const { [unwrappedSchema.discriminator]: ignoredDiscriminator, ...branchValue } = value;
-      void ignoredDiscriminator;
       return {
-        [formatSegment(unwrappedSchema.discriminator, casing)]: discriminator,
-        ...serializeResultObject(branch, branchValue, casing, label, errors)
+        ...serializeResultObject(resolved.branch, resolved.value, casing, label, errors),
+        [formatSegment(unwrappedSchema.discriminator, casing)]: resolved.discriminator
       };
     }
 
     case "union": {
-      if (!isPlainObject(value)) {
-        errors.push({
-          path: label,
-          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
-        });
-        return value;
-      }
-      const branch = unwrappedSchema.branches.find((candidate) =>
-        Object.keys(candidate.shape).every(
-          (key) =>
-            candidate.shape[key]?.kind === "optional" ||
-            Object.prototype.hasOwnProperty.call(value, key)
-        )
+      return validateUnionSchema(unwrappedSchema, value, label, errors, (branch, branchErrors) =>
+        serializeResultObject(branch, value, casing, label, branchErrors)
       );
-      if (branch === undefined) {
-        errors.push({
-          path: label,
-          message: `Invalid value for "${label}". Expected one union branch, got ${describeReceived(value)}.`
-        });
-        return value;
-      }
-      return serializeResultObject(branch, value, casing, label, errors);
     }
 
     default:
@@ -908,7 +928,7 @@ function serializeResultObject(
   label: string,
   errors: ValidationError[]
 ): Record<string, unknown> {
-  if (!isPlainObject(value)) {
+  if (!isPlainRecord(value)) {
     errors.push({
       path: label,
       message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
@@ -941,10 +961,10 @@ function serializeResultObject(
     const wireKey = formatSegment(sourceKey, casing);
     const fieldLabel = label.length === 0 ? sourceKey : `${label}.${sourceKey}`;
 
-    if (!hasValue) {
+    if (!hasValue || (isOptional(rawChildSchema) && value[sourceKey] === undefined)) {
       if (childSchema.default !== undefined) {
         Object.defineProperty(result, wireKey, {
-          value: childSchema.default,
+          value: serializeResultValue(childSchema, cloneDefaultValue(childSchema.default), casing, fieldLabel, errors),
           enumerable: true,
           configurable: true,
           writable: true
@@ -969,8 +989,9 @@ function serializeResultObject(
   }
 
   if (schema.additionalProperties === true) {
+    const wireKeys = new Set([...expectedKeys].map((key) => formatSegment(key, casing)));
     for (const key of Object.keys(value)) {
-      if (!expectedKeys.has(key)) {
+      if (!expectedKeys.has(key) && !wireKeys.has(key)) {
         Object.defineProperty(result, key, {
           value: value[key],
           enumerable: true,
@@ -985,12 +1006,12 @@ function serializeResultObject(
 }
 
 function validateCommandResult(
-  schema: ObjectSchema<any>,
+  schema: AnySchema,
   value: unknown,
   casing: Casing
-): Record<string, unknown> {
+): unknown {
   const errors: ValidationError[] = [];
-  const result = serializeResultObject(schema, value, casing, "", errors);
+  const result = serializeResultValue(schema, value, casing, "", errors);
   throwResultValidationErrors(errors);
   return result;
 }
@@ -1020,45 +1041,6 @@ function throwResultValidationErrors(errors: readonly ValidationError[]): void {
   );
 }
 
-function isContentBlock(value: unknown): value is ToolContent {
-  if (!isPlainObject(value) || typeof value.type !== "string") {
-    return false;
-  }
-
-  return (
-    value.type === "text" ||
-    value.type === "image" ||
-    value.type === "audio" ||
-    value.type === "resource"
-  );
-}
-
-function toToolContent(result: unknown): ToolContent[] {
-  if (result === undefined) {
-    return [];
-  }
-
-  if (Array.isArray(result)) {
-    return result.flatMap((item) => toToolContent(item));
-  }
-
-  if (typeof result === "string" || typeof result === "number" || typeof result === "boolean") {
-    return [{ type: "text", text: String(result) }];
-  }
-
-  if (result === null) {
-    return [{ type: "text", text: "null" }];
-  }
-
-  if (isContentBlock(result)) {
-    return [result];
-  }
-
-  const fallbackValue = result;
-  const fallbackText = JSON.stringify(fallbackValue);
-  return [{ type: "text", text: fallbackText }];
-}
-
 function toToolError(error: unknown, reportPath?: string): ToolError {
   if (error instanceof ToolError) {
     return error;
@@ -1084,6 +1066,16 @@ function toToolError(error: unknown, reportPath?: string): ToolError {
   return new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, String(error));
 }
 
+function withToolErrorMapping(handler: CustomMethodHandler): CustomMethodHandler {
+  return async (params, session) => {
+    try {
+      return await handler(params, session);
+    } catch (error) {
+      throw toToolError(error);
+    }
+  };
+}
+
 function createResolvedMCPServer<TServices extends object = Record<string, unknown>>(
   root: Group<TServices>,
   options: RunMCPOptions<TServices>,
@@ -1105,6 +1097,14 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     options.tools,
     options.omitRootToolNamePrefix ?? false
   );
+  const streamTools = tools.filter((tool) => tool.command.stream !== undefined);
+  if (runtime.supportsStreaming === false && streamTools.length > 0) {
+    throw new UserError(
+      "MCP streams require a transport with session-scoped notifications. " +
+      `Unsupported streams: ${streamTools.map((tool) => JSON.stringify(tool.name)).join(", ")}. ` +
+      "Use stateful HTTP or stdio, or exclude these streams with the tools option."
+    );
+  }
   const version = resolveMCPVersion(options.version);
   const server =
     runtime.createServer?.({
@@ -1117,7 +1117,6 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       version,
       validateToolArguments: false
     });
-  const streamTools = tools.filter((tool) => tool.command.stream !== undefined);
   const subscriptions = new Map<
     string,
     { signal: AbortSignal; stream: ToolcraftStream<unknown> }
@@ -1129,12 +1128,12 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       name: tool.name,
       description: tool.description,
       inputSchema: tool.inputSchema,
-      eventSchema: applySchemaCasing(toJsonSchema(tool.command.stream!.event), casing),
+      eventSchema: applySchemaCasing(tool.command.stream!.event, casing),
       bufferSize: tool.command.stream!.bufferSize
     }))
   }));
 
-  server.method(MCP_STREAM_METHODS.subscribe, async (request, session) => {
+  server.method(MCP_STREAM_METHODS.subscribe, withToolErrorMapping(async (request, session) => {
     const name = typeof request?.name === "string" ? request.name : undefined;
     const tool = streamTools.find((candidate) => candidate.name === name);
     if (tool === undefined) {
@@ -1144,7 +1143,9 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     if (streamDefinition === undefined) {
       throw new ToolcraftBugError(`Command "${tool.commandPath}" is not a stream.`);
     }
-    const argumentsValue = isPlainObject(request?.arguments) ? request.arguments : {};
+    const eventSchema = applySchemaCasing(streamDefinition.event, casing);
+    const eventValidator = compileJsonSchema(eventSchema);
+    const argumentsValue = isObjectRecord(request?.arguments) ? request.arguments : {};
     const secrets = resolveCommandSecrets(tool.command, options.env);
     const requestServices = await runtime.requestServices?.(runtime.getRequestContext?.());
     const baseContext = {
@@ -1166,13 +1167,29 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       { ...baseContext, params: undefined },
       { apiVersion: options.apiVersion, env: options.env }
     );
-    const params = validateToolArguments(tool.command.params, argumentsValue, casing);
+    const params = validateToolArguments(tool.paramsSchema, argumentsValue, casing);
     const subscriptionId = `stream-${++nextSubscriptionId}`;
     let notificationQueue = Promise.resolve();
+    let notificationFailed = false;
     const notify = (params: Record<string, unknown>): Promise<void> => {
-      notificationQueue = notificationQueue.then(() =>
-        session.notify(MCP_STREAM_METHODS.notification, params)
-      );
+      notificationQueue = notificationQueue.then(async () => {
+        if (notificationFailed || session.signal.aborted) return;
+        try {
+          await session.notify(MCP_STREAM_METHODS.notification, params);
+        } catch (error) {
+          notificationFailed = true;
+          subscriptions.delete(subscriptionId);
+          void stream.cancel(error).catch(() => undefined);
+          if (!session.signal.aborted) {
+            diagnostics.emit({
+              level: "error",
+              category: "runtime",
+              message: "MCP stream notification delivery failed.",
+              data: { subscriptionId, notificationType: params.type }
+            });
+          }
+        }
+      }).catch(() => undefined);
       return notificationQueue;
     };
     const stream = createManagedStream({
@@ -1201,10 +1218,17 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     void (async () => {
       try {
         for await (const event of stream) {
+          const errors: ValidationError[] = [];
+          const serialized = serializeResultValue(streamDefinition.event, event, casing, "", errors);
+          throwResultValidationErrors(errors);
+          const validation = eventValidator.validate(serialized);
+          if (!validation.ok) {
+            throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, `Invalid stream event: ${formatIssues(validation.issues)}`);
+          }
           await notify({
             subscriptionId,
             type: "data",
-            event
+            event: serialized
           });
         }
         if (!session.signal.aborted) {
@@ -1223,14 +1247,14 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         }
       } finally {
         subscriptions.delete(subscriptionId);
-        await stream.cancel();
+        await stream.cancel().catch(() => undefined);
       }
     })();
     return {
       subscriptionId,
-      eventSchema: applySchemaCasing(toJsonSchema(streamDefinition.event), casing)
+      eventSchema
     };
-  });
+  }));
 
   server.method(MCP_STREAM_METHODS.unsubscribe, async (request, session) => {
     const subscriptionId =
@@ -1252,13 +1276,15 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   for (const tool of tools.filter((candidate) => candidate.command.stream === undefined)) {
     const handler = async (
       argumentsValue: Record<string, unknown>,
-      transportContext?: unknown
+      transportContext?: HandlerRequestContext
     ) => {
       let params: unknown;
       let secrets: Record<string, string | undefined> | undefined;
       try {
+        transportContext?.signal.throwIfAborted();
         secrets = resolveCommandSecrets(tool.command, options.env);
         const requestServices = await runtime.requestServices?.(transportContext);
+        transportContext?.signal.throwIfAborted();
         const baseContext = {
           ...services,
           ...requestServices,
@@ -1269,6 +1295,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           fs: createFs(options.fs),
           env: createEnv(options.env),
           diagnostics,
+          signal: transportContext?.signal,
           progress(message: string): void {
             diagnostics.emit({ level: "info", message, category: "progress" });
           }
@@ -1283,7 +1310,8 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           }
         );
 
-        params = validateToolArguments(tool.command.params, argumentsValue, casing);
+        transportContext?.signal.throwIfAborted();
+        params = validateToolArguments(tool.paramsSchema, argumentsValue, casing);
         const handlerContext = {
           ...baseContext,
           params
@@ -1297,8 +1325,12 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           return renderPendingApproval(result);
         }
 
+        if (isMCPResult(result) && (result.isError === true || tool.resultSchema === undefined)) {
+          return result;
+        }
+
         if (tool.resultSchema !== undefined) {
-          let mcpResult: unknown = result;
+          let mcpResult: unknown = isMCPResult(result) ? result.structuredContent : result;
           if (tool.command.mcpResult !== undefined) {
             try {
               mcpResult = tool.command.mcpResult(result);
@@ -1310,14 +1342,18 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
             }
           }
           const structuredContent = validateCommandResult(tool.resultSchema, mcpResult, casing);
+          if (isMCPResult(result)) {
+            return { ...result, structuredContent };
+          }
           return {
             content: [{ type: "text", text: JSON.stringify(structuredContent) }],
             structuredContent
           };
         }
 
-        return toToolContent(result);
+        return toContentBlocks(result as ToolReturn);
       } catch (error) {
+        if (transportContext?.signal.aborted) transportContext.signal.throwIfAborted();
         if (error instanceof ApprovalDeclinedError) {
           return renderDeclinedApproval(error);
         }
@@ -1345,11 +1381,11 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         ...(tool.outputSchema === undefined
           ? {}
           : {
-              outputSchema: tool.outputSchema as TypedSchema<Record<string, unknown>>
+              outputSchema: tool.outputSchema as TypedOutputSchema<unknown>
             }),
         ...(tool.annotations === undefined ? {} : { annotations: tool.annotations })
       },
-      handler as ToolHandler<Record<string, unknown>, Record<string, unknown>>
+      handler as ToolHandler<Record<string, unknown>, unknown>
     );
   }
 
@@ -1383,7 +1419,10 @@ function createDeferredMCPServer<TServices extends object = Record<string, unkno
     serverPromise ??= (async () => {
       await resolveMcpProxies(root, { projectRoot: options.projectRoot });
       return createResolvedMCPServer(root, options);
-    })();
+    })().catch((error: unknown) => {
+      serverPromise = undefined;
+      throw error;
+    });
 
     return serverPromise;
   };

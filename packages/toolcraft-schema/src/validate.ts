@@ -1,5 +1,9 @@
 import type { AnySchema, ObjectSchema, OptionalSchema, Static } from "./index.js";
+import { cloneDefaultValue } from "./clone-default.js";
+import { isJsonValue, type JsonValueSchema } from "./json.js";
+import { deepEqual, unicodeLength } from "./json-schema/utils.js";
 import { getRequiredKeyFingerprint } from "./union.js";
+import { nativeJsonSchema, type NativeSchema } from "./native-json-schema.js";
 
 export type SchemaDescriptor = AnySchema;
 
@@ -15,8 +19,13 @@ export type ValidationResult<T> =
   | { ok: true; value: T }
   | { ok: false; issues: readonly ValidationIssue[] };
 
+export interface ValidationOptions {
+  defaults?: "none" | "optional" | "all";
+}
+
 type ValidationState = {
   issues: ValidationIssue[];
+  defaults: "none" | "optional" | "all";
 };
 
 type WalkResult = { present: true; value: unknown } | { present: false };
@@ -25,9 +34,10 @@ const missingValue = Symbol("missingValue");
 
 export function validate<S extends SchemaDescriptor>(
   schema: S,
-  value: unknown
+  value: unknown,
+  options: ValidationOptions = {}
 ): ValidationResult<Static<S>> {
-  const state: ValidationState = { issues: [] };
+  const state: ValidationState = { issues: [], defaults: options.defaults ?? "optional" };
   const result = walkSchema(schema, value, [], state);
 
   if (state.issues.length > 0) {
@@ -47,6 +57,10 @@ function walkSchema(
     return walkOptional(schema, value, path, state);
   }
 
+  if (value === missingValue && state.defaults === "all" && schema.default !== undefined) {
+    value = cloneDefaultValue(schema.default);
+  }
+
   if (value === missingValue) {
     addIssue(
       state,
@@ -56,6 +70,17 @@ function walkSchema(
       `Expected ${expectedFor(schema)} at ${formatPath(path)}`
     );
     return { present: false };
+  }
+
+  const native = (schema as NativeSchema)[nativeJsonSchema];
+  if (native !== undefined) {
+    if (!isJsonValue(value)) {
+      addExpectedIssue(state, path, "JSON value", value);
+    } else {
+      const result = native.validator.validate(value);
+      if (!result.ok) state.issues.push(...result.issues.map((issue) => ({ ...issue, path: [...path, ...issue.path] })));
+    }
+    return { present: true, value };
   }
 
   if (value === null && schema.nullable === true) {
@@ -91,7 +116,7 @@ function walkSchema(
       return walkRecord(schema, value, path, state);
 
     case "json":
-      return walkJson(value, path, state);
+      return walkJson(schema, value, path, state);
   }
 }
 
@@ -102,10 +127,20 @@ function walkOptional(
   state: ValidationState
 ): WalkResult {
   if (value === missingValue || value === undefined) {
+    if (state.defaults === "none") {
+      return { present: false };
+    }
     const defaultValue = getDefault(schema.inner);
 
     if (defaultValue.present) {
-      return walkSchema(schema.inner, cloneDefault(defaultValue.value), path, state);
+      let clonedDefault: unknown;
+      try {
+        clonedDefault = structuredClone(defaultValue.value);
+      } catch (error) {
+        if (!(error instanceof Error) || error.name !== "DataCloneError") throw error;
+        clonedDefault = cloneDefaultValue(defaultValue.value);
+      }
+      return walkSchema(schema.inner, clonedDefault, path, state);
     }
 
     return { present: false };
@@ -125,24 +160,25 @@ function walkString(
     return { present: true, value };
   }
 
-  if (schema.minLength !== undefined && value.length < schema.minLength) {
+  const length = unicodeLength(value);
+  if (schema.minLength !== undefined && length < schema.minLength) {
     const expected = `string with length at least ${schema.minLength}`;
     addIssue(
       state,
       path,
       expected,
-      `string with length ${value.length}`,
+      `string with length ${length}`,
       `Expected ${expected} at ${formatPath(path)}`
     );
   }
 
-  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+  if (schema.maxLength !== undefined && length > schema.maxLength) {
     const expected = `string with length at most ${schema.maxLength}`;
     addIssue(
       state,
       path,
       expected,
-      `string with length ${value.length}`,
+      `string with length ${length}`,
       `Expected ${expected} at ${formatPath(path)}`
     );
   }
@@ -248,7 +284,8 @@ function walkArray(
     );
   }
 
-  const nextValue = value.map((item, index) => {
+  const nextValue = Array.from({ length: value.length }, (_item, index) => {
+    const item = value[index];
     const result = walkSchema(schema.item, item, [...path, String(index)], state);
 
     return result.present ? result.value : item;
@@ -356,18 +393,21 @@ function walkUnion(
   path: readonly string[],
   state: ValidationState
 ): WalkResult {
-  if (isPlainRecord(value)) {
-    const candidateBranches = schema.branches.filter((branch) => hasRequiredKeys(branch, value));
+  if (!isPlainRecord(value)) {
+    addExpectedIssue(state, path, "object", value);
+    return { present: true, value };
+  }
 
-    if (candidateBranches.length === 1) {
-      return walkObject(candidateBranches[0], value, path, state);
-    }
+  const candidateBranches = schema.branches.filter((branch) => hasRequiredKeys(branch, value));
+
+  if (candidateBranches.length === 1 && state.defaults !== "all") {
+    return walkObject(candidateBranches[0], value, path, state);
   }
 
   const matches: Array<{ fingerprint: string; value: unknown }> = [];
 
   for (const branch of schema.branches) {
-    const branchState: ValidationState = { issues: [] };
+    const branchState: ValidationState = { ...state, issues: [] };
     const result = walkObject(branch, value, path, branchState);
 
     if (branchState.issues.length === 0 && result.present) {
@@ -435,8 +475,14 @@ function walkRecord(
   return { present: true, value: nextValue };
 }
 
-function walkJson(value: unknown, path: readonly string[], state: ValidationState): WalkResult {
+function walkJson(schema: JsonValueSchema, value: unknown, path: readonly string[], state: ValidationState): WalkResult {
   if (isJsonValue(value)) {
+    if (schema.const !== undefined && !deepEqual(value, schema.const)) {
+      addExpectedIssue(state, path, "declared JSON constant", value);
+    }
+    if (schema.enum !== undefined && !schema.enum.some((candidate) => deepEqual(value, candidate))) {
+      addExpectedIssue(state, path, "declared JSON enum value", value);
+    }
     return { present: true, value };
   }
 
@@ -456,7 +502,7 @@ function getDefault(schema: AnySchema): WalkResult {
   return { present: false };
 }
 
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
+export function isPlainRecord(value: unknown): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
@@ -466,42 +512,6 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
-function isJsonValue(value: unknown, ancestors: Set<object> = new Set()): boolean {
-  if (
-    value === null ||
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return typeof value !== "number" || Number.isFinite(value);
-  }
-
-  if (Array.isArray(value)) {
-    if (ancestors.has(value)) {
-      return false;
-    }
-    ancestors.add(value);
-    const result = value.every((item) => isJsonValue(item, ancestors));
-    ancestors.delete(value);
-    return result;
-  }
-
-  if (isPlainRecord(value)) {
-    if (ancestors.has(value)) {
-      return false;
-    }
-    ancestors.add(value);
-    const result = Object.values(value).every((item) => isJsonValue(item, ancestors));
-    ancestors.delete(value);
-    return result;
-  }
-
-  return false;
-}
-
-function cloneDefault(value: unknown): unknown {
-  return structuredClone(value);
-}
 
 function setOwnValue(target: Record<string, unknown>, key: string, value: unknown): void {
   Object.defineProperty(target, key, {
@@ -615,6 +625,10 @@ function receivedType(value: unknown): string {
 
   if (Array.isArray(value)) {
     return "array";
+  }
+
+  if (typeof value === "object" && !isPlainRecord(value)) {
+    return "non-plain object";
   }
 
   if (typeof value === "number" && Number.isInteger(value)) {

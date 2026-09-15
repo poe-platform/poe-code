@@ -1,0 +1,39 @@
+{
+  "observedAt": "2026-09-12T19:47:14.067892+00:00",
+  "name": "@poe-platform/safe-js",
+  "version": "0.1.563",
+  "metadataUrl": "https://registry.npmjs.org/%40poe-platform%2Fsafe-js/0.1.563",
+  "dist": {
+    "shasum": "9d3da5f0328baac3dbc15ceb5283848f70a5d46d",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.563.tgz",
+    "fileCount": 373,
+    "integrity": "sha512-R38QD/Y3HK+pd8WNFuA9ojknH2Ej4EoE3QdDT7yKfMFgp1ZjymG5LbrgVgf9RXpwz2uvUX+hD4AwWN/5a4c7hA==",
+    "signatures": [
+      {
+        "sig": "MEUCIQCGtSmks4cnWujm1MPb/EcPqc3qebtDMtqUkJXxlloagAIgMcCy2QW0t8E/tkT3gACTj8XLmqKZsMthUX+u9bxw1iw=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEUCIAl4xSGPd9w3JfXaQog8qr+iJPxU5yR09KVXmsl+A86hAiEAgn74zPG6P6upAmssxI5MfJIjIixk3wVm/IIMtA1ltM0=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.563",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 42897052
+  },
+  "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1",
+  "workflow": {
+    "ref": "refs/heads/main",
+    "repository": "https://github.com/poe-platform/poe-code",
+    "path": ".github/workflows/release-safe.yml"
+  },
+  "tarballBytes": 8501925,
+  "downloadedIntegrityMatched": true,
+  "attestationSubjectMatched": true
+}

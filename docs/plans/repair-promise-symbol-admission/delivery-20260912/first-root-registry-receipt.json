@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-13T01:31:07.241286+00:00",
+  "packages": [
+    {
+      "name": "poe-code",
+      "version": "15.0.29",
+      "integrity": "sha512-EZDOKzCzeoNiQVNlHQnoxTKsrrEfqKgKOrKmVGkCE/Dl+DnMPGbkcCvXP7/VDfCmmBhRMCqpFI9QHPPja3hJEA==",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "sourceSha": "11a7a80571a633cd452fde83a3fd57290fc019a4",
+      "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34728929036/attempts/1",
+      "embeddedProvenance": "not shipped; registry provenance used"
+    }
+  ]
+}

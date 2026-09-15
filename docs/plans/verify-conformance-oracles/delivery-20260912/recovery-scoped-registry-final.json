@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-09-12T19:49:20.749000+00:00",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-fs",
+      "latest": "0.1.563"
+    },
+    {
+      "name": "@poe-platform/safe-js",
+      "latest": "0.1.563"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "latest": "0.1.563"
+    }
+  ]
+}

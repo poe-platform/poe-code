@@ -1,0 +1,10 @@
+{
+  "observedUtc": "2026-09-12T13:43:14.164Z",
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "sourceHash": "aa87050d0107c7e5c7ab7beab09ff260c65c7b119fc25d76ac294e9c6565f5b3",
+  "manifestId": "547fad76257b2e6e3d5aae1626ead11434d557f8f3d12b2b613aea238dee41a9",
+  "sourceEqual": true,
+  "runtimeEqual": true,
+  "node": "v22.23.2",
+  "icu": "78.2"
+}

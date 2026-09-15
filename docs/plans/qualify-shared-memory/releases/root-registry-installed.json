@@ -1,0 +1,154 @@
+{
+  "observedAt": "2026-09-14T08:00:23.388108+00:00",
+  "name": "poe-code",
+  "priorAttempts": [],
+  "version": "15.0.38",
+  "gitHead": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+  "integrityMatches": true,
+  "provenanceSubjectMatches": true,
+  "registryIntegrity": "sha512-PnhY/E0Lcdbd7SPOUoGs1y7zZAtbJxzUqw9It74sCMzS9N8/YAyOXi0qzfw9KHtrVe15vjUoWGiI40vExoTLWQ==",
+  "provenance": {
+    "_type": "https://in-toto.io/Statement/v1",
+    "subject": [
+      {
+        "name": "pkg:npm/poe-code@15.0.38",
+        "digest": {
+          "sha512": "3e7858fc4d0b71d6dded23ce5281acd72ef3640b5b271cd4ab0f48b7be2c08ccd2f4df3f600c8e5e2d2acdfc3d287b6b55ed79be3528586888e34bc4c684cb59"
+        }
+      }
+    ],
+    "predicateType": "https://slsa.dev/provenance/v1",
+    "predicate": {
+      "buildDefinition": {
+        "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+        "externalParameters": {
+          "workflow": {
+            "ref": "refs/heads/main",
+            "repository": "https://github.com/poe-platform/poe-code",
+            "path": ".github/workflows/release.yml"
+          }
+        },
+        "internalParameters": {
+          "github": {
+            "event_name": "push",
+            "repository_id": "1078492326",
+            "repository_owner_id": "129537891"
+          }
+        },
+        "resolvedDependencies": [
+          {
+            "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+            "digest": {
+              "gitCommit": "711f06c1c5e291c29d58c801f637d7d26960ea9d"
+            }
+          }
+        ]
+      },
+      "runDetails": {
+        "builder": {
+          "id": "https://github.com/actions/runner/github-hosted"
+        },
+        "metadata": {
+          "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34817400344/attempts/1"
+        }
+      }
+    }
+  },
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-poe-code-15.0.38-_cwrqpk6",
+  "install": {
+    "command": [
+      "npm",
+      "install",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "poe-code@15.0.38"
+    ],
+    "exitCode": 0,
+    "output": "\nadded 185 packages in 6s\n"
+  },
+  "module": "import assert from \"node:assert/strict\";\nconst entry = process.env.SAFEJS_QUALIFICATION_ENTRY;\nconst { run, dump } = await import(entry);\nconst source = \"const b=new SharedArrayBuffer(4);await receive(()=>b);return new Uint8Array(b)[0]\";\nlet calls = 0;\nconst bindings = {\n  receive: async (callback) => {\n    calls++;\n    const buffer = await callback();\n    new Uint8Array(buffer)[0] = 7;\n  }\n};\nconst original = await run(source, { bindings });\nassert.equal(original.ok, true);\nassert.equal(original.returnValue, 7);\nassert.match(original.snapshot.replayError, /Shared storage exported by a guest callback/);\nawait assert.rejects(dump(original), /Shared storage exported by a guest callback/);\nawait assert.rejects(\n  run(source, { bindings, snapshot: original.snapshot }),\n  /Shared storage exported by a guest callback/\n);\nassert.equal(calls, 1);\nconst confined =\n  \"const a=new Int32Array(new SharedArrayBuffer(4));const w=Atomics.waitAsync(a,0,0);const n=Atomics.notify(a,0);return [n,await w.value]\";\nconst first = await run(confined);\nassert.deepEqual(first.returnValue, [1, \"ok\"]);\nconst replay = await run(confined, { snapshot: JSON.parse(await dump(first)) });\nassert.deepEqual(replay.returnValue, [1, \"ok\"]);\nconsole.log(\n  JSON.stringify({\n    entry,\n    node: process.versions.node,\n    icu: process.versions.icu,\n    original: original.returnValue,\n    receiverCalls: calls,\n    confined: first.returnValue,\n    confinedReplay: replay.returnValue,\n    rejected: true\n  })\n);",
+  "smokes": [
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"18.18.0\",\"icu\":\"73.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/00073ba5d7c1f8bc/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"18.20.8\",\"icu\":\"74.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"20.20.2\",\"icu\":\"78.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"22.23.2\",\"icu\":\"78.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/538786c08bcb9442/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"24.21.0\",\"icu\":\"78.3\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/131005c554cfb1ac/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"26.8.2\",\"icu\":\"78.3\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "command": [
+        "npm",
+        "exec",
+        "--yes",
+        "--package=bun@1.4.2",
+        "--",
+        "bun",
+        "run",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"poe-code/safejs\",\"node\":\"26.3.0\",\"icu\":\"78.1\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    }
+  ],
+  "signatures": {
+    "command": [
+      "npm",
+      "audit",
+      "signatures"
+    ],
+    "exitCode": 0,
+    "output": "audited 208 packages in 1s\n\n208 packages have verified registry signatures\n\n38 packages have verified attestations\n\n"
+  },
+  "cliVersion": {
+    "command": [
+      "node",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-poe-code-15.0.38-_cwrqpk6/node_modules/poe-code/dist/bin.cjs",
+      "--version"
+    ],
+    "exitCode": 0,
+    "output": "\u250c   Poe - version \n\u2502\n\u25c7  poe-code\n\u2502     15.0.38\n"
+  },
+  "conformanceRunnerShipped": false
+}

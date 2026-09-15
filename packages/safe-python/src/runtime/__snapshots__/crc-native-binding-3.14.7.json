@@ -1,0 +1,1146 @@
+{
+  "driver": "import sys,json,unicodedata,binascii,platform\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\ndef value(spec):\n kind=spec[0]\n if kind=='bytes': return bytes.fromhex(spec[1])\n if kind=='int': return int(spec[1])\n if kind in ('float','str','bool'): return spec[1]\n if kind=='none': return None\n if kind=='list': return []\n raise AssertionError(kind)\nrows=json.load(sys.stdin)\nfor row in rows:\n try: row['result']={'integer':str(getattr(binascii,row['name'])(*[value(s) for s in row['args']],**{k:value(v) for k,v in row['kwargs'].items()}))}\n except Exception as e: row['result']={'error':type(e).__name__,'message':str(e)}\nprint(json.dumps({'target':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':platform.platform(),'byteorder':sys.byteorder},'metadata':{n:{'doc':getattr(binascii,n).__doc__,'textSignature':getattr(binascii,n).__text_signature__} for n in ('crc32','crc_hqx')},'cases':rows}))",
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "metadata": {
+    "crc32": {
+      "doc": "Compute CRC-32 incrementally.",
+      "textSignature": "($module, data, crc=0, /)"
+    },
+    "crc_hqx": {
+      "doc": "Compute CRC-CCITT incrementally.",
+      "textSignature": "($module, data, crc, /)"
+    }
+  },
+  "cases": [
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "1"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "4294967295"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "7"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3421780262"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3700370789"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3523400311"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3421780262"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "2945799407"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3421780262"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3392997966"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "23189995"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "2214614034"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3392997966"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3610786550"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "3392997966"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc32 expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "float",
+          1.1
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "str",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bool",
+          true
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "1"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bool",
+          false
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc32 expected at most 2 arguments, got 3"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "str",
+          "x"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc32() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "crc": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc32() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "crc32",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "3"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc32() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "1"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "65535"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "7"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "12739"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "30224"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "10673"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "12739"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "63195"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "313233343536373839"
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "12739"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "48643"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "5202"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "45075"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "18446744073709551616"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "48643"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205383"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "55767"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          "00ff80414243"
+        ],
+        [
+          "int",
+          "-1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "48643"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc_hqx expected 2 arguments, got 0"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc_hqx expected 2 arguments, got 1"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "float",
+          1.1
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'float' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "str",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bool",
+          true
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "1"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bool",
+          false
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "integer": "0"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc_hqx expected 2 arguments, got 3"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "crc_hqx expected 2 arguments, got 1"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "str",
+          "x"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc_hqx() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "crc": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc_hqx() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "crc_hqx",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "3"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.crc_hqx() takes no keyword arguments"
+      }
+    }
+  ]
+}

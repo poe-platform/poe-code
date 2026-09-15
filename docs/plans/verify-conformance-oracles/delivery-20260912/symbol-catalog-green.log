@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts (1 test) 11ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 1016ms
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 741ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 433ms
+ ✓ packages/safe-js/test/conformance/corpus.test.ts (11 tests) 422ms
+ ✓ packages/safe-js/src/interp/intrinsics.test.ts (15 tests) 414ms
+ ✓ packages/safe-js/test/adversarial/snapshot-mutation.test.ts (1 test) 440ms
+     ✓ rejects malformed mutations with typed errors and preserves valid roundtrips  439ms
+ ✓ packages/safe-js/test/adversarial/test262-semantics.test.ts (9 tests) 321ms
+ ✓ packages/safe-js/src/interp/budget-realm-views.test.ts (7 tests) 71ms
+ ✓ packages/safe-js/test/adversarial/corpus.test.ts (1 test) 337ms
+     ✓ handles transferable parser, runtime, lifecycle, and resource failures  336ms
+ ✓ packages/safe-js/test/adversarial/parser-smoke.test.ts (1 test) 38ms
+ ✓ packages/safe-js/test/conformance/command.test.ts (41 tests) 30ms
+ ✓ packages/safe-js/test/conformance/isolate.test.ts (27 tests) 17ms
+ ✓ packages/safe-js/test/conformance/metadata.test.ts (19 tests) 12ms
+ ✓ packages/safe-js/test/conformance/discover.test.ts (8 tests) 7ms
+ ✓ packages/safe-js/test/conformance/import-boundary.test.ts (2 tests) 7ms
+ ✓ packages/safe-js/test/conformance/report.test.ts (15 tests) 6ms
+ ✓ packages/safe-js/test/conformance/worker.test.ts (7 tests) 4ms
+ ✓ packages/safe-js/test/conformance/accounting-mutations.test.ts (8 tests) 4ms
+ ✓ packages/safe-js/test/adversarial/report.test.ts (2 tests) 2ms
+ ✓ packages/safe-js/src/interp/intrinsic-realm-identity.test.ts (5 tests) 4ms
+
+ Test Files  21 passed (21)
+      Tests  254 passed (254)
+   Start at  14:29:46
+   Duration  7.31s (transform 3.50s, setup 250ms, import 8.31s, tests 4.34s, environment 1ms)
+

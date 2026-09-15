@@ -1,0 +1,12 @@
+
+> @poe-code/safe-js@0.0.1 test:conformance
+> tsx test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --report /Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/pinned-fixtures-stable.jsonl --include test/built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js --include test/built-ins/Reflect/ownKeys/return-on-corresponding-order.js --include test/built-ins/Promise/promise.js --include test/built-ins/Promise/property-order.js
+
+ENOENT: no such file or directory, lstat '/private/tmp/safejs-baseline-test262-419d3e0/test/test'
+npm error Lifecycle script `test:conformance` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error workspace @poe-code/safe-js@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error command failed
+npm error command sh -c tsx test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --report /Users/kjopek/Workspace/poe-code/docs/plans/repair-promise-symbol-admission/pinned-fixtures-stable.jsonl --include test/built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js --include test/built-ins/Reflect/ownKeys/return-on-corresponding-order.js --include test/built-ins/Promise/promise.js --include test/built-ins/Promise/property-order.js

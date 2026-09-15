@@ -1,0 +1,234 @@
+{
+  "baseHead": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+  "qualification": "dirty working source; not clean-commit or published-artifact qualification",
+  "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+  "ownedSourceHashes": {
+    "packages/safe-js/src/interp/interpreter.ts": "d6de54b3dc80b11f1aaad49186bc0d8e7182b17ea3518893aa5803b2f45675d8",
+    "packages/safe-js/src/interp/array-length-coercion.test.ts": "ec3c90769d5c97e11d95f6c210bc04e8efa04957f625b680660412cd4d3de5d1",
+    "packages/safe-js/src/interp/methods/string.ts": "26b847f24920f5112e87f1c4dbafc9ca5547e63fd5e839228b7f89b022ce753a",
+    "packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts": "783f83e23e1310a85e16a1a383fa9efc6707ee165af4b29aecbfc884ef91de29"
+  },
+  "changedInheritedFiles": [
+    "packages/safe-js/src/interp/interpreter.ts",
+    "packages/safe-js/src/interp/methods/string.ts"
+  ],
+  "preservedIndexHash": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "preservedLedgerPrefixHash": "fe7f0c33fe852b842be71256aa6366b0dc94cc649ed3145f711b3a1bdad5b17a",
+  "configurationHashes": {
+    "package.json": "0d0d181eecba012320b102bd4ff4b3e651c2b9357a558569e37f7bc511d38ee5",
+    "package-lock.json": "1a03e62c540bb267fb1435572b250494cf284e2ebcc3cd2111ee3ac4096477bb",
+    "packages/safe-js/package.json": "b400121aad1c0403256c656c3f9f977de3ba48cee6a6c4d86ab41b82d704e6d2",
+    "vitest.config.ts": "1cdc7ed01aca5967ddc8f8a8319ea921cf8cf8c83a2736bd337bcd55c00abdf8"
+  },
+  "corpus": [
+    {
+      "file": "qualified-corpus.jsonl",
+      "sha256": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 6,
+        "failed": 2,
+        "unsupported": 0
+      },
+      "complete": true,
+      "exitCode": 1
+    },
+    {
+      "file": "split-corpus.jsonl",
+      "sha256": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+      "sourceSha": "bf8bb1dd67cfbeba967d9bf1c7f2a9ea34d3c439",
+      "sourceHash": "fa3b583fe2e85fd0b2203ec0a5a8221e54fb810211c392aa686ccefb124b2de4",
+      "runtime": {
+        "node": "v22.23.2",
+        "icu": "78.2",
+        "v8": "12.4.254.21-node.56",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "execution": {
+        "timeoutMs": 3000,
+        "budget": {},
+        "effectiveBudget": {
+          "maxSteps": "unlimited",
+          "maxCallDepth": "unlimited",
+          "stringLength": "unlimited",
+          "arrayLength": "unlimited",
+          "dataSize": "unlimited"
+        },
+        "deadline": "per-variant timeout",
+        "isolation": {
+          "kind": "persistent-child-process",
+          "startupTimeoutMs": 10000,
+          "wallTimeoutMs": 3000,
+          "timerStarts": "before-dispatch",
+          "recovery": "kill-and-replace-without-retrying-variant"
+        }
+      },
+      "counts": {
+        "files": 4,
+        "fixtures": 0,
+        "metadataErrors": 0,
+        "executionErrors": 0,
+        "variants": 8,
+        "passed": 8,
+        "failed": 0,
+        "unsupported": 0
+      },
+      "complete": true,
+      "exitCode": 0
+    }
+  ],
+  "checks": {
+    "focused": {
+      "passed": 593,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "node18": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "versions": {
+        "node": "18.20.8",
+        "acorn": "8.14.0",
+        "ada": "2.8.0",
+        "ares": "1.29.0",
+        "base64": "0.5.2",
+        "brotli": "1.1.0",
+        "cjs_module_lexer": "1.2.2",
+        "cldr": "44.1",
+        "icu": "74.2",
+        "llhttp": "6.1.1",
+        "modules": "108",
+        "napi": "9",
+        "nghttp2": "1.61.0",
+        "openssl": "3.0.16",
+        "simdutf": "5.6.4",
+        "tz": "2024a",
+        "undici": "5.29.0",
+        "unicode": "15.1",
+        "uv": "1.44.2",
+        "uvwasi": "0.0.19",
+        "v8": "10.2.154.26-node.39",
+        "zlib": "1.3.0.1-motley"
+      }
+    },
+    "unit": {
+      "command": "npm run test:unit --workspace=@poe-code/safe-js",
+      "filesPassed": 1397,
+      "filesSkipped": 2,
+      "passed": 30053,
+      "failed": 0,
+      "skipped": 47,
+      "exitCode": 0,
+      "skipDisposition": {
+        "optionalParseFuzz": 1,
+        "unavailableNativeMathF16round": 2,
+        "filesystemReferenceGaps": 33,
+        "unavailableNativeTemporalInstant": 11
+      }
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/safe-js",
+      "exitCode": 0,
+      "builtImportsPassed": 8,
+      "builtImportsFailed": 0,
+      "builtImportsSkipped": 0
+    },
+    "eslintExitCode": 0,
+    "jobOrderControlExitCode": 0,
+    "lengthBudgetControlsExitCode": 0
+  },
+  "attempts": {
+    "arrayFirstPackageGate": {
+      "complete": false,
+      "exitCode": 143,
+      "reason": "terminated after numeric accounting and bare regex mismatches"
+    },
+    "earlyRegexPackageGate": {
+      "complete": false,
+      "exitCode": 143,
+      "reason": "terminated while correcting new test parser setup"
+    },
+    "firstRegexCorpus": {
+      "complete": false,
+      "exitCode": 1,
+      "reason": "source changed during enumeration"
+    }
+  },
+  "remoteMainObserved": "dea009de8f6c7ff608f295c6986d56f255570939",
+  "remoteDelivery": null,
+  "release": null,
+  "acceptance": "open",
+  "artifactHashes": {
+    "docs/plans/qualify-builtins/array-length-20260913/corpus.jsonl": "21433d993ea282cde5ff017e4014e7d9b415289c55d31629f4e3246af9d8fd43",
+    "docs/plans/qualify-builtins/array-length-20260913/corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/plans/qualify-builtins/array-length-20260913/expanded.log": "ad7cb83a7d3868ea6f098448bed4bd7ecc8b7163d09b94450e521380a52d379c",
+    "docs/plans/qualify-builtins/array-length-20260913/focused.log": "1338f1be1750f6b6b77a708979a26c8ce1d7b56325136371e2f2915f9554511f",
+    "docs/plans/qualify-builtins/array-length-20260913/green.log": "7de8a425adf70d0c0b80fd90258960306367e9176f46bb0b14124bb3a265a816",
+    "docs/plans/qualify-builtins/array-length-20260913/lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/plans/qualify-builtins/array-length-20260913/node18.log": "fda7e12a6c92a3d2aee5d559026ad1ee9cfcd6395711f52700106b4d9aec08b8",
+    "docs/plans/qualify-builtins/array-length-20260913/package-tests.log": "7541a0c42f2f0ad24481227caad445a0bdd3d969d101ee71236f52ace736193c",
+    "docs/plans/qualify-builtins/array-length-20260913/red.log": "cb006ebf895d3a6f9886f774ec7805c8de5d74d2d837bfcfb586531c79aea8dc",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/build.log": "e3728480e4cde6b36d14a441524a415b2cba9773ae9b985295092724ddec39bd",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/corpus.jsonl": "3553d8b3e62d6cbe82cd623be4c58f3920f34047fad4c96f1299c7cfade7ee61",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/corpus.log": "f8ba113aa5245d6db35d355567540e665fba092bff7e0cc2bf5bf0b3fcfcf438",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/corrected-red.log": "e9a3477f51c67c0df4e34b117830d7f735551d124ba821f3f912dd875c008d01",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/corrected-test.log": "2e37c27225221229b393cccfa5ccebf952fb89201b4ef1fd363b619f52bcda69",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/final-focused.log": "3b2abb6d87a0e8cbd3e39819718a36415c0db105dd8e147c130d0d73c5543b91",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/focused.log": "866cba68ce1c1427a42dfd861af50d900a91ee6ac03097262c7aaafbccee3861",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/node18.log": "afd5d9805290731a8de4af19410167c43f3f764b4cf0674f0c2818a747245e1f",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/package-tests.log": "b645dee0563eb08712e29b8655a5396144aeb71adcdfbf91eed0053f3ee2045f",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/qualified-corpus.jsonl": "6c339f34ef1cd6344b60fd08211a9c8c0268110e4fb0322f3d8c3d7fe884ad18",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/qualified-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/qualified-focused.log": "4930db0812d3afe92eea3245c57258e642f34879b22b8a1960d1717153bb0905",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/qualified-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/qualified-package-tests.log": "4cea2b76cd3cdcb21f7c81a170dd27b0cc82537975f205008c13593fa2ec796e",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/red.log": "58f0550a631f49c193368db375d5a573fb2d92385c16632e3c5a82a85fe6cf9f",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/split-corpus.jsonl": "1ee2352a34746203a17b195f0a6461c1e97bddea9a1ec98d8d7c9e944d2bae2e",
+    "docs/plans/qualify-builtins/regex-bare-interpreter-20260913/split-corpus.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "localArrayCommit": "a2bf3b049e83c2b80a0fffd9f30ed732452f6b2b",
+  "review": {
+    "sourceTestsDocsWhitespace": "passed",
+    "rawLogAndPatchArchives": "preserved byte-for-byte; their terminal blank lines and unified-diff context whitespace are excluded from source whitespace checks",
+    "newHostAuthority": false,
+    "budgetOrTimeoutRelaxation": false,
+    "snapshotVersionChange": false
+  }
+}

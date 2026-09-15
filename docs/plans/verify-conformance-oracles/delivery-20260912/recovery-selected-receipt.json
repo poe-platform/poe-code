@@ -1,0 +1,76 @@
+{
+  "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "sourceHash": "91f791a53f6b605b72b4c10cc246464b7fc43b41e342528a24df372e3645300a",
+  "manifestId": "7e7f2dff907c0269ee6b6d150350174417ff767930e0bff092c527103694326d",
+  "reportSha256": "2b52ccff5a4c1e9126b86db97d33448c601d30348852dee755bf99ef7945507c",
+  "counts": {
+    "files": 5,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 9,
+    "passed": 6,
+    "failed": 0,
+    "unsupported": 3
+  },
+  "variants": [
+    "built-ins/Array/of/length.js#sloppy",
+    "built-ins/Array/of/length.js#strict",
+    "built-ins/Atomics/wait/cannot-suspend-throws.js#sloppy",
+    "built-ins/Atomics/wait/cannot-suspend-throws.js#strict",
+    "built-ins/Math/f16round/not-a-constructor.js#sloppy",
+    "built-ins/Math/f16round/not-a-constructor.js#strict",
+    "built-ins/Temporal/PlainDate/calendar-undefined.js#sloppy",
+    "built-ins/Temporal/PlainDate/calendar-undefined.js#strict",
+    "language/module-code/early-dup-export-dflt.js#module"
+  ],
+  "complete": true,
+  "duplicates": 0,
+  "missing": 0,
+  "nonpasses": [
+    {
+      "filename": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "language/module-code/early-dup-export-dflt.js",
+      "mode": "module",
+      "status": "unsupported",
+      "reason": "module"
+    }
+  ],
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  }
+}

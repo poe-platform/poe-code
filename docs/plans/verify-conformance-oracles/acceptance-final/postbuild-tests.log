@@ -1,0 +1,21 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 861ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 1244ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 572ms
+ ✓ packages/safe-js/test/conformance/command.test.ts (41 tests) 41ms
+ ✓ packages/safe-js/test/conformance/isolate.test.ts (27 tests) 27ms
+ ✓ packages/safe-js/test/conformance/corpus.test.ts (11 tests) 555ms
+ ✓ packages/safe-js/test/conformance/metadata.test.ts (19 tests) 19ms
+ ✓ packages/safe-js/test/conformance/discover.test.ts (8 tests) 11ms
+ ✓ packages/safe-js/test/conformance/report.test.ts (15 tests) 9ms
+ ✓ packages/safe-js/test/conformance/import-boundary.test.ts (2 tests) 7ms
+ ✓ packages/safe-js/test/conformance/worker.test.ts (7 tests) 7ms
+ ✓ packages/safe-js/test/conformance/accounting-mutations.test.ts (8 tests) 5ms
+
+ Test Files  12 passed (12)
+      Tests  212 passed (212)
+   Start at  12:58:12
+   Duration  7.07s (transform 5.31s, setup 312ms, import 8.92s, tests 3.36s, environment 1ms)
+

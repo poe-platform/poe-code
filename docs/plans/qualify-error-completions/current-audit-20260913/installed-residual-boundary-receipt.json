@@ -1,0 +1,45 @@
+{
+  "package": "@poe-platform/safe-js",
+  "version": "0.1.570",
+  "commit": "f7b7552cf89f4a5379df6435e8fd2263114f99b5",
+  "probeExit": 0,
+  "semanticStatus": "blocked",
+  "note": "Successful probe execution is not a passing privacy assertion. These are host-boundary findings, not asserted ECMAScript edition defects.",
+  "findings": [
+    {
+      "case": "record-accessor",
+      "expectedTrace": [],
+      "actualTrace": [
+        "message getter",
+        "message getter"
+      ],
+      "result": [
+        "Error",
+        "private synthetic diagnostic",
+        null
+      ],
+      "owner": "qualify-error-completions",
+      "disposition": "Unresolved: implicit host diagnostic inspection must not execute arbitrary getters or Proxy traps; blocks broader error ownership qualification."
+    },
+    {
+      "case": "aggregate-child-proxy",
+      "expectedTrace": [],
+      "actualTrace": [
+        "child prototype",
+        "child prototype"
+      ],
+      "result": [
+        "AggregateError",
+        "outer",
+        [
+          [
+            "Error",
+            "Host operation failed."
+          ]
+        ]
+      ],
+      "owner": "qualify-error-completions",
+      "disposition": "Unresolved: implicit host diagnostic inspection must not execute arbitrary getters or Proxy traps; blocks broader error ownership qualification."
+    }
+  ]
+}

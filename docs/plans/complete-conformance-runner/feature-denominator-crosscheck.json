@@ -1,0 +1,15 @@
+{
+  "method": "Independent full filesystem walk and YAML parse with Map counter",
+  "tests": 53582,
+  "runnableFeatures": 198,
+  "protoCount": 20,
+  "differences": [
+    {
+      "feature": "__proto__",
+      "prior": "missing-own-key",
+      "correct": 20
+    }
+  ],
+  "priorReceipt": "independent-census-superseded-feature-counter.json",
+  "classification": "Manual evidence counter defect; production manifest preserved all features"
+}

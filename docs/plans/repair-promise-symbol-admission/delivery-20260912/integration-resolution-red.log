@@ -1,0 +1,43 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ tests/integration/standalone-package-metadata.test.ts (21 tests) 24ms
+ ❯ scripts/record-fs-conformance.test.ts (0 test)
+FAIL scripts/record-fs-conformance.test.ts
+Error: Cannot find package '@poe-code/safe-fs/node/filesystem' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/filesystem";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/modules/fs.conformance-cases.ts:5:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ✓ scripts/bundle-fs.test.ts (5 tests) 75ms
+ ✓ scripts/cli-startup.test.ts (1 test) 434ms
+   ✓ keeps filesystem imports out of the CLI startup graph  433ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/record-fs-conformance.test.ts [ scripts/record-fs-conformance.test.ts ]
+Error: Cannot find package '@poe-code/safe-fs/node/filesystem' imported from /Users/kjopek/Workspace/poe-code/packages/safe-js/src/modules/fs.ts
+ ❯ packages/safe-js/src/modules/fs.ts:6:1
+      4| import { inspect } from "node:util";
+      5| import { accessDeniedSystemError } from "#safe-js-platform";
+      6| import { createNodeFsBridge } from "@poe-code/safe-fs/node/filesystem";
+       | ^
+      7| import {
+      8|   type EntryComparison,
+ ❯ packages/safe-js/src/modules/fs.conformance-cases.ts:5:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  27 passed (27)
+   Start at  20:01:26
+   Duration  795ms (transform 183ms, setup 132ms, import 97ms, tests 534ms, environment 0ms)
+

@@ -20,7 +20,8 @@ const loggerState = {
   error: [] as string[]
 };
 
-vi.mock("toolcraft-design", () => ({
+vi.mock("toolcraft-design", async (importOriginal) => ({
+  ...await importOriginal<typeof import("toolcraft-design")>(),
   configureTheme: vi.fn(),
   createLogger: () => ({
     info: vi.fn(),

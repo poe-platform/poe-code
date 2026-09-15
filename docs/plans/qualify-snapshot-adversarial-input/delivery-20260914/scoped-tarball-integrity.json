@@ -1,0 +1,32 @@
+[
+  {
+    "name": "@poe-platform/safe-fs",
+    "version": "0.1.599",
+    "url": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.599.tgz",
+    "bytes": 141473,
+    "sha512": "7f0ca067f10e576fb72d52df6ed72633cf8868cecd7a2af584561a998b88ed37e40308cd79aea8e72687436e24dbe8c75247d4468d9c9a4802a0ef949a323625",
+    "sha1": "f6bb26382fee98d322f0ea0b38c109b13b89c05f",
+    "matches": "registry SHA-512 and SHA-1",
+    "file": "/tmp/poe-snapshot-registry-artifacts-20260914/safe-fs-0.1.599.tgz"
+  },
+  {
+    "name": "@poe-platform/safe-js",
+    "version": "0.1.599",
+    "url": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.599.tgz",
+    "bytes": 8536965,
+    "sha512": "b08fb12762c444ffe63f041271a3ff7aa9eb97600b607fd4425d8335e01fef751371f167bf807a1a841e3b5c65bd6e97c6030043888c0e76f0b0ce9def385e89",
+    "sha1": "bf06d3fbd885bd636292ec9edd6068279cdc3039",
+    "matches": "provenance subject; registry packument still unavailable",
+    "file": "/tmp/poe-snapshot-registry-artifacts-20260914/safe-js-0.1.599.tgz"
+  },
+  {
+    "name": "@poe-platform/safe-bash",
+    "version": "0.1.599",
+    "url": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.599.tgz",
+    "bytes": 4463601,
+    "sha512": "c2866fe2cbeca34dee02dc52bb5bb20a18f1e95aff4be1b3e5e76d628910cd9d9e2d03ac8c4abe196cbe04a5e80911f6432d20694d52c3483e352e9ea4eeb4a7",
+    "sha1": "14e95054decbb6de076c808a2ab1a1dc2c907d34",
+    "matches": "registry SHA-512 and SHA-1",
+    "file": "/tmp/poe-snapshot-registry-artifacts-20260914/safe-bash-0.1.599.tgz"
+  }
+]

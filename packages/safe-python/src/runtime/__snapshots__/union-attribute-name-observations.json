@@ -1,0 +1,134 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "scope": "Unresolved differential evidence; not accepted compatibility differences.",
+  "cases": [
+    {
+      "name": "normal/__module__",
+      "source": "events=[]\nmode='normal'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('ok', \"'typing'\"), ['hash', ('eq', '__module__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "normal/__args__",
+      "source": "events=[]\nmode='normal'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('ok', \"(<class 'int'>, <class 'str'>)\"), ['hash', ('eq', '__args__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "normal/missing",
+      "source": "events=[]\nmode='normal'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "false/__module__",
+      "source": "events=[]\nmode='false'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['hash', ('eq', '__module__'), 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "false/__args__",
+      "source": "events=[]\nmode='false'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['hash', ('eq', '__args__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "false/missing",
+      "source": "events=[]\nmode='false'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "true/__module__",
+      "source": "events=[]\nmode='true'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('ok', \"'typing'\"), ['hash', ('eq', '__module__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "true/__args__",
+      "source": "events=[]\nmode='true'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('ok', \"(<class 'int'>, <class 'str'>)\"), ['hash', ('eq', '__args__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "true/missing",
+      "source": "events=[]\nmode='true'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "raise/__module__",
+      "source": "events=[]\nmode='raise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['hash', ('eq', '__module__'), 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "raise/__args__",
+      "source": "events=[]\nmode='raise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['hash', ('eq', '__args__')])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "raise/missing",
+      "source": "events=[]\nmode='raise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "unhashable/__module__",
+      "source": "events=[]\nmode='unhashable'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "unhashable/__args__",
+      "source": "events=[]\nmode='unhashable'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "unhashable/missing",
+      "source": "events=[]\nmode='unhashable'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "hashraise/__module__",
+      "source": "events=[]\nmode='hashraise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__module__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "hashraise/__args__",
+      "source": "events=[]\nmode='hashraise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('__args__'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    },
+    {
+      "name": "hashraise/missing",
+      "source": "events=[]\nmode='hashraise'\nclass S(str):\n def __hash__(self):\n  events.append('hash')\n  if mode=='hashraise': raise ValueError('hash')\n  return str.__hash__(self)\n def __str__(self): raise ValueError('str')\n def __eq__(self, other):\n  events.append(('eq', other))\n  if mode=='raise': raise ValueError('equal')\n  if mode=='false': return False\n  if mode=='true': return True\n  return str.__eq__(self, other)\nif mode=='unhashable': S.__hash__=None\nu=int|str\ntry:\n value=type(u).__getattribute__(u,S('missing'))\n result=('ok',repr(value))\nexcept Exception as e:\n result=(type(e).__name__,str(e),e.args)\nresult=(result,events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'S'\", (\"attribute name must be string, not 'S'\",)), [])",
+      "matches": false
+    }
+  ]
+}

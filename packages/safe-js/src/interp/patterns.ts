@@ -451,6 +451,9 @@ function getStaticPropertyName(property: MemberExpression["property"]): string |
   if (property.type === "StringLiteral" || property.type === "NumericLiteral") {
     return property.value;
   }
+  if (property.type === "BigIntLiteral") {
+    return BigInt(property.value).toString();
+  }
   throw new TypeError(`Unsupported static property node '${property.type}'.`);
 }
 

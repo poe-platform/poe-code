@@ -1,0 +1,11 @@
+{
+  "observedUtc": "2026-09-12T15:50:35.752365+00:00",
+  "source": "manifest.json",
+  "archive": "manifest.json.gz",
+  "sourceBytes": 37292485,
+  "archiveBytes": 5752562,
+  "sourceSha256": "c8b428444f7854afcba72fe3bfebcf9b9390dfe2a9714b1c2da36794a6e43617",
+  "archiveSha256": "68f712faa53d7ca6666dc4bcd3d94eb6bf25812a9a6134575375158a135f15c8",
+  "roundtripVerified": true,
+  "sourceRemoved": false
+}

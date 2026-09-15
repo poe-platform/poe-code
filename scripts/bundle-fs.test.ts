@@ -17,13 +17,14 @@ it("builds the explicit workerd runtime separately from Node filesystem publishe
   });
 });
 
-it("externalizes exactly the three canonical routes without flattening core or node", () => {
+it("externalizes canonical routes without flattening core, node or bridge", () => {
   const result = resolveConsumerGraph(
     {
       alias: {
         "@poe-code/safe-fs": "/repo/packages/safe-fs/src/index.ts",
         "@poe-code/safe-fs/core": "/repo/packages/safe-fs/src/core.ts",
         "@poe-code/safe-fs/node": "/repo/packages/safe-fs/src/node/index.ts",
+        "@poe-code/safe-fs/node/filesystem": "/repo/packages/safe-fs/src/node/index.ts",
         other: "/repo/packages/other/src/index.ts"
       },
       external: ["node:*", "jose"]
@@ -34,6 +35,7 @@ it("externalizes exactly the three canonical routes without flattening core or n
     "@poe-code/safe-fs": "poe-code/safe-fs",
     "@poe-code/safe-fs/core": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/node": "poe-code/safe-fs/node",
+    "@poe-code/safe-fs/node/filesystem": "poe-code/safe-fs/node/filesystem",
     other: "/repo/packages/other/src/index.ts"
   });
   expect(result.external).toEqual([
@@ -41,7 +43,8 @@ it("externalizes exactly the three canonical routes without flattening core or n
     "jose",
     "poe-code/safe-fs",
     "poe-code/safe-fs/core",
-    "poe-code/safe-fs/node"
+    "poe-code/safe-fs/node",
+    "poe-code/safe-fs/node/filesystem"
   ]);
 });
 

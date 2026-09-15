@@ -1,0 +1,14 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "exitCode": 2,
+  "phase": "temporary staging index, before commit",
+  "findings": "Only verbatim Vitest log blank lines at EOF and mandatory whitespace-only context lines in runtime.patch were flagged. No authored source/JSON/Markdown whitespace finding.",
+  "resolution": "Preserve raw log/patch bytes and run the scoped whitespace check on authored sources and JSON/Markdown; normal commit hooks remain enabled.",
+  "realIndexChanged": false,
+  "commitCreated": false
+}

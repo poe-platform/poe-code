@@ -63,6 +63,17 @@ const sandbox = (sourceRoot = root) => {
     symlinkSync(peerRoot, join(directory, "node_modules/poe-code"), "dir");
     symlinkSync(dirname(fileURLToPath(import.meta.resolve("tsx/package.json"))), join(directory, "node_modules/tsx"), "dir");
     const manifest = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
+    if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
+      assert.equal(manifest.devDependencies["@poe-platform/op"], "*");
+      const entry = fileURLToPath(import.meta.resolve("@poe-platform/op"));
+      const opRoot = dirname(dirname(entry));
+      const metadata = JSON.parse(readFileSync(join(opRoot, "package.json"), "utf8"));
+      assert.equal(metadata.name, "@poe-platform/op");
+      assert.equal(metadata.private, true);
+      assert.equal(resolve(opRoot, metadata.exports["."].import), entry);
+      mkdirSync(join(directory, "node_modules/@poe-platform"));
+      symlinkSync(opRoot, join(directory, "node_modules/@poe-platform/op"), "dir");
+    }
     const admittedDependencies = assertArchiveDependencyLock(manifest, dependencyLock);
     if (Object.keys(admittedDependencies).length) {
       stageArchiveDependencies(dependencies, directory);
@@ -114,6 +125,19 @@ test("copied writer fixtures retain public canonical identity and refuse a missi
     assert.equal(child.error, undefined);
     assert.equal(child.status, 0, child.stderr);
     assert.equal(child.stdout.trim(), import.meta.resolve("poe-code/safe-fs"));
+    const op = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", 'await import("@poe-platform/op"); console.log(import.meta.resolve("@poe-platform/op"));'], {
+      cwd: directory, env: childEnv, encoding: "utf8", timeout: 20_000, maxBuffer: 1024 * 1024,
+    });
+    assert.equal(op.error, undefined);
+    assert.equal(op.status, 0, op.stderr);
+    assert.equal(op.stdout.trim(), import.meta.resolve("@poe-platform/op"));
+    rmSync(join(directory, "node_modules/@poe-platform/op"));
+    const missingOp = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", 'await import("@poe-platform/op");'], {
+      cwd: directory, env: childEnv, encoding: "utf8", timeout: 5_000, maxBuffer: 1024 * 1024,
+    });
+    assert.equal(missingOp.error, undefined);
+    assert.equal(missingOp.status, 1);
+    assert.match(missingOp.stderr, /ERR_MODULE_NOT_FOUND/);
     rmSync(join(directory, "node_modules/poe-code"));
     const refused = spawnSync(process.execPath, ["--input-type=module", "-e", 'await import("poe-code/safe-fs");'], {
       cwd: directory, env: childEnv, encoding: "utf8", timeout: 5_000, maxBuffer: 1024 * 1024,

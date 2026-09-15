@@ -1,0 +1,30 @@
+{
+  "acceptance.log": {
+    "sha256": "b4f215b1f470185a4f089b0362b12c13d4103c2fb29acff1b5fdf92168db64e3",
+    "bytes": 18916
+  },
+  "final-acceptance.log": {
+    "sha256": "2b6e1066124c47f00afd41437780b21685d03cf83ceb2c6b4afbe912a003c9c2",
+    "bytes": 18707
+  },
+  "focused-green.log": {
+    "sha256": "7cea591f2d6d276c6a35eacc58c6acf8b600e88a6fc6ae1d67357dd73c7ce802",
+    "bytes": 657
+  },
+  "lint.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "map-red-expanded.log": {
+    "sha256": "504a01b636a9beba8aebfb8645e1b600074c0088a46b0d27e9704765d52a68cd",
+    "bytes": 6042
+  },
+  "map-red.log": {
+    "sha256": "35bc409348408021435dd74e0d1917cb49f084aa52df69a31ec116b06c8cd2d0",
+    "bytes": 2692
+  },
+  "typecheck.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  }
+}

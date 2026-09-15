@@ -80,7 +80,8 @@ function createLineQueue(): {
   close(): void;
   lines(): AsyncIterable<string>;
 } {
-  const lines: string[] = [];
+  const lines: Array<string | undefined> = [];
+  let lineIndex = 0;
   const waiters: Array<{
     resolve(value: IteratorResult<string>): void;
   }> = [];
@@ -129,8 +130,17 @@ function createLineQueue(): {
         [Symbol.asyncIterator](): AsyncIterator<string> {
           return {
             next(): Promise<IteratorResult<string>> {
-              if (lines.length > 0) {
-                return Promise.resolve({ done: false, value: lines.shift()! });
+              if (lineIndex < lines.length) {
+                const value = lines[lineIndex]!;
+                lines[lineIndex++] = undefined;
+                if (lineIndex === lines.length) {
+                  lines.length = 0;
+                  lineIndex = 0;
+                } else if (lineIndex >= 4096 && lineIndex * 2 >= lines.length) {
+                  lines.splice(0, lineIndex);
+                  lineIndex = 0;
+                }
+                return Promise.resolve({ done: false, value });
               }
               if (closed) {
                 return Promise.resolve({ done: true, value: undefined });
@@ -309,13 +319,16 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     resolveEventStreamDone = resolve;
     rejectEventStreamDone = reject;
   });
-  const eventQueue: AcpEvent[] = [];
+  const eventQueue: Array<AcpEvent | undefined> = [];
+  let eventIndex = 0;
   const waiters: Array<{
     resolve(result: IteratorResult<AcpEvent>): void;
     reject(error: unknown): void;
   }> = [];
   let eventsDone = false;
+  let eventsAbandoned = false;
   let eventStreamError: unknown;
+  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
   const ctx: SpawnContext = {
     sessionId: "unknown",
     agent: agentId,
@@ -343,8 +356,10 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
         ctx.sessionId = threadId;
       }
     }
-    ctx.events.push(event);
+    // Middleware can inspect completed history; direct streams need only unread events.
+    if (hasMiddlewares) ctx.events.push(event);
     accumulateUsage(ctx, event);
+    if (eventsAbandoned) return;
     const waiter = waiters.shift();
     if (waiter) {
       waiter.resolve({ done: false, value: event });
@@ -374,8 +389,20 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
       return {
         next(): Promise<IteratorResult<AcpEvent>> {
-          if (eventQueue.length > 0) {
-            return Promise.resolve({ done: false, value: eventQueue.shift()! });
+          if (eventsAbandoned) {
+            return Promise.resolve({ done: true, value: undefined });
+          }
+          if (eventIndex < eventQueue.length) {
+            const value = eventQueue[eventIndex]!;
+            eventQueue[eventIndex++] = undefined;
+            if (eventIndex === eventQueue.length) {
+              eventQueue.length = 0;
+              eventIndex = 0;
+            } else if (eventIndex >= 4096 && eventIndex * 2 >= eventQueue.length) {
+              eventQueue.splice(0, eventIndex);
+              eventIndex = 0;
+            }
+            return Promise.resolve({ done: false, value });
           }
           if (eventStreamError) {
             return Promise.reject(eventStreamError);
@@ -386,6 +413,15 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
           return new Promise((resolve, reject) => {
             waiters.push({ resolve, reject });
           });
+        },
+        return(): Promise<IteratorResult<AcpEvent>> {
+          eventsAbandoned = true;
+          eventQueue.length = 0;
+          eventIndex = 0;
+          while (waiters.length > 0) {
+            waiters.shift()?.resolve({ done: true, value: undefined });
+          }
+          return Promise.resolve({ done: true, value: undefined });
         }
       };
     }
@@ -407,7 +443,6 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     }
   })();
 
-  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
   let resolveMiddlewaresApplied: (() => void) | undefined;
   const middlewaresApplied = hasMiddlewares
     ? new Promise<void>((resolve) => {
@@ -461,6 +496,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
                   env: processEnv as Record<string, string> | undefined,
                   input: useStdin ? options.prompt : "",
                   captureOutput: true,
+                  captureStdout: false,
                   activityTimeoutMs: options.activityTimeoutMs,
                   activityTimeoutSource: "stdout",
                   onStdout(chunk: string) {
@@ -521,18 +557,10 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
 
   const events =
     hasMiddlewares
-      ? {
-          [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
-            let iterator: AsyncIterator<AcpEvent> | undefined;
-            return {
-              async next(): Promise<IteratorResult<AcpEvent>> {
-                await middlewaresApplied;
-                iterator ??= ctx.eventStream![Symbol.asyncIterator]();
-                return iterator.next();
-              }
-            };
-          }
-        }
+      ? (async function* () {
+          await middlewaresApplied;
+          yield* ctx.eventStream!;
+        })()
       : ctx.eventStream;
 
   return {

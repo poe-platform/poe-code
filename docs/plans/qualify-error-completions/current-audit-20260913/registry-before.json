@@ -1,0 +1,11 @@
+{
+  "version": "15.0.32",
+  "gitHead": "4d44bf1342b5a0e8193801120ca5127e4b48e1d1",
+  "dist.integrity": "sha512-PyVwoE3Hv9clcx6+FxhWBr2piSgbLU2Aef5jNX2suEWkncWmLfLabg6UPN7Gs2DZawDsHhfGVdjYoEO2esALMA==",
+  "dist.attestations": {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/poe-code@15.0.32",
+    "provenance": {
+      "predicateType": "https://slsa.dev/provenance/v1"
+    }
+  }
+}

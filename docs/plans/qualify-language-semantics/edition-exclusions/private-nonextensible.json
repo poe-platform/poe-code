@@ -1,0 +1,137 @@
+{
+  "specification": [
+    {
+      "url": "https://262.ecma-international.org/16.0/#sec-privatefieldadd",
+      "text": "7.3.27 PrivateFieldAdd ( O , P , value ) The abstract operation PrivateFieldAdd takes arguments O (an Object), P (a Private Name ), and value (an ECMAScript language value ) and returns either a normal completion containing unused or a throw completion . It performs the following steps when called: 1. If the host is a web browser, then a. Perform ? HostEnsureCanAddPrivateElement ( O ). 2. Let entry be PrivateElementFind ( O , P ). 3. If entry is not empty , throw a TypeError exception. 4. Append PrivateElement { [[Key]] : P , [[Kind]] : field , [[Value]] : value } to O . [[PrivateElements]] . 5. Return unused ."
+    },
+    {
+      "url": "https://262.ecma-international.org/16.0/#sec-hostensurecanaddprivateelement",
+      "text": "7.3.29 HostEnsureCanAddPrivateElement ( O ) The host-defined abstract operation HostEnsureCanAddPrivateElement takes argument O (an Object) and returns either a normal completion containing unused or a throw completion . It allows host environments to prevent the addition of private elements to particular host-defined exotic objects . An implementation of HostEnsureCanAddPrivateElement must conform to the following requirements: If O is not a host-defined exotic object , this abstract operation must return NormalCompletion ( unused ) and perform no other steps. Any two calls of this abstract operation with the same argument must return the same kind of Completion Record . The default implementation of HostEnsureCanAddPrivateElement is to return NormalCompletion ( unused ). This abstract operation is only invoked by ECMAScript hosts that are web browsers."
+    }
+  ],
+  "rows": [
+    {
+      "id": "language/statements/class/elements/private-class-field-on-nonextensible-objects.js#strict",
+      "filename": "language/statements/class/elements/private-class-field-on-nonextensible-objects.js",
+      "sourceHash": "c0bc302c4567735414ab7b0a2aa5dfc119fd60162dcf751a56b9ef5ab4e97071",
+      "variantSourceHash": "8971b9f01225c118671d33562e9423bc4ade5ac0766a5384154222e6fd72c827",
+      "flags": [
+        "onlyStrict"
+      ],
+      "features": [
+        "class",
+        "class-fields-private",
+        "class-fields-public",
+        "nonextensible-applies-to-private"
+      ],
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "report": "46500-46749.jsonl",
+      "reportSha256": "e76655e96654200ed6baea2238628523c6239ce024e6c76edc8ffa488e34fead",
+      "esid": "sec-define-field",
+      "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/class/elements/private-class-field-on-nonextensible-objects.js",
+      "category": "semantic-candidate-unvalidated",
+      "primaryTask": "qualify-language-semantics",
+      "owner": "statements semantics",
+      "surface": "packages/safe-js/src/interp/interpreter.ts",
+      "targetDisposition": "fixture-to-edition-reconciliation-pending",
+      "neighboringPassingControl": {
+        "id": "language/statements/class/elements/private-async-method-name.js#strict",
+        "sourceHash": "c242314653f19a80865fd1e599d21d7f8aee8ff512add5b753d003d6580b7960",
+        "variantSourceHash": "9dd79bb7f39cad94d9787df316c28b9747cef3e135a0a4cba13a61b678404d8f",
+        "report": "46500-46749.jsonl",
+        "reportSha256": "e76655e96654200ed6baea2238628523c6239ce024e6c76edc8ffa488e34fead"
+      },
+      "current": {
+        "mode": "strict",
+        "status": "failed",
+        "reason": "unexpected-throw",
+        "detail": {
+          "phase": "runtime",
+          "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+          "type": "Test262Error"
+        },
+        "sourceHash": "c0bc302c4567735414ab7b0a2aa5dfc119fd60162dcf751a56b9ef5ab4e97071"
+      },
+      "delivered": {
+        "mode": "strict",
+        "status": "failed",
+        "reason": "unexpected-throw",
+        "detail": {
+          "phase": "runtime",
+          "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+          "type": "Test262Error"
+        }
+      },
+      "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+    },
+    {
+      "id": "language/statements/class/subclass/private-class-field-on-nonextensible-return-override.js#strict",
+      "filename": "language/statements/class/subclass/private-class-field-on-nonextensible-return-override.js",
+      "sourceHash": "d4b35df3aefd6ac46617714d48ec063b0002676783f8a697a8f202c785676b84",
+      "variantSourceHash": "2204daff8381519b9d1cb7a0e12fc4ad80382ba1424b1b25a5e7350ef0750035",
+      "flags": [
+        "onlyStrict"
+      ],
+      "features": [
+        "class",
+        "class-fields-private",
+        "class-fields-public",
+        "nonextensible-applies-to-private"
+      ],
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+        "type": "Test262Error"
+      },
+      "report": "47500-47749.jsonl",
+      "reportSha256": "1530cb9cc597b962ac445ca77ac941245558bdfb6c1f8a1c0c44f5b7adadf08d",
+      "esid": "sec-define-field",
+      "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/statements/class/subclass/private-class-field-on-nonextensible-return-override.js",
+      "category": "semantic-candidate-unvalidated",
+      "primaryTask": "qualify-language-semantics",
+      "owner": "statements semantics",
+      "surface": "packages/safe-js/src/interp/interpreter.ts",
+      "targetDisposition": "fixture-to-edition-reconciliation-pending",
+      "neighboringPassingControl": {
+        "id": "language/statements/class/subclass/derived-class-return-override-with-undefined.js#strict",
+        "sourceHash": "a957e5dfd517724886d66d8fec92036babf5b41a711bf71e42bcdaea7bf04b4e",
+        "variantSourceHash": "79cd54bc295c791caecc3f49612f94d3d8219a54051c99b72a165f6a5e6aa4aa",
+        "report": "47500-47749.jsonl",
+        "reportSha256": "1530cb9cc597b962ac445ca77ac941245558bdfb6c1f8a1c0c44f5b7adadf08d"
+      },
+      "current": {
+        "mode": "strict",
+        "status": "failed",
+        "reason": "unexpected-throw",
+        "detail": {
+          "phase": "runtime",
+          "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+          "type": "Test262Error"
+        },
+        "sourceHash": "d4b35df3aefd6ac46617714d48ec063b0002676783f8a697a8f202c785676b84"
+      },
+      "delivered": {
+        "mode": "strict",
+        "status": "failed",
+        "reason": "unexpected-throw",
+        "detail": {
+          "phase": "runtime",
+          "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+          "type": "Test262Error"
+        }
+      },
+      "deliveredSource": "884ead8b709899f07aa4fe7676f4cfe9a84d3f76"
+    }
+  ],
+  "disposition": "Excluded historical proposal nonextensible-applies-to-private; not an ECMA-262 edition16 failure. Original failed results retained, never counted as passes."
+}

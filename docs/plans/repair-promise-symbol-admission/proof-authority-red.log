@@ -1,0 +1,93 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (8 tests | 3 failed) 643ms
+   ✓ enforces admitted symbol and value string limits through binding 96ms
+   ✓ enforces admitted symbol and value string limits through host 115ms
+   ✓ enforces admitted symbol and value string limits through replay  421ms
+   ✓ enforces admitted symbol and value string limits through rebind 1ms
+   ✓ charges admitted symbol data and rolls back a rejected host outcome 3ms
+   × does not widen callback proof authority to symbol values: Symbol(proof) 4ms
+   × does not widen callback proof authority to symbol values: Symbol(proof) 1ms
+   × does not widen callback proof authority to symbol values: Symbol(Symbol.iterator) 0ms
+FAIL packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(proof)
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:52:6
+     50|   const options = { budget: new Budget(), proofFunctions: new WeakMap(…
+     51|   expect(() => copyHostValueToSandbox({ nested: [key] }, [], options, …
+     52|     .toThrow("Unsupported proof value at <root>.nested[0]: symbol");
+       |      ^
+     53|   expect(copyHostValueToSandbox(key, [], { budget: new Budget() }, { s…
+     54|     .toBe(key);
+
+FAIL packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(proof)
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:52:6
+     50|   const options = { budget: new Budget(), proofFunctions: new WeakMap(…
+     51|   expect(() => copyHostValueToSandbox({ nested: [key] }, [], options, …
+     52|     .toThrow("Unsupported proof value at <root>.nested[0]: symbol");
+       |      ^
+     53|   expect(copyHostValueToSandbox(key, [], { budget: new Budget() }, { s…
+     54|     .toBe(key);
+
+FAIL packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(Symbol.iterator)
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:52:6
+     50|   const options = { budget: new Budget(), proofFunctions: new WeakMap(…
+     51|   expect(() => copyHostValueToSandbox({ nested: [key] }, [], options, …
+     52|     .toThrow("Unsupported proof value at <root>.nested[0]: symbol");
+       |      ^
+     53|   expect(copyHostValueToSandbox(key, [], { budget: new Budget() }, { s…
+     54|     .toBe(key);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(proof)
+ FAIL  packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(proof)
+ FAIL  packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > does not widen callback proof authority to symbol values: Symbol(Symbol.iterator)
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:52:6
+     50|   const options = { budget: new Budget(), proofFunctions: new WeakMap(…
+     51|   expect(() => copyHostValueToSandbox({ nested: [key] }, [], options, …
+     52|     .toThrow("Unsupported proof value at <root>.nested[0]: symbol");
+       |      ^
+     53|   expect(copyHostValueToSandbox(key, [], { budget: new Budget() }, { s…
+     54|     .toBe(key);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  18:43:21
+   Duration  6.67s (transform 4.46s, setup 65ms, import 5.80s, tests 643ms, environment 0ms)
+

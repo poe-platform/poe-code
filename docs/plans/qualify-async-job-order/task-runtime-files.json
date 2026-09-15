@@ -1,0 +1,8 @@
+[
+  "packages/safe-js/src/interp/async-generator-driver.ts",
+  "packages/safe-js/src/interp/generator-expression-state.ts",
+  "packages/safe-js/src/interp/promise.ts",
+  "packages/safe-js/src/snapshot/guest-ast-validation.ts",
+  "packages/safe-js/src/snapshot/guest-heap-validation.ts",
+  "packages/safe-js/src/interp/interpreter.ts"
+]

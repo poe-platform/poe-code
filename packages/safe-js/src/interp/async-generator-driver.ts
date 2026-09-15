@@ -3,7 +3,7 @@ import { getGeneratorOrigin } from "./closure-origin.js";
 import { createOrdinaryObject, getSandboxPrototype } from "./object-model.js";
 import { createThrowCompletion } from "./exceptions.js";
 import { runAsyncPrefix, runPromiseJob } from "./jobs.js";
-import { attachPendingPromiseReaction, createPendingPromiseCapability, pendingPromiseRejectors, requiresPromiseResolution } from "./promise.js";
+import { attachPendingPromiseReaction, createPendingPromiseCapability, pendingPromiseRejectors } from "./promise.js";
 import { linkPromiseAggregateProducer } from "./promise-continuations.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import { onFatalPromiseRejection, withFatalPromiseCleanup } from "./promise-tracker.js";
@@ -174,7 +174,9 @@ async function advanceAsyncGenerator(driver: AsyncGeneratorDriver, method: Async
     generator.state = result.done ? "done" : "suspended";
     const produced = result.value as SandboxValue;
     if (!result.done && driver.suspension === "await") await awaitGeneratorRequest(driver, produced, "body", budget, context);
-    else if (result.done && (requiresPromiseResolution(produced, budget) || (method === "return" && (initial === "start" || initial === "done"))))
+    // Body returns and yield return resumptions already perform Await. Only a
+    // return that bypasses the body needs AsyncGeneratorAwaitReturn here.
+    else if (result.done && method === "return" && (initial === "start" || initial === "done"))
       await awaitGeneratorRequest(driver, produced, "return", budget, context);
     else await settleGeneratorRequest(driver, "fulfilled", produced, result.done === true, budget, context);
   } catch (error) {

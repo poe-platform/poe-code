@@ -347,7 +347,7 @@ async function createHarness(
     requests.push(record);
     return transformed ?? response;
   };
-  const client = new McpClient({
+  const client = new McpClient({ protocolVersion: "2025-03-26",
     clientInfo: {
       name: "tiny-mcp-client-http-oauth-integration-test",
       version: "1.0.0"

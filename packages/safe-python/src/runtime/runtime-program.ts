@@ -1,0 +1,667 @@
+import {createRuntimeNativeBuffers} from "./runtime-native-buffers.js";
+import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import { runtimeQualifiedTypeName } from "./runtime-qualified-type-name.js";
+import type { Expression } from "../ast.js";
+import { PythonRuntimeError } from "./error.js";
+import {executeRuntimeImportStatement} from "./runtime-import-statement.js";
+import { createExpressionContinuation, evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
+import type { FormatContext } from "./format-protocol.js";
+import { createRuntimeFormatContext } from "./runtime-format.js";
+import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
+import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
+import { createRuntimePowerContext } from "./runtime-power-context.js";
+import { createRuntimeRichComparisonContext } from "./runtime-rich-comparison-context.js";
+import { runtimeReceiverComparison } from "./runtime-receiver-comparison.js";
+import { createRuntimeIterationContext } from "./runtime-iteration-context.js";
+import { createRuntimeContainmentPolicy } from "./runtime-containment-context.js";
+import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
+import type { RuntimeRepresentationState } from "./runtime-representation.js";
+import { RepresentationStack } from "./representation-stack.js";
+import { listRepresentation } from "./list-representation.js";
+import { runtimeSetRepresentation } from "./runtime-set-representation.js";
+import { runtimeListPayload } from "./runtime-list-payload.js";
+import { createFunctionDefinitionContinuation, executeFunctionDefinition } from "./function-definition.js";
+import type { FunctionCreationContext } from "./function-state.js";
+import type { FunctionInvocationContext } from "./function-invocation.js";
+import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
+import type { ModuleFrame, ModuleNamespaces } from "./module-frame.js";
+import {mutateRuntimeCell} from "./runtime-cell.js";
+import { executeModule } from "./module-execution.js";
+import type { CallStack } from "./call-stack.js";
+import type { KeyOperations } from "./ordered-key-map.js";
+import type { CompiledProgram } from "./program-compilation.js";
+import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
+import { runtimeDirectMethod } from "./runtime-direct-method.js";
+import { runtimeCallable } from "./runtime-callability.js";
+import { runtimeTruth } from "./runtime-truth.js";
+import { createRuntimeIndexContext } from "./runtime-index-context.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
+import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
+import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
+import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
+import { createRuntimeStatementContext, type RuntimeStatementBindings, type RuntimeStatementContext } from "./runtime-statement-context.js";
+import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
+import { ClassFrame } from "./class-frame.js";
+import {compileInlineLocalLayout} from "./inline-local-layout.js";
+import type {CodeLocalLayout} from "./code-local-layout.js";
+import type {ResolvedScope} from "../symbol-resolution.js";
+import { executeClassBody } from "./class-body.js";
+import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
+import {lookupNamespace,storeNamespace} from "./namespace-lookup.js";
+import { RuntimeMappingNamespace } from "./runtime-mapping-namespace.js";
+import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
+import { createClassDefinitionContinuation, executeClassDefinition } from "./class-definition.js";
+import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupMroAttribute } from "./class-attributes.js";
+import { callRuntimeType } from "./runtime-type-call.js";
+import { finalizeRuntimeType } from "./runtime-type-finalization.js";
+import { representationObject } from "./representation-protocol.js";
+import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
+import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
+import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
+import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
+import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-object-attributes.js";
+import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
+import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
+import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
+import { ComprehensionCursor,executeComprehensionClauses,createComprehensionContinuation,type ComprehensionIterator } from "./comprehension-execution.js";
+import { createStatementContinuation } from "./statement-execution.js";
+import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
+import { createRuntimeAsyncIterator,advanceRuntimeAsyncIterator } from "./runtime-async-iteration.js";
+import {acquireRuntimeAsyncIterator} from "./runtime-async-iterator-acquisition.js";
+import {acquireRuntimeIterator} from "./runtime-iterator-acquisition.js";
+import {PreparedIterator} from "./prepared-iterator.js";
+import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
+import type {CompiledFunction} from "./function-compilation.js";
+import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
+import {prepareRuntimeContextManager} from "./runtime-context-manager.js";
+import {prepareRuntimeAsyncContextManager} from "./runtime-async-context-manager.js";
+
+export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
+
+/** Explicit extension points. Factories prepare hooks for an active frame; they
+ * must not execute its body. Host objects/filesystem APIs are never discovered
+ * implicitly. With an actual-type policy, type calls use the shared metaclass
+ * and instantiation lifecycle; other non-function calls use the supplied policy.
+ */
+export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
+  Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
+  resolveBuiltins?(value: RuntimeValue, invocation: BuiltinInvocationContext): FunctionCreationContext<RuntimeValue>["builtins"];
+  /** Share the execution's canonical code publisher with frame reflection. */
+  code?(code:CompiledFunction<RuntimeValue>):RuntimeValue;
+  /** Recover compiler-owned callable adapters without rebuilding code identities. */
+  functionCode?:RuntimeCodePrograms["functionCode"];
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "position" | "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping" | "percent">;
+  statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
+  specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
+  invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
+}
+
+export interface RuntimeExecutionContext {
+  readonly codecs?:BuiltinInvocationContext["codecs"];
+  /** Canonical registry object type; custom mapping patterns expose fresh
+   * plain-object sentinels without looking up a shadowable guest builtin. */
+  readonly objectType?:TypeValue;
+  readonly exceptions?: RuntimeExceptionExecution;
+  /** Host diagnostic sink for failures that cannot propagate, such as a
+   * delegated close attribute lookup. Absent sinks discard these diagnostics. */
+  readonly unraisable?:(error:unknown,object:RuntimeValue)=>void;
+  /** Share an override with id registration and identity hashing when supplied. */
+  readonly identity?: BuiltinInvocationContext["identity"];
+  /** Shared by all frames; builtin registration can use this same context. */
+  readonly formatting?: FormatContext<RuntimeValue>;
+  readonly values: RuntimeValues;
+  readonly keys: KeyOperations<RuntimeValue> & {
+    /** Optional execution-owned policy; collection identity stays shared. */
+    bindInvocation?(frame: RuntimeFrame, invocation: BuiltinInvocationContext): void;
+    identityHash?(value: RuntimeValue): bigint;
+    nativeHash?(value: RuntimeValue): bigint;
+  };
+  readonly calls: Pick<CallStack<RuntimeFrame>, "enter">;
+  readonly hooks: RuntimeProgramHooks;
+}
+
+export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, RuntimeExecutionContext {}
+
+/** Assemble the internal concrete execution path with shared values, key policy,
+ * namespaces, depth policy and meter. Module/class scopes remain distinct; nested
+ * function bodies use the callee's captured namespaces, not the module defaults.
+ * This is not a complete public interpreter: object/builtin/class/import hooks,
+ * suspended execution, full resource accounting and safe-fs still need integration.
+ */
+export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
+  meter.checkpoint(1, 256);
+  const { values, keys, hooks, calls } = context;
+  meter.checkpoint(0, 16);
+  const representationState: RuntimeRepresentationState = {};
+  const inlineLayouts=new WeakMap<ResolvedScope,CodeLocalLayout>();
+  let defaultFormatting: FormatContext<RuntimeValue> | undefined;
+  const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation,generatorExpressions=program.generatorExpressions,bindings:RuntimeFrame=frame):RuntimeStatementContext => {
+    meter.checkpoint(1, 512);
+    const expressionHooks = hooks.expressions(frame); meter.checkpoint();
+    const statementHooks = hooks.statements(frame); meter.checkpoint();
+    const suppliedSpecialMethods = hooks.specialMethods?.(frame); meter.checkpoint(1, suppliedSpecialMethods === undefined ? 0 : 96);
+    const specialMethods = suppliedSpecialMethods === undefined ? undefined : Object.freeze({
+      typeOf: suppliedSpecialMethods.typeOf.bind(suppliedSpecialMethods),
+      slots(value: RuntimeValue) {
+        const supplied = suppliedSpecialMethods.slots(value);
+        if (supplied !== undefined || !hasRuntimeInstanceAttributes(value)) return supplied;
+        return runtimeOwnedDescriptorSlots(value, values, meter, builtinCalls, () => calls.enter(frame));
+      },
+      get invocation(): BuiltinInvocationContext { return builtinCalls; }
+    });
+    const callability = { callable(value: RuntimeValue) {
+      if ((hasRuntimeInstanceAttributes(value) || value.kind === "type") && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
+      return hooks.callable(value);
+    } };
+    const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
+      get invocation() { return builtinCalls; },
+      get iteration() { return getIteration(); },
+      values, keys, name(value) {
+        while (value.kind === "method" || value.kind === "staticmethod") { meter.checkpoint(); value = value.kind === "method" ? value.value.function : value.value; }
+        if (value.kind === "builtin_function_or_method") return `${value.value.owner === undefined ? "" : value.value.owner.value.name + "."}${value.value.name}()`;
+        if ((value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
+        if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
+        return hooks.name(value);
+      }, keywordName: hooks.keywordName.bind(hooks),
+      callable: value => runtimeCallable(value, meter, callability),
+      invoke(value, positional, keywords) {
+        if ((value.kind === "instance" || isRuntimeMethodDecoratorSubclass(value)) && specialMethods !== undefined) {
+          const leave = calls.enter(frame);
+          try {
+            const hook = builtinCalls.lookupSpecial!(value, "__call__"); meter.checkpoint();
+            if (hook === undefined) throw new PythonRuntimeError("TypeError", `'${value.type.value.name}' object is not callable`);
+            return builtinCalls.call(hook, positional, keywords);
+          } finally { leave(); }
+        }
+        if (value.kind === "method" || value.kind === "staticmethod") {
+          const receivers: RuntimeValue[] = [];
+          let callable: RuntimeValue = value;
+          while (callable.kind === "method" || (callable.kind === "staticmethod" && (specialMethods === undefined || !isRuntimeMethodDecoratorSubclass(callable)))) {
+            meter.checkpoint();
+            if (callable.kind === "method") { meter.checkpoint(0, 8); receivers.push(callable.value.instance); callable = callable.value.function; }
+            else callable = callable.value;
+          }
+          meter.checkpoint(0, 32 + 8 * (receivers.length + positional.length));
+          const args: RuntimeValue[] = [];
+          for (let index = receivers.length - 1; index >= 0; index--) { meter.checkpoint(); args.push(receivers[index]); }
+          for (const item of positional) { meter.checkpoint(); args.push(item); }
+          return builtinCalls.call(callable, args, keywords);
+        }
+        if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter, builtinCalls);
+        if ((value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper") return callRuntimeMethodDescriptor(value, positional, keywords, meter, builtinCalls);
+        if (value.kind === "type" && specialMethods !== undefined) {
+          const leave = calls.enter(frame);
+          try { return callRuntimeType(value, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks)); }
+          finally { leave(); }
+        }
+        const fn = value;
+        if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
+        const invocation: RuntimeFunctionContext = {
+          get formatting() { return getFormatting(); },
+          moduleBody(program){return executeRuntimeProgram(program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals:undefined},meter)??values.none;},
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions),
+          classBody(code) {
+            let result: RuntimeValue = values.none;
+            const globals = fn.value.globals;
+            executeClassBody(code, {
+              ...fn.value, calls,
+              locals: {
+                object:globals.object,
+                lookup: name => lookupNamespace(globals,name),
+                store: (name, value) => { storeNamespace(globals,name,value); },
+                delete: name => globals.delete(name), isGuest: error => builtinCalls.isException?.(error,"BaseException")??false
+              },
+              cell: cell => { result = values.cell(cell); return result; },
+              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions)
+            }, meter);
+            return result;
+          }
+        };
+        if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
+        else if (context.exceptions) invocation.suspended = (kind, child, code) => {
+          if(code.body.kind==="generator-expression"){
+            const node=code.body.code.scope.scope.node;
+            if(node.kind!=="comprehension"||node.collection!=="generator")throw Error("generator-expression adapter requires generator code");
+            return generatorComprehension(node,undefined,child,{code,namespaces:child.namespaces,name:fn.value.name,qualifiedName:fn.value.qualifiedName});
+          }
+          meter.checkpoint(0, 288);
+          const origin = fn.value;
+          const delegation=new RuntimeGeneratorDelegation(values,context.exceptions!,meter,context.unraisable);
+          // Context preparation is delayed until the first resume. Binding the
+          // arguments above must not execute body hooks or guest instructions.
+          function* run(): Generator<RuntimeValue, RuntimeValue, RuntimeValue> {
+            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions,delegation,code.generatorExpressions??generatorExpressions).suspend();
+            if (code.body.kind === "expression") return yield* inner.evaluate(code.body.expression);
+            if (code.body.kind !== "suite") throw Error("generator code must have an expression or suite body");
+            const result = yield* createStatementContinuation(code.body.statements, inner, meter);
+            return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : values.none;
+          }
+          const cursor = run();
+          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation,kind,fn.value);
+        };
+        return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
+      }
+    }, meter);
+    meter.checkpoint(0, 128);
+    meter.checkpoint(0,8);
+    if(context.exceptions!==undefined)meter.checkpoint(0,64);
+    const builtinCalls: BuiltinInvocationContext = {
+      codecs:context.codecs,
+      lookupBuiltin(name){
+        const found=lookupNamespace(namespaces.builtins,name);meter.checkpoint();
+        if(found===undefined)throw new PythonRuntimeError("AttributeError",name);
+        return found.value;
+      },
+      functionFrame:frame instanceof LexicalFrame?frame:undefined,
+      prepareException:context.exceptions?.prepare.bind(context.exceptions),
+      sourceException:context.exceptions===undefined?undefined:(error,filename)=>context.exceptions!.sourceFailure(error,filename,builtinCalls),
+      rewriteDecodeError:context.exceptions?.rewriteDecodeError.bind(context.exceptions),
+      chainException:context.exceptions?.chain.bind(context.exceptions),
+      objectType:context.objectType,
+      causeException:context.exceptions?.caused.bind(context.exceptions),
+      wrapAnext:context.exceptions?.wrapAnext.bind(context.exceptions),
+      enterRecursiveCall: () => calls.enter(frame),
+      get identity() { return context.identity ?? values.identity; },
+      identityHash: keys.identityHash?.bind(keys),
+      nativeHash: keys.nativeHash?.bind(keys),
+      get formatting() { return getFormatting(); },
+      bytes: expressionHooks.bytes,
+      buffers: createRuntimeNativeBuffers(meter,expressionHooks.buffers),
+      hasSpecial(value, name) {
+        if (specialMethods === undefined) return false;
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
+        const key = values.internString(name), slot = type.value.nativeSlots.methods.get(key);
+        if (slot !== undefined) return name === "__hash__" || slot.kind !== "absent";
+        return lookupMroAttribute(type.value.mro, key, (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
+      },
+      warn: expressionHooks.warn.bind(expressionHooks),
+      lookupSpecial(value, name) {
+        if (specialMethods === undefined) return undefined;
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
+        return lookupRuntimeSpecialMethod(value, type, values.internString(name), specialMethods, values, meter);
+      },
+      typeName: specialMethods === undefined ? undefined : value => {
+        // Cursor diagnostics read native identity metadata; they do not need
+        // to materialize a type object or invoke guest attribute access.
+        if (value.kind === "iterator" && value.typeName !== undefined) return value.typeName;
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.diagnosticName;
+      },
+      actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
+      hashErrorTypeName: specialMethods === undefined ? undefined : value => runtimeQualifiedTypeName(runtimeActualType(value, specialMethods, meter), values, meter),
+      nativeListRepr(value) {
+        meter.checkpoint();
+        const payload = runtimeListPayload(value);
+        if (payload === undefined) throw Error("list representation requires list storage");
+        const stack = representationState.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+        return values.stringPoints(listRepresentation(value, payload.items, getFormatting(), stack, meter));
+      },
+      nativeSetRepr(value) {
+        meter.checkpoint();
+        const stack = representationState.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+        return values.stringPoints(runtimeSetRepresentation(value, values, getFormatting(), stack, meter));
+      },
+      get moduleName() { return lookupNamespace(namespaces.globals,"__name__")?.value; },
+      executeClassBody(fn, namespace) {
+        meter.checkpoint();
+        if (fn.value.code.body.kind !== "class"&&fn.value.code.body.kind!=="module") {
+          const result = builtinCalls.call(fn, []); meter.checkpoint();
+          return result.kind === "cell" ? result.value : undefined;
+        }
+        const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter, builtinCalls)
+          : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
+        if(fn.value.code.body.kind==="module"){
+          const result=executeRuntimeProgram(fn.value.code.body.program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals},meter);
+          meter.checkpoint();return result?.kind==="cell"?result.value:undefined;
+        }
+        return executeClassBody(fn.value.code.body.code, {
+          ...fn.value, calls, locals, cell: cell => values.cell(cell),
+          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions)
+        }, meter);
+      },
+      finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
+        call: builtinCalls.call.bind(builtinCalls),
+        isException: builtinCalls.isException, addExceptionNote: builtinCalls.addExceptionNote,
+        repr(value) {
+          const formatting = getFormatting(), result = representationObject(value, "repr", formatting, meter), points = formatting.string(result); meter.checkpoint();
+          if (points === undefined) throw Error("representation did not produce string storage");
+          let text = "";
+          for (const point of points) { meter.checkpoint(1, point > 0xffff ? 4 : 2); text += String.fromCodePoint(point); }
+          return text;
+        }
+      }),
+      assignClassDefault: (object, type) => statementHooks.setAttribute(object, "__class__", type),
+      typeAttributeDefault: specialMethods === undefined ? undefined : (type, name, lookupKey) => runtimeTypeAttribute(type, name, values, meter, specialMethods, undefined, lookupKey),
+      mutateTypeAttributeDefault: specialMethods === undefined ? undefined : (type, name, change) => runtimeMutateTypeAttribute(type, name, change, values, meter, specialMethods),
+      objectAttributeDefault: specialMethods === undefined ? undefined : (object, name, lookupKey) => runtimeObjectAttribute(object, name, values, meter, specialMethods, (object, name) => expressions.attribute(object, name), lookupKey),
+      mutateObjectAttributeDefault: specialMethods === undefined ? undefined : (object, name, change, lookupKey) => runtimeMutateObjectAttribute(object, name, change, values, meter, specialMethods, (object, name, change) => {
+        if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
+        else statementHooks.deleteAttribute(object, name);
+      }, lookupKey),
+      callTypeDefault: specialMethods === undefined ? undefined : (type, positional, keywords) => {
+        const leave = calls.enter(frame);
+        try { return callRuntimeType(type, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks), "default"); }
+        finally { leave(); }
+      },
+      setAttribute(object, name, value, lookupKey) {
+        if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"set",value},meter);return;}
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter,keys,expressionHooks.warn?.bind(expressionHooks),hooks.functionCode?.bind(hooks))) return;
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, (object, name, change) => {
+          if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
+        });
+        else statementHooks.setAttribute(object, name, value);
+      },
+      deleteAttribute(object, name, lookupKey) {
+        if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"delete"},meter);return;}
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "delete" }, values, meter)) return;
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, (object, name) => statementHooks.deleteAttribute(object, name));
+        else statementHooks.deleteAttribute(object, name);
+      },
+      attributeKey(value) {
+        meter.checkpoint(1, 64);
+        return { value, hash() {
+          try { return keys.hash(value); }
+          catch (error) { meter.checkpoint(); throw error instanceof RuntimeHashError ? error.original : error; }
+          finally { meter.checkpoint(); }
+        } };
+      },
+      attribute(object, name, lookupKey) {
+        if (lookupKey !== undefined && specialMethods !== undefined) {
+          if (hasRuntimeInstanceAttributes(object)) return runtimeInstanceAttribute(object, name, values, meter, specialMethods, builtinCalls, lookupKey);
+          if (object.kind === "type") return runtimeTypeAttribute(object, name, values, meter, specialMethods, builtinCalls, lookupKey);
+        }
+        return expressions.attribute(object, name);
+      },
+      get power() { return power; },
+      numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
+      isCallable: value => runtimeCallable(value, meter, callability),
+      binary: (operator, left, right) => expressions.binary(operator, left, right),
+      get integerIndex() { return getIntegerIndex(); },
+      get iteration() { return getIteration(); },
+      truth: value => expressions.truth(value),
+      compare: (operator, left, right) => expressions.compare(operator, left, right),
+      compareSlot: (operator, left, right) => runtimeReceiverComparison(operator, left, right, values, meter, richComparison?.(operator, left, right), builtinCalls),
+      compareTruth(operator, left, right) {
+        const result = expressions.compare(operator, left, right); meter.checkpoint();
+        return expressions.truth(result);
+      },
+      call(callee, positional, keywords) {
+        const call = beginCall(callee);
+        for (const value of positional) { meter.checkpoint(); call.positional(value); }
+        if (keywords !== undefined) { meter.checkpoint(); call.mapping(keywords); }
+        return call.invoke();
+      },
+      isException: context.exceptions?.matches.bind(context.exceptions),
+      exceptionArguments: context.exceptions?.arguments.bind(context.exceptions),
+      describeException: context.exceptions===undefined?undefined:(error,name)=>context.exceptions!.describe(error,name,getFormatting()),
+      addExceptionNote: context.exceptions===undefined?undefined:(error,build)=>context.exceptions!.addNote(error,build,builtinCalls),
+      isStopIteration(error) {
+        if (error instanceof ExecutionLimitError) return false;
+        if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;
+        if (context.exceptions?.matches(error,"StopIteration")) return true;
+        const result = expressionHooks.iteration?.isStopIteration(error) ?? false;
+        meter.checkpoint(); return result;
+      }
+    };
+    const richComparison = expressionHooks.richComparison?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator: string, left: RuntimeValue, right: RuntimeValue) => createRuntimeRichComparisonContext(operator, left, right, values, meter, specialMethods, builtinCalls));
+    const power = expressionHooks.power ?? (specialMethods === undefined ? undefined : createRuntimePowerContext(values, meter, specialMethods, builtinCalls));
+    let iteration = expressionHooks.iteration;
+    const getIteration = () => {
+      meter.checkpoint();
+      iteration ??= specialMethods === undefined ? undefined : createRuntimeIterationContext(values, meter, specialMethods, builtinCalls);
+      return iteration;
+    };
+    let integerIndex: IntegerIndexContext<RuntimeValue> | undefined, indexResolved = false;
+    const getIntegerIndex = () => {
+      meter.checkpoint();
+      if (!indexResolved) {
+        integerIndex = expressionHooks.integerIndex ?? (specialMethods === undefined ? undefined : createRuntimeIndexContext(builtinCalls, meter));
+        meter.checkpoint(); indexResolved = true;
+      }
+      return integerIndex;
+    };
+    let formatting: FormatContext<RuntimeValue> | undefined;
+    const getFormatting = () => {
+      meter.checkpoint();
+      formatting ??= context.formatting ?? (specialMethods !== undefined
+        ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, getDefaultFormatting(), representationState)
+        : getDefaultFormatting());
+      meter.checkpoint(); return formatting;
+    };
+    const definitionBindings: RuntimeFunctionDefinitionBindings = {
+      globals: namespaces.globals, builtins: namespaces.builtins,
+      capture: bindings instanceof LexicalFrame || bindings instanceof ClassFrame ? bindings.capture.bind(bindings) : undefined,
+      resolveBuiltins: hooks.resolveBuiltins === undefined ? undefined : value => hooks.resolveBuiltins!(value, builtinCalls),
+      evaluate: expression => evaluateExpression(expression, expressions, meter),
+      beginCall, store: bindings.store.bind(bindings)
+    };
+    const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
+    const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
+    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue|undefined,child:LexicalFrame<RuntimeValue>,execution?:{readonly code:CompiledFunction<RuntimeValue>;readonly namespaces:LexicalNamespaces<RuntimeValue>;readonly name:RuntimeValue;readonly qualifiedName:RuntimeValue})=>{
+      if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
+      if(source!==undefined){
+        const iterator=node.clauses[0].async?acquireRuntimeAsyncIterator(source,builtinCalls,meter,"async for"):acquireRuntimeIterator(source,values,meter,builtinCalls.iteration);
+        child.store(".0",iterator);
+      }
+      meter.checkpoint(0,96);
+      const compiled=execution?.code;
+      const prepareBody=(delegation?:RuntimeGeneratorDelegation)=>body(child,execution?.namespaces??namespaces,compiled?.definitions??functions,compiled?.classDefinitions??classFunctions,compiled===undefined?literals:compiled.literals??null,compiled?.comprehensions??comprehensions,delegation,compiled?.generatorExpressions??generatorExpressions);
+      const prepareOuter=(inner:RuntimeStatementContext,delegation?:RuntimeGeneratorDelegation):ComprehensionIterator<RuntimeValue>=>{
+        // LOAD_FAST .0 happens once on first execution, not at construction or
+        // on subsequent resumes. The active loop then retains its own iterator.
+        const iterator=child.load(".0"),invocation=inner.invocation;
+        if(node.clauses[0].async){
+          if(invocation===undefined||delegation===undefined)throw Error("async generator iterator requires frame-bound invocation");
+          return {kind:"async",value:{next:()=>advanceRuntimeAsyncIterator(iterator,invocation,value=>delegation.delegate(value,invocation,"anext"),values,meter)}};
+        }
+        if(iterator.kind==="iterator")return {kind:"sync",value:iterator.value};
+        if(invocation?.iteration===undefined)throw Error("generator iterator requires frame-bound iteration");
+        return {kind:"sync",value:new PreparedIterator(iterator,invocation.iteration,meter)};
+      };
+      const asynchronous=child.code===undefined?comprehensionIsAsynchronous(node,meter):child.code.kind==="async-generator";
+      if(asynchronous) {
+        meter.checkpoint(0,288);
+        const delegation=new RuntimeGeneratorDelegation(values,context.exceptions,meter,context.unraisable);
+        function* run():Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
+          const context=prepareBody(delegation);
+          const outer=prepareOuter(context,delegation),inner=context.suspend();
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){yield yield* inner.evaluate(node.element);},meter);
+          return values.none;
+        }
+        const cursor=run();
+        return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator",execution);
+      }
+      let cursor:ComprehensionCursor<RuntimeValue,RuntimeValue>|undefined;
+      return context.exceptions.generator(input=>{
+        if(input.kind==="throw")throw input.error;
+        if(cursor===undefined){
+          const inner=prepareBody(),outer=prepareOuter(inner);
+          if(outer.kind!=="sync")throw Error("synchronous generator requires a synchronous iterator");
+          cursor=new ComprehensionCursor(node.clauses,outer.value,inner,()=>inner.evaluate(node.element),meter);
+        }
+        const step=cursor.next();
+        return step.done?{done:true,value:values.none}:step;
+      },child,calls,undefined,"generator",execution);
+    };
+    const expressions = createRuntimeExpressionContext(values, {
+      position(site){
+        frame.executionPosition=(site.kind==="attribute"?site.nameSpan:undefined)??site.contentSpan??site;
+        expressionHooks.position?.(site);
+      },
+      beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {
+        const callee = expressions.attribute(receiver, name);
+        const descriptor = runtimeDirectMethod(receiver, name, callee, values, meter, builtinCalls);
+        const call = beginCall(descriptor ?? callee);
+        if (descriptor !== undefined) call.positional(receiver);
+        return call;
+      } : undefined,
+      mapping: expressionHooks.mapping ?? builtinCalls,
+      isException: builtinCalls.isException,
+      subscription: expressionHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
+      percent: expressionHooks.percent ?? builtinCalls,
+      bytes: expressionHooks.bytes,
+      translation: expressionHooks.translation,
+      buffers: createRuntimeNativeBuffers(meter,expressionHooks.buffers),
+      get integerIndex() { return getIntegerIndex(); },
+      constants: literals?.folded,
+      literal: literals === null ? undefined : node => {
+        meter.checkpoint();
+        if (!literals.has(node)) throw new Error("literal is missing from originating compiled code");
+        return literals.get(node)!;
+      },
+      load: bindings.load.bind(bindings), store: bindings.store.bind(bindings),
+      attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
+      instanceAttribute: specialMethods === undefined ? undefined : (instance, name) => runtimeInstanceAttribute(instance, name, values, meter, specialMethods, builtinCalls),
+      typeAttribute: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods, builtinCalls),
+      actualType: builtinCalls.actualType,
+      get formattedString() { return expressionHooks.formattedString; },
+      addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
+      multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
+      numeric: builtinCalls.numeric,
+      power,
+      unary: expressionHooks.unary ?? (specialMethods === undefined ? undefined : builtinCalls),
+      truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
+      richComparison,
+      containment: expressionHooks.containment?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : createRuntimeContainmentPolicy(values, meter, builtinCalls)),
+      get iteration() { return getIteration(); },
+      get formatting() { return getFormatting(); },
+      warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
+      code:hooks.code?.bind(hooks),
+      createLambda: definitions.create.bind(definitions),
+      comprehension(node) {
+        meter.checkpoint();
+        const generator=node.kind==="comprehension"&&node.collection==="generator";
+        if(generator&&context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
+        if(!generator)for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
+        const scope=comprehensions?.get(node);
+        if(scope===undefined)throw Error("comprehension has no matching compiled scope");
+        const leave=calls.enter(frame);
+        try {
+          const source=evaluateExpression(node.clauses[0].iterable,expressions,meter);
+          meter.checkpoint(0,192);
+          const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
+          const code=generatorExpressions?.get(node);
+          const child=new LexicalFrame(scope,{...namespaces,closure,enclosingClosure:generator?undefined:namespaces.closure},meter,generator?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,generator?scope.scope:frame.scope.scope);
+          if(generator)return generatorComprehension(node,source,child);
+          const outer=expressions.iterate(source);
+          const restore=frame.reflectLocals().enterInline(child.reflectLocals());
+          try {
+            const inner=body(frame,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions,child);
+            if(node.kind==="dictionary-comprehension") {
+              const result=expressions.beginDictionary([]);
+              executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
+              return result.finish();
+            }
+            if(node.collection==="set") {
+              const result=expressions.beginSet([]);
+              executeComprehensionClauses(node.clauses,outer,inner,()=>result.add(inner.evaluate(node.element)),meter);
+              return result.finish();
+            }
+            const result=values.list([]);
+            executeComprehensionClauses(node.clauses,outer,inner,()=>result.items.append(inner.evaluate(node.element)),meter);
+            return result;
+          }finally{restore();}
+        } finally {
+          leave();
+        }
+      }
+    }, meter);
+    if(suspension!==undefined){
+      meter.checkpoint(0,128);
+      expressions.delegate=source=>suspension.delegate(source,builtinCalls);
+      expressions.awaitValue=source=>suspension.delegate(source,builtinCalls,true);
+      expressions.comprehensionContinuation=function*(node) {
+        const generator=node.kind==="comprehension"&&node.collection==="generator";
+        const scope=comprehensions?.get(node);
+        if(scope===undefined)throw Error("comprehension has no matching compiled scope");
+        const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
+        meter.checkpoint(0,256);
+        const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
+        const code=generatorExpressions?.get(node);
+        const child=new LexicalFrame(scope,{...namespaces,closure,enclosingClosure:generator?undefined:namespaces.closure},meter,generator?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,generator?scope.scope:frame.scope.scope);
+        if(generator)return generatorComprehension(node,source,child);
+        const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
+          ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
+          :{kind:"sync",value:expressions.iterate(source)};
+        // Comprehension locals are isolated, but their awaits belong to the
+        // enclosing coroutine's active frame and handled-exception state.
+        const restore=frame.reflectLocals().enterInline(child.reflectLocals());
+        try {
+          const inner=body(frame,namespaces,functions,classFunctions,literals,comprehensions,suspension,generatorExpressions,child).suspend();
+          if(node.kind==="dictionary-comprehension") {
+            const result=expressions.beginDictionary([]);
+            yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){
+              const key=yield* inner.evaluate(node.key),value=yield* inner.evaluate(node.value);result.set(key,value);
+            },meter);
+            return result.finish();
+          }
+          if(node.collection==="set") {
+            const result=expressions.beginSet([]);
+            yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.add(yield* inner.evaluate(node.element));},meter);
+            return result.finish();
+          }
+          const result=values.list([]);
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.items.append(yield* inner.evaluate(node.element));},meter);
+          return result;
+        }finally{restore();}
+      };
+    }
+    keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
+    let inplace = statementHooks.inplace?.bind(statementHooks);
+    if (inplace === undefined && specialMethods !== undefined) {
+      meter.checkpoint(0, 64);
+      inplace = (operator, left, right) => runtimeInPlaceSpecialMethod(operator, left, right, values, meter, builtinCalls);
+    }
+    return createRuntimeStatementContext(expressions, {
+      position(site){
+        frame.executionPosition=site;
+        statementHooks.position?.(site);
+      },
+      invocation: builtinCalls,
+      subscription: statementHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
+      get integerIndex() { return getIntegerIndex(); },
+      deleteName: bindings.delete.bind(bindings),
+      inplace,
+      setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
+      assertions: statementHooks.assertions ?? context.exceptions?.assertions(),
+      managers: statementHooks.managers??(specialMethods===undefined?undefined:{prepare:value=>prepareRuntimeContextManager(value,builtinCalls,values,meter),truth:value=>builtinCalls.truth!(value)}),
+      asyncIterate:statementHooks.asyncIterate??(suspension===undefined?undefined:value=>createRuntimeAsyncIterator(value,builtinCalls,awaitable=>suspension.delegate(awaitable,builtinCalls,"anext"),values,meter)),
+      asyncManagers:statementHooks.asyncManagers??(suspension===undefined||specialMethods===undefined?undefined:{prepare:value=>prepareRuntimeAsyncContextManager(value,builtinCalls,(awaitable,method)=>suspension.delegate(awaitable,builtinCalls,method),values,meter),truth:value=>builtinCalls.truth!(value)}),
+      exceptions: statementHooks.exceptions ?? context.exceptions?.statements(frame),
+      executeUnhandled(statement) {
+        if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);
+        else if (statement.kind === "class") executeClassDefinition(statement, classDefinitions, meter);
+        else if (statement.kind === "raise" && context.exceptions) context.exceptions.raise(statement,expression=>evaluateExpression(expression,expressions,meter),builtinCalls);
+        else if (statement.kind === "import" || statement.kind === "import-from") executeRuntimeImportStatement(statement,bindings,values,builtinCalls,meter);
+        else statementHooks.executeUnhandled(statement);
+      },
+      *executeUnhandledContinuation(statement) {
+        meter.checkpoint(0, 192);
+        const evaluate = (expression: Expression) => createExpressionContinuation(expression, expressions, meter, values.none);
+        if (statement.kind === "function") yield* createFunctionDefinitionContinuation(statement, { ...definitions, evaluate }, meter);
+        else if (statement.kind === "class") yield* createClassDefinitionContinuation(statement, { ...classDefinitions, evaluate }, meter);
+        else if (statement.kind === "raise" && context.exceptions) yield* context.exceptions.raiseContinuation(statement, evaluate, builtinCalls);
+        else if (statement.kind === "import" || statement.kind === "import-from") executeRuntimeImportStatement(statement,bindings,values,builtinCalls,meter);
+        else if (statementHooks.executeUnhandledContinuation) yield* statementHooks.executeUnhandledContinuation(statement);
+        else statementHooks.executeUnhandled(statement);
+      }
+    }, values, meter);
+  };
+  return body;
+}
+
+/** Execute the compiled module with the same frame assembly used for functions
+ * and prepared class suites. Ordinary module locals retain their own routing. */
+export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, context: RuntimeProgramContext, meter: ExecutionMeter): RuntimeValue|void {
+  const body = createRuntimeFrameBody(program, context, meter);
+  return executeModule(program.module, {
+    globals: context.globals, builtins: context.builtins, locals: context.locals, calls: context.calls,
+    body: frame => body(frame, context)
+  }, meter);
+}

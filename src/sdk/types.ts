@@ -104,6 +104,8 @@ export interface SpawnOptions {
   logFileName?: string;
   /** Include message/tool content in ACP JSONL spawn logs. Defaults to redacted logs. */
   logContent?: boolean;
+  /** Retain a full conversation result in memory. Defaults to true; false keeps streaming, thread metadata, usage and logs. */
+  captureSession?: boolean;
   /** Additional ACP middlewares appended to the spawn capture chain. */
   middlewares?: AcpMiddleware[];
   /** Receive the completed backend-neutral ACP trace exactly once. */

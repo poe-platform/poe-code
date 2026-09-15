@@ -25,7 +25,7 @@ import {
 } from "./values.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
-import { createReplayEncodingContext, decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { createReplayEncodingContext, decodeReplayData, encodeReplayData, MissingReplayCapabilityError, type ReplayData } from "../snapshot/replay-data.js";
 import { validateSnapshotData } from "../snapshot/validation.js";
 import {
   pendingHostCallResumeIdentityMatches,
@@ -53,6 +53,7 @@ export type HostCallRecord = {
   asynchronous?: boolean;
   sharedPrefix?: ReplayData;
   sharedRegistry?: true;
+  sharedGraph?: true;
   sharedPrefixOrder?: number;
   sharedEffectOrder?: number;
   callbacks?: HostCallbackRecord[];
@@ -161,6 +162,7 @@ export class UnresolvedReplayCapabilityError extends TypeError {
 
 export class HostCallJournal {
   private disposed = false;
+  private sharedCallbackExported = false;
   private readonly pendingReconciliations = new Set<() => void>();
   private readonly promiseReplay = promiseReplayContext.getStore();
   readonly runId: string;
@@ -180,6 +182,10 @@ export class HostCallJournal {
   private retainedSize = 0;
   private readonly outcomeSizes = new Map<string, number>();
   private readonly capabilities = new Map<string, SandboxClosure>();
+  private readonly inputSymbols = new Map<number, symbol>();
+  private readonly inputSymbolIds = new Map<symbol, number>();
+  private readonly identifyInputSymbol = this.inputSymbolIds.get.bind(this.inputSymbolIds);
+  private readonly resolveInputSymbol = this.inputSymbols.get.bind(this.inputSymbols);
   private readonly inputPromises = new Map<string, SandboxPromise>();
   private readonly inputPromiseIds = new WeakMap<SandboxPromise, string>();
   private readonly importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
@@ -381,13 +387,35 @@ export class HostCallJournal {
     record.lifecycle = "running";
   }
 
-  registerSharedArguments(record:HostCallRecord, values:readonly SharedArrayBuffer[]):void {
+  registerSharedArguments(
+    record: HostCallRecord,
+    values: readonly SharedArrayBuffer[],
+    exported: readonly SharedArrayBuffer[] = [],
+    restored = this.recordedReplay
+  ): void {
+    // Keep the historical digest's block order. The export traversal also sees
+    // collection entries and named/symbol properties omitted by that digest.
+    const blocks = new Set(values.map(value => sharedArrayBufferStorage(value).block));
+    const additional = exported.filter(value => {
+      const { block } = sharedArrayBufferStorage(value);
+      if (blocks.has(block)) return false;
+      blocks.add(block);
+      return true;
+    });
+    if (additional.length > 0) {
+      if (restored && record.sharedGraph !== true &&
+          (record.sharedRegistry !== true || additional.some(value =>
+            !this.exposedSharedStorage.has(sharedArrayBufferStorage(value).block))))
+        throw new MissingReplayCapabilityError("Shared argument graph has no recorded recovery coverage.");
+      if (!restored) record.sharedGraph = true;
+    }
     for (const value of values) this.registerSharedStorage(value);
-    const tracked = !this.recordedReplay || record.sharedRegistry === true
+    for (const value of additional) this.registerSharedStorage(value);
+    const tracked = !restored || record.sharedRegistry === true
       ? [...this.exposedSharedStorage.values()] : [...values];
     if (tracked.length > 0) {
       this.sharedArguments.set(record.id, tracked);
-      if (!this.recordedReplay) record.sharedRegistry = true;
+      if (!restored) record.sharedRegistry = true;
     }
   }
 
@@ -396,6 +424,12 @@ export class HostCallJournal {
     if (this.exposedSharedStorage.has(block)) return;
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, this.exposedSharedStorage.size + 1);
     this.exposedSharedStorage.set(block, value);
+  }
+
+  markSharedCallbackExport(): void {
+    // Callback results are not replay events. Neither their storage association
+    // nor subsequent writes through the host's retained alias are captured.
+    this.sharedCallbackExported = true;
   }
 
   captureSharedPrefix(record:HostCallRecord):void {
@@ -570,6 +604,8 @@ export class HostCallJournal {
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, 0);
     this.exposedSharedStorage.clear();
     this.inputPromises.clear();
+    this.inputSymbols.clear();
+    this.inputSymbolIds.clear();
     this.importedPromiseMemo.clear();
     this.sharedAppliedOrder.clear();
     this.sharedArguments.clear();
@@ -607,6 +643,13 @@ export class HostCallJournal {
     if (!this.capabilityIds.has(closure)) this.capabilityIds.set(closure, identity);
     if (!this.nativeClosures.has(native)) this.nativeClosures.set(native, closure);
     this.hostSources.set(closure, native);
+  }
+
+  registerInputSymbols(symbols: ReadonlyMap<number, symbol>): void {
+    for (const [id, symbol] of symbols) {
+      this.inputSymbols.set(id, symbol);
+      this.inputSymbolIds.set(symbol, id);
+    }
   }
 
   registerInputPromise(promise: SandboxPromise): void {
@@ -769,7 +812,7 @@ export class HostCallJournal {
         const memo={nodes:encoded.data.nodes,values:new Map<number,SandboxValue>()};
         let value = decodeReplayData(
           encoded.data,
-          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo,
+          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, resolveInputSymbol: this.resolveInputSymbol, memo,
             graphId: record.id, importedPromiseMemo: this.importedPromiseMemo,
             resumePendingImportedPromise: (id, node) => this.reconcileImportedPromise(id, node),
             restoreScheduledPromise: this.promiseReplay === undefined ? undefined
@@ -868,7 +911,7 @@ export class HostCallJournal {
     context.nodes = [...encoded.data.nodes];
     const added = new Map<number, SandboxPromise>();
     const data = encodeReplayData(value, {
-      context, identifyCapability: this.identifyCapability, identifyPromise: this.identifyPromise,
+      context, identifyCapability: this.identifyCapability, identifyPromise: this.identifyPromise, identifyInputSymbol: this.identifyInputSymbol,
       captureSettledImportedPromises: true, capturePendingImportedPromises: true,
       identifyScheduledPromise: promise => this.promiseReplay?.identifyPromise(promise),
       onValueEncoded: (index, value) => { if (isSandboxPromise(value)) added.set(index, value); },
@@ -894,6 +937,10 @@ export class HostCallJournal {
   }
 
   snapshotReplay(): HostCallReplay {
+    if (this.sharedCallbackExported)
+      throw new MissingReplayCapabilityError(
+        "Shared storage exported by a guest callback has no deterministic recovery history."
+      );
     for (const [callId, entries] of this.importedPromiseMemo) {
       for (const [node, promise] of entries) {
         if (!this.proofImportedPromises.has(promise)) continue;
@@ -921,7 +968,7 @@ export class HostCallJournal {
         const outcomeValue=outcome?.status==="fulfilled"?outcome.value:outcome?.reason;
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
-          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,captureSettledImportedPromises:true,
+          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,identifyInputSymbol:this.identifyInputSymbol,captureSettledImportedPromises:true,
             capturePendingImportedPromises:true,
             identifyScheduledPromise: value => this.promiseReplay?.identifyPromise(value),
             identifyImportedPromise: value => importedIdentities.get(value),onValueEncoded:(id,value)=>{
@@ -1041,6 +1088,12 @@ function restoreReplayCalls(
   const capabilities = new Map<string, SandboxClosure>();
   const importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
   const replayCalls = input.calls;
+  const inputSymbols = new Map<number, symbol>();
+  const resolveInputSymbol = (id: number): symbol => {
+    let symbol = inputSymbols.get(id);
+    if (symbol === undefined) inputSymbols.set(id, symbol = Symbol());
+    return symbol;
+  };
   const inputPromises = new Map<string, SandboxPromise>();
   for (const entry of input.calls) {
     if (entry?.moduleId === "<inputs>" && entry.asynchronous === true &&
@@ -1146,7 +1199,7 @@ function restoreReplayCalls(
         throw new TypeError("Invalid replay call outcome.");
       const memo={nodes:entry.outcome.data.nodes,values:new Map<number,SandboxValue>()};
       let value = decodeReplayData(entry.outcome.data, {
-        resolveCapability, resolvePromise: id => inputPromises.get(id), memo,
+        resolveCapability, resolvePromise: id => inputPromises.get(id), resolveInputSymbol, memo,
         graphId: entry.id, importedPromiseMemo,
         resolvePromiseGraph: id => replayCalls.find(call => call?.id === id)?.outcome?.data,
         resumePendingImportedPromise: () => new Promise(() => undefined),
@@ -1203,6 +1256,8 @@ function validateRestoredRecords(
   for (const record of records) {
     if (record.sharedRegistry !== undefined && record.sharedRegistry !== true)
       throw new TypeError("Invalid shared host registry marker.");
+    if (record.sharedGraph !== undefined && (record.sharedGraph !== true || record.sharedRegistry !== true))
+      throw new TypeError("Invalid shared argument graph marker.");
     for (const order of [record.sharedPrefixOrder, record.sharedEffectOrder, ...(record.callbacks ?? []).map(callback => callback.sharedOrder)]) {
       if (order === undefined) continue;
       if (!Number.isSafeInteger(order) || order < 1 || order >= Number.MAX_SAFE_INTEGER || sharedOrders.has(order))

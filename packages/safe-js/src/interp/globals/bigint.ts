@@ -26,6 +26,7 @@ export function budgetedBigInt(primitive: SandboxValue, budget: Budget, allowNum
 export function createBigIntGlobal(budget: Budget) {
   const constructor = createSandboxClosure({
     guest: true, sandbox: true, name: "BigInt", length: 1,
+    construct: () => { throw new TypeError("BigInt cannot be constructed."); },
     call: ([value], context) => sandboxBigInt(value, budget, context, true)
   });
   const prototype = Object.create(null);
@@ -58,7 +59,7 @@ export function createBigIntGlobal(budget: Budget) {
     [Symbol.toStringTag]: { value: "BigInt", configurable: true }
   });
   const properties = materializeFunctionProperties(constructor);
-  Object.defineProperty(properties, "prototype", { value: prototype });
+  Object.defineProperty(properties, "prototype", { value: prototype, writable: false });
   for (const name of ["asIntN", "asUintN"] as const) {
     Object.defineProperty(properties, name, {
       writable: true, configurable: true,

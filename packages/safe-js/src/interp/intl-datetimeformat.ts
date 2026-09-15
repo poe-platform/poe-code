@@ -8,6 +8,8 @@ import { isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields } from "./t
 import { isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
 import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 
+import { recoverMissingIsoMonth } from "./intl-iso-month.js";
+
 const NativeDateTimeFormat = Intl.DateTimeFormat;
 const resolvedOptions = NativeDateTimeFormat.prototype.resolvedOptions;
 const format = Object.getOwnPropertyDescriptor(NativeDateTimeFormat.prototype, "format")!.get!;
@@ -87,7 +89,15 @@ export function formatDateTimeValue(receiver: unknown, method: "format" | keyof 
       }
       return plain ? Backend.PlainTime.from(temporalPlainTimeFields(value)) : new Backend.Instant(temporalInstantEpoch(value));
     });
-    return Reflect.apply(formatter[method], formatter, converted);
+    const result = Reflect.apply(formatter[method], formatter, converted);
+    return recoverMissingIsoMonth(result, state.options.locale as string,
+      { ...options, ...(!isSandboxTemporalInstant(values[0]) ? { timeZone: "UTC" } : {}) }, method, () => values.map(value => {
+        if (isSandboxTemporalInstant(value)) return new Backend.Instant(temporalInstantEpoch(value)).epochMilliseconds;
+        const fields = yearMonth ? temporalPlainYearMonthFields(value) : monthDay ? temporalPlainMonthDayFields(value) :
+          date ? temporalPlainDateFields(value) : temporalPlainDateTimeFields(value);
+        return new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay).toZonedDateTime("UTC").epochMilliseconds;
+      }));
   }
-  return method === "format" ? Reflect.apply(format, native, [])(values[0]) : Reflect.apply(methods[method], native, values);
+  const result = method === "format" ? Reflect.apply(format, native, [])(values[0]) : Reflect.apply(methods[method], native, values);
+  return recoverMissingIsoMonth(result, state.options.locale as string, state.options, method, () => values as number[]);
 }

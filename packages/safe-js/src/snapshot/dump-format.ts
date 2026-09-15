@@ -10,7 +10,7 @@ import { asyncGeneratorDrivers } from "../interp/async-generator-driver.js";
 import { SnapshotNotReadyError } from "./not-ready.js";
 import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-iterator.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
-export const EXECUTION_SEMANTICS = "jobs-v8";
+export const EXECUTION_SEMANTICS = "jobs-v9";
 import { assertSnapshotGraphDepth, assertSnapshotDataDepth } from "../graph-depth.js";
 import { captureGuestHeapNode, type GuestHeapNode } from "./guest-heap.js";
 import { hasGuestObjectState, hasNullObjectPrototype, isGuestClosure } from "../interp/object-model.js";

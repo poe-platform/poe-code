@@ -36,9 +36,24 @@ class AtomicWaiter {
 
   constructor(resources: RunResources, private readonly budget: Budget) {
     budget.setRetainedDataUsage(this, 1);
+    const abort = () => {
+      this.fail(resources.signal.reason);
+      void this.close().catch(() => undefined);
+    };
+    let detach: (() => void) | void = undefined;
     try {
+      // Admit the cleanup before acquiring a worker that needs it.
+      detach = resources.add(async () => {
+        resources.signal.removeEventListener("abort", abort);
+        try { await this.close(); }
+        finally {
+          this.budget.setRetainedValues(this, undefined);
+          this.budget.setRetainedDataUsage(this, 0);
+        }
+      });
       this.worker = new Worker(workerSource, { eval: true, execArgv: [] });
     } catch (error) {
+      detach?.();
       budget.setRetainedDataUsage(this, 0);
       throw error;
     }
@@ -66,19 +81,7 @@ class AtomicWaiter {
     });
     this.worker.on("error", error => this.fail(error));
     this.worker.on("exit", code => this.fail(new Error(`Atomic waiter worker exited (${code}).`)));
-    const abort = () => {
-      this.fail(resources.signal.reason);
-      void this.close().catch(() => undefined);
-    };
     resources.signal.addEventListener("abort", abort, { once: true });
-    resources.add(async () => {
-      resources.signal.removeEventListener("abort", abort);
-      try { await this.close(); }
-      finally {
-        this.budget.setRetainedValues(this, undefined);
-        this.budget.setRetainedDataUsage(this, 0);
-      }
-    });
     if (resources.signal.aborted) abort();
   }
 

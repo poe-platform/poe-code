@@ -1,0 +1,78 @@
+[
+  {
+    "runtime": "MIN",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 1.022
+  },
+  {
+    "runtime": "N18",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 1.156
+  },
+  {
+    "runtime": "N20",
+    "command": [
+      "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 1.021
+  },
+  {
+    "runtime": "CI22",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 0.854
+  },
+  {
+    "runtime": "N24",
+    "command": [
+      "/tmp/safejs-published-baseline.gM67xh/runtimes/node-24.21.0",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 1.298
+  },
+  {
+    "runtime": "N26",
+    "command": [
+      "/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2",
+      "--input-type=module",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 1.148
+  },
+  {
+    "runtime": "BUN",
+    "command": [
+      "/Users/kjopek/.bun/bin/bun",
+      "-e",
+      "<source in public-smoke-command.json>"
+    ],
+    "exit": 0,
+    "seconds": 0.557
+  }
+]

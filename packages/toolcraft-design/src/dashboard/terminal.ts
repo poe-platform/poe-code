@@ -1,6 +1,7 @@
 import readline from "node:readline";
 import { PassThrough } from "node:stream";
 import { cellToAnsi } from "./buffer.js";
+import { graphemeWidth } from "./terminal-width.js";
 import type { Cell } from "./types.js";
 
 export type KeypressEvent = {
@@ -167,9 +168,17 @@ export function createTerminalDriver(opts?: {
     }
 
     let output = "";
+    let cursorX: number | undefined;
+    let cursorY: number | undefined;
 
     for (const change of changes) {
-      output += `${cursorPositionAnsi(change.x, change.y)}${cellToAnsi(change.cell)}`;
+      if (change.cell.ch.length === 0) continue;
+      if (change.x !== cursorX || change.y !== cursorY) {
+        output += cursorPositionAnsi(change.x, change.y);
+      }
+      output += cellToAnsi(change.cell);
+      cursorX = change.x + graphemeWidth(change.cell.ch);
+      cursorY = change.y;
     }
 
     write(output);

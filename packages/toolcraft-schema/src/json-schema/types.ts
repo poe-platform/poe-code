@@ -4,6 +4,7 @@ export type JsonSchemaRegistry = Record<string, unknown>;
 
 export interface CompileJsonSchemaOptions {
   registry?: JsonSchemaRegistry;
+  formats?: Readonly<Record<string, (value: string) => boolean>>;
 }
 
 export interface CompiledJsonSchema {

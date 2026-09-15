@@ -4,7 +4,6 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
-  acp,
   cancel,
   createDashboard,
   isCancel,
@@ -18,7 +17,11 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
+import {
+  getSpawnConfig,
+  streamAcpEventsToDashboard,
+  type AcpMiddleware
+} from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import { installSkillFile, type SkillInstallOutcome } from "./install-skill-file.js";
@@ -47,11 +50,11 @@ import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
-  type AgentRunUsage,
   type PipelineInitSource,
   type PipelineRunOptions,
   type PipelineRunResult,
   type PlanSummary,
+  type TaskCompletion,
   type TaskProgress
 } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
@@ -75,7 +78,7 @@ import {
   validateResolvedPromptVars
 } from "@poe-code/pipeline";
 import {
-  createDashboardLineBuffer,
+  createStreamingDashboardLineBuffer,
   formatDashboardDuration,
   formatDashboardTimestamp,
   registerDashboardQuitCommands,
@@ -135,13 +138,6 @@ type PipelineInstallCommandOptions = {
   agent?: string;
   local?: boolean;
   global?: boolean;
-};
-
-type TaskCompletion = TaskProgress & {
-  durationMs: number;
-  success: boolean;
-  usage?: AgentRunUsage;
-  taskCompleted?: boolean;
 };
 
 type PipelineDashboardRunOptions = {
@@ -366,7 +362,7 @@ function formatTaskStartMessage(progress: TaskProgress): string {
 
 function formatTaskCompleteMessage(progress: TaskCompletion): string {
   const duration = formatDashboardDuration(progress.durationMs);
-  const status = progress.success ? "done" : "failed";
+  const status = progress.cancelled ? "cancelled" : progress.success ? "done" : "failed";
   const usage = progress.usage
     ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
     : "";
@@ -375,8 +371,12 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
     return `${progress.taskTitle} ${status} in ${duration}${usage}`;
   }
 
+  if (progress.stepName && progress.success && progress.taskCompleted === false) {
+    return `Step ${progress.stepName} for ${progress.taskId} done in ${duration}${usage}`;
+  }
+
   if (progress.stepName && !progress.success) {
-    return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
+    return `Task ${progress.taskId} (${progress.stepName}) ${status} in ${duration}${usage}`;
   }
 
   return `Task ${progress.taskId} ${status} in ${duration}${usage}`;
@@ -387,7 +387,7 @@ function formatDashboardCurrentAction(progress: TaskProgress): string {
     return progress.taskTitle;
   }
 
-  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskId];
+  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskTitle || progress.taskId];
   if (progress.stepName) {
     parts.push(progress.stepName);
   }
@@ -406,97 +406,28 @@ function formatPipelineStageLabel(progress: TaskProgress): string {
   return progress.stepName ? `${progress.taskId}:${progress.stepName}` : progress.taskId;
 }
 
-async function streamAcpEventsToDashboard(options: {
-  events: AsyncIterable<AcpEvent>;
-  onToolOutput(chunk: string): void;
-  onErrorOutput(chunk: string): void;
-}): Promise<boolean> {
-  let sawEvents = false;
-  let messageBuffer = "";
-  let reasoningBuffer = "";
-
-  const emitRendered = async (kind: "tool" | "error", event: AcpEvent): Promise<void> => {
-    await acp.withAcpWriter(
-      (line) => {
-        if (kind === "error") {
-          options.onErrorOutput(`${line}\n`);
-          return;
-        }
-        options.onToolOutput(`${line}\n`);
-      },
-      async () => {
-        renderAcpEvent(event);
-      }
-    );
-  };
-
-  const flushMessageBuffer = async (): Promise<void> => {
-    if (messageBuffer.length === 0) {
-      return;
-    }
-    await emitRendered("tool", {
-      event: "agent_message",
-      text: messageBuffer
-    });
-    messageBuffer = "";
-  };
-
-  const flushReasoningBuffer = async (): Promise<void> => {
-    if (reasoningBuffer.length === 0) {
-      return;
-    }
-    await emitRendered("tool", {
-      event: "reasoning",
-      text: reasoningBuffer
-    });
-    reasoningBuffer = "";
-  };
-
-  for await (const event of options.events) {
-    sawEvents = true;
-
-    if (event.event === "agent_message") {
-      await flushReasoningBuffer();
-      messageBuffer += event.text;
-      continue;
-    }
-
-    if (event.event === "reasoning") {
-      await flushMessageBuffer();
-      reasoningBuffer += event.text;
-      continue;
-    }
-
-    await flushMessageBuffer();
-    await flushReasoningBuffer();
-    await emitRendered(event.event === "error" ? "error" : "tool", event);
-  }
-
-  await flushMessageBuffer();
-  await flushReasoningBuffer();
-
-  return sawEvents;
-}
-
 function createPipelineDashboardRunAgent(options: {
-  appendOutput: (kind: "tool" | "error", message: string) => void;
+  appendOutput: (kind: "tool" | "error", message: string, id?: string) => void;
   activeStage: () => string;
   middlewares?: AcpMiddleware[];
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
-    const toolBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-    });
-    const errorBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
-    });
+    const spawnConfig = getSpawnConfig(input.agent);
+    const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
     let lastError: unknown;
     for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
+      const toolBuffer = createStreamingDashboardLineBuffer((line, id) => {
+        options.appendOutput("tool", `[${options.activeStage()}] ${line}`, id);
+      });
+      const errorBuffer = createStreamingDashboardLineBuffer((line, id) => {
+        options.appendOutput("error", `[${options.activeStage()}] ${line}`, id);
+      });
       let sawStdout = false;
       let sawStderr = false;
 
       try {
         const { events, result } = sdkSpawn(input.agent, {
+          captureSession: false,
           prompt: input.prompt,
           cwd: input.cwd,
           logDir: input.logDir,
@@ -509,6 +440,7 @@ function createPipelineDashboardRunAgent(options: {
           tee: {
             stdout: {
               write(chunk: string) {
+                if (protocolStdout) return;
                 sawStdout = true;
                 toolBuffer.push(chunk);
               }
@@ -525,8 +457,13 @@ function createPipelineDashboardRunAgent(options: {
 
         const eventStream = streamAcpEventsToDashboard({
           events,
-          onToolOutput(chunk) {
-            toolBuffer.push(chunk);
+          ...(input.signal ? { signal: input.signal } : {}),
+          onToolOutput(chunk, id) {
+            if (id !== undefined) {
+              options.appendOutput("tool", `[${options.activeStage()}] ${chunk.trimEnd()}`, id);
+            } else {
+              toolBuffer.push(chunk);
+            }
           },
           onErrorOutput(chunk) {
             errorBuffer.push(chunk);
@@ -547,17 +484,15 @@ function createPipelineDashboardRunAgent(options: {
         errorBuffer.flush();
         return spawnResult;
       } catch (error) {
+        toolBuffer.flush();
+        errorBuffer.flush();
         if (!isActivityTimeoutError(error)) {
-          toolBuffer.flush();
-          errorBuffer.flush();
           throw error;
         }
         lastError = error;
       }
     }
 
-    toolBuffer.flush();
-    errorBuffer.flush();
     throw lastError;
   };
 }
@@ -597,11 +532,13 @@ async function runPipelineWithDashboard(
     ]
   });
   const abortController = new AbortController();
+  let finishCleanup!: () => void;
+  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
   const startedAt = Date.now();
   let iterations = 0;
   let tokensIn = 0;
   let tokensOut = 0;
-  let currentAction: string | undefined;
+  let currentAction: string | undefined = "Preparing pipeline";
   let currentStage = "pipeline";
   let status: "running" | "done" | "error" = "running";
 
@@ -613,16 +550,18 @@ async function runPipelineWithDashboard(
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
-      ...(currentAction ? { currentAction } : {})
+      currentAction
     };
     dashboard.updateStats(stats);
   };
 
   const appendOutput = (
     kind: "info" | "success" | "error" | "tool" | "status",
-    message: string
+    message: string,
+    id?: string
   ): void => {
     dashboard.appendOutput({
+      ...(id === undefined ? {} : { id }),
       kind,
       text: `${formatDashboardTimestamp(Date.now())} ${message}`,
       ts: Date.now()
@@ -643,18 +582,27 @@ async function runPipelineWithDashboard(
   registerDashboardQuitCommands({
     abortController,
     dashboard,
-    requestCancellation
+    requestCancellation,
+    cleanupComplete
   });
   dashboard.start();
+  appendOutput(
+    "info",
+    `Config · ${formatPipelineConfigSummary({
+      agent: options.agent,
+      model: options.model,
+      planPath: options.planPath,
+      planIndex: options.planIndex,
+      totalPlans: options.totalPlans
+    })}`
+  );
   syncStats();
 
   const intervalId = global.setInterval(() => {
     syncStats();
   }, 1_000);
-  const sigintHandler = () => {
-    requestCancellation();
-  };
-  process.on("SIGINT", sigintHandler);
+  process.on("SIGINT", requestCancellation);
+  process.on("SIGTERM", requestCancellation);
 
   try {
     const runOptions: PipelineRunOptions = {
@@ -670,17 +618,17 @@ async function runPipelineWithDashboard(
       onPlanReloadError(error: Error) {
         appendOutput("error", `Plan reload failed, using last good state: ${error.message}`);
       },
+      onLockWait(planPath: string) {
+        currentAction = "Waiting for another run";
+        appendOutput("status", `Waiting for another pipeline operation · ${planPath}`);
+        syncStats();
+      },
       onPlanResolved(summary: PlanSummary) {
-        appendOutput(
-          "info",
-          `Config · ${formatPipelineConfigSummary({
-            agent: options.agent,
-            model: options.model,
-            planPath: summary.planPath,
-            planIndex: options.planIndex,
-            totalPlans: options.totalPlans
-          })}`
-        );
+        currentAction = undefined;
+        if (summary.initializationUsage) {
+          tokensIn += summary.initializationUsage.inputTokens;
+          tokensOut += summary.initializationUsage.outputTokens;
+        }
         appendOutput("info", `Tasks · ${formatPipelineTasksSummary(summary)}`);
         syncStats();
       },
@@ -698,7 +646,7 @@ async function runPipelineWithDashboard(
           tokensIn += progress.usage.inputTokens;
           tokensOut += progress.usage.outputTokens;
         }
-        appendOutput(progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
+        appendOutput(progress.cancelled ? "status" : progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
         syncStats();
       }
     };
@@ -718,9 +666,11 @@ async function runPipelineWithDashboard(
     throw error;
   } finally {
     global.clearInterval(intervalId);
-    process.off("SIGINT", sigintHandler);
+    process.off("SIGINT", requestCancellation);
+    process.off("SIGTERM", requestCancellation);
     dashboard.stop();
     dashboard.destroy();
+    finishCleanup();
   }
 }
 

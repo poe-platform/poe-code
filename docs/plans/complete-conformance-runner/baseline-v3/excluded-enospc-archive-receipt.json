@@ -1,0 +1,28 @@
+{
+  "archive": "excluded-enospc-attempts.tar.gz",
+  "bytes": 49241,
+  "sha256": "3a66e6148aa9bd9cc822b2ceb2280ad278565853e652cd66b3bec8a03a028f1c",
+  "members": [
+    {
+      "name": "39500-39999.jsonl",
+      "bytes": 159711,
+      "sha256": "f2fe99acf0386986cb3b3351c42c1c7810dd43bf00d21059fe01238ee148bc0a"
+    },
+    {
+      "name": "39500-39999.log",
+      "bytes": 819,
+      "sha256": "57319ba8c367bcc4463b20056dedae2ab917833aa03afbe8dbf7d2d471b975cd"
+    },
+    {
+      "name": "40500-40999.jsonl",
+      "bytes": 131033,
+      "sha256": "cccdc33dd206fd36eb3fee657ba65c7c4f8c4cb77e73490cc17cc94d4ae5c01c"
+    },
+    {
+      "name": "40500-40999.log",
+      "bytes": 1113,
+      "sha256": "61b75bf61a8ffcfdbfd2f961d19677ec1c13b4132b67a9d6d7caf21bd0d93c8d"
+    }
+  ],
+  "disposition": "Incomplete disk-failure attempts wholly excluded from final216selected reports; no process exit code fabricated"
+}

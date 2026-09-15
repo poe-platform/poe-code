@@ -72,6 +72,7 @@ type Atom =
   | { tag: "number"; value: "NaN" | "Infinity" | "-Infinity" | "-0" }
   | { tag: "capability"; id: string }
   | { tag: "promise-capability"; id: string }
+  | { tag: "input-symbol"; id: number }
   | { tag: "imported-promise-reference"; callId: string; node: number }
   | { tag: "ref"; id: number };
 type Properties = Record<
@@ -134,6 +135,7 @@ export function createReplayEncodingContext() {
 export function encodeReplayData(
   value: SandboxValue,
   options: {
+    identifyInputSymbol?: (value: symbol) => number | undefined;
     identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
     captureSettledImportedPromises?: boolean;
@@ -156,6 +158,8 @@ export function encodeReplayData(
     if (entry === undefined) return { tag: "undefined" };
     if (typeof entry === "bigint") return { tag: "bigint", value: String(entry) };
     if (typeof entry === "symbol") {
+      const inputId = options.identifyInputSymbol?.(entry);
+      if (inputId !== undefined) return { tag: "input-symbol", id: inputId };
       let id = symbols.get(entry);
       if (id === undefined) {
         id = nodes.length;
@@ -422,6 +426,9 @@ type ReplayDecodingWork = {
   initialize: Array<() => void>;
   capture: Array<() => void>;
   settle: Array<() => void>;
+  activate: Array<() => void>;
+  committed: boolean;
+  schedulingIds: Set<number>;
   detach: Array<() => void>;
   rollback: Array<() => void>;
   scopes: Array<{ scope: CompileScope; parent?: CompileScope }>;
@@ -430,6 +437,7 @@ type ReplayDecodingWork = {
 export function decodeReplayData(
   input: unknown,
   options: {
+    resolveInputSymbol?: (id: number) => symbol | undefined;
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
     onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
@@ -446,7 +454,8 @@ export function decodeReplayData(
   initialDepth = 0
 ): SandboxValue {
   const ownsWork = pendingWork === undefined;
-  const work = pendingWork ?? { initialize: [], capture: [], settle: [], detach: [], rollback: [], scopes: [] };
+  const work = pendingWork ?? { initialize: [], capture: [], settle: [], activate: [], committed: false,
+    schedulingIds: new Set<number>(), detach: [], rollback: [], scopes: [] };
   const compilation = new CompileScope(parent?.owner);
   work.scopes.push({ scope: compilation, parent });
   const sharedStorageBudget = compilation.owner?.budget ?? new Budget();
@@ -483,6 +492,15 @@ export function decodeReplayData(
         if (existing !== undefined) return existing;
         return decodeReplayData({ root: { tag: "ref", id: nodeId }, nodes: targetNodes },
           { ...options, graphId: callId, memo: undefined }, compilation, work, depth);
+      }
+      if (own(atom, "tag") === "input-symbol") {
+        const id = own(atom, "id");
+        if (typeof id !== "number" || !Number.isSafeInteger(id) || id < 0)
+          throw new TypeError("Invalid replay input symbol reference.");
+        const symbol = options.resolveInputSymbol?.(id);
+        if (typeof symbol !== "symbol") throw new TypeError("Missing replay input symbol.");
+        if (symbol.description !== undefined) compilation.owner?.budget.allocateString(symbol.description);
+        return symbol;
       }
       if (own(atom, "tag") === "promise-capability") {
         const id = own(atom, "id");
@@ -559,12 +577,24 @@ export function decodeReplayData(
           restored.set(id, existing);
           return existing;
         }
+        if (scheduleId !== undefined) {
+          if (work.schedulingIds.has(scheduleId as number))
+            throw new TypeError("Duplicate imported Promise scheduling identity.");
+          work.schedulingIds.add(scheduleId as number);
+        }
         let resolve!: (value: SandboxValue) => void;
         let reject!: (value: unknown) => void;
         const native = new Promise<SandboxValue>((yes, no) => { resolve = yes; reject = no; });
         void native.catch(() => undefined);
         const promise = createSandboxPromise(native, { trackReplay: false, importCompileOwner: compilation.owner });
         importedPromises.add(promise);
+        work.rollback.push(() => {
+          importedPromises.delete(promise);
+          importedPromiseSnapshots.delete(promise);
+          importedPromisePropertySnapshots.delete(promise);
+          promiseProperties.delete(promise);
+          promiseStates.delete(promise);
+        });
         restored.set(id, promise);
         if (globalMemo !== undefined && graphId !== undefined) {
           let entries = globalMemo.get(graphId);
@@ -595,12 +625,17 @@ export function decodeReplayData(
         }
         if (pending) {
           work.settle.push(() => {
-            try {
-              const resumed = Promise.resolve().then(() => options.resumePendingImportedPromise!(graphId!, id));
-              const tracked = scheduleId !== undefined && options.restoreScheduledPromise !== undefined
-                ? options.restoreScheduledPromise(scheduleId as number, resumed, promise) : resumed;
-              void tracked.then(resolve, reject);
-            } catch (error) { reject(error); }
+            const resumed = new Promise<SandboxValue>((yes, no) => {
+              work.activate.push(() => {
+                void Promise.resolve().then(() => options.resumePendingImportedPromise!(graphId!, id)).then(yes, no);
+              });
+            });
+            const tracked = scheduleId !== undefined && options.restoreScheduledPromise !== undefined
+              ? options.restoreScheduledPromise(scheduleId as number, resumed, promise) : resumed;
+            void tracked.then(
+              value => { if (work.committed) resolve(value); },
+              error => { if (work.committed) reject(error); }
+            );
           });
           return promise;
         }
@@ -616,10 +651,18 @@ export function decodeReplayData(
           work.settle.push(() => {
             if (scheduleId !== undefined && options.restoreScheduledPromise !== undefined) {
               const settled = status === "fulfilled" ? Promise.resolve(value) : Promise.reject(value);
-              options.restoreScheduledPromise(scheduleId as number, settled, promise).then(resolve, reject);
+              // Scheduling can throw before installing its own rejection handler.
+              // Guest rejection tracking belongs to the restored wrapper.
+              void settled.catch(() => undefined);
+              void options.restoreScheduledPromise(scheduleId as number, settled, promise).then(
+                value => { if (work.committed) resolve(value); },
+                error => { if (work.committed) reject(error); }
+              );
             } else {
-              promiseStates.set(promise, { status: status as "fulfilled" | "rejected", value });
-              if (status === "fulfilled") resolve(value); else reject(value);
+              work.activate.push(() => {
+                promiseStates.set(promise, { status: status as "fulfilled" | "rejected", value });
+                if (status === "fulfilled") resolve(value); else reject(value);
+              });
             }
           });
         });
@@ -646,7 +689,10 @@ export function decodeReplayData(
           if (typeof node.wellKnown !== "string" || !Object.hasOwn(wellKnownSymbols, node.wellKnown) || Object.hasOwn(node, "description"))
             throw new TypeError("Invalid replay well-known symbol.");
           symbol = wellKnownSymbols[node.wellKnown]!;
-        } else symbol = Symbol(node.description);
+        } else {
+          if (typeof node.description === "string") compilation.owner?.budget.allocateString(node.description);
+          symbol = Symbol(node.description);
+        }
         restored.set(id, symbol);
         return symbol;
       }
@@ -708,7 +754,9 @@ export function decodeReplayData(
         });
         const metadata = capability.properties === undefined ? undefined : hostFunctionMetadata.get(capability.properties);
         if (copy.properties !== undefined && metadata !== undefined) hostFunctionMetadata.set(copy.properties, metadata);
-        options.onCapabilityRestored?.(capability, copy);
+        // Do not publish a partial graph before later nodes and deferred
+        // property initializers have passed validation.
+        work.capture.push(() => options.onCapabilityRestored?.(capability, copy));
         const moduleFunction = moduleFunctionOrigins.get(capability);
         if (moduleFunction !== undefined) moduleFunctionOrigins.set(copy, moduleFunction);
         return copy;
@@ -1030,11 +1078,13 @@ export function decodeReplayData(
       for (const initialize of work.initialize) initialize();
       for (const capture of work.capture) capture();
       for (const detach of work.detach) detach();
+      for (const settle of work.settle) settle();
       for (let index = work.scopes.length - 1; index >= 0; index--) {
         const { scope, parent: owner } = work.scopes[index]!;
         if (owner !== undefined) scope.forward(scope.tickets, owner);
       }
-      for (const settle of work.settle) settle();
+      work.committed = true;
+      for (const activate of work.activate) activate();
     }
     if (options.memo !== undefined)
       for (const [id, value] of restored) options.memo.values.set(id, value);
@@ -1043,7 +1093,12 @@ export function decodeReplayData(
     if (ownsWork) for (let index = work.rollback.length - 1; index >= 0; index--) work.rollback[index]!();
     throw error;
   } finally {
-    if (ownsWork) for (let index = work.scopes.length - 1; index >= 0; index--) work.scopes[index]!.scope.dispose();
+    if (ownsWork) {
+      for (let index = work.scopes.length - 1; index >= 0; index--) work.scopes[index]!.scope.dispose();
+      work.initialize.length = work.capture.length = work.settle.length = work.activate.length =
+        work.detach.length = work.rollback.length = work.scopes.length = 0;
+      work.schedulingIds.clear();
+    }
   }
 }
 

@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/parse/declaration-regexp-goal.test.ts (29 tests) 961ms
+   ✓ retains declaration source and host boundaries through replay  334ms
+ ✓ packages/safe-js/src/parse/block-regexp-goal.test.ts (24 tests) 1042ms
+   ✓ preserves regexp source and authority through repeated replay  324ms
+ ✓ packages/safe-js/src/parse/tokenizer.test.ts (25 tests) 15ms
+ ✓ packages/safe-js/src/parse/template-regex-boundaries.test.ts (13 tests) 292ms
+
+ Test Files  4 passed (4)
+      Tests  91 passed (91)
+   Start at  12:02:35
+   Duration  3.98s (transform 3.28s, setup 132ms, import 4.63s, tests 2.31s, environment 0ms)
+

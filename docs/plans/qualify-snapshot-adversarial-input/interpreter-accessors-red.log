@@ -1,0 +1,131 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts (34 tests | 3 failed) 223ms
+     ✓ rejects restore, inspection, migration and execution before host effects 6ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 3ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 2ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 3ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 21ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+   ✓ accepts the neighboring valid record and invokes only its explicit authority 40ms
+   ✓ rejects external snapshot accessors before invoking them: version 0ms
+   ✓ rejects external snapshot accessors before invoking them: bindings 0ms
+   ✓ rejects external snapshot accessors before invoking them: nested 0ms
+   × rejects interpreter snapshot accessors before invoking them: sourceHash 3ms
+   × rejects interpreter snapshot accessors before invoking them: scopeChain 1ms
+   × rejects interpreter snapshot accessors before invoking them: nested 1ms
+   ✓ accepts explicit version 1 legacy scalar records 0ms
+   ✓ accepts explicit version 2 legacy scalar records 0ms
+   ✓ accepts the documented resume semantics jobs-v6 0ms
+   ✓ accepts the documented resume semantics jobs-v7 0ms
+   ✓ accepts the documented resume semantics jobs-v8 0ms
+   ✓ accepts the documented resume semantics jobs-v9 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v1 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v5 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v999 0ms
+   ✓ preserves current public snapshot graph identity on replay 132ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"forged"},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"ref","id":99},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"number","value":"invalid"},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"capability","id":""},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"promise-capability","id":7},"nodes":[]} 0ms
+FAIL packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: sourceHash
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:68:22
+     66|   Object.defineProperty(target, field, { enumerable: true, get: getter…
+     67|   expect(() => restoreInterpreter(snapshot, { source: "return 7;" })).…
+     68|   expect(getter).not.toHaveBeenCalled();
+       |                      ^
+     69| });
+     70|
+
+FAIL packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: scopeChain
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:68:22
+     66|   Object.defineProperty(target, field, { enumerable: true, get: getter…
+     67|   expect(() => restoreInterpreter(snapshot, { source: "return 7;" })).…
+     68|   expect(getter).not.toHaveBeenCalled();
+       |                      ^
+     69| });
+     70|
+
+FAIL packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: nested
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:68:22
+     66|   Object.defineProperty(target, field, { enumerable: true, get: getter…
+     67|   expect(() => restoreInterpreter(snapshot, { source: "return 7;" })).…
+     68|   expect(getter).not.toHaveBeenCalled();
+       |                      ^
+     69| });
+     70|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: sourceHash
+ FAIL  packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: scopeChain
+ FAIL  packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > rejects interpreter snapshot accessors before invoking them: nested
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:68:22
+     66|   Object.defineProperty(target, field, { enumerable: true, get: getter…
+     67|   expect(() => restoreInterpreter(snapshot, { source: "return 7;" })).…
+     68|   expect(getter).not.toHaveBeenCalled();
+       |                      ^
+     69| });
+     70|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 31 passed (34)
+   Start at  08:08:55
+   Duration  2.07s (transform 1.36s, setup 35ms, import 1.73s, tests 223ms, environment 0ms)
+

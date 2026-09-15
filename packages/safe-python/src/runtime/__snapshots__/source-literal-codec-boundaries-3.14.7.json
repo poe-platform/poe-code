@@ -1,0 +1,1685 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little",
+    "invocation": "/opt/homebrew/bin/python3.14 -I; compile unchanged source programs"
+  },
+  "cases": [
+    {
+      "name": "'\"\\\\x\"'",
+      "source": "source = 'value = \"\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\x\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\\\\x\"\\n' 1 13\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\x\"\"\"\\n', 1, 17))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\x\"\"\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\x0\"'",
+      "source": "source = 'value = \"\\\\x0\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\x0\"\\n', 1, 14))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: truncated \\xXX escape literal.py 1 9 'value = \"\\\\x0\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\x0\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\x0\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\x0\"\"\"\\n', 1, 18))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\x0\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\xGG\"'",
+      "source": "source = 'value = \"\\\\xGG\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\xGG\"\\n', 1, 15))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\\\\xGG\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\xGG\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\xGG\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\xGG\"\"\"\\n', 1, 19))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\xGG\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\u123\"'",
+      "source": "source = 'value = \"\\\\u123\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-4: truncated \\\\uXXXX escape\", ('literal.py', 1, 9, 'value = \"\\\\u123\"\\n', 1, 16))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-4: truncated \\uXXXX escape literal.py 1 9 'value = \"\\\\u123\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\u123\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\u123\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-4: truncated \\\\uXXXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\u123\"\"\"\\n', 1, 20))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-4: truncated \\uXXXX escape literal.py 1 9 'value = \"\"\"\\\\u123\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\U00110000\"'",
+      "source": "source = 'value = \"\\\\U00110000\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: illegal Unicode character\", ('literal.py', 1, 9, 'value = \"\\\\U00110000\"\\n', 1, 21))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: illegal Unicode character literal.py 1 9 'value = \"\\\\U00110000\"\\n' 1 21\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\U00110000\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\U00110000\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: illegal Unicode character\", ('literal.py', 1, 9, 'value = \"\"\"\\\\U00110000\"\"\"\\n', 1, 25))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: illegal Unicode character literal.py 1 9 'value = \"\"\"\\\\U00110000\"\"\"\\n' 1 25\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\N\"'",
+      "source": "source = 'value = \"\\\\N\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\\\\N\"\\n', 1, 13))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: malformed \\N character escape literal.py 1 9 'value = \"\\\\N\"\\n' 1 13\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\N\"\"\"\\n', 1, 17))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: malformed \\N character escape literal.py 1 9 'value = \"\"\"\\\\N\"\"\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\N{}\"'",
+      "source": "source = 'value = \"\\\\N{}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\\\\N{}\"\\n', 1, 15))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: malformed \\N character escape literal.py 1 9 'value = \"\\\\N{}\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N{}\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N{}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\N{}\"\"\"\\n', 1, 19))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-2: malformed \\N character escape literal.py 1 9 'value = \"\"\"\\\\N{}\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\N{missing}\"'",
+      "source": "source = 'value = \"\\\\N{missing}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-10: unknown Unicode character name\", ('literal.py', 1, 9, 'value = \"\\\\N{missing}\"\\n', 1, 22))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-10: unknown Unicode character name literal.py 1 9 'value = \"\\\\N{missing}\"\\n' 1 22\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N{missing}\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N{missing}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-10: unknown Unicode character name\", ('literal.py', 1, 9, 'value = \"\"\"\\\\N{missing}\"\"\"\\n', 1, 26))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-10: unknown Unicode character name literal.py 1 9 'value = \"\"\"\\\\N{missing}\"\"\"\\n' 1 26\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\N{SNAKE\"'",
+      "source": "source = 'value = \"\\\\N{SNAKE\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-7: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\\\\N{SNAKE\"\\n', 1, 19))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-7: malformed \\N character escape literal.py 1 9 'value = \"\\\\N{SNAKE\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N{SNAKE\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N{SNAKE\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-7: malformed \\\\N character escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\N{SNAKE\"\"\"\\n', 1, 23))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-7: malformed \\N character escape literal.py 1 9 'value = \"\"\"\\\\N{SNAKE\"\"\"\\n' 1 23\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"abc\\\\x\"'",
+      "source": "source = 'value = \"abc\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"abc\\\\x\"\\n', 1, 16))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\xXX escape literal.py 1 9 'value = \"abc\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"abc\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"abc\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"abc\\\\x\"\"\"\\n', 1, 20))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\xXX escape literal.py 1 9 'value = \"\"\"abc\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\u00e9\\\\x\"'",
+      "source": "source = 'value = \"\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\u00e9\\\\x\"\\n', 1, 14))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\xXX escape literal.py 1 9 'value = \"\u00e9\\\\x\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\u00e9\\\\x\"\"\"\\n', 1, 18))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\u00e9\\\\x\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\ud83d\ude42\\\\x\"'",
+      "source": "source = 'value = \"\\U0001f642\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\ud83d\ude42\\\\x\"\\n', 1, 14))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\xXX escape literal.py 1 9 'value = \"\ud83d\ude42\\\\x\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\ud83d\ude42\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\U0001f642\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\ud83d\ude42\\\\x\"\"\"\\n', 1, 18))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 10-11: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\ud83d\ude42\\\\x\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = \"\\\\\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 12-13: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\\\\\\u00e9\\\\x\"\\n', 1, 16))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 12-13: truncated \\xXX escape literal.py 1 9 'value = \"\\\\\\\\\u00e9\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 12-13: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n', 1, 20))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 12-13: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = \"\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 16-17: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\\u00e9\\\\x\"\\n', 1, 15))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 16-17: truncated \\xXX escape literal.py 1 9 'value = \"\\\\\u00e9\\\\x\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 16-17: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\\u00e9\\\\x\"\"\"\\n', 1, 19))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 16-17: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\\u00e9\\\\x\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\q\\\\x\"'",
+      "source": "source = 'value = \"\\\\q\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\q\\\\x\"\\n', 1, 15))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\xXX escape literal.py 1 9 'value = \"\\\\q\\\\x\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\q\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\q\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\q\\\\x\"\"\"\\n', 1, 19))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\q\\\\x\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\400\\\\x\"'",
+      "source": "source = 'value = \"\\\\400\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 4-5: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\400\\\\x\"\\n', 1, 17))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 4-5: truncated \\xXX escape literal.py 1 9 'value = \"\\\\400\\\\x\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\400\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\400\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 4-5: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\400\\\\x\"\"\"\\n', 1, 21))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 4-5: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\400\\\\x\"\"\"\\n' 1 21\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\x\u00e9\"'",
+      "source": "source = 'value = \"\\\\x\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\\\\x\u00e9\"\\n', 1, 14))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\\\\x\u00e9\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\x\u00e9\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\x\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\x\u00e9\"\"\"\\n', 1, 18))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\x\u00e9\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\u00e9\"'",
+      "source": "source = 'value = \"\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\u00e9\"\"\"'",
+      "source": "source = 'value = \"\"\"\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\x41\\\\u03bb\\\\U0001f40d\"'",
+      "source": "source = 'value = \"\\\\x41\\\\u03bb\\\\U0001f40d\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\ud800\\\\udc00\"'",
+      "source": "source = 'value = \"\\\\ud800\\\\udc00\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\ud800\\\\udc00\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\ud800\\\\udc00\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\N{SNAKE}\"'",
+      "source": "source = 'value = \"\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\\\\\\u00e9\"'",
+      "source": "source = 'value = \"\\\\\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\\\\\u00e9\"'",
+      "source": "source = 'value = \"\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"a\\r\\nb\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\r\\nb\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"abc\\\\N{SNAKE}\"'",
+      "source": "source = 'value = \"abc\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"abc\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = \"\"\"abc\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\x\"'",
+      "source": "source = 'value = b\"\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\\\\x\"\\n', 1, 14))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\\\\x\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\"\"\\\\x\"\"\"\\n', 1, 18))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\"\"\\\\x\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\x0\"'",
+      "source": "source = 'value = b\"\\\\x0\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\\\\x0\"\\n', 1, 15))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\\\\x0\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\x0\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\x0\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\"\"\\\\x0\"\"\"\\n', 1, 19))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\"\"\\\\x0\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\xGG\"'",
+      "source": "source = 'value = b\"\\\\xGG\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\\\\xGG\"\\n', 1, 16))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\\\\xGG\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\xGG\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\xGG\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\"\"\\\\xGG\"\"\"\\n', 1, 20))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\"\"\\\\xGG\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\u123\"'",
+      "source": "source = 'value = b\"\\\\u123\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\u123\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\u123\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\U00110000\"'",
+      "source": "source = 'value = b\"\\\\U00110000\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\U\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\U\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\U\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\U\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\U00110000\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\U00110000\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\U\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\U\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\U\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\U\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\N\"'",
+      "source": "source = 'value = b\"\\\\N\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\N\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\N{}\"'",
+      "source": "source = 'value = b\"\\\\N{}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\N{}\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N{}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\N{missing}\"'",
+      "source": "source = 'value = b\"\\\\N{missing}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\N{missing}\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N{missing}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\N{SNAKE\"'",
+      "source": "source = 'value = b\"\\\\N{SNAKE\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\N{SNAKE\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N{SNAKE\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"abc\\\\x\"'",
+      "source": "source = 'value = b\"abc\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 3', ('literal.py', 1, 9, 'value = b\"abc\\\\x\"\\n', 1, 17))\n(value error) invalid \\x escape at position 3 literal.py 1 9 'value = b\"abc\\\\x\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"abc\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"abc\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 3', ('literal.py', 1, 9, 'value = b\"\"\"abc\\\\x\"\"\"\\n', 1, 21))\n(value error) invalid \\x escape at position 3 literal.py 1 9 'value = b\"\"\"abc\\\\x\"\"\"\\n' 1 21\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\u00e9\\\\x\"'",
+      "source": "source = 'value = b\"\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\u00e9\\\\x\"\\n', 1, 15))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\u00e9\\\\x\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\u00e9\\\\x\"\"\"\\n', 1, 19))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\u00e9\\\\x\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\ud83d\ude42\\\\x\"'",
+      "source": "source = 'value = b\"\\U0001f642\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\ud83d\ude42\\\\x\"\\n', 1, 15))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\ud83d\ude42\\\\x\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\ud83d\ude42\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\U0001f642\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\ud83d\ude42\\\\x\"\"\"\\n', 1, 19))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\ud83d\ude42\\\\x\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = b\"\\\\\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\\\\\\\\\u00e9\\\\x\"\\n', 1, 17))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\\\\\\\\\u00e9\\\\x\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n', 1, 21))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n' 1 21\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = b\"\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\\\\\u00e9\\\\x\"\\n', 1, 16))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\\\\\u00e9\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\\\\\u00e9\\\\x\"\"\"\\n', 1, 20))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\\\\\u00e9\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\q\\\\x\"'",
+      "source": "source = 'value = b\"\\\\q\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 2', ('literal.py', 1, 9, 'value = b\"\\\\q\\\\x\"\\n', 1, 16))\n(value error) invalid \\x escape at position 2 literal.py 1 9 'value = b\"\\\\q\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\q\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\q\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 2', ('literal.py', 1, 9, 'value = b\"\"\"\\\\q\\\\x\"\"\"\\n', 1, 20))\n(value error) invalid \\x escape at position 2 literal.py 1 9 'value = b\"\"\"\\\\q\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\400\\\\x\"'",
+      "source": "source = 'value = b\"\\\\400\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 4', ('literal.py', 1, 9, 'value = b\"\\\\400\\\\x\"\\n', 1, 18))\n(value error) invalid \\x escape at position 4 literal.py 1 9 'value = b\"\\\\400\\\\x\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\400\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\400\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 4', ('literal.py', 1, 9, 'value = b\"\"\"\\\\400\\\\x\"\"\"\\n', 1, 22))\n(value error) invalid \\x escape at position 4 literal.py 1 9 'value = b\"\"\"\\\\400\\\\x\"\"\"\\n' 1 22\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\x\u00e9\"'",
+      "source": "source = 'value = b\"\\\\x\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\\\\x\u00e9\"\\n', 1, 15))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\\\\x\u00e9\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\x\u00e9\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\x\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\\\\x\u00e9\"\"\"\\n', 1, 19))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\\\\x\u00e9\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\u00e9\"'",
+      "source": "source = 'value = b\"\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\u00e9\"\\n', 1, 13))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\u00e9\"\\n' 1 13\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\u00e9\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\u00e9\"\"\"\\n', 1, 17))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\u00e9\"\"\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\x41\\\\u03bb\\\\U0001f40d\"'",
+      "source": "source = 'value = b\"\\\\x41\\\\u03bb\\\\U0001f40d\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\ud800\\\\udc00\"'",
+      "source": "source = 'value = b\"\\\\ud800\\\\udc00\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\ud800\\\\udc00\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\ud800\\\\udc00\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\N{SNAKE}\"'",
+      "source": "source = 'value = b\"\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\\\\\\\\\u00e9\"'",
+      "source": "source = 'value = b\"\\\\\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\\\\\\\\\u00e9\"\\n', 1, 15))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\\\\\\\\\u00e9\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\\\\\\\\\u00e9\"\"\"\\n', 1, 19))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\\\\\\\\\u00e9\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\\\\\u00e9\"'",
+      "source": "source = 'value = b\"\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\\\\\u00e9\"\\n', 1, 14))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\\\\\u00e9\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\\\\\u00e9\"\"\"\\n', 1, 18))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\\\\\u00e9\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"a\\r\\nb\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\r\\nb\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'b\"abc\\\\N{SNAKE}\"'",
+      "source": "source = 'value = b\"abc\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"abc\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = b\"\"\"abc\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "literal.py:1: SyntaxWarning: \"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'r\"\\\\x\"'",
+      "source": "source = 'value = r\"\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\x0\"'",
+      "source": "source = 'value = r\"\\\\x0\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\x0\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\x0\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\xGG\"'",
+      "source": "source = 'value = r\"\\\\xGG\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\xGG\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\xGG\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\u123\"'",
+      "source": "source = 'value = r\"\\\\u123\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\u123\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\u123\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\U00110000\"'",
+      "source": "source = 'value = r\"\\\\U00110000\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\U00110000\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\U00110000\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\N\"'",
+      "source": "source = 'value = r\"\\\\N\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\N\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\N\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\N{}\"'",
+      "source": "source = 'value = r\"\\\\N{}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\N{}\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\N{}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\N{missing}\"'",
+      "source": "source = 'value = r\"\\\\N{missing}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\N{missing}\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\N{missing}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\N{SNAKE\"'",
+      "source": "source = 'value = r\"\\\\N{SNAKE\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\N{SNAKE\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\N{SNAKE\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"abc\\\\x\"'",
+      "source": "source = 'value = r\"abc\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"abc\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"abc\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\u00e9\\\\x\"'",
+      "source": "source = 'value = r\"\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\ud83d\ude42\\\\x\"'",
+      "source": "source = 'value = r\"\\U0001f642\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\ud83d\ude42\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\U0001f642\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = r\"\\\\\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = r\"\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\q\\\\x\"'",
+      "source": "source = 'value = r\"\\\\q\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\q\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\q\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\400\\\\x\"'",
+      "source": "source = 'value = r\"\\\\400\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\400\\\\x\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\400\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\x\u00e9\"'",
+      "source": "source = 'value = r\"\\\\x\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\x\u00e9\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\x\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\u00e9\"'",
+      "source": "source = 'value = r\"\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\u00e9\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\x41\\\\u03bb\\\\U0001f40d\"'",
+      "source": "source = 'value = r\"\\\\x41\\\\u03bb\\\\U0001f40d\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\ud800\\\\udc00\"'",
+      "source": "source = 'value = r\"\\\\ud800\\\\udc00\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\ud800\\\\udc00\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\ud800\\\\udc00\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\N{SNAKE}\"'",
+      "source": "source = 'value = r\"\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\\\\\\u00e9\"'",
+      "source": "source = 'value = r\"\\\\\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\\\\\u00e9\"'",
+      "source": "source = 'value = r\"\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = r\"\"\"\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"a\\r\\nb\"\"\"'",
+      "source": "source = 'value = r\"\"\"a\\r\\nb\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"abc\\\\N{SNAKE}\"'",
+      "source": "source = 'value = r\"abc\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'r\"\"\"abc\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = r\"\"\"abc\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\x\"'",
+      "source": "source = 'value = br\"\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\x0\"'",
+      "source": "source = 'value = br\"\\\\x0\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\x0\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\x0\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\xGG\"'",
+      "source": "source = 'value = br\"\\\\xGG\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\xGG\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\xGG\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\u123\"'",
+      "source": "source = 'value = br\"\\\\u123\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\u123\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\u123\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\U00110000\"'",
+      "source": "source = 'value = br\"\\\\U00110000\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\U00110000\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\U00110000\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\N\"'",
+      "source": "source = 'value = br\"\\\\N\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\N\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\N\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\N{}\"'",
+      "source": "source = 'value = br\"\\\\N{}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\N{}\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\N{}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\N{missing}\"'",
+      "source": "source = 'value = br\"\\\\N{missing}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\N{missing}\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\N{missing}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\N{SNAKE\"'",
+      "source": "source = 'value = br\"\\\\N{SNAKE\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\N{SNAKE\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\N{SNAKE\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"abc\\\\x\"'",
+      "source": "source = 'value = br\"abc\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"abc\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"abc\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\u00e9\\\\x\"'",
+      "source": "source = 'value = br\"\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\u00e9\\\\x\"\\n', 1, 16))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\u00e9\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\u00e9\\\\x\"\"\"\\n', 1, 20))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\u00e9\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\ud83d\ude42\\\\x\"'",
+      "source": "source = 'value = br\"\\U0001f642\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\ud83d\ude42\\\\x\"\\n', 1, 16))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\ud83d\ude42\\\\x\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\ud83d\ude42\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\U0001f642\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\ud83d\ude42\\\\x\"\"\"\\n', 1, 20))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\ud83d\ude42\\\\x\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = br\"\\\\\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\\\\\\\\\u00e9\\\\x\"\\n', 1, 18))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\\\\\\\\\u00e9\\\\x\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n', 1, 22))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\\\\\\\\\u00e9\\\\x\"\"\"\\n' 1 22\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\\u00e9\\\\x\"'",
+      "source": "source = 'value = br\"\\\\\\xe9\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\\\\\u00e9\\\\x\"\\n', 1, 17))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\\\\\u00e9\\\\x\"\\n' 1 17\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\\u00e9\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\\\xe9\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\\\\\u00e9\\\\x\"\"\"\\n', 1, 21))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\\\\\u00e9\\\\x\"\"\"\\n' 1 21\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\q\\\\x\"'",
+      "source": "source = 'value = br\"\\\\q\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\q\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\q\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\400\\\\x\"'",
+      "source": "source = 'value = br\"\\\\400\\\\x\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\400\\\\x\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\400\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\x\u00e9\"'",
+      "source": "source = 'value = br\"\\\\x\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\\\\x\u00e9\"\\n', 1, 16))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\\\\x\u00e9\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\x\u00e9\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\x\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\\\\x\u00e9\"\"\"\\n', 1, 20))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\\\\x\u00e9\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\u00e9\"'",
+      "source": "source = 'value = br\"\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\u00e9\"\\n', 1, 14))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\u00e9\"\\n' 1 14\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\u00e9\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\u00e9\"\"\"\\n', 1, 18))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\u00e9\"\"\"\\n' 1 18\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\x41\\\\u03bb\\\\U0001f40d\"'",
+      "source": "source = 'value = br\"\\\\x41\\\\u03bb\\\\U0001f40d\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\x41\\\\u03bb\\\\U0001f40d\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\ud800\\\\udc00\"'",
+      "source": "source = 'value = br\"\\\\ud800\\\\udc00\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\ud800\\\\udc00\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\ud800\\\\udc00\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\N{SNAKE}\"'",
+      "source": "source = 'value = br\"\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\\\\\\u00e9\"'",
+      "source": "source = 'value = br\"\\\\\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\\\\\\\\\u00e9\"\\n', 1, 16))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\\\\\\\\\u00e9\"\\n' 1 16\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\\\\\\\\\u00e9\"\"\"\\n', 1, 20))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\\\\\\\\\u00e9\"\"\"\\n' 1 20\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\\\\\u00e9\"'",
+      "source": "source = 'value = br\"\\\\\\xe9\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\\\\\u00e9\"\\n', 1, 15))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\\\\\u00e9\"\\n' 1 15\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"\\\\\u00e9\"\"\"'",
+      "source": "source = 'value = br\"\"\"\\\\\\xe9\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = br\"\"\"\\\\\u00e9\"\"\"\\n', 1, 19))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = br\"\"\"\\\\\u00e9\"\"\"\\n' 1 19\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"a\\r\\nb\"\"\"'",
+      "source": "source = 'value = br\"\"\"a\\r\\nb\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"abc\\\\N{SNAKE}\"'",
+      "source": "source = 'value = br\"abc\\\\N{SNAKE}\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'br\"\"\"abc\\\\N{SNAKE}\"\"\"'",
+      "source": "source = 'value = br\"\"\"abc\\\\N{SNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "stderr": "",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"a\\n\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"a', 2, 6))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\xXX escape literal.py 1 9 'value = \"\"\"a' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\u00e9\\n\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"\\xe9\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 11-12: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\u00e9', 2, 6))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 11-12: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\u00e9' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"a\\r\\n\\\\N{bad}\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\r\\n\\\\N{bad}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 2-8: unknown Unicode character name\", ('literal.py', 1, 9, 'value = \"\"\"a', 2, 11))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 2-8: unknown Unicode character name literal.py 1 9 'value = \"\"\"a' 2 11\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"a\\n\\\\q\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\n\\\\q\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "'\"\"\"a\\n\\\\400\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\n\\\\400\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\400\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\400\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "'\"\"\"a\\\\\\n\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\\\\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"a\\\\', 2, 6))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 3-4: truncated \\xXX escape literal.py 1 9 'value = \"\"\"a\\\\' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\x\\nrest\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\x\\nrest\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"\\\\x', 2, 8))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\xXX escape literal.py 1 9 'value = \"\"\"\\\\x' 2 8\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"\\\\N{\\nSNAKE}\"\"\"'",
+      "source": "source = 'value = \"\"\"\\\\N{\\nSNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: unknown Unicode character name\", ('literal.py', 1, 9, 'value = \"\"\"\\\\N{', 2, 10))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 0-9: unknown Unicode character name literal.py 1 9 'value = \"\"\"\\\\N{' 2 10\n",
+      "warnings": []
+    },
+    {
+      "name": "'\"\"\"a\\n\\\\q\\n\\\\x\"\"\"'",
+      "source": "source = 'value = \"\"\"a\\n\\\\q\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 5-6: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"a', 3, 6))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 5-6: truncated \\xXX escape literal.py 1 9 'value = \"\"\"a' 3 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"a\\n\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 2', ('literal.py', 1, 9, 'value = b\"\"\"a', 2, 6))\n(value error) invalid \\x escape at position 2 literal.py 1 9 'value = b\"\"\"a' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\u00e9\\n\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\xe9\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\u00e9', 2, 6))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\u00e9' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"a\\r\\n\\\\N{bad}\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\r\\n\\\\N{bad}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"a\\n\\\\q\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\n\\\\q\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"a\\n\\\\400\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\n\\\\400\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\400\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\400\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"a\\\\\\n\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\\\\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 3', ('literal.py', 1, 9, 'value = b\"\"\"a\\\\', 2, 6))\n(value error) invalid \\x escape at position 3 literal.py 1 9 'value = b\"\"\"a\\\\' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\x\\nrest\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\x\\nrest\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 0', ('literal.py', 1, 9, 'value = b\"\"\"\\\\x', 2, 8))\n(value error) invalid \\x escape at position 0 literal.py 1 9 'value = b\"\"\"\\\\x' 2 8\n",
+      "warnings": []
+    },
+    {
+      "name": "'b\"\"\"\\\\N{\\nSNAKE}\"\"\"'",
+      "source": "source = 'value = b\"\"\"\\\\N{\\nSNAKE}\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "ok\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\N\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\N\"? A raw string is also an option.",
+          "filename": "literal.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "'b\"\"\"a\\n\\\\q\\n\\\\x\"\"\"'",
+      "source": "source = 'value = b\"\"\"a\\n\\\\q\\n\\\\x\"\"\"'\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('(value error) invalid \\\\x escape at position 5', ('literal.py', 1, 9, 'value = b\"\"\"a', 3, 6))\n(value error) invalid \\x escape at position 5 literal.py 1 9 'value = b\"\"\"a' 3 6\n",
+      "warnings": []
+    },
+    {
+      "name": "UTF-8 BOM 'value = \"\"\"a\\n\\\\x\"\"\"'",
+      "source": "source = bytes([239, 187, 191, 118, 97, 108, 117, 101, 32, 61, 32, 34, 34, 34, 97, 10, 92, 120, 34, 34, 34])\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\\\xXX escape\", ('literal.py', 1, 9, 'value = \"\"\"a', 2, 6))\n(unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \\xXX escape literal.py 1 9 'value = \"\"\"a' 2 6\n",
+      "warnings": []
+    },
+    {
+      "name": "UTF-8 BOM 'value = b\"\"\"\u00e9\\nrest\"\"\"'",
+      "source": "source = bytes([239, 187, 191, 118, 97, 108, 117, 101, 32, 61, 32, 98, 34, 34, 34, 195, 169, 10, 114, 101, 115, 116, 34, 34, 34])\ntry:\n    compile(source, 'literal.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    print('ok')\n",
+      "stdout": "SyntaxError ('bytes can only contain ASCII literal characters', ('literal.py', 1, 9, 'value = b\"\"\"\u00e9', 2, 8))\nbytes can only contain ASCII literal characters literal.py 1 9 'value = b\"\"\"\u00e9' 2 8\n",
+      "warnings": []
+    }
+  ]
+}

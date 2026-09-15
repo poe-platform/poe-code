@@ -1,0 +1,982 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "oracleDriver": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync} from 'node:fs';\nimport {codecSearchPathMatrixCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-search-path-matrix-cases.ts';\nconst python='/opt/homebrew/bin/python3.14';\nconst metadata=spawnSync(python,['-I','-c','import sys, unicodedata, json; print(json.dumps(dict(version=sys.version, unicode=unicodedata.unidata_version, platform=sys.platform, byteorder=sys.byteorder)))'],{encoding:'utf8'});\nif(metadata.status!==0)throw Error(metadata.stderr);\nconst reference=JSON.parse(metadata.stdout);\nif(!reference.version.startsWith('3.14.7 ')||reference.unicode!=='16.0.0'||reference.platform!=='darwin'||reference.byteorder!=='little')throw Error('Oracle target mismatch');\nconst cases=codecSearchPathMatrixCases.map(row=>{\n const result=spawnSync(python,['-I','-c',row.source],{encoding:'utf8'});\n if(result.status!==0)throw Error(row.name+result.stderr);\n return {...row,stdout:result.stdout,stderr:result.stderr,exitCode:result.status};\n});\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/codec-search-path-matrix-3.14.7.json',JSON.stringify({reference,cases},null,2)+'\\n');\nconsole.log(JSON.stringify({reference,cases:cases.length}));\n",
+  "serviceDriver": "import {openSync, closeSync, readFileSync, writeSync, writeFileSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3';\nconst reference=JSON.parse(readFileSync(root+'/packages/safe-python/src/runtime/__snapshots__/codec-search-path-matrix-3.14.7.json','utf8'));\nconst path='/tmp/safe-python-search-path-services-output.txt';\nconst fd=openSync(path,'w');\nconst cases=[];\nlet bytes=0,writes=0;\ntry {\n for(const row of reference.cases){\n  let count=0,length=0;\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],output:{write(text){const data=Buffer.from(text);let offset=0;while(offset<data.length)offset+=writeSync(fd,data,offset,data.length-offset);count++;length+=data.length;},flush(){}}});\n  let result;\n  try{result=session.exec(row.source);}finally{session.close();}\n  if(result.status!=='ok')throw Error(row.name+': '+result.status);\n  cases.push({name:row.name,status:result.status,offset:bytes,bytes:length,writes:count});\n  bytes+=length;writes+=count;\n }\n}finally{closeSync(fd);}\nconst actual=readFileSync(path);\nfor(let i=0;i<cases.length;i++){\n const row=cases[i],slice=actual.subarray(row.offset,row.offset+row.bytes);\n if(slice.toString('utf8')!==reference.cases[i].stdout)throw Error(row.name+' output mismatch');\n Object.assign(row,{matchesOracle:true,sha256:createHash('sha256').update(slice).digest('hex')});\n}\nconst baseline=JSON.parse(readFileSync('/tmp/safe-python-registry-edge-baseline.json','utf8'));\nconst evidence={reference:reference.reference,oracleDriver:readFileSync('/tmp/safe-python-search-path-oracle.mts','utf8'),serviceDriver:readFileSync('/tmp/safe-python-search-path-services.mts','utf8'),services:{cases,bytes,writes,sha256:createHash('sha256').update(actual).digest('hex')},baseline:{passed:baseline.numPassedTests,failed:baseline.numFailedTests,total:baseline.numTotalTests,failures:baseline.testResults.flatMap(file=>file.assertionResults.filter(test=>test.status==='failed').map(test=>({file:file.name,name:test.fullName,messages:test.failureMessages})))}};\nwriteFileSync(root+'/packages/safe-python/src/runtime/__snapshots__/codec-search-path-matrix-evidence.json',JSON.stringify(evidence,null,2)+'\\n');\nconsole.log(JSON.stringify({programs:cases.length,bytes,writes,sha256:evidence.services.sha256}));\n",
+  "services": {
+    "cases": [
+      {
+        "name": "live path 0, mutation 0, outcome 0",
+        "status": "ok",
+        "offset": 0,
+        "bytes": 387,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "130b64928a3c3bdc871baeb5fde181ba4b7ef20fdab407e5ac0c0640cb197312"
+      },
+      {
+        "name": "live path 0, mutation 0, outcome 1",
+        "status": "ok",
+        "offset": 387,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 0, mutation 0, outcome 2",
+        "status": "ok",
+        "offset": 545,
+        "bytes": 383,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "2f725b303827780cd28036a729bbf5787c9786287c07cdd4bece83c10279a3ff"
+      },
+      {
+        "name": "live path 0, mutation 0, outcome 3",
+        "status": "ok",
+        "offset": 928,
+        "bytes": 355,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "9df4bcd44fbc6f98dc0677f36464f11391bfd0ab3973a4480f3af6ee865fb28b"
+      },
+      {
+        "name": "live path 1, mutation 0, outcome 0",
+        "status": "ok",
+        "offset": 1283,
+        "bytes": 387,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "78157481314fbb14fe80a5f5e350565b0cd79455c43346ba0cac1e9ae5f7371a"
+      },
+      {
+        "name": "live path 1, mutation 0, outcome 1",
+        "status": "ok",
+        "offset": 1670,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 1, mutation 0, outcome 2",
+        "status": "ok",
+        "offset": 1828,
+        "bytes": 383,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "c6c08e5f5b8b878bb278e48c33b35bd36edbe5936d839c364a7b861092a5f0f7"
+      },
+      {
+        "name": "live path 1, mutation 0, outcome 3",
+        "status": "ok",
+        "offset": 2211,
+        "bytes": 355,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "194df9c04dbd1241357a0f027fab5ce2b5ef3cf3e35ed1bb821c103abd6c7bcf"
+      },
+      {
+        "name": "live path 2, mutation 0, outcome 0",
+        "status": "ok",
+        "offset": 2566,
+        "bytes": 456,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "ce4efa3579c705531268bbc5caaaf64230c3f4025e83fd283e4e91f36fd67797"
+      },
+      {
+        "name": "live path 2, mutation 0, outcome 1",
+        "status": "ok",
+        "offset": 3022,
+        "bytes": 181,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "3b2d54f49e85baf3818bb35f0dabb81fbadd81057ea1aecc314a9945ccce1331"
+      },
+      {
+        "name": "live path 2, mutation 0, outcome 2",
+        "status": "ok",
+        "offset": 3203,
+        "bytes": 452,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "73b2cd86506267f5c443552dd98921e33cc134eb8ac7e7d6e00ddd7cfbd5e23f"
+      },
+      {
+        "name": "live path 2, mutation 0, outcome 3",
+        "status": "ok",
+        "offset": 3655,
+        "bytes": 424,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "e6b689499ef2dd367229f088d12d9867850873f1f1d904f7d8387ca57ead773b"
+      },
+      {
+        "name": "live path 0, mutation 1, outcome 0",
+        "status": "ok",
+        "offset": 4079,
+        "bytes": 387,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "03da9d19696d7def54157479daef9597a1e7cfcde4b5e0d5560ac491784a6f48"
+      },
+      {
+        "name": "live path 0, mutation 1, outcome 1",
+        "status": "ok",
+        "offset": 4466,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 0, mutation 1, outcome 2",
+        "status": "ok",
+        "offset": 4624,
+        "bytes": 383,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "d25ecc2911f152e0a068baf11ef89cc48ac4c771833587c3429fdb19b209b1f2"
+      },
+      {
+        "name": "live path 0, mutation 1, outcome 3",
+        "status": "ok",
+        "offset": 5007,
+        "bytes": 355,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "f2dbf494a7f8cf1730d145d73744b36a713a00b193858a49545a96f95960fb84"
+      },
+      {
+        "name": "live path 1, mutation 1, outcome 0",
+        "status": "ok",
+        "offset": 5362,
+        "bytes": 381,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "098de154c892cf767dd6ca53777c10ea52ccefeaca2ff42b595c35a739c54da5"
+      },
+      {
+        "name": "live path 1, mutation 1, outcome 1",
+        "status": "ok",
+        "offset": 5743,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "4ecfa9f81ca333c13eaa52f810796ee75e17e750a056aecdb9ac963cd9f02b27"
+      },
+      {
+        "name": "live path 1, mutation 1, outcome 2",
+        "status": "ok",
+        "offset": 5895,
+        "bytes": 377,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "23cb936494158b9bd794be798729b46ba9134f2ca269e637d5f03e2749119f50"
+      },
+      {
+        "name": "live path 1, mutation 1, outcome 3",
+        "status": "ok",
+        "offset": 6272,
+        "bytes": 349,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "0cb3de22a422227ba2401427c1da933f4f885a2cf2a5fe67bd66d0f7a4db0f33"
+      },
+      {
+        "name": "live path 2, mutation 1, outcome 0",
+        "status": "ok",
+        "offset": 6621,
+        "bytes": 450,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "b17799e7f8018b30ae80e2f7fc5401cb8d8212274e631aa8c29b98f7e4b183c9"
+      },
+      {
+        "name": "live path 2, mutation 1, outcome 1",
+        "status": "ok",
+        "offset": 7071,
+        "bytes": 175,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "cb704560f98ef7f4795ccebc5b6f09a875e699b15ff5a71513958b1042cdf141"
+      },
+      {
+        "name": "live path 2, mutation 1, outcome 2",
+        "status": "ok",
+        "offset": 7246,
+        "bytes": 446,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "8406a66a8b180e5229d1cdd64404c79dc1a23f65c02ba0d50ab8c18d8528a1dc"
+      },
+      {
+        "name": "live path 2, mutation 1, outcome 3",
+        "status": "ok",
+        "offset": 7692,
+        "bytes": 418,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "7203accf226b222a61a249d6644cd0793faf16d556f0de2b1fe6ba4e4f296782"
+      },
+      {
+        "name": "live path 0, mutation 2, outcome 0",
+        "status": "ok",
+        "offset": 8110,
+        "bytes": 387,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "78157481314fbb14fe80a5f5e350565b0cd79455c43346ba0cac1e9ae5f7371a"
+      },
+      {
+        "name": "live path 0, mutation 2, outcome 1",
+        "status": "ok",
+        "offset": 8497,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 0, mutation 2, outcome 2",
+        "status": "ok",
+        "offset": 8655,
+        "bytes": 383,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "c6c08e5f5b8b878bb278e48c33b35bd36edbe5936d839c364a7b861092a5f0f7"
+      },
+      {
+        "name": "live path 0, mutation 2, outcome 3",
+        "status": "ok",
+        "offset": 9038,
+        "bytes": 355,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "194df9c04dbd1241357a0f027fab5ce2b5ef3cf3e35ed1bb821c103abd6c7bcf"
+      },
+      {
+        "name": "live path 1, mutation 2, outcome 0",
+        "status": "ok",
+        "offset": 9393,
+        "bytes": 458,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "2b7d01081e7c135ae517600263b5506c90badf3f5a815306e23fe115819fa768"
+      },
+      {
+        "name": "live path 1, mutation 2, outcome 1",
+        "status": "ok",
+        "offset": 9851,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "4ecfa9f81ca333c13eaa52f810796ee75e17e750a056aecdb9ac963cd9f02b27"
+      },
+      {
+        "name": "live path 1, mutation 2, outcome 2",
+        "status": "ok",
+        "offset": 10003,
+        "bytes": 423,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "ab3ef74f3af7b519784c60fca90a3f2cddadef9ff6e2fc56913c924c88047182"
+      },
+      {
+        "name": "live path 1, mutation 2, outcome 3",
+        "status": "ok",
+        "offset": 10426,
+        "bytes": 395,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "bbb248236d29198179001154dfa0ab53f4e09b9e1d60248d41c5e8f9f745293c"
+      },
+      {
+        "name": "live path 2, mutation 2, outcome 0",
+        "status": "ok",
+        "offset": 10821,
+        "bytes": 450,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "bd2706d4513a8f860c33de3e7f76fa84a2b6cc49c4782dc733e57b6c87225e64"
+      },
+      {
+        "name": "live path 2, mutation 2, outcome 1",
+        "status": "ok",
+        "offset": 11271,
+        "bytes": 175,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "cb704560f98ef7f4795ccebc5b6f09a875e699b15ff5a71513958b1042cdf141"
+      },
+      {
+        "name": "live path 2, mutation 2, outcome 2",
+        "status": "ok",
+        "offset": 11446,
+        "bytes": 446,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "70199e22bfb50768d3867ae8f6843f360807309c3c8daaf4200a1c397ed67429"
+      },
+      {
+        "name": "live path 2, mutation 2, outcome 3",
+        "status": "ok",
+        "offset": 11892,
+        "bytes": 418,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "886d37f3c77a1bc4084dc541543118ce93154bafba32b45df7f5fdb252b2375f"
+      },
+      {
+        "name": "live path 0, mutation 3, outcome 0",
+        "status": "ok",
+        "offset": 12310,
+        "bytes": 464,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "11e8d7194be59cdb6b7710a316a38c78d333af9f0bbd01cf2ee07394fd4c6f73"
+      },
+      {
+        "name": "live path 0, mutation 3, outcome 1",
+        "status": "ok",
+        "offset": 12774,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 0, mutation 3, outcome 2",
+        "status": "ok",
+        "offset": 12932,
+        "bytes": 429,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "cc04c33eb5f58631adcad69e67bbcccdfb1051aff935a8387ec6cae54ad45096"
+      },
+      {
+        "name": "live path 0, mutation 3, outcome 3",
+        "status": "ok",
+        "offset": 13361,
+        "bytes": 401,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "7612fc2c6afdb19c02e68f9e824b2c01bf6e5a9378a775100323507485d4302c"
+      },
+      {
+        "name": "live path 1, mutation 3, outcome 0",
+        "status": "ok",
+        "offset": 13762,
+        "bytes": 458,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "2b7d01081e7c135ae517600263b5506c90badf3f5a815306e23fe115819fa768"
+      },
+      {
+        "name": "live path 1, mutation 3, outcome 1",
+        "status": "ok",
+        "offset": 14220,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "4ecfa9f81ca333c13eaa52f810796ee75e17e750a056aecdb9ac963cd9f02b27"
+      },
+      {
+        "name": "live path 1, mutation 3, outcome 2",
+        "status": "ok",
+        "offset": 14372,
+        "bytes": 423,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "ab3ef74f3af7b519784c60fca90a3f2cddadef9ff6e2fc56913c924c88047182"
+      },
+      {
+        "name": "live path 1, mutation 3, outcome 3",
+        "status": "ok",
+        "offset": 14795,
+        "bytes": 395,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "bbb248236d29198179001154dfa0ab53f4e09b9e1d60248d41c5e8f9f745293c"
+      },
+      {
+        "name": "live path 2, mutation 3, outcome 0",
+        "status": "ok",
+        "offset": 15190,
+        "bytes": 527,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "256056fd81f0054ebf213eef7a92371a95dca835206af71ba8cc9cf360f350b4"
+      },
+      {
+        "name": "live path 2, mutation 3, outcome 1",
+        "status": "ok",
+        "offset": 15717,
+        "bytes": 175,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "cb704560f98ef7f4795ccebc5b6f09a875e699b15ff5a71513958b1042cdf141"
+      },
+      {
+        "name": "live path 2, mutation 3, outcome 2",
+        "status": "ok",
+        "offset": 15892,
+        "bytes": 492,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "2a29db699f9ea7eb18d59ec674caab0fe1d664777c55b4ce9eebf0b5edcaecb1"
+      },
+      {
+        "name": "live path 2, mutation 3, outcome 3",
+        "status": "ok",
+        "offset": 16384,
+        "bytes": 464,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "e2adc41ec5c41f317ec2742a11aa2dfe5ffd3f4e4da00f1da66445bd1bee3b2a"
+      },
+      {
+        "name": "live path 0, mutation 4, outcome 0",
+        "status": "ok",
+        "offset": 16848,
+        "bytes": 504,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "7d9f9b5494d5af916cd49deb80daefe3077e86f01a5b9867e41788e4816e0d67"
+      },
+      {
+        "name": "live path 0, mutation 4, outcome 1",
+        "status": "ok",
+        "offset": 17352,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "0a163db8d0a35948d5b62ca64f58590d3b8d7bfa21ecf86e11029a62f437dc30"
+      },
+      {
+        "name": "live path 0, mutation 4, outcome 2",
+        "status": "ok",
+        "offset": 17504,
+        "bytes": 469,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "c6cf2013976d81b85944297c146b97c10eeefc889c1a8cf3bbcc9877cf0cad2a"
+      },
+      {
+        "name": "live path 0, mutation 4, outcome 3",
+        "status": "ok",
+        "offset": 17973,
+        "bytes": 441,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "4a5e2193b1437c5e367bee58e0e653aededa732128fd556bed117c722aa94a6c"
+      },
+      {
+        "name": "live path 1, mutation 4, outcome 0",
+        "status": "ok",
+        "offset": 18414,
+        "bytes": 504,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "d4d2f8329007f1163c7180299a50400d5e062875a87d67d80bf122304a48a203"
+      },
+      {
+        "name": "live path 1, mutation 4, outcome 1",
+        "status": "ok",
+        "offset": 18918,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "4ecfa9f81ca333c13eaa52f810796ee75e17e750a056aecdb9ac963cd9f02b27"
+      },
+      {
+        "name": "live path 1, mutation 4, outcome 2",
+        "status": "ok",
+        "offset": 19070,
+        "bytes": 469,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "6b689481968b1df18204600e4f549c5f727f02e4ab7c4910be9e05e66c1f008a"
+      },
+      {
+        "name": "live path 1, mutation 4, outcome 3",
+        "status": "ok",
+        "offset": 19539,
+        "bytes": 441,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "be7ee8212c669d09658f81ca88fa157bd6415c864d21a8ac93af6372b22d54fa"
+      },
+      {
+        "name": "live path 2, mutation 4, outcome 0",
+        "status": "ok",
+        "offset": 19980,
+        "bytes": 596,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "9106ae6481b6e8acfcc568bbb0846e697783458234e8ced86586426f7d4c6f16"
+      },
+      {
+        "name": "live path 2, mutation 4, outcome 1",
+        "status": "ok",
+        "offset": 20576,
+        "bytes": 198,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "a37d5d4faa481c845c24bf067b51577df3434acd5fa64f1fff544067c496560f"
+      },
+      {
+        "name": "live path 2, mutation 4, outcome 2",
+        "status": "ok",
+        "offset": 20774,
+        "bytes": 561,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "a4cce161e670914508a2e6820b015ec3890c44bacfaf7f24de764b3e3d72ace1"
+      },
+      {
+        "name": "live path 2, mutation 4, outcome 3",
+        "status": "ok",
+        "offset": 21335,
+        "bytes": 533,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "f5c38bc2872c411b37f648e7afa082a58def8269101fa4cf7c2a928053237223"
+      },
+      {
+        "name": "live path 0, mutation 5, outcome 0",
+        "status": "ok",
+        "offset": 21868,
+        "bytes": 464,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "6972ca3d0797ba8acb94a70312a30b042e0d0176040497effe8f90b113703651"
+      },
+      {
+        "name": "live path 0, mutation 5, outcome 1",
+        "status": "ok",
+        "offset": 22332,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 0, mutation 5, outcome 2",
+        "status": "ok",
+        "offset": 22490,
+        "bytes": 429,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "c70dd3f7382f5ff6465de45620e1d8c6c35ea10597cdffa0537c35239850b40c"
+      },
+      {
+        "name": "live path 0, mutation 5, outcome 3",
+        "status": "ok",
+        "offset": 22919,
+        "bytes": 401,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "c773cc56ee9ec6761e06df520727930127b4553a08ff13af99e6f857487de643"
+      },
+      {
+        "name": "live path 1, mutation 5, outcome 0",
+        "status": "ok",
+        "offset": 23320,
+        "bytes": 458,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "93b3057ca0d32b51e8a8734ee79829b50c399c1c23ca9df1afc4834e1723cb92"
+      },
+      {
+        "name": "live path 1, mutation 5, outcome 1",
+        "status": "ok",
+        "offset": 23778,
+        "bytes": 152,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "4ecfa9f81ca333c13eaa52f810796ee75e17e750a056aecdb9ac963cd9f02b27"
+      },
+      {
+        "name": "live path 1, mutation 5, outcome 2",
+        "status": "ok",
+        "offset": 23930,
+        "bytes": 423,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "225acc8bb8a9e142a7df010bcfdd33d2629eafbf1b744d3211d66b93939cc5f9"
+      },
+      {
+        "name": "live path 1, mutation 5, outcome 3",
+        "status": "ok",
+        "offset": 24353,
+        "bytes": 395,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "5cf1058396ae7e817ebe996e1398aa132dd492420d04b2c60bbd6f703be84143"
+      },
+      {
+        "name": "live path 2, mutation 5, outcome 0",
+        "status": "ok",
+        "offset": 24748,
+        "bytes": 527,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "4b4e48f12940d61619988b71c829f55256817b9db53275fc1cbbbfc272b686bf"
+      },
+      {
+        "name": "live path 2, mutation 5, outcome 1",
+        "status": "ok",
+        "offset": 25275,
+        "bytes": 175,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "cb704560f98ef7f4795ccebc5b6f09a875e699b15ff5a71513958b1042cdf141"
+      },
+      {
+        "name": "live path 2, mutation 5, outcome 2",
+        "status": "ok",
+        "offset": 25450,
+        "bytes": 492,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "6910216cbdc7fdc19d622483bbb4ab8cf2adc6dddc8824921b44907063191c25"
+      },
+      {
+        "name": "live path 2, mutation 5, outcome 3",
+        "status": "ok",
+        "offset": 25942,
+        "bytes": 464,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "5c659eb595865fd5d3a4907d1cee4f2c7844d8ada6d5b955b39738a8fb7bd565"
+      },
+      {
+        "name": "live path 0, mutation 6, outcome 0",
+        "status": "ok",
+        "offset": 26406,
+        "bytes": 330,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "2f5099cbfa938ea9148d9f754d1df7a05622f77fb29e47936f66fc43c61a9b54"
+      },
+      {
+        "name": "live path 0, mutation 6, outcome 1",
+        "status": "ok",
+        "offset": 26736,
+        "bytes": 88,
+        "writes": 24,
+        "matchesOracle": true,
+        "sha256": "8825df282aca669d25370d2b5713853c8f16c96eb7620f46ca4aa9ad32fd34c4"
+      },
+      {
+        "name": "live path 0, mutation 6, outcome 2",
+        "status": "ok",
+        "offset": 26824,
+        "bytes": 349,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "474b45f2f332f31a8f75587ddacc4dc5783bc28d1a429adbf5093bc42fda063f"
+      },
+      {
+        "name": "live path 0, mutation 6, outcome 3",
+        "status": "ok",
+        "offset": 27173,
+        "bytes": 321,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "8d9c69ce901a31d3ecf5b4b369d9deab525ff74f1c6bca3bfd1be767ce523b75"
+      },
+      {
+        "name": "live path 1, mutation 6, outcome 0",
+        "status": "ok",
+        "offset": 27494,
+        "bytes": 318,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "dd7cdf6c7473672e2097409ec4e539c159c786b28ffb00e7f1b0877d954aa1df"
+      },
+      {
+        "name": "live path 1, mutation 6, outcome 1",
+        "status": "ok",
+        "offset": 27812,
+        "bytes": 158,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "d3776bcd0c27e54f0c478ee17716f3b3368f20c5835fa6e79a3aa2412f8b3fc6"
+      },
+      {
+        "name": "live path 1, mutation 6, outcome 2",
+        "status": "ok",
+        "offset": 27970,
+        "bytes": 337,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "3f13ef4eb10224c969f57c92ca6ef565f7206211384ff3f26644aff25692bd24"
+      },
+      {
+        "name": "live path 1, mutation 6, outcome 3",
+        "status": "ok",
+        "offset": 28307,
+        "bytes": 309,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "5d2650316ad5df09a0ef4e8386ceeaa3d66e3efe28f8de6a099a1330c9f59e44"
+      },
+      {
+        "name": "live path 2, mutation 6, outcome 0",
+        "status": "ok",
+        "offset": 28616,
+        "bytes": 341,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "f37f3496215c570327f2cfa2713faef3695624fd93806136ec120043a7cffc58"
+      },
+      {
+        "name": "live path 2, mutation 6, outcome 1",
+        "status": "ok",
+        "offset": 28957,
+        "bytes": 181,
+        "writes": 26,
+        "matchesOracle": true,
+        "sha256": "3b2d54f49e85baf3818bb35f0dabb81fbadd81057ea1aecc314a9945ccce1331"
+      },
+      {
+        "name": "live path 2, mutation 6, outcome 2",
+        "status": "ok",
+        "offset": 29138,
+        "bytes": 360,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "268d15ab3f567296d852919eefd9bc988ceec4038c78a7acc32edeec7ff92177"
+      },
+      {
+        "name": "live path 2, mutation 6, outcome 3",
+        "status": "ok",
+        "offset": 29498,
+        "bytes": 332,
+        "writes": 32,
+        "matchesOracle": true,
+        "sha256": "6a359ec2ff519190a93644aa8aa56c736ae6abba227378e8d2cb070f1a81097b"
+      }
+    ],
+    "bytes": 29830,
+    "writes": 2560,
+    "sha256": "f934ea6e2478498d3636022ca292776c145ed127710627f55619b76b6c6634e5"
+  },
+  "baseline": {
+    "passed": 203,
+    "failed": 9,
+    "total": 212,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'byte escape types, argument precedenc…'",
+        "messages": [
+          "AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'Punycode public decoder factories ret…'",
+        "messages": [
+          "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'callback failures preserve identity, …'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'all standard handlers through publish…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'stream reader/writer adapters over a …'",
+        "messages": [
+          "AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "messages": [
+          "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "finalGate": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- session-codec-search-path-matrix session-codec-search-mutation session-codec-reentrant-cache-audit session-codec-search-interning session-codec-initialization-cancellation session-codec-recovery-index-boundaries session-codec-incremental-replay session-codec-stream-adversarial session-codec-stream-eof session-codec-stream-cancellation session-core-codec-cancellation session-codec-native-failures session-codec-public-contracts session-codec-boundary-audit runtime-codec-registry runtime-codec-dispatch --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-search-path-final.json",
+    "passed": 665,
+    "failed": 17,
+    "total": 682,
+    "pending": 0,
+    "files": 17,
+    "slowestMs": 228.34712500000023,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'byte escape types, argument precedenc…'",
+        "messages": [
+          "AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'Punycode public decoder factories ret…'",
+        "messages": [
+          "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'callback failures preserve identity, …'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'all standard handlers through publish…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'stream reader/writer adapters over a …'",
+        "messages": [
+          "AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "messages": [
+          "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "typecheck": "passed",
+    "scopedEslint": "passed",
+    "newTests": {
+      "passed": 84,
+      "failed": 0,
+      "slowestMs": 55.769041000000016
+    }
+  }
+}

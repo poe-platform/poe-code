@@ -1,0 +1,13 @@
+{
+  "package": "@poe-platform/safe-js@0.1.598",
+  "runtime": "workerd 2026-09-01",
+  "icu": "not exposed",
+  "controls": 9,
+  "passed": true,
+  "safeJsPlatformInputs": [],
+  "hashes": {
+    "workerd-entry.mjs": "abe8223a323df155f393df0561ef3ec7ffb00f94d92df7c698badc8f98c712c5",
+    "workerd-bundle.mjs": "f372df45cdb380ff48105c9459c55a26ac3bc2ac029010b8a76b7398960826e6",
+    "workerd.capnp": "0610b9eb15b8c96c37e1c63b9802db03f6bb126dd9de35b323316887f96378c1"
+  }
+}

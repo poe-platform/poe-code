@@ -33,5 +33,6 @@ export type {
   StringSchema,
   UnionSchema,
   ValidationIssue,
+  ValidationOptions,
   ValidationResult
 } from "toolcraft-schema";

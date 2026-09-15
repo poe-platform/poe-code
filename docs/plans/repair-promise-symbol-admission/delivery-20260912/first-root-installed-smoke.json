@@ -1,0 +1,49 @@
+{
+  "node": "v22.23.2",
+  "icu": "78.2",
+  "version": "15.0.29",
+  "checks": [
+    {
+      "entry": "poe-code/safe-js",
+      "surface": "binding",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    },
+    {
+      "entry": "poe-code/safe-js",
+      "surface": "host",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    },
+    {
+      "entry": "poe-code/safe-js/core",
+      "surface": "binding",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    },
+    {
+      "entry": "poe-code/safe-js/core",
+      "surface": "host",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    },
+    {
+      "entry": "poe-code/safe-js/workerd",
+      "surface": "binding",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    },
+    {
+      "entry": "poe-code/safe-js/workerd",
+      "surface": "host",
+      "original": true,
+      "completedReplay": true,
+      "contextExcluded": true
+    }
+  ]
+}

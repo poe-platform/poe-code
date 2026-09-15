@@ -1,6 +1,8 @@
 import type { Color, StyledRun } from "./ansi-parser.js";
 import { FONT_FACE_CSS } from "./font.js";
 
+const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
+
 export interface SvgOptions {
   padding?: number;
   window?: boolean;
@@ -138,7 +140,6 @@ function measureLines(lines: StyledRun[][]): number {
 }
 
 function displayWidth(text: string, startColumn = 0): number {
-  const segmenter = new Intl.Segmenter();
   let column = startColumn;
 
   for (const { segment } of segmenter.segment(text)) {
@@ -200,6 +201,7 @@ function renderLines(
   return lines
     .map((line, index) => {
       const y = formatNumber(textStartY + (index * lineHeightPx));
+      let column = 0;
 
       if (line.length === 0) {
         return `<text x="${formatNumber(textStartX)}" y="${y}" xml:space="preserve"/>`;
@@ -208,7 +210,28 @@ function renderLines(
       return [
         renderBackgrounds(line, textStartX, textStartY + (index * lineHeightPx) - lineHeightPx, lineHeightPx),
         `<text x="${formatNumber(textStartX)}" y="${y}" xml:space="preserve">`,
-        line.map(renderRun).join(""),
+        line.flatMap((run) => {
+          const spans: string[] = [];
+          let text = "";
+          let start = column;
+          for (const { segment } of segmenter.segment(run.text)) {
+            const width = displayWidth(segment, column);
+            if (width !== 1 || Array.from(segment).length !== 1) {
+              if (text.length > 0) spans.push(renderRun({ ...run, text }, textStartX + start * CHARACTER_WIDTH));
+              text = "";
+              if (segment !== "\t" && width > 0) {
+                spans.push(renderRun({ ...run, text: segment }, textStartX + column * CHARACTER_WIDTH));
+              }
+              column += width;
+              start = column;
+            } else {
+              text += segment;
+              column += 1;
+            }
+          }
+          if (text.length > 0) spans.push(renderRun({ ...run, text }, textStartX + start * CHARACTER_WIDTH));
+          return spans;
+        }).join(""),
         "</text>"
       ].join("");
     })
@@ -231,7 +254,7 @@ function renderBackgrounds(line: StyledRun[], startX: number, y: number, height:
   return rectangles.join("");
 }
 
-function renderRun(run: StyledRun): string {
+function renderRun(run: StyledRun, x: number): string {
   const attributes = ['xml:space="preserve"'];
   const color = resolveForegroundColor(run);
   const textDecorations: string[] = [];
@@ -265,6 +288,10 @@ function renderRun(run: StyledRun): string {
   }
 
   const text = run.conceal ? " ".repeat(displayWidth(run.text)) : run.text;
+  const positions = [...segmenter.segment(run.text)].map((_, index) =>
+    formatNumber(x + index * CHARACTER_WIDTH)
+  );
+  attributes.push(`x="${positions.join(" ")}"`);
   return `<tspan ${attributes.join(" ")}>${escapeXmlText(text)}</tspan>`;
 }
 

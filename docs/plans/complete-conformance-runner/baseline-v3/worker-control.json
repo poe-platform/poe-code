@@ -1,0 +1,5 @@
+{
+  "maxWorkers": 2,
+  "changedUtc": "2026-09-12T08:21:15.831885+00:00",
+  "reason": "Resume after ENOSPC with lower paging pressure; per-variant deadline/budgets unchanged"
+}

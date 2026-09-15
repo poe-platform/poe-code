@@ -1,0 +1,221 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import codecs, json, platform, sys, unicodedata\nfrom pathlib import Path\n\nbodies = [\n    '', '\"decoded\"', '\"\u00e9\ud83d\udc0d\"', '\"decoded\"\\r', '\"decoded\"\\r\\n',\n    '\"decoded\"\\rx=1', '\"decoded\"\\r\\nx=1',\n    '\"decoded\"\\x00invalid syntax', '\"decoded\"\\r\\x00invalid syntax',\n    '\\x00invalid syntax', '\\x00\\ufeff', '\\ufeff\"decoded\"',\n    '\\ufeff\"decoded\"\\r', '\\ufeff\"decoded\"\\x00ignored',\n    '\"decoded\"\\ud800', '\"decoded\"\\udfff', '\"decoded\"\\ud800\\ud800',\n    '\"decoded\"\\x00\\ud800', '\\ufeff\"decoded\"\\ud800',\n    '\"\ud83d\udc0d\"\\x00\\udfff', '# generated\\r\"decoded\"\\x00ignored',\n]\nrows=[]\nfor index, body in enumerate(bodies):\n    def decode(data, errors='strict'):\n        return body, len(data)\n    def search(name):\n        if name == 'source_return':\n            return codecs.CodecInfo(name=name, encode=None, decode=decode)\n    codecs.register(search)\n    try:\n        code=compile(b'# coding: source-return\\nignored', 'returned.py', 'exec')\n        ns={}\n        exec(code,ns)\n        expected={'docstring':ns.get('__doc__')}\n    except SyntaxError as error:\n        expected={'error':{'message':error.msg, 'line':error.lineno,\n            'column':None if error.offset is None else error.offset-1,\n            'endLine':error.end_lineno,\n            'endColumn':None if error.end_offset is None else error.end_offset-1,\n            'sourceLine':error.text}}\n    finally:\n        codecs.unregister(search)\n    rows.append({'name':str(index), 'decoded':body, 'expected':expected})\nout={'oracle':{'version':sys.version,'unicode':unicodedata.unidata_version,\n    'platform':platform.platform(),'byteorder':sys.byteorder},\n    'driver':Path(__file__).read_text(), 'cases':rows}\nPath('packages/safe-python/src/runtime/__snapshots__/source-codec-return-3.14.7.json').write_text(json.dumps(out,ensure_ascii=True,indent=2)+'\\n')\n",
+  "cases": [
+    {
+      "name": "0",
+      "decoded": "",
+      "expected": {
+        "docstring": null
+      }
+    },
+    {
+      "name": "1",
+      "decoded": "\"decoded\"",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "2",
+      "decoded": "\"\u00e9\ud83d\udc0d\"",
+      "expected": {
+        "docstring": "\u00e9\ud83d\udc0d"
+      }
+    },
+    {
+      "name": "3",
+      "decoded": "\"decoded\"\r",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "4",
+      "decoded": "\"decoded\"\r\n",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "5",
+      "decoded": "\"decoded\"\rx=1",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "6",
+      "decoded": "\"decoded\"\r\nx=1",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "7",
+      "decoded": "\"decoded\"\u0000invalid syntax",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "8",
+      "decoded": "\"decoded\"\r\u0000invalid syntax",
+      "expected": {
+        "docstring": "decoded"
+      }
+    },
+    {
+      "name": "9",
+      "decoded": "\u0000invalid syntax",
+      "expected": {
+        "docstring": null
+      }
+    },
+    {
+      "name": "10",
+      "decoded": "\u0000\ufeff",
+      "expected": {
+        "docstring": null
+      }
+    },
+    {
+      "name": "11",
+      "decoded": "\ufeff\"decoded\"",
+      "expected": {
+        "error": {
+          "message": "invalid non-printable character U+FEFF",
+          "line": 1,
+          "column": 0,
+          "endLine": 1,
+          "endColumn": 0,
+          "sourceLine": "\ufeff\"decoded\""
+        }
+      }
+    },
+    {
+      "name": "12",
+      "decoded": "\ufeff\"decoded\"\r",
+      "expected": {
+        "error": {
+          "message": "invalid non-printable character U+FEFF",
+          "line": 1,
+          "column": 0,
+          "endLine": 1,
+          "endColumn": 0,
+          "sourceLine": "\ufeff\"decoded\""
+        }
+      }
+    },
+    {
+      "name": "13",
+      "decoded": "\ufeff\"decoded\"\u0000ignored",
+      "expected": {
+        "error": {
+          "message": "invalid non-printable character U+FEFF",
+          "line": 1,
+          "column": 0,
+          "endLine": 1,
+          "endColumn": 0,
+          "sourceLine": "\ufeff\"decoded\""
+        }
+      }
+    },
+    {
+      "name": "14",
+      "decoded": "\"decoded\"\ud800",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode character '\\ud800' in position 9: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "15",
+      "decoded": "\"decoded\"\udfff",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode character '\\udfff' in position 9: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "16",
+      "decoded": "\"decoded\"\ud800\ud800",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode characters in position 9-10: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "17",
+      "decoded": "\"decoded\"\u0000\ud800",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode character '\\ud800' in position 10: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "18",
+      "decoded": "\ufeff\"decoded\"\ud800",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode character '\\ud800' in position 10: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "19",
+      "decoded": "\"\ud83d\udc0d\"\u0000\udfff",
+      "expected": {
+        "error": {
+          "message": "'utf-8' codec can't encode character '\\udfff' in position 4: surrogates not allowed",
+          "line": 0,
+          "column": -2,
+          "endLine": null,
+          "endColumn": null,
+          "sourceLine": null
+        }
+      }
+    },
+    {
+      "name": "20",
+      "decoded": "# generated\r\"decoded\"\u0000ignored",
+      "expected": {
+        "docstring": "decoded"
+      }
+    }
+  ]
+}

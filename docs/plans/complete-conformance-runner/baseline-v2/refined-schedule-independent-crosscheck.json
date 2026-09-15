@@ -1,0 +1,19 @@
+{
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "sourceHash": "babb6a32e2a69931606306fe865366da0fd52a3d368c220b314b8f83a80321cc",
+  "schedule": "refined-batch-schedule.json",
+  "scheduleSha256": "88ca2d42fbafbb256b8f0e8ca5c4820e0fe426ec76c0146f45795d6ca4ab57d3",
+  "selections": 126,
+  "uniqueFiles": 53876,
+  "uniqueVariants": 102926,
+  "duplicateFiles": 0,
+  "omittedFiles": 0,
+  "unchangedUnaffectedSelections": 106,
+  "replacementSelections": 20,
+  "excludedPartialLabels": [
+    "14000-14499",
+    "14500-14999"
+  ],
+  "timeoutMs": 3000,
+  "checkedUtc": "2026-09-12T04:59:53.245Z"
+}

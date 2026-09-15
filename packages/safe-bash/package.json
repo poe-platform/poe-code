@@ -53,6 +53,12 @@
       "types": "./dist/contracts/*.d.ts",
       "import": "./dist/contracts/*.js"
     },
+    "./commands/op": {
+      "types": "./dist/commands/op/index.d.ts",
+      "import": "./dist/commands/op/index.js",
+      "workerd": "./dist/commands/op/index.browser.js",
+      "browser": "./dist/commands/op/index.browser.js"
+    },
     "./commands/network": {
       "types": {
         "workerd": "./dist/commands/network/public.d.ts",
@@ -351,7 +357,8 @@
     "tsx": "^4.23.12",
     "typescript": "5.9",
     "@poe-code/safe-fs": "*",
-    "pptx": "*"
+    "pptx": "*",
+    "@poe-platform/op": "*"
   },
   "poeCode": {
     "packageLint": {

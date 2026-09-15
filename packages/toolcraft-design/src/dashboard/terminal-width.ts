@@ -3,7 +3,7 @@ const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme
 export function graphemes(value: string): string[] {
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index);
-    if (code < 0x20 || code > 0x7e) {
+    if ((code < 0x20 || code > 0x7e) && (code < 0x4e00 || code > 0x9fff)) {
       return Array.from(graphemeSegmenter.segment(value), ({ segment }) => segment);
     }
   }
@@ -27,6 +27,8 @@ export function displayWidth(value: string, startColumn = 0): number {
 }
 
 export function expandTabs(value: string, startColumn = 0): string {
+  if (!value.includes("\t")) return value;
+
   let column = startColumn;
   let expanded = "";
 

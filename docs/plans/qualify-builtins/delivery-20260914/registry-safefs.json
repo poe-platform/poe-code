@@ -1,0 +1,175 @@
+{
+  "bugs": {
+    "url": "https://github.com/poe-platform/poe-code/issues"
+  },
+  "dist": {
+    "shasum": "19fe36aa34c4f9df525e2053f255d7a0e545e60c",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.590.tgz",
+    "fileCount": 141,
+    "integrity": "sha512-VyTgFHFgvCzpJL+mFDuuuHDgDvm+cUZQDeLHIHMLAdYvRoupdUmsfeOvKkOoNa8ipFsezf7+2F/g59xvl88IXQ==",
+    "signatures": [
+      {
+        "sig": "MEYCIQCOtd1dt58xHTt8h4g4XVm0hXP0swmuAUoEEXWrdwCnpwIhAIk8fwyUel1JVnYLKuc0D5mj0SQDd6Ipe0UOEVPqFHX+",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.590",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 717171
+  },
+  "name": "@poe-platform/safe-fs",
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "exports": {
+    ".": {
+      "types": {
+        "browser": "./dist/safe-fs/core.d.ts",
+        "default": "./dist/safe-fs/index.d.ts"
+      },
+      "import": "./dist/safe-fs/index.js",
+      "browser": "./dist/safe-fs/core.js"
+    },
+    "./core": {
+      "types": "./dist/safe-fs/core.d.ts",
+      "import": "./dist/safe-fs/core.js"
+    },
+    "./node": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-fs/node-host.d.ts"
+      },
+      "import": "./dist/safe-fs/node-host.js",
+      "browser": null
+    },
+    "./fs/s3": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-fs/fs/s3/index.d.ts"
+      },
+      "import": "./dist/safe-fs/fs/s3/index.js",
+      "browser": null
+    },
+    "./fs/real": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-fs/fs/real/index.d.ts"
+      },
+      "import": "./dist/safe-fs/fs/real/index.js",
+      "browser": null
+    },
+    "./fs/mount": {
+      "types": "./dist/safe-fs/fs/mount/index.d.ts",
+      "import": "./dist/safe-fs/fs/mount/index.js"
+    },
+    "./fs/quota": {
+      "types": "./dist/safe-fs/fs/quota/index.d.ts",
+      "import": "./dist/safe-fs/fs/quota/index.js"
+    },
+    "./contracts": {
+      "types": {
+        "browser": "./dist/safe-fs/core.d.ts",
+        "default": "./dist/safe-fs/contracts/index.d.ts"
+      },
+      "import": "./dist/safe-fs/contracts/index.js",
+      "browser": "./dist/safe-fs/core.js"
+    },
+    "./fs/memory": {
+      "types": "./dist/safe-fs/fs/memory/index.d.ts",
+      "import": "./dist/safe-fs/fs/memory/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/safe-fs/fs/webdav/index.d.ts",
+      "import": "./dist/safe-fs/fs/webdav/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/safe-fs/fs/overlay/index.d.ts",
+      "import": "./dist/safe-fs/fs/overlay/index.js"
+    },
+    "./fs/s3/http": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-fs/fs/s3/http/index.d.ts"
+      },
+      "import": "./dist/safe-fs/fs/s3/http/index.js",
+      "browser": null
+    },
+    "./fs/readonly": {
+      "types": "./dist/safe-fs/fs/readonly/index.d.ts",
+      "import": "./dist/safe-fs/fs/readonly/index.js"
+    },
+    "./testing/atomic": {
+      "types": "./dist/safe-fs/testing/atomic-filesystem.d.ts",
+      "import": "./dist/safe-fs/testing/atomic-filesystem.js",
+      "browser": "./dist/safe-fs/testing/atomic-filesystem.js",
+      "workerd": "./dist/safe-fs/testing/atomic-filesystem.js"
+    },
+    "./node/filesystem": {
+      "types": {
+        "browser": "./dist/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/safe-fs/node/filesystem.d.ts"
+      },
+      "import": "./dist/safe-fs/node/filesystem.js",
+      "browser": null
+    }
+  },
+  "imports": {
+    "#safe-fs-platform": {
+      "types": {
+        "browser": "./dist/safe-fs/platform/browser.d.ts",
+        "default": "./dist/safe-fs/platform/node.d.ts"
+      },
+      "browser": "./dist/safe-fs/platform/browser.js",
+      "default": "./dist/safe-fs/platform/node.js"
+    },
+    "#safe-fs-native-seek": {
+      "types": "./dist/safe-fs/native/fs-seek/loader.d.ts",
+      "browser": null,
+      "default": "./dist/safe-fs/native/fs-seek/loader.mjs",
+      "workerd": null
+    }
+  },
+  "license": "MIT",
+  "_npmUser": {
+    "name": "GitHub Actions",
+    "email": "npm-oidc-no-reply@github.com",
+    "trustedPublisher": {
+      "id": "github",
+      "oidcConfigId": "oidc:576dcbd1-59f7-40e5-9f2e-5c99e3550737"
+    }
+  },
+  "homepage": "https://github.com/poe-platform/poe-code#readme",
+  "repository": {
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "type": "git",
+    "directory": "packages/safe-fs"
+  },
+  "_npmVersion": "11.19.1",
+  "description": "Composable filesystem with a portable core and explicit Node adapters",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "kamilio",
+      "email": "kamil.jopek@gmail.com"
+    }
+  ],
+  "_nodeVersion": "22.23.2",
+  "dependencies": {
+    "@types/node": "^25.2.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "_hasShrinkwrap": false,
+  "_npmOperationalInternal": {
+    "tmp": "tmp/safe-fs_0.1.590_1789346993307_0.9616739195702813",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "@poe-platform/safe-fs@0.1.590",
+  "version": "0.1.590"
+}

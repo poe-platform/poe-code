@@ -98,19 +98,24 @@ function createTransportOptions<TServices extends object>(
   return {
     ...serverOptions,
     toolCallTimeoutMs: options.toolCallTimeoutMs,
-    sessionIdGenerator: options.sessionIdGenerator,
+    ...(Object.prototype.hasOwnProperty.call(options, "sessionIdGenerator")
+      ? { sessionIdGenerator: options.sessionIdGenerator }
+      : {}),
     enableJsonResponse: options.enableJsonResponse,
     allowedOrigins: options.allowedOrigins,
     allowedHosts: options.allowedHosts,
     maxRequestBytes: options.maxRequestBytes,
+    maxResponseBytes: options.maxResponseBytes,
     maxBatchSize: options.maxBatchSize,
     maxSessions: options.maxSessions,
+    maxSessionsPerSubject: options.maxSessionsPerSubject,
     sessionTtlMs: options.sessionTtlMs,
     maxStreamsPerSession: options.maxStreamsPerSession,
     maxStreamBufferBytes: options.maxStreamBufferBytes,
     maxSseEventHistory: options.maxSseEventHistory,
     sseKeepAliveMs: options.sseKeepAliveMs,
     maxConcurrentToolCalls: options.maxConcurrentToolCalls,
+    maxQueuedToolCalls: options.maxQueuedToolCalls,
     sessionStore: options.sessionStore,
     requestIdGenerator: options.requestIdGenerator,
     observability: options.observability,
@@ -174,6 +179,8 @@ export async function createHTTPMCPServer<TServices extends object = Record<stri
   }
   let server: ToolcraftHTTPServer | undefined;
   await createMCPServerForTransport(roots, resolvedOptions, {
+    supportsStreaming: !Object.prototype.hasOwnProperty.call(resolvedOptions, "sessionIdGenerator") ||
+      resolvedOptions.sessionIdGenerator !== undefined,
     createServer(serverOptions) {
       server = createHttpServer(createTransportOptions(resolvedOptions, serverOptions));
       return server;

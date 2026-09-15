@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/globals/shared-array-buffer.test.ts (30 tests) 834ms
+ ✓ packages/safe-js/src/interp/globals/atomics-nonshared.test.ts (45 tests) 866ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts (16 tests) 628ms
+ ✓ packages/safe-js/src/interp/shared-host-cross-call.test.ts (18 tests) 880ms
+ ✓ packages/safe-js/src/interp/shared-host-order.test.ts (6 tests) 555ms
+ ✓ packages/safe-js/src/interp/shared-host-boundary.test.ts (24 tests) 439ms
+ ✓ packages/safe-js/src/interp/globals/atomics-wait-async.test.ts (5 tests) 357ms
+ ✓ packages/safe-js/src/interp/shared-scope-accounting.test.ts (12 tests) 301ms
+ ✓ packages/safe-js/src/interp/globals/atomics-wait-disposal.test.ts (5 tests) 218ms
+ ✓ packages/safe-js/src/interp/globals/atomics-pause.test.ts (4 tests) 209ms
+ ✓ packages/safe-js/src/interp/atomic-wait.test.ts (9 tests) 198ms
+ ✓ packages/safe-js/src/interp/shared-host-pending-prefix.test.ts (1 test) 165ms
+ ✓ packages/safe-js/src/snapshot/shared-array-buffer.test.ts (25 tests) 108ms
+ ✓ packages/safe-js/src/interp/shared-host-budget.test.ts (4 tests) 55ms
+ ✓ packages/safe-js/src/interp/shared-host-callback-validation.test.ts (6 tests) 14ms
+ ✓ packages/safe-js/src/interp/shared-array-buffer.test.ts (18 tests) 7ms
+ ✓ packages/safe-js/src/interp/shared-host-storage.test.ts (5 tests) 6ms
+
+ Test Files  17 passed (17)
+      Tests  233 passed (233)
+   Start at  23:08:35
+   Duration  8.20s (transform 2.99s, setup 212ms, import 8.91s, tests 5.84s, environment 1ms)
+

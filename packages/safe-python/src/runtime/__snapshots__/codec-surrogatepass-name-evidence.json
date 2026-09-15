@@ -1,0 +1,190 @@
+{
+  "identity": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "driver": "import {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {mkdtempSync,openSync,closeSync,writeSync,fsyncSync,readFileSync,writeFileSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'codec-surrogatepass-names-3.14.7.json','utf8'));\nconst temp=mkdtempSync(join(tmpdir(),'codec-surrogatepass-'));\nlet writes=0,flushes=0;\nconst results=[];\ntry {\nfor(const [index,row] of reference.cases.entries()) {\n const path=join(temp,String(index)),fd=openSync(path,'w');\n let result;\n try {\n  const session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},output:{write(text){writeSync(fd,text);writes++;},flush(){fsyncSync(fd);flushes++;}}});\n  result=session.exec(row.source);\n } finally {closeSync(fd);}\n const stdout=readFileSync(path,'utf8');\n if(result.status!=='ok'||stdout!==row.stdout)throw Error(row.name);\n results.push({name:row.name,status:result.status,sourceSha256:createHash('sha256').update(row.source).digest('hex'),stdoutSha256:createHash('sha256').update(stdout).digest('hex')});\n}\n}finally {rmSync(temp,{recursive:true});}\nconst checks=JSON.parse(readFileSync('/tmp/codec-surrogatepass-checks.json','utf8'));\nwriteFileSync(root+'codec-surrogatepass-name-evidence.json',JSON.stringify({identity:reference.identity,driver:readFileSync('/tmp/codec-surrogatepass-services.mts','utf8'),writes,flushes,results,checks:{passed:checks.numPassedTests,failed:checks.numFailedTests,pending:checks.numPendingTests,files:checks.testResults.length,failures:checks.testResults.flatMap(s=>s.assertionResults.filter(t=>t.status==='failed').map(t=>({name:t.fullName,messages:t.failureMessages}))) }},null,2)+'\\n');\nconsole.log({programs:results.length,writes,flushes});\n",
+  "writes": 2872,
+  "flushes": 0,
+  "results": [
+    {
+      "name": "[\"utf\",\"\"]",
+      "status": "ok",
+      "sourceSha256": "57b5be16b88420d4583bf3d688b9a31ceda1baa2d78cd7b8930c986aef16f02f",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"utf\",\"-\"]",
+      "status": "ok",
+      "sourceSha256": "618483d2ed1661e01c90e151d10eb86dc5eff8bbb8d09f750c2c345eecef49c9",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"utf\",\"_\"]",
+      "status": "ok",
+      "sourceSha256": "d5a2840049e7dffe0025236ae790c44c3f15ca79867433b711fa84697e46b70b",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"utf\",\" \"]",
+      "status": "ok",
+      "sourceSha256": "2baf34de7baeae8aa5625c3ad9f49c5be8366a236334751f1ec6388d752428db",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"utf\",\"--\"]",
+      "status": "ok",
+      "sourceSha256": "40ff7472285d811f67bdbce8e257f2b535016746ee2808e6d9bf8a72fe1bca1b",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"UTF\",\"\"]",
+      "status": "ok",
+      "sourceSha256": "8f10a80025121c509bc8a585e0f37e1f1d583ee8f90614bd457630b15f46481d",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"UTF\",\"-\"]",
+      "status": "ok",
+      "sourceSha256": "741ad2a78bd394f0f001d3015c292f18f41b0bab4f39714353217e14517a713f",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"UTF\",\"_\"]",
+      "status": "ok",
+      "sourceSha256": "e5f9dbfc9c7d038b068d00cda902fc2d9e85d7dc6af106f58e6a894e3e457e34",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"UTF\",\" \"]",
+      "status": "ok",
+      "sourceSha256": "f49e7e9df34a0610e3a2900354f457859cf941fad573fae22bdbab83ddef9c06",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"UTF\",\"--\"]",
+      "status": "ok",
+      "sourceSha256": "dfbc06b61f7dcae73c63f7c71c9bebaa50ee07c5212e82389b0b64f7b0be2f95",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"Utf\",\"\"]",
+      "status": "ok",
+      "sourceSha256": "51be571cef17e809d4e80c467b2a555cf96da9f17b9bf1ff32f9cf008df22cf3",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"Utf\",\"-\"]",
+      "status": "ok",
+      "sourceSha256": "b3182358a6b7b15597e1ebf9d4f5f49e75313c87391baf680e5024d507b50563",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"Utf\",\"_\"]",
+      "status": "ok",
+      "sourceSha256": "f58808b2fe5b123826e2c5b5c00215867f30eca901548aef42e683a36168d8c3",
+      "stdoutSha256": "c5bf80a72a18f0ad6fce7f7aa9942d7cab86c76c09df323d11288669ad51ecdb"
+    },
+    {
+      "name": "[\"Utf\",\" \"]",
+      "status": "ok",
+      "sourceSha256": "f3540caed290039f47577e25722cb2f42a47b66e7d2de71c4834d8ca300aa1fe",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"Utf\",\"--\"]",
+      "status": "ok",
+      "sourceSha256": "d5bc7225d1cee6af384698d42f5a96c225cb636daf9e2ca542588b1e77137964",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"cp\",\"\"]",
+      "status": "ok",
+      "sourceSha256": "832d3828998ae2c64a35fca87db8332a3fbb7751c75e3c72ba2612eccb1e72cc",
+      "stdoutSha256": "153de623d8bacdea904889ad54717a41c979dc46de0dfda0cc255905d6455244"
+    },
+    {
+      "name": "[\"cp\",\"-\"]",
+      "status": "ok",
+      "sourceSha256": "e14426a0b19dee70ae923ebefbdcca432345707e960b6b13bbc28cce8c0d61fe",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"cp\",\"_\"]",
+      "status": "ok",
+      "sourceSha256": "d4bee628c3c06641ae001fa2ad0904022ad46fb816543c41b5cf634833f27aed",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"cp\",\" \"]",
+      "status": "ok",
+      "sourceSha256": "2a5e5ee66540bb92a3d8d4fc90adb0263b7f248a8ea2d83566fee3a05c63afe9",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"cp\",\"--\"]",
+      "status": "ok",
+      "sourceSha256": "2191185503bec8b81bd12f9b475bb28d62c66eacedf122f5758226427de47ae3",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"CP\",\"\"]",
+      "status": "ok",
+      "sourceSha256": "ab2f8250adb9915e6dab581d2f4563e2ba2a18e70ebf3db1e7e9b0ecfe83cbc9",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"CP\",\"-\"]",
+      "status": "ok",
+      "sourceSha256": "c076456e64e9985d146140af621eadcc83f413e60fbf315c9babe8f70ffbf9f0",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"CP\",\"_\"]",
+      "status": "ok",
+      "sourceSha256": "4608b34de250aaa10858893401c41567b257b6a7a5a7fe0ee25a2962b06e819e",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"CP\",\" \"]",
+      "status": "ok",
+      "sourceSha256": "592d022e3497a80caddea133b628ca947a954c4e69dcad47646cd5bfdfcc5c57",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    },
+    {
+      "name": "[\"CP\",\"--\"]",
+      "status": "ok",
+      "sourceSha256": "e65e2dcf2ad4b504230569df1bc753bf299f647a64319d4bd99f5e291478a8e9",
+      "stdoutSha256": "50c5570524d4a6e21927e99f0edd8dee70520bd747017efab13674ecf11d4c0f"
+    }
+  ],
+  "checks": {
+    "passed": 314,
+    "failed": 4,
+    "pending": 0,
+    "files": 11,
+    "failures": [
+      {
+        "name": "native codec slots: 'hash inheritance failure 1'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "name": "native codec slots: 'hash inheritance failure 2'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "name": "native codec slots: 'hash inheritance failure 3'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "name": "retains caller and codec frames with pinned instruction positions",
+        "messages": [
+          "AssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,702 @@
+{
+  "reports": {
+    "red": {
+      "passed": 62,
+      "failed": 10,
+      "pending": 0,
+      "files": 1,
+      "slowestMs": 6.2186249999999745,
+      "failures": [
+        {
+          "name": "'a2b_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'b2a_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'a2b_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'b2a_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'a2b_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'b2a_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'hexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'b2a_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'unhexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "'a2b_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "messages": [
+            "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts:37:20\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ],
+      "domain": [
+        {
+          "name": "'a2b_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'a2b_base64' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'hexlify' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'unhexlify' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "failed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        }
+      ]
+    },
+    "regression": {
+      "passed": 4935,
+      "failed": 4,
+      "pending": 0,
+      "files": 19,
+      "slowestMs": 368.23900000000003,
+      "failures": [
+        {
+          "name": "native codec slots: 'hash inheritance failure 1'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "native codec slots: 'hash inheritance failure 2'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "native codec slots: 'hash inheritance failure 3'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "retains caller and codec frames with pinned instruction positions",
+          "messages": [
+            "AssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ],
+      "domain": [
+        {
+          "name": "'a2b_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_base64' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_base64' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_uu' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_uu' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_qp' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_qp' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'hexlify' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'b2a_hex' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'unhexlify' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'a2b_hex' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc32' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'NotImplemented' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'None' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '...' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '42' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects '[]' with the pinned Python diagnostic",
+          "status": "passed"
+        },
+        {
+          "name": "'crc_hqx' rejects 'len' with the pinned Python diagnostic",
+          "status": "passed"
+        }
+      ]
+    }
+  },
+  "typecheck": {
+    "command": "npm run typecheck --workspace=@poe-code/safe-python",
+    "exitCode": 0
+  },
+  "eslint": {
+    "command": "npx eslint packages/safe-python/src/runtime/runtime-binary-codec-domain.test.ts packages/safe-python/src/runtime/runtime-base64-functions.ts packages/safe-python/src/runtime/runtime-uu-functions.ts packages/safe-python/src/runtime/runtime-quoted-printable-functions.ts packages/safe-python/src/runtime/runtime-hexadecimal-functions.ts",
+    "exitCode": 0
+  },
+  "sha256": {
+    "runtime-binary-codec-domain.test.ts": "0d8ac089cb1c91086d81101cccb1e9e72e7297d42c648166ee8195ee7c46ba43",
+    "runtime-base64-functions.ts": "75cda4887ea60f2f547913724d625e915c2cb3c88d5250d03120e858e720ed9b",
+    "runtime-uu-functions.ts": "b2c61edd82549c8ece0f587295f1f5212e1ae38cdfef7bc036778b1aa587a492",
+    "runtime-quoted-printable-functions.ts": "1a55843424c2ef5604bd16b15eed24aa78aedfcfc3ef1f5bcc645d1244bcc7ec",
+    "runtime-hexadecimal-functions.ts": "01a681c127525448ec14dccb3a00ba372d2b7aa227e4dd0cc5b065285313e08c",
+    "__snapshots__/binary-codec-domain-3.14.7.json": "9d142d5ed4d75a730296897ec17523add3a234815d12af49104b237af0722857"
+  }
+}

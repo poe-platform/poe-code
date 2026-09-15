@@ -1,0 +1,65 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "programs": [
+    {
+      "name": "needle in text",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (needle in text) is expected\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "not (needle not in text)",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (not (needle not in text)) is expected\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "str.__contains__(text, needle)",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (str.__contains__(text, needle)) is expected\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "needle in 'abc'",
+      "source": "\nclass Needle:\n    def __str__(self):\n        raise AssertionError('str override')\nfor needle, name in [(Needle(), 'Needle'), (None, 'NoneType'), (NotImplemented, 'NotImplementedType'), ([], 'list'), (b'a', 'bytes'), (str, 'type')]:\n    try:\n        needle in 'abc'\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + name, str(error)\n    else:\n        assert False\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "str.__contains__('abc', needle)",
+      "source": "\nclass Needle:\n    def __str__(self):\n        raise AssertionError('str override')\nfor needle, name in [(Needle(), 'Needle'), (None, 'NoneType'), (NotImplemented, 'NotImplementedType'), ([], 'list'), (b'a', 'bytes'), (str, 'type')]:\n    try:\n        str.__contains__('abc', needle)\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + name, str(error)\n    else:\n        assert False\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "explicit descriptor versus override",
+      "source": "\nevents = []\nclass Text(str):\n    def __contains__(self, other):\n        events.append(other)\n        return False\ntext = Text('abc')\nneedle = Text('a')\nassert (needle in text) is False\nassert str.__contains__(text, needle) is True\nassert len(events) == 1\nassert events[0] is needle\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "long diagnostic needle in ''",
+      "source": "\nfor name, expected in [('N' * 110, 'N' * 100), ('🐍' * 30, '🐍' * 25), ('é' * 51, 'é' * 50), ('a' * 99 + 'é', 'a' * 99)]:\n    needle = type(name, (), {})()\n    try:\n        needle in ''\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + expected\n    else:\n        assert False\n",
+      "expected": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "long diagnostic str.__contains__('', needle)",
+      "source": "\nfor name, expected in [('N' * 110, 'N' * 100), ('🐍' * 30, '🐍' * 25), ('é' * 51, 'é' * 50), ('a' * 99 + 'é', 'a' * 99)]:\n    needle = type(name, (), {})()\n    try:\n        str.__contains__('', needle)\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + expected\n    else:\n        assert False\n",
+      "expected": {
+        "status": "ok"
+      }
+    }
+  ]
+}

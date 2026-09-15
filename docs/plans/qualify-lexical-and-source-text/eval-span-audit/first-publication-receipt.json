@@ -1,0 +1,36 @@
+{
+  "observedAt": "2026-09-13T08:01:55.359935+00:00",
+  "deliveredSha": "bf590b214af3cef6827b93fe0b60e00dd810b4fe",
+  "sourceRepairSha": "f5805d989da0a212b934ea17ca4dad52c5cbed11",
+  "remoteMainVerified": true,
+  "scoped": {
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34745114622",
+    "conclusion": "success",
+    "versions": {
+      "@poe-platform/safe-js": "0.1.566",
+      "@poe-platform/safe-fs": "0.1.566",
+      "@poe-platform/safe-bash": "0.1.566"
+    },
+    "independentIntegrityProvenanceAndInstalledSmoke": "passed; see scoped-*-integrity.json and scoped-installed-receipt.json"
+  },
+  "schemas": {
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34745114630",
+    "conclusion": "success"
+  },
+  "umbrella": {
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34745114831",
+    "conclusion": "failure",
+    "job": "validate / unit",
+    "failures": [
+      "compile-helper-policy.test.ts CRLF preflight",
+      "compile-policy.test.ts CRLF preflight"
+    ],
+    "tests": {
+      "passed": 29176,
+      "failed": 2,
+      "skipped": 47
+    },
+    "publication": "not published; registry remains poe-code@15.0.30 at 60a6f594ec0f40467b61880a856a626d3b14de35"
+  },
+  "recovery": "Repair budget preflight order with unchanged existing assertions, push a separate atomic fix, verify successor ancestry and all affected package publications independently. Never unpublish or roll back scoped packages."
+}

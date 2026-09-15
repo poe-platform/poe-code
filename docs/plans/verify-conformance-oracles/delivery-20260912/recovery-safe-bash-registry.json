@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-09-12T19:43:33.906804+00:00",
+  "name": "@poe-platform/safe-bash",
+  "version": "0.1.563",
+  "metadataUrl": "https://registry.npmjs.org/%40poe-platform%2Fsafe-bash/latest",
+  "dist": {
+    "shasum": "a56582a34738107b6529d6433f01a45425fc8d8b",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.563.tgz",
+    "fileCount": 1645,
+    "integrity": "sha512-9rNA0GKkkMUZbqC24ZKbIjAFdDf/o0fwhyWaeeJNjWWtzsATKeO+KoD45L1xbtFhph5lR+ux4VVYfqnwUKAQCQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIQDuNt2hyOJsarK3TSgxTWAV/qM+H88SZWJPaP7So6enZQIgRn/F8I+chAn3ERHvzfG9UqL7WkKzVxb9J8FwClzcxkA=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.563",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 26143278
+  },
+  "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1",
+  "workflow": {
+    "ref": "refs/heads/main",
+    "repository": "https://github.com/poe-platform/poe-code",
+    "path": ".github/workflows/release-safe.yml"
+  },
+  "tarballBytes": 4463601,
+  "downloadedIntegrityMatched": true,
+  "attestationSubjectMatched": true
+}

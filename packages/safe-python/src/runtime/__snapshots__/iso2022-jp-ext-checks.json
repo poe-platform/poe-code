@@ -1,0 +1,90 @@
+{
+  "checks": {
+    "red": {
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "files": 3,
+      "messages": [
+        "Cannot find module './iso2022-jp-ext-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts",
+        "Cannot find module './iso2022-jp-ext-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts",
+        "Cannot find module './iso2022-jp-ext-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-restored-state.test.ts"
+      ],
+      "slowest": null
+    },
+    "green": {
+      "passed": 5468,
+      "failed": 0,
+      "pending": 0,
+      "files": 3,
+      "messages": [
+        "",
+        "",
+        ""
+      ],
+      "slowest": 24.679000000000087
+    },
+    "focused": {
+      "passed": 7354,
+      "failed": 0,
+      "pending": 0,
+      "files": 15,
+      "messages": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "slowest": 172.65512500000023
+    },
+    "state": {
+      "passed": 198,
+      "failed": 0,
+      "pending": 0,
+      "files": 1,
+      "messages": [
+        ""
+      ],
+      "slowest": 4.679082999999991
+    }
+  },
+  "source": {
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/_codecs_iso2022.c",
+    "sha256": "1dec516ad16a9aa179770b5accdd20efa77e7265c0a2a06d8d8913e4524c4010"
+  },
+  "files": {
+    "iso2022-jp-codec.ts": "bc41ebccfe607ddfd63f2adef42d3bb3ed29f4cc9645bd1de80870990b224fb0",
+    "iso2022-jp-ext-codec.ts": "0c1dc4b3c4c60f5f405888bf8121b14a3fc3f868107d63a610260b11eb9b4118",
+    "iso2022-jp-codec.test.ts": "940434ff3d4bfd98c4dcd7954ff926e9a947ce302dbe265d28e6831b42b911aa",
+    "iso2022-jp-restored-state.test.ts": "3d06c8854a3f5ebe83a0d5f90640abe9960c9aca0636f2b4a757a3f215ff744f",
+    "iso2022-jp-recovery.test.ts": "7820d2f7e4029484dda9ba7dea5ee0736a1b8e59ca10e2fe22838e98015dfaeb",
+    "iso2022-jp-escape-user.test.ts": "1389646f2477ad926d01b015c156c7ea59d163b5a15c55101e2c384b3f0502fd",
+    "runtime-multibyte-recovery.test.ts": "151f5883cbf63cd57aa332b6e118103b0d424daa9a1bea2556ec722c5aa73991"
+  },
+  "snapshots": {
+    "continuation": "045a9144318131e4c5cd361434b0c987027d237f207f871ce7375c6d4696b054",
+    "restored": "316e7c0383e75a0c40b67c7502ad4fb4e2e78b1ff6b596cfbd4e17bcf9ef929d",
+    "recovery": "ccd931edbcf026e847ec43f7dccdceacd0f8b8e7dbb1ba2d68b743e4cb74e182",
+    "escape": "37719f7ee4f8dfc30224caaf2f5cd275f4ab19f816fe1ad6755b3625b6da97cc"
+  },
+  "generatorCorrection": "Initial restored-state oracle generator added a nine-byte kana pending prefix and stopped at CPython OverflowError before producing a fixture. The continuation generator uses a one-kana pending prefix; the nine-byte case is retained in iso2022-jp-recovery.test.ts for all three codecs. No initial aborted oracle run is counted as passing evidence.",
+  "oversizedState": {
+    "input": "5771957580796161284133077647083303740501769",
+    "error": [
+      "OverflowError",
+      "int too big to convert"
+    ],
+    "stateAfter": "4342272"
+  }
+}

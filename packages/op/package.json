@@ -1,0 +1,36 @@
+{
+  "name": "@poe-platform/op",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Portable op command interface with pluggable secret backends and host approvals",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "imports": {
+    "#op-crypto": {
+      "workerd": "./src/crypto-browser.ts",
+      "browser": "./src/crypto-browser.ts",
+      "default": "./src/crypto-node.ts"
+    }
+  },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./node": { "types": "./dist/node-host.d.ts", "import": "./dist/node-host.js" }
+  },
+  "files": ["dist", "LICENSE"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts",
+    "lint": "eslint src && tsc -p tsconfig.test.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/op"
+  },
+  "dependencies": { "@kayahr/text-encoding": "^2.2.0" },
+  "devDependencies": { "@types/node": "^25.2.2", "memfs": "4.56.10", "tsx": ">=4.21.0", "typescript": "^5.9.3" }
+}

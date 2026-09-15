@@ -1,0 +1,16 @@
+{
+  "changed": [
+    "packages/safe-js/src/interp/values.ts"
+  ],
+  "added": [
+    "packages/safe-js/src/interp/measure-symbol-mutation.test.ts",
+    "packages/safe-js/src/intl-data/dist/numberformat-engine.d.ts",
+    "packages/safe-js/src/intl-data/dist/numberformat-engine.js",
+    "packages/safe-js/src/intl-data/dist/numberformat.d.ts",
+    "packages/safe-js/src/intl-data/dist/numberformat.js",
+    "packages/safe-js/src/intl-data/dist/pluralrules-engine.d.ts",
+    "packages/safe-js/src/intl-data/dist/pluralrules-engine.js",
+    "packages/safe-js/src/intl-data/dist/pluralrules.d.ts",
+    "packages/safe-js/src/intl-data/dist/pluralrules.js"
+  ]
+}

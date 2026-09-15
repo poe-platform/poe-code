@@ -1,0 +1,364 @@
+{
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "examples": [
+    {
+      "filename": "annexB/language/eval-code/direct/global-if-stmt-else-decl-eval-global-init.js",
+      "records": [
+        {
+          "id": "annexB/language/eval-code/direct/global-if-stmt-else-decl-eval-global-init.js#sloppy",
+          "filename": "annexB/language/eval-code/direct/global-if-stmt-else-decl-eval-global-init.js",
+          "sourceHash": "772082e8e31b447b9bfe72995f82563c124703656e0adde0e31231567304ae89",
+          "variantSourceHash": "772082e8e31b447b9bfe72995f82563c124703656e0adde0e31231567304ae89",
+          "flags": [
+            "generated",
+            "noStrict"
+          ],
+          "features": [],
+          "esid": "sec-functiondeclarations-in-ifstatement-statement-clauses",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/annexB/language/eval-code/direct/global-if-stmt-else-decl-eval-global-init.js",
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "unexpected-throw",
+          "detail": {
+            "phase": "runtime",
+            "message": "Cannot assign to undeclared binding 'f'.",
+            "type": "ReferenceError"
+          },
+          "category": "semantic-candidate-unvalidated",
+          "owner": "Annex B eval-code semantics",
+          "surface": "packages/safe-js/src/interp/scope.ts",
+          "primaryTask": "qualify-language-semantics",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "00500-00999.jsonl",
+          "neighboringPassingControl": {
+            "id": "annexB/language/eval-code/direct/block-decl-nostrict.js#sloppy",
+            "sourceHash": "e6bfe5bc251612bdbeaa5dceeef9f2bd1bc843d05fbbea87c5b227196ee532f2",
+            "report": "00000-00499.jsonl"
+          }
+        }
+      ]
+    },
+    {
+      "filename": "built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js",
+      "records": [
+        {
+          "id": "built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js#sloppy",
+          "filename": "built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js",
+          "sourceHash": "d59e280efbac8026d2c3b645deba2f41fd5891082d216f8640248f73da064260",
+          "variantSourceHash": "d59e280efbac8026d2c3b645deba2f41fd5891082d216f8640248f73da064260",
+          "flags": [
+            "async"
+          ],
+          "features": [
+            "Array.fromAsync"
+          ],
+          "esid": "sec-array.fromasync",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js",
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "async-failure",
+          "category": "semantic-candidate-unvalidated",
+          "owner": "Array semantics",
+          "surface": "packages/safe-js/src/interp/globals/object-array.ts",
+          "primaryTask": "qualify-builtins",
+          "targetDisposition": "newer-api-not-in-edition16-contract-mapping-pending",
+          "report": "01000-01499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Array/fromAsync/async-iterable-async-mapped-awaits-once.js#sloppy",
+            "sourceHash": "a12a2378eac892bed4f91a05635c3c2bee99105e46f1cbbe8aabec34269b8eae",
+            "report": "01000-01499.jsonl"
+          }
+        },
+        {
+          "id": "built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js#strict",
+          "filename": "built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js",
+          "sourceHash": "d59e280efbac8026d2c3b645deba2f41fd5891082d216f8640248f73da064260",
+          "variantSourceHash": "71c6eeb79e0b1239b62c11ba4a02e3ce4e821665ad6b6a2584f91bb4d22f48ef",
+          "flags": [
+            "async"
+          ],
+          "features": [
+            "Array.fromAsync"
+          ],
+          "esid": "sec-array.fromasync",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Array/fromAsync/asyncitems-arraylike-length-accessor-throws.js",
+          "mode": "strict",
+          "status": "failed",
+          "reason": "async-failure",
+          "category": "semantic-candidate-unvalidated",
+          "owner": "Array semantics",
+          "surface": "packages/safe-js/src/interp/globals/object-array.ts",
+          "primaryTask": "qualify-builtins",
+          "targetDisposition": "newer-api-not-in-edition16-contract-mapping-pending",
+          "report": "01000-01499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Array/fromAsync/async-iterable-async-mapped-awaits-once.js#strict",
+            "sourceHash": "a12a2378eac892bed4f91a05635c3c2bee99105e46f1cbbe8aabec34269b8eae",
+            "report": "01000-01499.jsonl"
+          }
+        }
+      ]
+    },
+    {
+      "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+      "records": [
+        {
+          "id": "built-ins/GeneratorPrototype/next/from-state-executing.js#sloppy",
+          "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+          "sourceHash": "72b16fc8f1c44aa3e9c5b55deab493bb8061306ae8a1378c7a09caf443ca6663",
+          "variantSourceHash": "72b16fc8f1c44aa3e9c5b55deab493bb8061306ae8a1378c7a09caf443ca6663",
+          "flags": [],
+          "features": [
+            "generators"
+          ],
+          "esid": "sec-generatorvalidate",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/GeneratorPrototype/next/from-state-executing.js",
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "host-error",
+          "detail": {
+            "phase": "host",
+            "message": "Sandbox object is already running.",
+            "code": "reentry"
+          },
+          "category": "guest-generator-state-guard-nonpass",
+          "owner": "generator state validation / host reentry separation",
+          "surface": "packages/safe-js/src/interp/iteration.ts",
+          "primaryTask": "qualify-language-semantics",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "07000-07499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/GeneratorPrototype/next/consecutive-yields.js#sloppy",
+            "sourceHash": "c72290c984597ffb91e8941c81f9d1685725aeebce139e98eb9578d6b713e8cf",
+            "report": "07000-07499.jsonl"
+          }
+        },
+        {
+          "id": "built-ins/GeneratorPrototype/next/from-state-executing.js#strict",
+          "filename": "built-ins/GeneratorPrototype/next/from-state-executing.js",
+          "sourceHash": "72b16fc8f1c44aa3e9c5b55deab493bb8061306ae8a1378c7a09caf443ca6663",
+          "variantSourceHash": "25bf1fb7f503eb4d550f0f91fcec1ecc966a0f36badfbe4e8ce359b8c809381a",
+          "flags": [],
+          "features": [
+            "generators"
+          ],
+          "esid": "sec-generatorvalidate",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/GeneratorPrototype/next/from-state-executing.js",
+          "mode": "strict",
+          "status": "failed",
+          "reason": "host-error",
+          "detail": {
+            "phase": "host",
+            "message": "Sandbox object is already running.",
+            "code": "reentry"
+          },
+          "category": "guest-generator-state-guard-nonpass",
+          "owner": "generator state validation / host reentry separation",
+          "surface": "packages/safe-js/src/interp/iteration.ts",
+          "primaryTask": "qualify-language-semantics",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "07000-07499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/GeneratorPrototype/next/consecutive-yields.js#strict",
+            "sourceHash": "c72290c984597ffb91e8941c81f9d1685725aeebce139e98eb9578d6b713e8cf",
+            "report": "07000-07499.jsonl"
+          }
+        }
+      ]
+    },
+    {
+      "filename": "built-ins/Promise/any/returns-promise.js",
+      "records": [
+        {
+          "id": "built-ins/Promise/any/returns-promise.js#sloppy",
+          "filename": "built-ins/Promise/any/returns-promise.js",
+          "sourceHash": "76581cc1f5680cc1acd05abc96784df1efe8a8f61c58d9e5b8351f7e02589803",
+          "variantSourceHash": "76581cc1f5680cc1acd05abc96784df1efe8a8f61c58d9e5b8351f7e02589803",
+          "flags": [],
+          "features": [
+            "Promise.any"
+          ],
+          "esid": "sec-promise.any",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Promise/any/returns-promise.js",
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "unhandled-rejection",
+          "detail": {
+            "phase": "runtime",
+            "message": "All promises were rejected",
+            "type": "AggregateError"
+          },
+          "category": "unqualified-rejection-policy",
+          "owner": "Test262 host rejection policy qualification",
+          "surface": "packages/safe-js/test/conformance/execute.ts",
+          "primaryTask": "verify-conformance-oracles",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "12500-12999.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Promise/any/call-reject-element-after-return.js#sloppy",
+            "sourceHash": "465cd3015776e128e3fd7a2666901fe7617fe4e999429239c27589422f2871fb",
+            "report": "12500-12999.jsonl"
+          },
+          "secondaryDisposition": "intentional-versus-unexpected-rejection-requires-fixture-review"
+        },
+        {
+          "id": "built-ins/Promise/any/returns-promise.js#strict",
+          "filename": "built-ins/Promise/any/returns-promise.js",
+          "sourceHash": "76581cc1f5680cc1acd05abc96784df1efe8a8f61c58d9e5b8351f7e02589803",
+          "variantSourceHash": "7d0023ed865f4e01f9ec57a69d1ccb41995a5ee5a0b4f4ce69d8d4e1e4cb194d",
+          "flags": [],
+          "features": [
+            "Promise.any"
+          ],
+          "esid": "sec-promise.any",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Promise/any/returns-promise.js",
+          "mode": "strict",
+          "status": "failed",
+          "reason": "unhandled-rejection",
+          "detail": {
+            "phase": "runtime",
+            "message": "All promises were rejected",
+            "type": "AggregateError"
+          },
+          "category": "unqualified-rejection-policy",
+          "owner": "Test262 host rejection policy qualification",
+          "surface": "packages/safe-js/test/conformance/execute.ts",
+          "primaryTask": "verify-conformance-oracles",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "12500-12999.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Promise/any/call-reject-element-after-return.js#strict",
+            "sourceHash": "465cd3015776e128e3fd7a2666901fe7617fe4e999429239c27589422f2871fb",
+            "report": "12500-12999.jsonl"
+          },
+          "secondaryDisposition": "intentional-versus-unexpected-rejection-requires-fixture-review"
+        }
+      ]
+    },
+    {
+      "filename": "language/expressions/dynamic-import/import-errored-module.js",
+      "records": [
+        {
+          "id": "language/expressions/dynamic-import/import-errored-module.js#sloppy",
+          "filename": "language/expressions/dynamic-import/import-errored-module.js",
+          "sourceHash": "355af91b34d16c41d3f10b2fa85dba1cd280fd9ffeeeefb31830fccdb563c67c",
+          "variantSourceHash": "355af91b34d16c41d3f10b2fa85dba1cd280fd9ffeeeefb31830fccdb563c67c",
+          "flags": [
+            "async"
+          ],
+          "features": [
+            "dynamic-import"
+          ],
+          "esid": "sec-ContinueDynamicImport",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/dynamic-import/import-errored-module.js",
+          "mode": "sloppy",
+          "status": "unsupported",
+          "reason": "module",
+          "category": "capability-boundary",
+          "owner": "qualify-source-modules",
+          "surface": "packages/safe-js/test/conformance/execute.ts",
+          "primaryTask": "qualify-source-modules",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "36500-36999.jsonl",
+          "neighboringPassingControl": {
+            "id": "language/expressions/dynamic-import/escape-sequence-import.js#sloppy",
+            "sourceHash": "144e19cd58f4843588295c4ba911a46cd3bce330f7c2204f5d27db6168a45b8c",
+            "report": "36500-36999.jsonl"
+          }
+        },
+        {
+          "id": "language/expressions/dynamic-import/import-errored-module.js#strict",
+          "filename": "language/expressions/dynamic-import/import-errored-module.js",
+          "sourceHash": "355af91b34d16c41d3f10b2fa85dba1cd280fd9ffeeeefb31830fccdb563c67c",
+          "variantSourceHash": "9e603faabd648811bdc5528aeaccaa6ca21c86eefda2b1c5ce5ff1d3fd9767b3",
+          "flags": [
+            "async"
+          ],
+          "features": [
+            "dynamic-import"
+          ],
+          "esid": "sec-ContinueDynamicImport",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/language/expressions/dynamic-import/import-errored-module.js",
+          "mode": "strict",
+          "status": "unsupported",
+          "reason": "module",
+          "category": "capability-boundary",
+          "owner": "qualify-source-modules",
+          "surface": "packages/safe-js/test/conformance/execute.ts",
+          "primaryTask": "qualify-source-modules",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "36500-36999.jsonl",
+          "neighboringPassingControl": {
+            "id": "language/expressions/dynamic-import/escape-sequence-import.js#strict",
+            "sourceHash": "144e19cd58f4843588295c4ba911a46cd3bce330f7c2204f5d27db6168a45b8c",
+            "report": "36500-36999.jsonl"
+          }
+        }
+      ]
+    },
+    {
+      "filename": "built-ins/Array/prototype/push/S15.4.4.7_A3.js",
+      "records": [
+        {
+          "id": "built-ins/Array/prototype/push/S15.4.4.7_A3.js#sloppy",
+          "filename": "built-ins/Array/prototype/push/S15.4.4.7_A3.js",
+          "sourceHash": "64c7d74ae1662a4c56278a31d2d0eee0bb6cb81c5c101bab755f017159a4371f",
+          "variantSourceHash": "64c7d74ae1662a4c56278a31d2d0eee0bb6cb81c5c101bab755f017159a4371f",
+          "flags": [],
+          "features": [],
+          "esid": "sec-array.prototype.push",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Array/prototype/push/S15.4.4.7_A3.js",
+          "mode": "sloppy",
+          "status": "failed",
+          "reason": "timeout",
+          "detail": {
+            "phase": "host",
+            "code": "worker-wall-timeout",
+            "message": "Isolated variant exceeded 3000 ms; child terminated"
+          },
+          "category": "budget-or-timeout",
+          "owner": "resource/performance qualification plus owning feature",
+          "surface": "packages/safe-js/src/interp/budget.ts",
+          "primaryTask": "qualify-resource-and-timing-behavior",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "03000-03499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Array/prototype/push/S15.4.4.7_A1_T1.js#sloppy",
+            "sourceHash": "8ac7a9d0bea86ecf7666f4a495e01458617d7c44fb1dd898a4d29577b7a567f2",
+            "report": "03000-03499.jsonl"
+          }
+        },
+        {
+          "id": "built-ins/Array/prototype/push/S15.4.4.7_A3.js#strict",
+          "filename": "built-ins/Array/prototype/push/S15.4.4.7_A3.js",
+          "sourceHash": "64c7d74ae1662a4c56278a31d2d0eee0bb6cb81c5c101bab755f017159a4371f",
+          "variantSourceHash": "9027d7ab7f1834523b2d28f17f3aea0f985580695406c9295d3a61038fdbe4d2",
+          "flags": [],
+          "features": [],
+          "esid": "sec-array.prototype.push",
+          "upstream": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Array/prototype/push/S15.4.4.7_A3.js",
+          "mode": "strict",
+          "status": "failed",
+          "reason": "timeout",
+          "detail": {
+            "phase": "host",
+            "code": "worker-wall-timeout",
+            "message": "Isolated variant exceeded 3000 ms; child terminated"
+          },
+          "category": "budget-or-timeout",
+          "owner": "resource/performance qualification plus owning feature",
+          "surface": "packages/safe-js/src/interp/budget.ts",
+          "primaryTask": "qualify-resource-and-timing-behavior",
+          "targetDisposition": "fixture-to-edition-reconciliation-pending",
+          "report": "03000-03499.jsonl",
+          "neighboringPassingControl": {
+            "id": "built-ins/Array/prototype/push/S15.4.4.7_A1_T1.js#strict",
+            "sourceHash": "8ac7a9d0bea86ecf7666f4a495e01458617d7c44fb1dd898a4d29577b7a567f2",
+            "report": "03000-03499.jsonl"
+          }
+        }
+      ]
+    }
+  ]
+}

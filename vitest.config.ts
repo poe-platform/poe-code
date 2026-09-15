@@ -2,6 +2,7 @@ import { defineConfig, Plugin } from "vitest/config";
 import { loadTestEnv } from "./tests/test-env.js";
 import path from "path";
 import fs from "fs";
+import safePythonQuarantine from "./packages/safe-python/test-quarantine.json";
 
 loadTestEnv();
 
@@ -105,13 +106,13 @@ function getPackageAliases(): Record<string, string> {
     }
   }
 
-  // Subpath aliases must come first for correct resolution
-  return {
+  // Longer subpaths must precede their parent aliases (including nested exports).
+  return Object.fromEntries(Object.entries({
     ...bareSubpathAliases,
     ...subpathAliases,
     ...bareMainAliases,
     ...mainAliases
-  };
+  }).sort(([left], [right]) => right.length - left.length));
 }
 
 export default defineConfig({
@@ -137,7 +138,10 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "packages/safe-bash/**",
+      "packages/op/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
+      // Share the package's temporary quarantine with root/shared unit runs.
+      ...safePythonQuarantine.map(filename => `packages/safe-python/${filename}`),
       "**/*.e2e.test.ts" // E2E tests run separately
     ],
     // Keep local native replay checks serial; CI retains its two-worker schedule.

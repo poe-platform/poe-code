@@ -1,0 +1,121 @@
+import { describe, expect, it } from "vitest";
+import { analyzeModule } from "../analysis.js";
+import { compileLiteralPool, type LiteralExpression } from "./literal-pool.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
+import { RuntimeValues } from "./runtime-values.js";
+
+const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
+
+describe("compiled scalar literal pools", () => {
+  it("pools optimized debug reads as False without materializing assertion operands",()=>{
+    const body=analyzeModule('assert "unused", "message"\na=__debug__\nb=False').module.body,allocated:LiteralExpression[]=[];
+    const pool=compileLiteralPool(body,node=>{allocated.push(node);return {node};},budget(),undefined,true,false);
+    expect(allocated).toHaveLength(1);expect(allocated[0]).toMatchObject({literalKind:"boolean",value:false});
+    const assignment=body[1];if(assignment.kind!=="assignment")throw Error("expected assignment");
+    expect(pool.folded!.get(assignment.value)).toBe([...pool.values()][0]);
+  });
+  it("folds __debug__ into the same typed constant as True without changing the AST",()=>{
+    const body=analyzeModule('a=__debug__\nb=True\nc=(__debug__,True)').module.body;
+    const meter=budget(),values=new RuntimeValues(meter),pool=compileLiteralPool(body,values.literal.bind(values),meter,values.tuple.bind(values));
+    const [a,b,c]=body;
+    if(a.kind!=="assignment"||b.kind!=="assignment"||c.kind!=="assignment")throw Error("expected assignments");
+    expect(a.value.kind).toBe("name");expect(pool.folded!.get(a.value)).toBe(values.true);
+    expect([...pool.values()]).toContain(values.true);
+    expect(pool.folded!.get(c.value)).toEqual(values.tuple([values.true,values.true]));
+  });
+  it("retains a folded __debug__ constant even when the adapter returns undefined",()=>{
+    const statement=analyzeModule('a=__debug__').module.body[0];
+    if(statement.kind!=="assignment")throw Error("expected assignment");
+    const pool=compileLiteralPool([statement],()=>undefined,budget());
+    expect(pool.folded!.has(statement.value)).toBe(true);expect(pool.folded!.get(statement.value)).toBeUndefined();
+  });
+  it("allocates one boolean for repeated normalized debug names and explicit True",()=>{
+    const body=analyzeModule('a=__debug__\nb=__ｄebug__\nc=True').module.body;
+    const allocated:LiteralExpression[]=[];
+    const pool=compileLiteralPool(body,node=>{allocated.push(node);return {node};},budget());
+    expect(allocated).toHaveLength(1);expect(allocated[0]).toMatchObject({literalKind:"boolean",value:true});
+    for(const statement of body){
+      if(statement.kind!=="assignment")throw Error("expected assignment");
+      if(statement.value.kind==="name")expect(pool.folded!.get(statement.value)).toBe([...pool.values()][0]);
+    }
+  });
+  it("merges nested tuple constants without conflating element types or signed zero", () => {
+    const body = analyzeModule('a=((1,),-10)\nb=((1,),-10)\nc=(True,)\nd=(1.0,)\ne=(0.0,)\nf=(-0.0,)').module.body;
+    const meter = budget(), values = new RuntimeValues(meter);
+    const pool = compileLiteralPool(body, values.literal.bind(values), meter, values.tuple.bind(values));
+    const constants = body.map(statement => {
+      if (statement.kind !== "assignment") throw new Error("expected assignment");
+      return pool.folded!.get(statement.value);
+    });
+    expect(constants.every(value => value?.kind === "tuple")).toBe(true);
+    expect(constants[0]).toBe(constants[1]);
+    expect(new Set(constants).size).toBe(5);
+  });
+  it("keeps boolean inversion on the runtime path for warning policy", () => {
+    const body = analyzeModule('a=(~True,)').module.body;
+    const pool = compileLiteralPool(body, () => undefined, budget(), () => undefined);
+    expect(pool.folded!.size).toBe(0);
+  });
+  it("keys tuples by typed constants even when factories return undefined", () => {
+    let tuples = 0;
+    const pool = compileLiteralPool(analyzeModule('a=(1,)\nb=(1,)\nc=(True,)\nd=(1.0,)').module.body,
+      () => undefined, budget(), () => { tuples++; return undefined; });
+    expect(tuples).toBe(3);
+    expect(pool.folded!.size).toBe(4);
+  });
+  it("merges equal typed values but not different types", () => {
+    let allocations = 0;
+    const pool = compileLiteralPool(analyzeModule('a=1000\nb=1000\nc=1000.0\nd=True\ne=b"abc"\nf="abc"').module.body,
+      node => { allocations++; return { node }; }, budget());
+    expect(pool.size).toBe(6); expect(allocations).toBe(5);
+    const integers = [...pool].filter(([node]) => node.literalKind === "integer");
+    expect(integers[0][1]).toBe(integers[1][1]);
+  });
+  it("keeps astral points distinct from adjacent lone surrogates", () => {
+    const pool = compileLiteralPool(analyzeModule('a="😀"\nb="\\ud83d\\ude00"\nc="😀"').module.body, node => ({ node }), budget());
+    const entries = [...pool];
+    expect(new Set(entries.map(([, value]) => value)).size).toBe(2);
+    expect(entries.filter(([node]) => (node.value as Uint32Array).length === 1)).toHaveLength(2);
+  });
+  it("does not allocate stripped docstrings or annotation expressions", () => {
+    const source = '"module doc"\ndef f(x: ignored("annotation") = "default") -> ignored("return annotation"):\n "function doc"\n y: ignored("variable annotation") = "default"\n return "body"\nclass C:\n "class doc"\n value="class body"\n';
+    const allocated: string[] = [];
+    compileLiteralPool(analyzeModule(source).module.body, node => {
+      if (node.literalKind === "string") allocated.push(String.fromCodePoint(...node.value as Uint32Array));
+      return { node };
+    }, budget());
+    expect(allocated.sort()).toEqual(["body", "class body", "default"]);
+  });
+  it("distinguishes an undefined pooled value from a missing entry", () => {
+    let allocations = 0;
+    const pool = compileLiteralPool(analyzeModule('a="value"\nb="value"').module.body, () => { allocations++; return undefined; }, budget());
+    expect(pool.size).toBe(2); expect(allocations).toBe(1);
+    for (const node of pool.keys()) { expect(pool.has(node)).toBe(true); expect(pool.get(node)).toBeUndefined(); }
+  });
+  it("does not share a compilation's pool with another compilation", () => {
+    const body = analyzeModule('a="long literal!"').module.body, allocate = (node: LiteralExpression) => ({ node });
+    const first = compileLiteralPool(body, allocate, budget()), second = compileLiteralPool(body, allocate, budget());
+    expect(first.values().next().value === second.values().next().value).toBe(false);
+  });
+  it("copies parser buffers into immutable runtime literals", () => {
+    const meter = budget(), values = new RuntimeValues(meter), pool = compileLiteralPool(analyzeModule('a="abc"').module.body, values.literal.bind(values), meter);
+    const [node, value] = [...pool][0];
+    (node.value as Uint32Array)[0] = 120;
+    if (value.kind !== "str") throw new Error("expected string");
+    expect([...value.value]).toEqual([97, 98, 99]);
+  });
+  it("checks compilation budgets before allocating literal values", () => {
+    let allocations = 0;
+    expect(() => compileLiteralPool(analyzeModule('a="value"').module.body, () => { allocations++; return {}; }, new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 100000 }))).toThrow(ExecutionLimitError);
+    expect(allocations).toBe(0);
+  });
+  it("keeps signed zero and distinct synthetic NaN constants separate", () => {
+    const numbers = [0, -0, NaN, NaN];
+    const body = analyzeModule('a=0.0\nb=0.0\nc=0.0\nd=0.0').module.body.map((statement, index) => {
+      if (statement.kind !== "assignment" || statement.value.kind !== "literal") throw new Error("expected literal assignment");
+      return { ...statement, value: { ...statement.value, value: numbers[index] } };
+    });
+    const pool = compileLiteralPool(body, node => ({ node }), budget());
+    expect(new Set(pool.values()).size).toBe(4);
+  });
+});

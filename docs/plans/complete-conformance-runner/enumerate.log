@@ -1,0 +1,12 @@
+
+> @poe-code/safe-js@0.0.1 test:conformance
+> tsx test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --enumerate --timeout-ms 3000 --report /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/manifest.json
+
+Runner sources changed during enumeration
+npm error Lifecycle script `test:conformance` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error workspace @poe-code/safe-js@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code/packages/safe-js
+npm error command failed
+npm error command sh -c tsx test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --enumerate --timeout-ms 3000 --report /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/manifest.json

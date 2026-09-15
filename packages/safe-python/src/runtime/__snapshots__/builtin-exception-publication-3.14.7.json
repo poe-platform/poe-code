@@ -1,0 +1,470 @@
+[
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__bases__ == (Exception,)",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__doc__",
+    "expected": {
+      "status": "ok",
+      "repr": "'Out of memory.'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__module__",
+    "expected": {
+      "status": "ok",
+      "repr": "'builtins'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__.__self__ is MemoryError",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__.__name__",
+    "expected": {
+      "status": "ok",
+      "repr": "'__new__'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__(MemoryError,1,2).args",
+    "expected": {
+      "status": "ok",
+      "repr": "()",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__(M,1,x=2).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError(1,2).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1, 2)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "str(MemoryError(1,2))",
+    "expected": {
+      "status": "ok",
+      "repr": "'(1, 2)'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "repr(MemoryError(1))",
+    "expected": {
+      "status": "ok",
+      "repr": "'MemoryError(1)'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError(x=1)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError() takes no keyword arguments"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__()",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError.__new__(): not enough arguments"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__(1)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError.__new__(X): X is not a type object (int)"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "MemoryError.__new__(Exception)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError.__new__(Exception): Exception is not a subtype of MemoryError"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "BaseException.__new__(MemoryError)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "BaseException.__new__(MemoryError) is not safe, use MemoryError.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "Exception.__new__(MemoryError)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "Exception.__new__(MemoryError) is not safe, use MemoryError.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "Exception.__new__(M)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "Exception.__new__(M) is not safe, use M.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "M(1,2).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1, 2)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "type(MemoryError.__new__(M)) is M",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "Custom(value=3).value",
+    "expected": {
+      "status": "ok",
+      "repr": "3",
+      "type": "int"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "Custom(value=3).args",
+    "expected": {
+      "status": "ok",
+      "repr": "()",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError.__bases__ == (SyntaxError,)",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError.__doc__",
+    "expected": {
+      "status": "ok",
+      "repr": "'incomplete input.'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError.__new__ is SyntaxError.__new__",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError('oops').args",
+    "expected": {
+      "status": "ok",
+      "repr": "('oops',)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "str(_IncompleteInputError('oops',('file.py',3,4,'bad')))",
+    "expected": {
+      "status": "ok",
+      "repr": "'oops (file.py, line 3)'",
+      "type": "str"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError('oops',('file.py',3,4,'bad')).lineno",
+    "expected": {
+      "status": "ok",
+      "repr": "3",
+      "type": "int"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "I('oops').args",
+    "expected": {
+      "status": "ok",
+      "repr": "('oops',)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "BaseException.__new__(_IncompleteInputError,'oops').args",
+    "expected": {
+      "status": "ok",
+      "repr": "('oops',)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n",
+    "source": "_IncompleteInputError(msg='oops')",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "_IncompleteInputError() takes no keyword arguments"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\ne=MemoryError('old')\ne.__init__('new',2)",
+    "source": "(type(e).__name__,e.args,str(e),e.__dict__)",
+    "expected": {
+      "status": "ok",
+      "repr": "('MemoryError', ('new', 2), \"('new', 2)\", {})",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\ne=MemoryError.__new__(MemoryError,'ignored')\ne.__dict__['x']=3",
+    "source": "(type(e).__name__,e.args,str(e),e.__dict__)",
+    "expected": {
+      "status": "ok",
+      "repr": "('MemoryError', (), '', {'x': 3})",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):pass\ne=Mixed(4)",
+    "source": "(type(e).__name__,e.args,str(e),e.__dict__)",
+    "expected": {
+      "status": "ok",
+      "repr": "('Mixed', (4,), '4', {})",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(StopIteration,MemoryError):pass\ne=Mixed(4)",
+    "source": "(type(e).__name__,e.args,str(e),e.__dict__)",
+    "expected": {
+      "status": "ok",
+      "repr": "('Mixed', (4,), '4', {})",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\ne=_IncompleteInputError('old',('f',1,2,'text'))\ne.__init__('new')",
+    "source": "(type(e).__name__,e.args,str(e),e.__dict__)",
+    "expected": {
+      "status": "ok",
+      "repr": "('_IncompleteInputError', ('new',), 'new (f, line 1)', {})",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):pass",
+    "source": "Mixed.__new__.__self__ is MemoryError",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):pass",
+    "source": "MemoryError.__new__(Mixed,1).args",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError.__new__(Mixed) is not safe, use Mixed.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):pass",
+    "source": "Exception.__new__(Mixed,1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):pass",
+    "source": "Mixed(1).value",
+    "expected": {
+      "status": "ok",
+      "repr": "1",
+      "type": "int"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(StopIteration,MemoryError):pass",
+    "source": "Mixed.__new__.__self__ is MemoryError",
+    "expected": {
+      "status": "ok",
+      "repr": "True",
+      "type": "bool"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(StopIteration,MemoryError):pass",
+    "source": "MemoryError.__new__(Mixed,1).args",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "MemoryError.__new__(Mixed) is not safe, use Mixed.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(StopIteration,MemoryError):pass",
+    "source": "Exception.__new__(Mixed,1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(StopIteration,MemoryError):pass",
+    "source": "Mixed(1).value",
+    "expected": {
+      "status": "ok",
+      "repr": "1",
+      "type": "int"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass Mixed(MemoryError,StopIteration):\n __new__=MemoryError.__new__",
+    "source": "Mixed(1)",
+    "expected": {
+      "status": "ok",
+      "repr": "Mixed(1)",
+      "type": "Mixed"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass M(MemoryError):\n def __new__(cls,*args): return Exception.__new__(cls,*args)",
+    "source": "M(1)",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "Exception.__new__(M) is not safe, use MemoryError.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError): pass\nclass I(_IncompleteInputError): pass\nclass Custom(MemoryError):\n def __init__(self, *, value): self.value=value\n\nclass M(MemoryError):\n def __new__(cls,*args): return MemoryError.__new__(cls,*args)",
+    "source": "M(1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=MemoryError.__new__\n",
+    "source": "M(1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=MemoryError.__new__\n",
+    "source": "M.__new__(M,1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=Exception.__new__\n",
+    "source": "M(1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=Exception.__new__\n",
+    "source": "M.__new__(M,1).args",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "Exception.__new__(M) is not safe, use M.__new__()"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=int.__new__\n",
+    "source": "M(1).args",
+    "expected": {
+      "status": "ok",
+      "repr": "(1,)",
+      "type": "tuple"
+    }
+  },
+  {
+    "setup": "class M(MemoryError):\n __new__=int.__new__\n",
+    "source": "M.__new__(M,1).args",
+    "expected": {
+      "status": "exception",
+      "type": "TypeError",
+      "message": "int.__new__(M): M is not a subtype of int"
+    }
+  }
+]

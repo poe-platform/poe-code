@@ -1,0 +1,259 @@
+{
+  "date": "2026-09-15T05:59:12.029848+00:00",
+  "head": "365774cd83ff387c4237adfed8fe7b8bf0ffb4f1",
+  "remote": "55c7d8b1186be5e272595dc6499ec349fa86d833",
+  "runs": [
+    {
+      "runtime": "v18.18.0",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.18.0-imports.log",
+      "sha256": "a60e7c8db174c91fc77a96e14b6e087b63309dc2c960fc2f18f781c799c73b49"
+    },
+    {
+      "runtime": "v18.18.0",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 1,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.18.0-current.log",
+      "sha256": "0f0869bbb379c67fe4b8febd33f7a710b9d85adb41c43a54ccd66f8171f28173"
+    },
+    {
+      "runtime": "v18.18.0",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 1,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.18.0-installed.log",
+      "sha256": "0799efade3cdb2734d43735d230179173a888c129ed3e3a0070c59a9b7ef766d"
+    },
+    {
+      "runtime": "v20.20.2",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v20.20.2-imports.log",
+      "sha256": "4a7f59ba033eae11b7d44fed9effad62717058c30d88828d8053f224979dff5a"
+    },
+    {
+      "runtime": "v20.20.2",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v20.20.2-current.log",
+      "sha256": "f5065fba069d26de0ea32fbce43bda23cb6f4f36f49a0fc3e959f284b4d1e7ba"
+    },
+    {
+      "runtime": "v20.20.2",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v20.20.2-installed.log",
+      "sha256": "fd9c4e38db980447eadb0b3a407f237283427a49ac3f850ea938ab965f1347a2"
+    },
+    {
+      "runtime": "v22.23.2",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5dad66f2cb301fc2/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v22.23.2-imports.log",
+      "sha256": "7b31daf3b857cc0d6a9e46ba2bcb23f327203511f6ad413e6997cdd21c3504d8"
+    },
+    {
+      "runtime": "v22.23.2",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5dad66f2cb301fc2/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v22.23.2-current.log",
+      "sha256": "64fcea5efd554e50d65b253d2b1e13ea9875bdac24a873764b960237032249b7"
+    },
+    {
+      "runtime": "v22.23.2",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5dad66f2cb301fc2/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v22.23.2-installed.log",
+      "sha256": "068262b41503d63a1c297447c0983c7194918da2ea17a1706b0a3afd3b27b5f6"
+    },
+    {
+      "runtime": "v24.21.0",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v24.21.0-imports.log",
+      "sha256": "b0b50460b92087864cdf7945bb8b69b2dcb35796ef2b27c7dd4cdbdb1f3ce148"
+    },
+    {
+      "runtime": "v24.21.0",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v24.21.0-current.log",
+      "sha256": "ff7003af698cca50cdaf3a875d71436966e5bcf477df236c69efbcdb88bfda00"
+    },
+    {
+      "runtime": "v24.21.0",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v24.21.0-installed.log",
+      "sha256": "26782b7b568bce5ce9ef8d6b64ce041e47364b8f51635751ee19fdada2704df4"
+    },
+    {
+      "runtime": "v18.20.8",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/00073ba5d7c1f8bc/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.20.8-imports.log",
+      "sha256": "f920afea8d1aac3cb41f59a2231c52b3f3e67a35997b5d3be8af3c3eab35c655"
+    },
+    {
+      "runtime": "v18.20.8",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/00073ba5d7c1f8bc/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.20.8-current.log",
+      "sha256": "ed05a5f82955a8372ed89ff8f4fb6784915ff716828f7c9fe89879164d91ae83"
+    },
+    {
+      "runtime": "v18.20.8",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/00073ba5d7c1f8bc/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v18.20.8-installed.log",
+      "sha256": "14879937ce0dfd91c4922cef8a68735ad2809032437714d53b33d0ca9a4e36e0"
+    },
+    {
+      "runtime": "v26.8.2",
+      "surface": "imports",
+      "command": [
+        "/Users/kjopek/.npm/_npx/131005c554cfb1ac/node_modules/node/bin/node",
+        "--test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v26.8.2-imports.log",
+      "sha256": "754e6c9b647f2ee06158f993d138f809aaf65366871188a2b657e265df28bba5"
+    },
+    {
+      "runtime": "v26.8.2",
+      "surface": "current",
+      "command": [
+        "/Users/kjopek/.npm/_npx/131005c554cfb1ac/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v26.8.2-current.log",
+      "sha256": "87df6eb558ac36c00fbd84e54dbfd829a2b2d45f7edf373f72f03f602470143f"
+    },
+    {
+      "runtime": "v26.8.2",
+      "surface": "installed",
+      "command": [
+        "/Users/kjopek/.npm/_npx/131005c554cfb1ac/node_modules/node/bin/node",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/v26.8.2-installed.log",
+      "sha256": "f0485d15b5a626f1f021554c4fca53da1ac088534e958d7d40917f9dae80e14c"
+    },
+    {
+      "runtime": "bun",
+      "surface": "imports",
+      "command": [
+        "bun",
+        "test",
+        "packages/safe-js/scripts/built-imports.test.mjs"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/bun-imports.log",
+      "sha256": "1385c6de97424ec23f248a250b9aa4062085dd3c1dc025c1f0760ad9095ab4b6"
+    },
+    {
+      "runtime": "bun",
+      "surface": "current",
+      "command": [
+        "bun",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/bun-current.log",
+      "sha256": "3f68af1643401f75a6ddef0bf2e1757b40850d725dbaf99339b5d1723afb2828"
+    },
+    {
+      "runtime": "bun",
+      "surface": "installed",
+      "command": [
+        "bun",
+        "docs/plans/runtime-support-20260915/negative-controls/probe-corrected.mjs",
+        "file:///private/tmp/safejs-runtime-20260915-consumer/node_modules/%40poe-platform/safe-js/dist/safe-js/index.js"
+      ],
+      "exit": 0,
+      "log": "docs/plans/runtime-support-20260915/fresh-audit/bun-installed.log",
+      "sha256": "b7a4fc8fe18974870ee9673e4949337bb69c3fbfad732bd9474057c14c096a72"
+    }
+  ]
+}

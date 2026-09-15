@@ -1,0 +1,39 @@
+{
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-consumer-i96bx212",
+  "package": "@poe-platform/safe-bash",
+  "version": "0.1.592",
+  "install": {
+    "exitCode": 0,
+    "output": "\nadded 6 packages in 1s\n"
+  },
+  "module": "import assert from 'node:assert/strict';\nimport {Shell} from '@poe-platform/safe-bash';\nimport {createMemoryFileSystem} from '@poe-platform/safe-fs';\nconst fs=createMemoryFileSystem();\nawait fs.writeFile('/probe',new TextEncoder().encode('verified'));\nconst shell=new Shell({fs,cwd:'/'});\ntry {const result=await shell.exec('cat /probe');assert.equal(result.exitCode,0);assert.equal(result.stdout,'verified');console.log(JSON.stringify({package:'@poe-platform/safe-bash',shell:true,sharedFs:true}));}\nfinally {await shell.dispose();}\n",
+  "smokes": [
+    {
+      "command": [
+        "node",
+        "--input-type=module"
+      ],
+      "exitCode": 1,
+      "output": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n127 !== 0\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-consumer-i96bx212/[eval1]:7:57 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 127,\n  expected: 0,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n"
+    },
+    {
+      "command": [
+        "npm",
+        "exec",
+        "--yes",
+        "--package=bun@1.4.2",
+        "--",
+        "bun",
+        "run",
+        "-"
+      ],
+      "exitCode": 1,
+      "output": "2 | import {Shell} from '@poe-platform/safe-bash';\n3 | import {createMemoryFileSystem} from '@poe-platform/safe-fs';\n4 | const fs=createMemoryFileSystem();\n5 | await fs.writeFile('/probe',new TextEncoder().encode('verified'));\n6 | const shell=new Shell({fs,cwd:'/'});\n7 | try {const result=await shell.exec('cat /probe');assert.equal(result.exitCode,0);assert.equal(result.stdout,'verified');console.log(JSON.stringify({package:'@poe-platform/safe-bash',shell:true,sharedFs:true}));}\n                                                            ^\nAssertionError: Expected values to be strictly equal:\n\n127 !== 0\n\n generatedMessage: true,\n     actual: 127,\n   expected: 0,\n   operator: \"strictEqual\",\n       diff: \"simple\",\n       code: \"ERR_ASSERTION\"\n\n      at /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-consumer-i96bx212/[stdin]:7:57\n\nBun v1.4.2 (macOS arm64)\n"
+    }
+  ],
+  "signatures": {
+    "exitCode": 0,
+    "output": "audited 6 packages in 0s\n\n6 packages have verified registry signatures\n\n4 packages have verified attestations\n\n"
+  },
+  "initialSmokeDisposition": "Incorrect manual MemoryFS constructor setup; corrected to explicit writeFile without changing assertions or library code."
+}

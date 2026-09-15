@@ -1,0 +1,445 @@
+{
+  "driver": "import {readFileSync,writeFileSync,openSync,closeSync,readSync,writeSync,fsyncSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecIterationSlotCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-iteration-slot-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/';\nconst raw=readFileSync(root+'runtime/__snapshots__/codec-iteration-slot-oracle.json','utf8'),oracle=JSON.parse(raw);\nconst dir=mkdtempSync(join(tmpdir(),'codec-iteration-'));\nconst rows=[],cancelled=[]; let reads=0,writes=0,flushes=0;\ntry {\nfor(const row of codecIterationSlotCases){\n const expected=oracle.rows.find(item=>item.name===row.name);\n writeFileSync(join(dir,'in'),'ready\\n');\n const input=openSync(join(dir,'in'),'r'),output=openSync(join(dir,'out'),'w');\n const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],\n  input:{readLine(){reads++;const data=Buffer.alloc(64);return data.subarray(0,readSync(input,data)).toString('utf8');}},\n  output:{write(text){writes++;writeSync(output,text);},flush(){flushes++;fsyncSync(output);}}});\n let outcome;\n try{outcome=session.exec(row.source);}finally{closeSync(input);closeSync(output);}\n const stdout=readFileSync(join(dir,'out'),'utf8');\n const match=outcome.status==='ok'&&stdout===expected.stdout&&row.source===expected.source;\n rows.push({name:row.name,sourceSha256:createHash('sha256').update(row.source).digest('hex'),outcome,stdout,usage:session.usage,match});\n}\nfor(const row of codecIterationSlotCases.slice(-2))for(const throws of [false,true]){\n writeFileSync(join(dir,'in'),'ready\\n');const input=openSync(join(dir,'in'),'r'),output=openSync(join(dir,'out'),'w');\n const controller=new AbortController();\n const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n input:{readLine(){reads++;const data=Buffer.alloc(64);const size=readSync(input,data);controller.abort();if(throws)throw Error('cancelled service');return data.subarray(0,size).toString('utf8');}},\n output:{write(text){writes++;writeSync(output,text);},flush(){flushes++;fsyncSync(output);}}});\n let outcome,again;try{outcome=session.exec(row.source);again=session.eval('1');}finally{closeSync(input);closeSync(output);}\n const stdout=readFileSync(join(dir,'out'),'utf8');\n const match=outcome.status==='terminated'&&outcome.reason==='cancelled'&&again.status==='terminated'&&again.reason==='cancelled'&&stdout==='';\n cancelled.push({name:row.name,throws,outcome,again,stdout,match});\n}\n}finally{rmSync(dir,{recursive:true,force:true});}\nconst result={driver:readFileSync('/tmp/codec-iteration-services.mts','utf8'),reference:oracle.identity,oracleSha256:createHash('sha256').update(raw).digest('hex'),reads,writes,flushes,rows,cancelled};\nwriteFileSync(root+'runtime/__snapshots__/codec-iteration-slot-services.json',JSON.stringify(result,null,2)+'\\n');\nconsole.log(JSON.stringify({programs:rows.length,cancelled:cancelled.length,reads,writes,flushes,failures:[...rows,...cancelled].filter(row=>!row.match)}));\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracleSha256": "cc0968eb3b3f124dcc53f93aa0b94c8ab933353e1bfc24d7e71b762905371cf5",
+  "reads": 6,
+  "writes": 8,
+  "flushes": 6,
+  "rows": [
+    {
+      "name": "CodecInfo __iter__ readiness query",
+      "sourceSha256": "7aaf43b278b76815caf0ffc8090bea400182f95d41a5df09c3d0114b6e09e432",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146079,
+        "allocatedBytes": 1933059
+      },
+      "match": true
+    },
+    {
+      "name": "CodecInfo __next__ readiness query",
+      "sourceSha256": "493ca9a72a55b9ea355922cb00ca267a15f8cec5a4b2f71b20bb1519942ac2b9",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146099,
+        "allocatedBytes": 1933171
+      },
+      "match": true
+    },
+    {
+      "name": "IncrementalEncoder __iter__ readiness query",
+      "sourceSha256": "1d5b94a2516757fcbae622a3fc78192761b12f8168d9fd956acebfd298c8d564",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146021,
+        "allocatedBytes": 1933029
+      },
+      "match": true
+    },
+    {
+      "name": "IncrementalEncoder __next__ readiness query",
+      "sourceSha256": "bd96a536f223a81399a83d64eae5d73ec601b3557d01907cb74c08f76128ece7",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146021,
+        "allocatedBytes": 1933029
+      },
+      "match": true
+    },
+    {
+      "name": "IncrementalDecoder __iter__ readiness query",
+      "sourceSha256": "8ec6c96d6bcae31c42862a404894eedcbde2e5892b1f80eea2c1fe7c18546835",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146021,
+        "allocatedBytes": 1933029
+      },
+      "match": true
+    },
+    {
+      "name": "IncrementalDecoder __next__ readiness query",
+      "sourceSha256": "f05ac87756afc3a468f4691bc202f316da25d3a0ca89e581db1f27f2fd2dd751",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146021,
+        "allocatedBytes": 1933029
+      },
+      "match": true
+    },
+    {
+      "name": "BufferedIncrementalEncoder __iter__ readiness query",
+      "sourceSha256": "d140a9422a2bce52bcdeef3f61eaeb7c5d5259384f26137b6eba901679764cab",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146179,
+        "allocatedBytes": 1933301
+      },
+      "match": true
+    },
+    {
+      "name": "BufferedIncrementalEncoder __next__ readiness query",
+      "sourceSha256": "3cd6927adb345f07736081d03db1fa4d7f9d9c0907b359a45701bd4614aea22f",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146179,
+        "allocatedBytes": 1933301
+      },
+      "match": true
+    },
+    {
+      "name": "BufferedIncrementalDecoder __iter__ readiness query",
+      "sourceSha256": "0c266ed0f2b8198c5dd68a75d0476e4fb9f47b94aa285eeaf741436c42795717",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146179,
+        "allocatedBytes": 1933301
+      },
+      "match": true
+    },
+    {
+      "name": "BufferedIncrementalDecoder __next__ readiness query",
+      "sourceSha256": "c249bff6423690870968569bee435d034fee7e6b29eabdcac9f471fe416751f5",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146179,
+        "allocatedBytes": 1933301
+      },
+      "match": true
+    },
+    {
+      "name": "StreamReader __iter__ readiness query",
+      "sourceSha256": "f2a58ee7340c84441010376832bcd14514f265bd5a19dd40b8e2300e43e0c498",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145965,
+        "allocatedBytes": 1932793
+      },
+      "match": true
+    },
+    {
+      "name": "StreamReader __next__ readiness query",
+      "sourceSha256": "c9eb25f6be47b2b34f9cb7b9e8c5b746d769c8c8667f828d28aeaf35c7549602",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145965,
+        "allocatedBytes": 1932793
+      },
+      "match": true
+    },
+    {
+      "name": "StreamWriter __iter__ readiness query",
+      "sourceSha256": "80e5c9fd5225dd1d45c89d1bcf9cce541cb2f4b10a9dc1fac3e580d434b8f729",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145982,
+        "allocatedBytes": 1932745
+      },
+      "match": true
+    },
+    {
+      "name": "StreamWriter __next__ readiness query",
+      "sourceSha256": "b7669a250a8b9a73bf3e733f675299813d749399d173d79c45089acb7fa81829",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145982,
+        "allocatedBytes": 1932745
+      },
+      "match": true
+    },
+    {
+      "name": "StreamReaderWriter __iter__ readiness query",
+      "sourceSha256": "c0075e42045b8179f8a5693a151e77be2fe4c55fdcfe970f4c10a74a578e5437",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146018,
+        "allocatedBytes": 1933077
+      },
+      "match": true
+    },
+    {
+      "name": "StreamReaderWriter __next__ readiness query",
+      "sourceSha256": "a8babb8903f2ae63ff2ddb8ee198b2e6df6ba7ccd796239e9799027ef64586c3",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146018,
+        "allocatedBytes": 1933077
+      },
+      "match": true
+    },
+    {
+      "name": "StreamRecoder __iter__ readiness query",
+      "sourceSha256": "99f7e5823248a0d107e6bce138efec5bd84fade5b241e814a9123476558ca67c",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145958,
+        "allocatedBytes": 1932907
+      },
+      "match": true
+    },
+    {
+      "name": "StreamRecoder __next__ readiness query",
+      "sourceSha256": "7c66ceb74b06748bf7e596500d32cd98383456a521677f924d07ab9f508188b9",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145958,
+        "allocatedBytes": 1932907
+      },
+      "match": true
+    },
+    {
+      "name": "__iter__ failed fixup and repair",
+      "sourceSha256": "fd0d291033f4d3667e7f19c8aca91dc7fb7d5b4a9ba20c34c0b8f255d35744e9",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 154250,
+        "allocatedBytes": 2089159
+      },
+      "match": true
+    },
+    {
+      "name": "__next__ failed fixup and repair",
+      "sourceSha256": "472627be1a94340be64a05c342725a1d3cef97a36f1b202425ccb721fd8aaf48",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 152616,
+        "allocatedBytes": 2058869
+      },
+      "match": true
+    },
+    {
+      "name": "iteration mutation descendants and descriptor binding",
+      "sourceSha256": "42cfad985eed6f8f99436e829be6e111f52df75e6195e91f23ee8542150f72b4",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 156210,
+        "allocatedBytes": 2123271
+      },
+      "match": true
+    },
+    {
+      "name": "next slot does not bind during iterator eligibility",
+      "sourceSha256": "339c9c3ee3dda8da0d72dc8e118cba3a1866f600f4686d1f19d33c742bf1b5c2",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 149104,
+        "allocatedBytes": 1998033
+      },
+      "match": true
+    },
+    {
+      "name": "__iter__ published class inheritance",
+      "sourceSha256": "bfbeaf92dd4fc893973cd720da37599855f43f6f9b361e74e73536bca79d3d06",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "[(\"'C' object is not iterable\",), [8], [8], [8], [8]]\n",
+      "usage": {
+        "steps": 155808,
+        "allocatedBytes": 2103698
+      },
+      "match": true
+    },
+    {
+      "name": "__next__ published class inheritance",
+      "sourceSha256": "de373f9d9e9a574f7a0848c06faafcca5da5f5b268357ebdc0c70100fa5b8ef5",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "[(\"'C' object is not an iterator\",), 8, 8, 8, 8]\n",
+      "usage": {
+        "steps": 153916,
+        "allocatedBytes": 2069572
+      },
+      "match": true
+    },
+    {
+      "name": "native tuple iterator restoration and legacy fallback",
+      "sourceSha256": "0e1f8e5bdc0c530bac821d7400200456f1787b4fa8e50b3fb5b032377952c7cd",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 138823,
+        "allocatedBytes": 1816687
+      },
+      "match": true
+    },
+    {
+      "name": "iteration initialization query order",
+      "sourceSha256": "8f35c2192fbf2814cd1c841ef5b32d1b95b4e145c1887ea44fca6ca7aad4ac5a",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 141453,
+        "allocatedBytes": 1854219
+      },
+      "match": true
+    },
+    {
+      "name": "__iter__ readiness serviced callback",
+      "sourceSha256": "0ba19afe69f48e56a889bcf2fd3c1bc84ce399ff3c5f7360e7cf577389ea951e",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "ready\n",
+      "usage": {
+        "steps": 137113,
+        "allocatedBytes": 1772989
+      },
+      "match": true
+    },
+    {
+      "name": "__next__ readiness serviced callback",
+      "sourceSha256": "bdf8b4b4e1adbcd37cbbd11f86a36ee8149d8ea32240c3bc5d821bb7a1356462",
+      "outcome": {
+        "status": "ok"
+      },
+      "stdout": "ready\n",
+      "usage": {
+        "steps": 137113,
+        "allocatedBytes": 1772989
+      },
+      "match": true
+    }
+  ],
+  "cancelled": [
+    {
+      "name": "__iter__ readiness serviced callback",
+      "throws": false,
+      "outcome": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "match": true
+    },
+    {
+      "name": "__iter__ readiness serviced callback",
+      "throws": true,
+      "outcome": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "match": true
+    },
+    {
+      "name": "__next__ readiness serviced callback",
+      "throws": false,
+      "outcome": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "match": true
+    },
+    {
+      "name": "__next__ readiness serviced callback",
+      "throws": true,
+      "outcome": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "match": true
+    }
+  ]
+}

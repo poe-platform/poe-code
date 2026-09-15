@@ -1,0 +1,31 @@
+{
+  "reference": [
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "darwin",
+    "little",
+    "arm64"
+  ],
+  "rows": [
+    {
+      "name": "codecs.open warning and filesystem dependency",
+      "source": "import codecs\ntry:\n    codecs.open('', encoding='utf8')\nexcept FileNotFoundError as error:\n    assert error.filename == '' and error.errno == 2\nelse:\n    assert False\n",
+      "sha256": "5842f0c733fdaff250e87636c79f11b25a73167d09c7f062be621d765397d392",
+      "oracleStatus": 0,
+      "oracleStdout": "",
+      "oracleStderr": "<string>:3: DeprecationWarning: codecs.open() is deprecated. Use open() instead.\n",
+      "status": "exception",
+      "detail": "('NameError', \"name 'FileNotFoundError' is not defined\")"
+    },
+    {
+      "name": "direct codecs.open invocation",
+      "source": "import codecs\ncodecs.open('', encoding='utf8')\n",
+      "sha256": "931e427322e10a42b363fc123f89080ab1d1af8dfc6ebe79334992ced46bff2f",
+      "oracleStatus": 1,
+      "oracleStdout": "",
+      "oracleStderr": "<string>:2: DeprecationWarning: codecs.open() is deprecated. Use open() instead.\nTraceback (most recent call last):\n  File \"<string>\", line 2, in <module>\n    codecs.open('', encoding='utf8')\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen codecs>\", line 923, in open\nFileNotFoundError: [Errno 2] No such file or directory: ''\n",
+      "status": "exception",
+      "detail": "('ModuleNotFoundError', \"No module named 'warnings'\")"
+    }
+  ]
+}

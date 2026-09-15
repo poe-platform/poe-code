@@ -1,0 +1,61 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin little\n",
+  "cases": [
+    {
+      "name": "missing package path rejects an uncached owned child",
+      "source": "\nimport encodings\npath = encodings.__path__\ndel encodings.__path__\ntry:\n    import encodings.ascii\nexcept ModuleNotFoundError as error:\n    assert error.args == (\"No module named 'encodings.ascii'; 'encodings' is not a package\",)\n    assert error.name == 'encodings.ascii' and error.path is None\nelse:\n    raise AssertionError('nonpackage child was loaded')\nassert 'ascii' not in encodings.__dict__\nencodings.__path__ = path\nimport encodings.ascii\nassert encodings.ascii.getregentry().name == 'ascii'\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "package path descriptors propagate failure and permit retry",
+      "source": "\nimport encodings\nModule = type(encodings)\nevents = []\nfailure = ValueError('package path failed')\nclass Package(Module):\n    @property\n    def __path__(self):\n        events.append('path')\n        raise failure\nencodings.__class__ = Package\ntry:\n    import encodings.ascii\nexcept ValueError as error:\n    assert error is failure and error.args == ('package path failed',)\nelse:\n    raise AssertionError('package path descriptor bypassed')\nassert events == ['path']\nassert 'ascii' not in encodings.__dict__\nencodings.__class__ = Module\nimport encodings.ascii\nassert encodings.ascii.getregentry().decode(b'A') == ('A', 1)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "cached submodules bypass the parent path descriptor",
+      "source": "\nimport encodings.ascii\nimport encodings\nchild = encodings.ascii\nclass Package(type(encodings)):\n    @property\n    def __path__(self):\n        raise AssertionError('cached module consulted its parent path')\nencodings.__class__ = Package\nimport encodings.ascii as again\nassert again is child\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "nested child errors identify the first nonpackage parent",
+      "source": "\nimport encodings.ascii\ntry:\n    __import__('encodings.ascii.child.deep')\nexcept ModuleNotFoundError as error:\n    assert error.args == (\"No module named 'encodings.ascii.child'; 'encodings.ascii' is not a package\",)\n    assert error.name == 'encodings.ascii.child' and error.path is None\nelse:\n    raise AssertionError('nested nonpackage child was loaded')\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "missing package paths retain module lookup failure as suppressed context",
+      "source": "\nimport encodings\nfailure = AttributeError('path unavailable')\nclass Package(type(encodings)):\n    @property\n    def __path__(self):\n        raise failure\nencodings.__class__ = Package\ntry:\n    import encodings.ascii\nexcept ModuleNotFoundError as error:\n    context = error.__context__\n    assert type(context) is AttributeError and context is not failure\n    assert context.args == (\"module 'encodings' has no attribute '__path__'\",)\n    assert context.name == '__path__' and context.obj is encodings\n    assert context.__context__ is None\n    assert error.__cause__ is None and error.__suppress_context__ is True\n    assert error.name == 'encodings.ascii' and error.path is None\nelse:\n    raise AssertionError('missing path was accepted')\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "nonpackage diagnostics preserve Python name quoting",
+      "source": "\nimport encodings.ascii\nfor name in (\"encodings.ascii.quoted'child\", 'encodings.ascii.line' + chr(10)):\n    try:\n        __import__(name)\n    except ModuleNotFoundError as error:\n        assert error.args == ('No module named ' + repr(name) + \"; 'encodings.ascii' is not a package\",), error.args\n        assert error.name == name\n    else:\n        raise AssertionError('nonpackage child was loaded')\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "module attribute failures preserve explicit fields and direct descriptor behavior",
+      "source": "\nimport codecs\nModule = type(codecs)\ntry:\n    codecs.absent\nexcept AttributeError as error:\n    assert error.name == 'absent' and error.obj is codecs\nelse:\n    raise AssertionError('attribute unexpectedly exists')\ntry:\n    Module.__getattribute__(codecs, 'absent')\nexcept AttributeError as error:\n    assert error.name is None and error.obj is None\nelse:\n    raise AssertionError('attribute unexpectedly exists')\nfor name in (None, 'explicit'):\n    target = object()\n    failure = AttributeError('callback', name=name, obj=target)\n    def missing(attribute):\n        raise failure\n    codecs.__getattr__ = missing\n    try:\n        codecs.absent\n    except AttributeError as error:\n        assert error is failure and error.name is name and error.obj is target\n    else:\n        raise AssertionError('callback failure was swallowed')\nfor target in (None, object()):\n    failure = AttributeError('callback', obj=target)\n    try:\n        codecs.absent\n    except AttributeError as error:\n        assert error is failure and error.name is None and error.obj is target\n    else:\n        raise AssertionError('callback failure was swallowed')\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

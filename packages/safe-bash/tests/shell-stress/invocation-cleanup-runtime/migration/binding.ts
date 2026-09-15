@@ -252,6 +252,22 @@ export async function census(directory: string, base = directory, io: CensusRead
   return Object.fromEntries(Object.entries(result).sort(([left], [right]) => left.localeCompare(right)));
 }
 
+export async function captureOpBuildInputs(root: string, io: CensusReader & { lstat(path: string): Promise<{ isFile(): boolean; isSymbolicLink(): boolean; nlink: number }> } = { readdir, readFile, lstat }): Promise<CapturedInputs> {
+  const hashes = await census(join(root, "src"), root, io);
+  const bytes = new Map<string, Buffer>();
+  for (const path of ["package.json", "tsconfig.json", ...Object.keys(hashes)]) {
+    const stat = await io.lstat(join(root, path));
+    assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1, `Op input must be a regular single-link file: ${path}`);
+    const value = Buffer.from(await io.readFile(join(root, path)));
+    if (hashes[path]) assert.equal(digest(value), hashes[path], `Op input changed during capture: ${path}`);
+    bytes.set(path, value);
+  }
+  const manifest = JSON.parse(bytes.get("package.json")!.toString());
+  assert.equal(manifest.name, "@poe-platform/op");
+  assert.equal(manifest.private, true);
+  return { files: Object.fromEntries([...bytes].map(([path, value]) => [path, digest(value)])), bytes };
+}
+
 export async function preparePublicSnapshot(repository: string, expected?: CommittedInputs) {
   const captured = await captureInputs(repository);
   if (expected) assertCommittedSourceInputs(captured, expected);
@@ -284,6 +300,31 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       for (const [path, bytes] of captureSharedArchiveSources(integrationRoot)) rootInputs.set(path, bytes);
     }
     if (expected) assertCommittedInputs(captured, expected, rootInputs);
+    const opRoot = resolve(repository, "../op");
+    const opInputs = await captureOpBuildInputs(opRoot);
+    const opManifest = JSON.parse(opInputs.bytes.get("package.json")!.toString());
+    const rootLock = JSON.parse(rootInputs.get("package-lock.json")!.toString());
+    assert.equal(manifest.devDependencies?.[opManifest.name], "*");
+    assert.deepEqual(rootLock.packages["packages/op"].dependencies, opManifest.dependencies);
+    const opDependencyInputs: { source: string; hashes: Hashes }[] = [];
+    for (const name of Object.keys(opManifest.dependencies)) {
+      const source = join(integrationRoot, "node_modules", name);
+      const metadata = JSON.parse(await readFile(join(source, "package.json"), "utf8"));
+      assert.equal(metadata.name, name);
+      assert.equal(metadata.version, rootLock.packages[`node_modules/${name}`].version);
+      assert.deepEqual(metadata.dependencies ?? {}, {}, "Op runtime dependency closure requires explicit staging");
+      const hashes = await census(source);
+      const destination = join(outer, "node_modules", name);
+      await mkdir(dirname(destination), { recursive: true });
+      await copyRegularTools(source, destination);
+      assert.deepEqual(await census(destination), hashes);
+      opDependencyInputs.push({ source, hashes });
+    }
+    for (const [path, bytes] of opInputs.bytes) {
+      const destination = join(outer, "packages/op", path);
+      await mkdir(dirname(destination), { recursive: true });
+      await writeFile(destination, bytes, { flag: "wx" });
+    }
     const dependencies: CapturedDependency[] = await prepareArchiveDependencies({ manifest, files: rootInputs, lock: JSON.parse(rootInputs.get("package-lock.json")!.toString()) }, resolveTools(), outer);
     for (const [path, bytes] of rootInputs) {
       await mkdir(dirname(join(outer, path)), { recursive: true });
@@ -324,12 +365,40 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       await mkdir(dirname(destination), { recursive: true });
       await copyRegularTools(tool.source, destination);
     }
+    const opBuild = spawnSync(process.execPath, [join(snapshot, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json", "--typeRoots", join(snapshot, "node_modules/@types")], {
+      cwd: join(outer, "packages/op"), encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
+    });
+    assert.equal(opBuild.error, undefined, opBuild.error?.message);
+    assert.equal(opBuild.status, 0, opBuild.stdout + opBuild.stderr);
+    const opEmitted = await census(join(outer, "packages/op/dist"));
+    for (const name of ["esbuild", `@esbuild/${process.platform}-${process.arch}`]) {
+      const source = join(integrationRoot, "node_modules", name);
+      const metadata = JSON.parse(await readFile(join(source, "package.json"), "utf8"));
+      assert.equal(metadata.name, name);
+      assert.equal(metadata.version, rootLock.packages[`node_modules/${name}`].version);
+      const hashes = await census(source);
+      const destination = join(outer, "node_modules", name);
+      await mkdir(dirname(destination), { recursive: true });
+      await copyRegularTools(source, destination);
+      assert.deepEqual(await census(destination), hashes);
+      opDependencyInputs.push({ source, hashes });
+    }
+    const opTools = await census(join(outer, "node_modules"));
     const tools = await census(join(snapshot, "node_modules"));
     const build = spawnSync(process.execPath, [join(snapshot, "scripts/build.mjs"), "--pretty", "false"], {
       cwd: snapshot, encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
     });
     assert.equal(build.error, undefined, build.error?.message);
     assert.equal(build.status, 0, build.stdout + build.stderr);
+    // The root build bundles this private command; the public probe must never admit private runtime imports.
+    const opBundle = spawnSync(join(outer, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`), [join(snapshot, "src/commands/op/index.ts"),
+      "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
+      `--alias:@poe-platform/op=${join(outer, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`], {
+      cwd: snapshot, encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
+      env: { ...process.env, ESBUILD_BINARY_PATH: join(outer, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`) },
+    });
+    assert.equal(opBundle.error, undefined, opBundle.error?.message);
+    assert.equal(opBundle.status, 0, opBundle.stdout + opBundle.stderr);
     await assertInputsUnchanged(repository, captured.files);
     assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Build changed captured inputs");
     assert.deepEqual(await census(join(snapshot, "node_modules")), tools, "Build changed compiler dependencies");
@@ -357,6 +426,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       })), probeHash: captured.files[probePath], packageHash: captured.files["package.json"],
       compilerVersion: (JSON.parse(await readFile(join(snapshot, "node_modules/typescript/package.json"), "utf8")) as { version: string }).version,
       compilerInputs: tools,
+      op: { inputs: opInputs.files, emitted: opEmitted, dependencies: opDependencyInputs.map(({ source, hashes }) => ({ name: relative(join(integrationRoot, "node_modules"), source), files: hashes })), runtimeInputs: opTools, build: { status: opBuild.status, stdout: opBuild.stdout, stderr: opBuild.stderr }, bundle: { status: opBundle.status, stdout: opBundle.stdout, stderr: opBundle.stderr } },
       build: { status: build.status, stdout: build.stdout, stderr: build.stderr },
     };
     const manifestPath = join(snapshot, "public-manifest.json");
@@ -364,6 +434,11 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     await writeFile(manifestPath, manifestBytes, { flag: "wx" });
     const verify = async (): Promise<void> => {
       await assertInputsUnchanged(repository, captured.files);
+      assert.deepEqual((await captureOpBuildInputs(opRoot)).files, opInputs.files, "Op source changed after capture");
+      assert.deepEqual((await captureOpBuildInputs(join(outer, "packages/op"))).files, opInputs.files, "Copied op source changed after capture");
+      assert.deepEqual(await census(join(outer, "packages/op/dist")), opEmitted, "Built op declarations changed after capture");
+      assert.deepEqual(await census(join(outer, "node_modules")), opTools, "Op runtime inputs changed after capture");
+      for (const dependency of opDependencyInputs) assert.deepEqual(await census(dependency.source), dependency.hashes, "Op dependency changed after capture");
       assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Captured source was changed after build");
       assert.equal(await readFile(manifestPath, "utf8"), manifestBytes, "Public source manifest changed after capture");
       assertPeerArtifact(peerBinding, snapshot);

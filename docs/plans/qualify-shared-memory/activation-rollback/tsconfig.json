@@ -1,0 +1,6 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../../../packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts"],
+  "exclude": []
+}

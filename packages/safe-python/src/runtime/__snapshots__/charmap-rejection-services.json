@@ -1,0 +1,41 @@
+{
+  "source": "import codecs\ninput()\nmapping = codecs.charmap_build('\\0A')\nfor operation in [lambda: codecs.charmap_build(), lambda: codecs.charmap_build('a', 'b'), lambda: codecs.charmap_build(map='a'), lambda: codecs.charmap_build(''), lambda: codecs.charmap_build(None), lambda: mapping.size(None), lambda: mapping.size(unused=None)]:\n    try:\n        operation()\n    except Exception as error:\n        print(type(error).__name__, error.args, error.__cause__, error.__context__, error.__traceback__ is not None)\nprint(type(mapping).__name__, mapping.size(), codecs.charmap_encode('\\0A', 'strict', mapping))\nfor table in ['abc', '\\0AA', '\\0\\ufffeA', '\\0\\U0001f600', 'A' * 257]:\n    encoder = codecs.charmap_build(table)\n    print(type(encoder).__name__)\n    for text in ['A', '\\0', '\\U0001f600']:\n        try:\n            print(codecs.charmap_encode(text, 'strict', encoder))\n        except UnicodeEncodeError as error:\n            print(error.encoding, error.object, error.start, error.end, error.reason)\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracle": {
+    "status": 0,
+    "stdout": "TypeError ('_codecs.charmap_build() takes exactly one argument (0 given)',) None None True\nTypeError ('_codecs.charmap_build() takes exactly one argument (2 given)',) None None True\nTypeError ('_codecs.charmap_build() takes no keyword arguments',) None None True\nTypeError ('bad argument type for built-in operation',) None None True\nTypeError ('charmap_build() argument must be str, not None',) None None True\nTypeError ('EncodingMap.size() takes no arguments (1 given)',) None None True\nTypeError ('EncodingMap.size() takes no keyword arguments',) None None True\nEncodingMap 207 (b'\\x00\\x01', 2)\ndict\ncharmap A 0 1 character maps to <undefined>\ncharmap \u0000 0 1 character maps to <undefined>\ncharmap 😀 0 1 character maps to <undefined>\nEncodingMap\n(b'\\x02', 1)\n(b'\\x00', 1)\ncharmap 😀 0 1 character maps to <undefined>\nEncodingMap\n(b'\\x02', 1)\n(b'\\x00', 1)\ncharmap 😀 0 1 character maps to <undefined>\ndict\ncharmap A 0 1 character maps to <undefined>\n(b'\\x00', 1)\n(b'\\x01', 1)\ndict\n(b'\\xff', 1)\ncharmap \u0000 0 1 character maps to <undefined>\ncharmap 😀 0 1 character maps to <undefined>\n",
+    "stderr": ""
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "reads": 1,
+      "status": "ok",
+      "stdout": "TypeError ('_codecs.charmap_build() takes exactly one argument (0 given)',) None None False\nTypeError ('_codecs.charmap_build() takes exactly one argument (2 given)',) None None False\nTypeError ('_codecs.charmap_build() takes no keyword arguments',) None None False\nTypeError ('bad argument type for built-in operation',) None None False\nTypeError ('charmap_build() argument must be str, not None',) None None False\nTypeError ('EncodingMap.size() takes no arguments (1 given)',) None None False\nTypeError ('EncodingMap.size() takes no keyword arguments',) None None False\nEncodingMap 207 (b'\\x00\\x01', 2)\ndict\ncharmap A 0 1 character maps to <undefined>\ncharmap \u0000 0 1 character maps to <undefined>\ncharmap 😀 0 1 character maps to <undefined>\nEncodingMap\n(b'\\x02', 1)\n(b'\\x00', 1)\ncharmap 😀 0 1 character maps to <undefined>\nEncodingMap\n(b'\\x02', 1)\n(b'\\x00', 1)\ncharmap 😀 0 1 character maps to <undefined>\ndict\ncharmap A 0 1 character maps to <undefined>\n(b'\\x00', 1)\n(b'\\x01', 1)\ndict\n(b'\\xff', 1)\ncharmap \u0000 0 1 character maps to <undefined>\ncharmap 😀 0 1 character maps to <undefined>\n",
+      "exactMatch": false
+    },
+    {
+      "mode": "cancel-return",
+      "reads": 1,
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "terminalExecIdentity": true,
+      "terminalEvalIdentity": true
+    },
+    {
+      "mode": "cancel-throw",
+      "reads": 1,
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "terminalExecIdentity": true,
+      "terminalEvalIdentity": true
+    }
+  ]
+}

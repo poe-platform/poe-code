@@ -2407,6 +2407,13 @@ describe("spawn command", () => {
     });
   });
 
+  it("can disable full session capture through the CLI and SDK", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({ fs, prompts: vi.fn().mockResolvedValue({}), env: { cwd, homeDir }, commandRunner: runner, logger: () => {} });
+    await program.parseAsync(["node", "cli", "spawn", "--no-capture-session", "codex", "hello"]);
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ prompt: "hello", captureSession: false }));
+  });
+
   it("rejects activity timeout values with trailing suffixes", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

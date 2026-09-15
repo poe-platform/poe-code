@@ -1,3 +1,4 @@
+import { format } from "node:util";
 import { Budget, lint, run, type Diagnostic } from "@poe-code/safe-js/core";
 import { defineCommand, type Group, type Scope, UserError } from "toolcraft";
 import { S } from "toolcraft-schema";
@@ -176,7 +177,7 @@ export function makeExecuteCommand({
     description: "Execute SafeJS source against the available host commands.",
     scope,
     params: executeParams,
-    handler: async ({ params }): Promise<ExecuteResult> => {
+    handler: async ({ params, diagnostics: runtimeDiagnostics }): Promise<ExecuteResult> => {
       if (params.source.trim().length === 0) {
         throw new UserError("source must not be empty or whitespace");
       }
@@ -210,7 +211,18 @@ export function makeExecuteCommand({
         const result = await run(params.source, {
           modules,
           budget: createBudget(budget),
-          ...(sink ? { sink } : {})
+          sink: sink ?? {
+            log: (...args) => runtimeDiagnostics.emit({
+              level: "info",
+              category: "runtime",
+              message: format(...args)
+            }),
+            error: (...args) => runtimeDiagnostics.emit({
+              level: "error",
+              category: "runtime",
+              message: format(...args)
+            })
+          }
         });
 
         if (result.ok) {

@@ -118,3 +118,22 @@ it("shares the test's work allowance across child realms", async () => {
       .toMatchObject({ status: "host-error", error: { code: "budgetExceeded", budget: "steps" } });
   } finally { await realm.dispose(); }
 });
+
+it("detaches only guest ArrayBuffers and rejects other objects without coercion", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate(`const buffer=new ArrayBuffer(4);const view=new Uint8Array(buffer);
+      const result=$262.detachArrayBuffer(buffer);$262.detachArrayBuffer(buffer);
+      let wrong=false;try{$262.detachArrayBuffer({valueOf(){throw 42}})}catch(error){wrong=error instanceof TypeError}
+      [buffer.byteLength,view.length,result,wrong]`))
+      .toMatchObject({ status: "normal", value: [0, 0, undefined, true] });
+  } finally { await realm.dispose(); }
+});
+
+it("exposes unavailable garbage collection as an explicit throwing host helper", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate('let threw=false;try{$262.gc()}catch(error){threw=true};[typeof $262.gc,threw]'))
+      .toMatchObject({ status: "normal", value: ["function", true] });
+  } finally { await realm.dispose(); }
+});

@@ -1,0 +1,50 @@
+{
+  "sourceSha": "5d773e11d14f769972bb0a3beadb952aff2cc8bd",
+  "sourceHash": "656b9c91f130d20e173376ed68f605908cb92d2bfcc5b78b2dd6ef1fc1e134cb",
+  "manifestId": "c5368cf56a94e4e63386ca19b7ed1b58cb4b0fc983044422cb6f42264651c91d",
+  "reportSha256": "e4cc85c728c0d6cb4cc3eff13bbea12c41feb619bd6fd6952d6a8f4c6d1ba722",
+  "counts": {
+    "files": 5,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 9,
+    "passed": 6,
+    "failed": 0,
+    "unsupported": 3
+  },
+  "variants": [
+    "built-ins/Array/of/length.js#sloppy",
+    "built-ins/Array/of/length.js#strict",
+    "built-ins/Atomics/wait/cannot-suspend-throws.js#sloppy",
+    "built-ins/Atomics/wait/cannot-suspend-throws.js#strict",
+    "built-ins/Math/f16round/not-a-constructor.js#sloppy",
+    "built-ins/Math/f16round/not-a-constructor.js#strict",
+    "built-ins/Temporal/PlainDate/calendar-undefined.js#sloppy",
+    "built-ins/Temporal/PlainDate/calendar-undefined.js#strict",
+    "language/module-code/early-dup-export-dflt.js#module"
+  ],
+  "complete": true,
+  "duplicates": 0,
+  "missing": 0,
+  "nonpasses": [
+    {
+      "filename": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "language/module-code/early-dup-export-dflt.js",
+      "mode": "module",
+      "status": "unsupported",
+      "reason": "module"
+    }
+  ]
+}

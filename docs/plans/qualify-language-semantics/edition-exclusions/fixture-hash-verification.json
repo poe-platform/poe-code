@@ -1,0 +1,47 @@
+[
+  {
+    "id": "language/statements/class/elements/private-class-field-on-nonextensible-objects.js#strict",
+    "hash": "c0bc302c4567735414ab7b0a2aa5dfc119fd60162dcf751a56b9ef5ab4e97071",
+    "matches": true
+  },
+  {
+    "id": "language/statements/class/subclass/private-class-field-on-nonextensible-return-override.js#strict",
+    "hash": "d4b35df3aefd6ac46617714d48ec063b0002676783f8a697a8f202c785676b84",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression-as-for-in-lhs.js#sloppy",
+    "hash": "3d0cef1781caaad11de14bf4e6b89eec6d2eda7661c94987e0597b20e19c996b",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression-as-for-of-lhs.js#sloppy",
+    "hash": "02e812e0db5a61f582e64e237f6e41e64f95bb0365322055b6bc0f398f29763f",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression-in-compound-assignment.js#sloppy",
+    "hash": "659947683f9ae9af80e4be938c1b4ee9be6e14078ab5df8e4a64eba0b6a592cf",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression-in-postfix-update.js#sloppy",
+    "hash": "400f421376861d41f5e7999c94776fa25b9a9ffadb1187e2dd0d1e6103e83ac2",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression-in-prefix-update.js#sloppy",
+    "hash": "c0dc7733eaa4afdad6ac5f78d1a479e94e8cda9235e329ac6f44d66c8e78fd03",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/callexpression.js#sloppy",
+    "hash": "0224a2f184ad0a3625ad7f853cb32b60b9c35365898e242a65096934752ee966",
+    "matches": true
+  },
+  {
+    "id": "annexB/language/expressions/assignmenttargettype/cover-callexpression-and-asyncarrowhead.js#sloppy",
+    "hash": "578275d7d48dfb962a9150930ae16fc1d1ee3fd4ceb5134194e60c80717162d1",
+    "matches": true
+  }
+]

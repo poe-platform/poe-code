@@ -1,0 +1,10 @@
+{
+  "source": "independent-mismatch-inventory.json",
+  "sourceBytes": 11968618,
+  "sourceSha256": "1e981f7b8e1a4a27f8738c1a3bc7bc7cc5c82b70d48fbf11f3292f7901cdfc1c",
+  "archive": "independent-mismatch-inventory.json.gz",
+  "archiveBytes": 697552,
+  "archiveSha256": "1f1210d578b279b0ece27b742610b5e50c40b567d1f8228e873cec5b79aa1d43",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "roundtripVerified": true
+}

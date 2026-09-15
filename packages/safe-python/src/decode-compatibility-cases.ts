@@ -1,0 +1,23 @@
+export const decodeCases=[
+  "assert b'hello'.decode() == 'hello'",
+  "assert b'\\xc3\\xa9'.decode() == 'é'",
+  "assert b'\\xff'.decode('latin-1') == 'ÿ'",
+  "assert b'\\xef\\xbb\\xbfA'.decode('utf-8-sig') == 'A'",
+  "assert b''.decode('missing', 'missing') == ''",
+  "assert b'A'.decode(errors='missing') == 'A'",
+  ...[["ignore","A"],["replace","�A"],["backslashreplace","\\\\xffA"],["surrogateescape","\\udcffA"]].map(([errors,result])=>`assert b'\\xffA'.decode('ascii', '${errors}') == '${result}'`),
+  ...[
+    ["None", "TypeError", "decode() argument 'encoding' must be str, not None"],
+    ["errors=None", "TypeError", "decode() argument 'errors' must be str, not None"],
+    ["encodin='ascii'", "TypeError", "decode() got an unexpected keyword argument 'encodin'. Did you mean 'encoding'?"],
+    ["'ascii', encoding='utf8'", "TypeError", "argument for decode() given by name ('encoding') and position (1)"],
+    ["'ascii', 'strict', 'x'", "TypeError", "decode() takes at most 2 arguments (3 given)"],
+    ["encoding='ascii', errors='strict', x=1", "TypeError", "decode() takes at most 2 keyword arguments (3 given)"],
+    ["'utf\\0x'", "ValueError", "embedded null character"],
+    ["errors='x\\0y'", "ValueError", "embedded null character"],
+  ].map(([args,type,message])=>`try:\n b''.decode(${args})\nexcept ${type} as e:\n assert e.args == (${JSON.stringify(message)},)\nelse:\n assert False`),
+  `name='x\\ud800'\ntry:\n b''.decode(name)\nexcept UnicodeEncodeError as e:\n assert e.object is name\n assert (e.encoding,e.start,e.end,e.reason)==('utf-8',1,2,'surrogates not allowed')\nelse:\n assert False`,
+  `class Text(str):\n def __str__(self):\n  raise AssertionError('str override')\n def __len__(self):\n  raise AssertionError('len override')\nassert b'\\xff'.decode(Text('latin1'), Text('strict')) == 'ÿ'`,
+  `try:\n b'\\xffA'.decode('ascii')\nexcept UnicodeDecodeError as e:\n assert (e.encoding,e.object,e.start,e.end,e.reason)==('ascii',b'\\xffA',0,1,'ordinal not in range(128)')\n assert e.args==('ascii',b'\\xffA',0,1,'ordinal not in range(128)')\n assert e.__cause__ is None\n assert e.__context__ is None\nelse:\n assert False`,
+  `try:\n b'A'.decode('missing')\nexcept LookupError as e:\n assert e.args==('unknown encoding: missing',)\nelse:\n assert False`,
+];

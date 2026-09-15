@@ -1,0 +1,61 @@
+{
+  "verifiedUtc": "2026-09-12T13:46:26.284056+00:00",
+  "pushCommand": "git push origin HEAD:main",
+  "pushExitCode": 0,
+  "remoteBefore": "d72160a500ef9ac63961eb8af264272a39ec96f9",
+  "remoteMain": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+  "lsRemoteMatches": true,
+  "commits": [
+    {
+      "localSha": "0b8daebe00b79581a165da2a0194ecce0274a4ac",
+      "ancestorOfFetchedRemoteMain": true
+    },
+    {
+      "localSha": "deb76d07eb468678ed4e292ae561d99cd76d9b6b",
+      "ancestorOfFetchedRemoteMain": true
+    },
+    {
+      "localSha": "5f6446c4415a9320f53c9db611cd641886447e41",
+      "ancestorOfFetchedRemoteMain": true
+    },
+    {
+      "localSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+      "ancestorOfFetchedRemoteMain": true
+    },
+    {
+      "localSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+      "ancestorOfFetchedRemoteMain": true
+    }
+  ],
+  "workflowObservations": [
+    {
+      "conclusion": "",
+      "databaseId": 34697326847,
+      "headSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+      "name": "Publish Schemas to GitHub Pages",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34697326847"
+    },
+    {
+      "conclusion": "",
+      "databaseId": 34697326933,
+      "headSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+      "name": "Release",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34697326933"
+    },
+    {
+      "conclusion": "",
+      "databaseId": 34697326857,
+      "headSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+      "name": "Release scoped safe packages",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34697326857"
+    }
+  ],
+  "publicationComplete": false,
+  "fullCurrentCorpusComplete": false,
+  "associatedIssue": null,
+  "normalHooks": true,
+  "notes": "Normal Git push, no --no-verify or force. Frozen corpus checkout remains at a4476e3fa. All workflow/publication and corpus acceptance claims remain pending."
+}

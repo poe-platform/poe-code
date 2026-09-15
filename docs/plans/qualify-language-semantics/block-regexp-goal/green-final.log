@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/parse/template-regex-boundaries.test.ts (13 tests) 327ms
+ ✓ packages/safe-js/src/parse/block-regexp-goal.test.ts (19 tests) 832ms
+ ✓ packages/safe-js/src/parse/tokenizer.test.ts (25 tests) 14ms
+ ✓ packages/safe-js/src/parse/lexical-regexp-qualification.test.ts (22 tests) 75ms
+
+ Test Files  4 passed (4)
+      Tests  79 passed (79)
+   Start at  11:46:54
+   Duration  2.72s (transform 2.73s, setup 78ms, import 3.87s, tests 1.25s, environment 0ms)
+

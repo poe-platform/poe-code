@@ -553,6 +553,8 @@ function getPromisePrototype(budget: Budget): SandboxObject {
             ? (["fulfilled", "rejected"] as const).map((state) =>
                 createSandboxClosure({
                   sandbox: true,
+                  name: "",
+                  length: 1,
                   retainedValues: () => [onFinally, constructor],
                   call: async ([value]) => {
                     const result = await callPromiseClosure(

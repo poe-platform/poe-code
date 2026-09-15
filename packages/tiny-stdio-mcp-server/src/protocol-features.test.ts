@@ -199,6 +199,34 @@ describe("prompts and resources protocol conformance", () => {
     );
   });
 
+  describe.each([false, true])("result metadata with output schema: %s", (typed) => {
+    describe.each([false, true])("error result: %s", (isError) => {
+      it.each([false, true])("preserves metadata with empty text content: %s", async (empty) => {
+        const envelope = {
+          content: empty ? [] : [{ type: "text" as const, text: "upstream text" }],
+          structuredContent: { temperature: 22 },
+          isError,
+          _meta: { trace: "request-one", pagination: { cursor: "next" } }
+        };
+        const original = structuredClone(envelope);
+        const handler = vi.fn(() => envelope);
+        const server = createServer({ name: "metadata", version: "1" }).registerTool({
+          name: "weather", description: "Weather", inputSchema: defineSchema({}),
+          ...(typed ? { outputSchema: defineSchema({ temperature: { type: "number" } }) } : {})
+        }, handler);
+        await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+        const response = await server.handleMessage("tools/call", { name: "weather", arguments: {} });
+        expect(response.error).toBeUndefined();
+        expect(response.result).toStrictEqual({
+          ...original,
+          content: typed && !isError && empty ? [{ type: "text", text: JSON.stringify(original.structuredContent) }] : original.content
+        });
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(envelope).toStrictEqual(original);
+      });
+    });
+  });
+
   it("returns declarative rich tool descriptors and validated structured content", async () => {
     const server = createServer({
       name: "rich-tools",
@@ -353,17 +381,17 @@ describe("prompts and resources protocol conformance", () => {
     });
   });
 
-  it("rejects non-object output schemas at registration time", () => {
+  it("rejects output schema documents that are not JSON objects at registration time", () => {
     expect(() =>
       createServer({ name: "bad-schema", version: "1.0.0" }).registerTool(
         {
           name: "bad",
           inputSchema: defineSchema({}),
-          outputSchema: { type: "array" } as never,
+          outputSchema: true as never,
         },
         () => [],
       ),
-    ).toThrow('outputSchema root type must be "object"');
+    ).toThrow("outputSchema must be a JSON Schema object");
   });
 
   it("registers and validates spec-legal union, enum, nullable, and referenced schemas", async () => {
@@ -419,6 +447,23 @@ describe("prompts and resources protocol conformance", () => {
         arguments: { value: false, label: "other", note: null },
       }),
     ).resolves.toMatchObject({ error: { code: -32602 } });
+  });
+
+  it.each(["tool", "registerTool"] as const)("%s advertises standard nullable schemas and accepts null inputs and outputs", async (registration) => {
+    const inputSchema = { type: "object" as const, properties: { note: { type: "string" as const, nullable: true, description: "Optional note" } }, required: ["note"] };
+    const outputSchema = { type: "string" as const, nullable: true, description: "Returned note" };
+    const server = createServer({ name: "nullable-contract", version: "1" });
+    if (registration === "tool") server.tool("note", "Echo note", inputSchema, ({ note }) => note, outputSchema);
+    else server.registerTool({ name: "note", inputSchema, outputSchema }, ({ note }) => note);
+    const metadata = { _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } };
+    await expect(server.handleMessage("tools/list", metadata)).resolves.toMatchObject({ result: { tools: [{
+      inputSchema: { type: "object", properties: { note: { description: "Optional note", anyOf: [{ type: "string" }, { type: "null" }] } } },
+      outputSchema: { description: "Returned note", anyOf: [{ type: "string" }, { type: "null" }] }
+    }] } });
+    await expect(server.handleMessage("tools/call", { ...metadata, name: "note", arguments: { note: null } })).resolves.toMatchObject({ result: { structuredContent: null } });
+    await expect(server.handleMessage("tools/call", { ...metadata, name: "note", arguments: { note: 1 } })).resolves.toMatchObject({ error: { code: -32602 } });
+    expect(inputSchema.properties.note.nullable).toBe(true);
+    expect(outputSchema.nullable).toBe(true);
   });
 
   it("registers and validates composed and conditional schemas", async () => {
@@ -941,7 +986,7 @@ describe("prompts and resources protocol conformance", () => {
     ).resolves.toMatchObject({ result: {} });
   });
 
-  it("rejects out-of-spec prompt and resource results", async () => {
+  it("rejects unsupported 2025-03-26 prompt links and malformed resource results", async () => {
     const server = createServer({ name: "invalid-results", version: "1.0.0" })
       .prompt({ name: "link" }, () => ({
         messages: [
@@ -958,7 +1003,7 @@ describe("prompts and resources protocol conformance", () => {
       .resource({ uri: "memory://bad", name: "bad" }, () => ({
         contents: [{ uri: "not a uri", text: "bad" }],
       }));
-    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+    await server.handleMessage("initialize", { protocolVersion: "2025-03-26" });
 
     await expect(
       server.handleMessage("prompts/get", { name: "link" }),

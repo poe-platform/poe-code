@@ -49,6 +49,7 @@ export class PluginApiImpl implements PluginApi {
   }
 
   async #setupMcp(config: McpServerConfig): Promise<void> {
+    assertNotAborted(this.#runContext.abortController.signal);
     const transport = new StdioTransport({
       command: config.command,
       args: config.args,
@@ -68,15 +69,19 @@ export class PluginApiImpl implements PluginApi {
     this.#runContext.registerDisposeHook(async () => {
       await client.close?.();
     });
-    assertNotAborted(this.#runContext.abortController.signal);
-    await client.connect(transport);
+    const options = { signal: this.#runContext.abortController.signal };
+    await client.connect(transport, options);
 
     let cursor: string | undefined;
+    const seenCursors = new Set<string>();
+    let pages = 0;
 
     while (true) {
       assertNotAborted(this.#runContext.abortController.signal);
       const page =
-        cursor === undefined ? await client.listTools() : await client.listTools({ cursor });
+        await client.listTools(cursor === undefined ? undefined : { cursor }, options);
+
+      pages++;
 
       for (const tool of page.tools) {
         this.addTool(this.#toRuntimeTool(config, tool, client));
@@ -86,6 +91,13 @@ export class PluginApiImpl implements PluginApi {
         return;
       }
 
+      if (seenCursors.has(page.nextCursor)) {
+        throw new Error(`MCP server "${config.name}" returned a repeated pagination cursor.`);
+      }
+      if (pages >= 128) {
+        throw new Error(`MCP server "${config.name}" exceeded the tool pagination limit (128 pages).`);
+      }
+      seenCursors.add(page.nextCursor);
       cursor = page.nextCursor;
     }
   }
@@ -175,6 +187,8 @@ function contentItemToToolResultPart(item: ContentItem): ToolResultPart {
         type: "text",
         text: resourceToString(item.resource)
       };
+    case "resource_link":
+      return { type: "text", text: `${item.title ?? item.name}: ${item.uri}` };
   }
 }
 

@@ -2,16 +2,30 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import { readFile } from "node:fs/promises";
-import { Volume } from "memfs";
+import { createFsFromVolume, Volume } from "memfs";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
+import { publishBundleOutputs } from "./publish-bundle.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Build and rewrite once per test-file run; consumer builds and VMs stay separate.
 let portableBuild: BuildResult;
 const artifacts = new Volume();
+
+it("publishes the op entry and live compression chunks in one browser output graph", async () => {
+  const options = resolveBrowserShellBuild(root);
+  const volume = Volume.fromJSON({ [path.join(options.outdir, "chunks/stale.js")]: "old" });
+  await publishBundleOutputs(portableBuild, {
+    outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: root,
+  }, createFsFromVolume(volume).promises);
+  expect(volume.existsSync(path.join(options.outdir, "commands/op/index.browser.js"))).toBe(true);
+  expect(volume.existsSync(path.join(options.outdir, "chunks/stale.js"))).toBe(false);
+  const imports = Object.values(portableBuild.metafile!.outputs).flatMap(output => output.imports).filter(item => !item.external);
+  expect(imports.some(item => path.basename(item.path).startsWith("zstd-"))).toBe(true);
+  for (const item of imports) expect(volume.existsSync(path.resolve(root, item.path)), item.path).toBe(true);
+});
 
 it("exposes the complete default shell under browser conditions without Node builtins", async () => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
@@ -205,6 +219,16 @@ it("runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump 
   expect(Array.from(entry.createCommandArguments(bytesFromBrowser.values).bytes(0))).toEqual([255, 0]);
 });
 
+it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {
+  const result = await build(resolveBrowserOpBuild(root));
+  expect(result.outputFiles!.some(output => output.path.endsWith("/commands/op/index.browser.js"))).toBe(true);
+  const inputs = Object.keys(result.metafile!.inputs);
+  expect(inputs).toContain("packages/op/src/crypto-browser.ts");
+  expect(inputs.some(input => input.endsWith("crypto-node.ts") || input.endsWith("node-host.ts"))).toBe(false);
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
+});
+
 it("builds the portable shell without Node workers, adapters, or duplicate filesystem identity", async () => {
   const result = portableBuild;
   const outputs = result.metafile!.outputs;
@@ -234,6 +258,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
     "commands/python/index.browser": path.join(root, "packages/safe-bash/src/commands/python/index.ts"),
     "commands/python/worker.browser": path.join(root, "packages/safe-bash/src/commands/python/worker.ts"),
+    "commands/op/index.browser": path.join(root, "packages/safe-bash/src/commands/op/index.ts"),
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
@@ -449,7 +474,7 @@ it("cancels active custom commands and disposes the shell", async () => {
   const shell = new browser.Shell({ fs: new filesystem.MemoryFileSystem() }).use({
     name: "wait-for-cancellation",
     setup(host) {
-      host.commands.register({ name: "wait", execute(context) {
+      host.commands.register({ name: "wait-for-cancellation", execute(context) {
         return new Promise((_resolve, reject) => {
           context.signal.addEventListener("abort", () => reject(context.signal.reason), { once: true });
           start();
@@ -458,7 +483,7 @@ it("cancels active custom commands and disposes the shell", async () => {
     },
   });
   const stopped = new Error("stop browser execution");
-  const running = shell.exec("wait", { signal: controller.signal });
+  const running = shell.exec("wait-for-cancellation", { signal: controller.signal });
   const rejected = expect(running).rejects.toBe(stopped);
   await started;
   controller.abort(stopped);

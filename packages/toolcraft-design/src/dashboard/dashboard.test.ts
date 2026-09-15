@@ -1,5 +1,5 @@
 import { PassThrough } from "node:stream";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
@@ -25,6 +25,64 @@ import type { DashboardStats, OutputItem, Rect } from "./types.js";
 function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
 }
+
+it.each(["put", "putInRect"] as const)("keeps terminal controls out of plain screen cells written with %s", (method) => {
+  const buffer = new ScreenBuffer(40, 2);
+  const text = "left\u001b[2Jright\u001bP HIDDEN_PAYLOAD\u001b\\ok\n";
+  if (method === "put") buffer.put(0, 0, text);
+  else buffer.putInRect({ x: 0, y: 0, width: 40, height: 1 }, 0, text);
+  expect(readRow(buffer, 0).trim()).toBe("leftrightok");
+  expect(readRow(buffer, 1).trim()).toBe("");
+});
+
+it.each(["put", "putInRect"] as const)("preserves parsed styles in screen cells written with %s", (method) => {
+  const buffer = new ScreenBuffer(20, 1);
+  const text = "\u001b[31mred\u001b[0m plain";
+  if (method === "put") buffer.put(0, 0, text, { bold: true });
+  else buffer.putInRect({ x: 0, y: 0, width: 20, height: 1 }, 0, text, { bold: true });
+  expect(readRow(buffer, 0).trim()).toBe("red plain");
+  expect(buffer.get(0, 0).style).toMatchObject({ fg: "red", bold: true });
+  expect(buffer.get(4, 0).style).toMatchObject({ bold: true });
+  expect(buffer.get(4, 0).style.fg).toBeUndefined();
+});
+
+it("removes terminal strings before clipping a border title", () => {
+  const layout = computeDashboardLayout({ totalWidth: 80, totalHeight: 24, rightPaneWidth: 24 });
+  const buffer = new ScreenBuffer(80, 24);
+  renderBorder(buffer, layout, {
+    leftTitle: "Pipeline\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007 ready",
+    rightTitle: "Run",
+    style: {}
+  });
+  const top = readRow(buffer, 0);
+  expect(top).toContain("Pipeline ready");
+  expect(top).not.toContain("HIDDEN_");
+  expect(top.endsWith("┐")).toBe(true);
+});
+
+it.each(["界界", "👩‍💻", "é", "界".repeat(100)])("aligns border junctions for Unicode title %s", (title) => {
+  const layout = computeDashboardLayout({ totalWidth: 80, totalHeight: 24, rightPaneWidth: 24 });
+  const buffer = new ScreenBuffer(80, 24);
+  renderBorder(buffer, layout, { leftTitle: title, rightTitle: title, style: {} });
+  expect(buffer.get(0, 0).ch).toBe("┌");
+  expect(buffer.get(layout.divider.x, 0).ch).toBe("┬");
+  expect(buffer.get(79, 0).ch).toBe("┐");
+});
+
+it("fits footer hints using their visible text", () => {
+  const buffer = new ScreenBuffer(20, 1);
+  renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+    { key: "q", label: "\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007Quit" }
+  ]);
+  expect(readRow(buffer, 0).trim()).toBe("q Quit");
+});
+
+it("fits metrics using the visible iteration label", () => {
+  const lines = statsToLines({ status: "running", iterations: 1, tokensIn: 0, tokensOut: 0, elapsedMs: 0,
+    iterationsLabel: "\u009d" + "HIDDEN_".repeat(100) + "\u009cTasks" }, 20);
+  expect(lines[1]!.prefix + lines[1]!.text).toContain("Tasks");
+  expect(lines[1]!.prefix + lines[1]!.text).not.toContain("HIDDEN_");
+});
 
 function stripTerminalControl(value: string): string {
   return value.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
@@ -352,12 +410,12 @@ describe("computeDashboardLayout", () => {
     });
   });
 
-  it("keeps the left pane at a minimum width of 20 columns when space is tight", () => {
+  it("uses full-width logs with compact stats when space is tight", () => {
     const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 24 });
 
-    expect(layout.leftPane).toEqual({ x: 1, y: 1, width: 20, height: 20 });
-    expect(layout.divider).toEqual({ x: 21, top: 1, bottom: 20 });
-    expect(layout.rightPane).toEqual({ x: 22, y: 1, width: 17, height: 20 });
+    expect(layout.leftPane).toEqual({ x: 1, y: 3, width: 38, height: 18 });
+    expect(layout.divider).toEqual({ x: 39, top: 1, bottom: 1 });
+    expect(layout.rightPane).toEqual({ x: 39, y: 1, width: 0, height: 0 });
   });
 
   it("accounts for borders, divider, and footer when calculating heights", () => {
@@ -402,11 +460,11 @@ describe("renderBorder", () => {
 
     renderBorder(buffer, layout, { style: { fg: "cyan" } });
 
-    expect(readRow(buffer, 0)).toBe("┌────────────────────┬───────┐");
-    expect(readRow(buffer, 5)).toBe("├────────────────────┴───────┤");
+    expect(readRow(buffer, 0)).toBe("┌────────────────────────────┐");
+    expect(readRow(buffer, 5)).toBe("├────────────────────────────┤");
     expect(readRow(buffer, 7)).toBe("└────────────────────────────┘");
     expect(buffer.get(0, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
-    expect(buffer.get(21, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
+    expect(buffer.get(21, 1)).toEqual({ ch: " ", style: {} });
     expect(buffer.get(29, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
     expect(buffer.get(21, 6)).toEqual({ ch: " ", style: {} });
   });
@@ -421,7 +479,7 @@ describe("renderBorder", () => {
       style: { fg: "green", bold: true }
     });
 
-    expect(readRow(buffer, 0)).toBe("┌─ Agent Output ─────┬─ Stats ─────────┐");
+    expect(readRow(buffer, 0)).toBe("┌─ Agent Output ───────────────────────┐");
     expect(buffer.get(1, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
     expect(buffer.get(3, 0)).toEqual({ ch: "A", style: { fg: "green", bold: true } });
     expect(buffer.get(22, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
@@ -450,12 +508,12 @@ describe("renderBorder", () => {
     const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 8 });
 
     renderBorder(buffer, layout, {
-      leftTitle: "ABCDEFGHIJKLMNOPQRSTUVWX",
+      leftTitle: "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ",
       rightTitle: "12345678901234567890",
       style: { fg: "yellow" }
     });
 
-    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQR┬─ 123456789012345┐");
+    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHI…┐");
   });
 
   it("preserves top and bottom junctions when the divider touches the outer frame", () => {
@@ -499,6 +557,16 @@ describe("renderBorder", () => {
 });
 
 describe("output pane", () => {
+  it.each(["\u007f", "\u0000", "\u009b2J", "\u009dHIDDEN_OSC\u009c"])(
+    "filters terminal controls in unstyled output %j", (control) => {
+      const buffer = new ScreenBuffer(20, 1);
+      renderOutputPane(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+        { kind: "tool", text: `left${control}right`, ts: 0 }
+      ]);
+      expect(readRow(buffer, 0).trimEnd()).toBe("│  leftright");
+    }
+  );
+
   const previousPoeCodeTheme = process.env.POE_CODE_THEME;
   const previousPoeTheme = process.env.POE_THEME;
 
@@ -1146,7 +1214,7 @@ describe("stats pane", () => {
           currentAction: ""
         },
         0
-      )
+      ).slice(0, 9)
     ).toEqual([]);
 
     expect(
@@ -1177,7 +1245,7 @@ describe("stats pane", () => {
           currentAction: "generating patch"
         },
         3
-      )
+      ).slice(0, 9)
     ).toEqual([
       { prefix: "", prefixStyle: {}, style: { fg: "magenta" }, text: "Run" },
       { prefix: " ", prefixStyle: {}, style: {}, text: "14" },
@@ -1187,13 +1255,7 @@ describe("stats pane", () => {
       { prefix: "", prefixStyle: {}, style: {}, text: "5,9" },
       { prefix: "", prefixStyle: {}, style: {}, text: "18," },
       { prefix: "", prefixStyle: {}, style: {}, text: "" },
-      { prefix: "Cur", prefixStyle: {}, style: {}, text: "" },
-      {
-        prefix: "  ",
-        prefixStyle: { dim: true },
-        style: { dim: true },
-        text: "g"
-      }
+      { prefix: "Cur", prefixStyle: {}, style: {}, text: "" }
     ]);
   });
 
@@ -1284,12 +1346,30 @@ describe("footer", () => {
     expect(readRow(buffer, 2)).toBe("                    ");
   });
 
-  it("truncates overflowing hints with an ellipsis", () => {
+  it("keeps only complete hints when the footer overflows", () => {
     const buffer = new ScreenBuffer(12, 1);
 
     renderFooter(buffer, { x: 0, y: 0, width: 12, height: 1 }, defaultHints());
 
-    expect(readRow(buffer, 0)).toBe("q Quit  e...");
+    expect(readRow(buffer, 0)).toBe("   q Quit   ");
+  });
+
+
+  it("preserves the quit label at eight cells and the key at three cells", () => {
+    for (const [width, expected] of [[8, " q Quit "], [3, " q "]] as const) {
+      const buffer = new ScreenBuffer(width, 1);
+      renderFooter(buffer, { x: 0, y: 0, width, height: 1 }, defaultHints());
+      expect(readRow(buffer, 0)).toBe(expected);
+    }
+  });
+
+  it("centers wide grapheme hints without overwriting their continuation cells", () => {
+    const buffer = new ScreenBuffer(10, 1);
+    renderFooter(buffer, { x: 0, y: 0, width: 10, height: 1 }, [{ key: "👩‍💻", label: "Go" }]);
+    expect(buffer.get(2, 0).ch).toBe("👩‍💻");
+    expect(buffer.get(3, 0).ch).toBe("");
+    expect(buffer.get(5, 0).ch).toBe("G");
+    expect(buffer.get(6, 0).ch).toBe("o");
   });
 
   it("styles keys with the accent color in bold", () => {
@@ -1332,21 +1412,21 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "r" }))).toBe("retry");
   });
 
-  it("does not resolve former scroll keys to any command", () => {
+  it("resolves scroll and follow keys while leaving unbound keys alone", () => {
     const resolve = createKeymap();
 
-    expect(resolve(key({ name: "up" }))).toBeUndefined();
-    expect(resolve(key({ name: "down" }))).toBeUndefined();
-    expect(resolve(key({ name: "pageup" }))).toBeUndefined();
-    expect(resolve(key({ name: "pagedown" }))).toBeUndefined();
+    expect(resolve(key({ name: "up" }))).toBe("scroll-up");
+    expect(resolve(key({ name: "down" }))).toBe("scroll-down");
+    expect(resolve(key({ name: "pageup" }))).toBe("page-up");
+    expect(resolve(key({ name: "pagedown" }))).toBe("page-down");
     expect(resolve(key({ name: "home" }))).toBeUndefined();
-    expect(resolve(key({ name: "end" }))).toBeUndefined();
+    expect(resolve(key({ name: "end" }))).toBe("follow");
     expect(resolve(key({ ch: "j" }))).toBeUndefined();
     expect(resolve(key({ ch: "k" }))).toBeUndefined();
     expect(resolve(key({ ch: "g" }))).toBeUndefined();
     expect(resolve(key({ ch: "G", shift: true }))).toBeUndefined();
-    expect(resolve(key({ ch: "f" }))).toBeUndefined();
-    expect(resolve(key({ ch: "F", shift: true }))).toBeUndefined();
+    expect(resolve(key({ ch: "f" }))).toBe("follow");
+    expect(resolve(key({ ch: "F", shift: true }))).toBe("follow");
   });
 
   it("resolves ctrl+c to forceQuit so consumers can distinguish immediate kill from graceful quit", () => {
@@ -1454,7 +1534,39 @@ describe("createDashboard", () => {
     });
   });
 
-  it("ignores former scroll keys because navigation is disabled", () => {
+  it("scrolls history, holds it during new output, and follows on F", () => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout(80, 8);
+        const dashboard = createDashboard({ stdin, stdout });
+        for (let index = 0; index < 10; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        dashboard.start();
+        const screen = () => renderTerminalOutput(stdout.output, 80, 8).join("\n");
+        expect(screen()).toContain("entry 9");
+        stdin.emit("data", Buffer.from("\u001b[A"));
+        vi.advanceTimersByTime(16);
+        expect(screen()).toContain("entry 8");
+        expect(screen()).not.toContain("entry 9");
+        for (let index = 10; index < 300; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        expect(screen()).toContain("entry 8");
+        expect(screen()).not.toContain("entry 299");
+        stdin.emit("data", Buffer.from("F"));
+        expect(screen()).toContain("entry 299");
+        expect(screen()).not.toContain("entry 8");
+        dashboard.destroy();
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("handles navigation internally without forwarding it to run commands", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();
       const stdout = new TestDashboardStdout();
@@ -1472,6 +1584,116 @@ describe("createDashboard", () => {
 
       expect(commands).toEqual([]);
 
+      dashboard.destroy();
+    });
+  });
+
+  it("exposes render metrics and toggles a diagnostics HUD without forwarding its key", () => {
+    vi.useFakeTimers();
+    const stdin = new TestDashboardStdin();
+    const stdout = new TestDashboardStdout();
+    const dashboard = createDashboard({ stdin: stdin as unknown as NodeJS.ReadStream, stdout: stdout as unknown as NodeJS.WriteStream });
+    const handler = vi.fn(); dashboard.onCommand(handler); dashboard.start();
+    for (let index = 0; index < 100; index++) dashboard.appendOutput({ kind: "info", text: `item ${index}`, ts: 0 });
+    vi.advanceTimersByTime(16);
+    expect(dashboard.getPerformance()).toMatchObject({ frames: 2, requests: 100, coalesced: 99 });
+    stdin.emit("data", Buffer.from("\u0007"));
+    expect(handler).not.toHaveBeenCalled();
+    expect(renderTerminalOutput(stdout.output, 80, 24).join("\n")).toContain("FPS");
+    dashboard.destroy(); vi.useRealTimers();
+  });
+
+  it("coalesces navigation bursts and forwards quit before repainting", () => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout(80, 8);
+        const dashboard = createDashboard({ stdin, stdout });
+        for (let index = 0; index < 100; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        dashboard.start();
+        const write = vi.spyOn(stdout, "write");
+        const commands: string[] = [];
+        dashboard.onCommand((command) => commands.push(command));
+        stdin.emit("data", Buffer.from("\u001b[A".repeat(10) + "q"));
+        expect(commands).toEqual(["quit"]);
+        expect(write).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(16);
+        expect(write).toHaveBeenCalledTimes(1);
+        const screen = renderTerminalOutput(stdout.output, 80, 8).join("\n");
+        expect(screen).toContain("entry 89");
+        expect(screen).not.toContain("entry 99");
+        stdin.emit("data", Buffer.from("\u001b[A"));
+        dashboard.destroy();
+        const restored = stdout.output;
+        vi.runAllTimers();
+        expect(stdout.output).toBe(restored);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("coalesces same-status metric bursts while preserving immediate status transitions", () => {
+    vi.useFakeTimers();
+    try {
+      const stdin = new TestDashboardStdin(); const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout }); dashboard.start();
+      dashboard.updateStats({ status: "running" });
+      const write = vi.spyOn(stdout, "write");
+      for (let i = 0; i < 100; i++) dashboard.updateStats({ tokensIn: i });
+      expect(write).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(16); expect(write).toHaveBeenCalledTimes(1);
+      dashboard.updateStats({ status: "done" }); expect(write).toHaveBeenCalledTimes(2);
+      dashboard.destroy();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("coalesces output bursts and cancels pending repaint on destroy", () => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout();
+        const dashboard = createDashboard({ stdin, stdout });
+        dashboard.start();
+        const write = vi.spyOn(stdout, "write");
+        for (let index = 0; index < 100; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `burst ${index}`, ts: index });
+        }
+        expect(write).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(16);
+        expect(write).toHaveBeenCalledTimes(1);
+        expect(renderTerminalOutput(stdout.output, 80, 24).join("\n")).toContain("burst 99");
+        dashboard.appendOutput({ kind: "info", text: "pending repaint", ts: 100 });
+        dashboard.destroy();
+        const restored = stdout.output;
+        vi.runAllTimers();
+        expect(stdout.output).toBe(restored);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("redraws only within the new terminal bounds after shrinking", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(100, 24);
+      const dashboard = createDashboard({ stdin, stdout });
+      dashboard.appendOutput({ kind: "info", text: "resize fixture", ts: 0 });
+      dashboard.start();
+      stdout.output = "";
+      stdout.columns = 50;
+      stdout.rows = 16;
+      stdout.emit("resize");
+      const screen = renderTerminalOutput("\u001b[?7l" + stdout.output, 50, 16);
+      expect(screen[0]!.endsWith("┐")).toBe(true);
+      expect(screen[15]!.startsWith("└")).toBe(true);
+      expect(screen[15]!.endsWith("┘")).toBe(true);
+      expect(screen[1]!.endsWith("│")).toBe(true);
       dashboard.destroy();
     });
   });

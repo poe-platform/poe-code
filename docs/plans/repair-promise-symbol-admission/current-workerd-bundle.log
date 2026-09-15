@@ -1,0 +1,35 @@
+✘ [ERROR] Could not resolve "#safe-fs-native-seek"
+
+    packages/safe-fs/dist/node/native-seek.js:6:36:
+      6 │         const module = await import("#safe-fs-native-seek");
+        ╵                                     ~~~~~~~~~~~~~~~~~~~~~~
+
+  The package import "#safe-fs-native-seek" is not defined in this "imports" map:
+
+    packages/safe-fs/dist/package.json:3:13:
+      3 │   "imports": {
+        ╵              ^
+
+  You can mark the path "#safe-fs-native-seek" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle. You can also add ".catch()" here to handle this failure at run-time instead of bundle-time.
+
+/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1748
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 1 error:
+packages/safe-fs/dist/node/native-seek.js:6:36: ERROR: Could not resolve "#safe-fs-native-seek"
+    at failureErrorWithLog (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1748:15)
+    at /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1207:25
+    at /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1159:52
+    at buildResponseToResult (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1205:7)
+    at /Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:1232:16
+    at responseCallbacks.<computed> (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:884:9)
+    at handleIncomingPacket (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:939:12)
+    at Socket.readFromStdout (/Users/kjopek/Workspace/poe-code/node_modules/esbuild/lib/main.js:862:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v22.23.2

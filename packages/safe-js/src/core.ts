@@ -1,3 +1,4 @@
+export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
 export type { RunPromise } from "./run.js";

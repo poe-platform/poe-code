@@ -1,0 +1,38 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "encoding": "utf-8",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-8')('isolation-handler')\nassert decoder.decode(b'\\xe2', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xe2'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x82\\xac\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "stdout": "recovered\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "encoding": "utf-16-le",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -2)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-16-le')('isolation-handler')\nassert decoder.decode(b'\\xac', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xac'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\x00\\xdcA\\x00', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "stdout": "recovered\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "encoding": "utf-32-be",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -4)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-32-be')('isolation-handler')\nassert decoder.decode(b'\\x00\\x00', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\x00\\x00'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\xac\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "stdout": "recovered\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "encoding": "utf-7",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-7')('isolation-handler')\nassert decoder.decode(b'+IK', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'+IK'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'w-\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "stdout": "recovered\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ]
+}

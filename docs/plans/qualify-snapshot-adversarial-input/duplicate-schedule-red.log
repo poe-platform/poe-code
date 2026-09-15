@@ -1,0 +1,56 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts (7 tests | 1 failed) 27ms
+   ✓ returns compile charges and imported registrations when scheduling throws after fulfilled capture 6ms
+   ✓ returns compile charges and imported registrations when scheduling throws after rejected capture 1ms
+   ✓ restores the exact existing Promise property table after a later error (present=false) 1ms
+   ✓ restores the exact existing Promise property table after a later error (present=true) 1ms
+   ✓ preserves generated cyclic graph identities and leaves the source untouched 12ms
+   ✓ does not activate an earlier pending provider after a later scheduling failure 1ms
+   × rejects duplicate scheduling identities before invoking the scheduler 3ms
+FAIL packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > rejects duplicate scheduling identities before invoking the scheduler
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:102:57
+    100|     { kind: "settled-imported-promise", status: "fulfilled", outcome: …
+    101|     { kind: "settled-imported-promise", status: "fulfilled", outcome: …
+    102|   ] }, { restoreScheduledPromise: schedule as never })).toThrow("Dupli…
+       |                                                         ^
+    103|   expect(schedule).not.toHaveBeenCalled();
+    104| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > rejects duplicate scheduling identities before invoking the scheduler
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:102:57
+    100|     { kind: "settled-imported-promise", status: "fulfilled", outcome: …
+    101|     { kind: "settled-imported-promise", status: "fulfilled", outcome: …
+    102|   ] }, { restoreScheduledPromise: schedule as never })).toThrow("Dupli…
+       |                                                         ^
+    103|   expect(schedule).not.toHaveBeenCalled();
+    104| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  08:18:37
+   Duration  2.89s (transform 2.16s, setup 59ms, import 2.68s, tests 27ms, environment 0ms)
+

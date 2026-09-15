@@ -200,6 +200,11 @@ it.each([
         volume.readFileSync(path.join(root, "dist/metafile.json"), "utf8") as string
       );
       expect(evidence.canonicalBundle.entryPoints).toContain("packages/safe-fs/src/index.ts");
+      expect(evidence.outputs["packages/safe-bash/dist/commands/op/index.js"]).toBeDefined();
+      expect(evidence.outputs["packages/safe-bash/dist/commands/op/index.browser.js"]).toBeDefined();
+      expect(build.mock.calls.some(([options]) =>
+        Array.isArray(options.entryPoints) && options.entryPoints.includes(path.join(root, "packages/safe-bash/src/commands/op/index.ts"))
+      )).toBe(true);
       expect(evidence.outputs["packages/superintendent/dist/mcp.js"].imports[0].path).toBe(
         external
       );
@@ -250,6 +255,7 @@ it.each([
         "commands/line-endings/index.browser": path.join(root, "packages/safe-bash/src/commands/line-endings/index.ts"),
         "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
         "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
+        "commands/op/index.browser": path.join(root, "packages/safe-bash/src/commands/op/index.ts"),
       },
     ]);
   }

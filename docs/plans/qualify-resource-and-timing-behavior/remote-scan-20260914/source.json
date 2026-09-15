@@ -1,0 +1,27 @@
+{
+  "base_sha": "775253e664c8c14502178cf9dcb74e6a656aacb0",
+  "shared_head": "856f13967e01f63fdfaa1d4fd8cb08617c4ccd56",
+  "environment": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "os": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "files": {
+    "packages/safe-js/src/interp/regex/engine.ts": "e857333551f0642cedeadf657b3c28e754c6a621dbb4aa7370a4b9635d470115",
+    "packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts": "cbbefde9cde7bf96051c0fa4e00bec3996262de322db25e9a92c792b7ae9feb3",
+    "packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts": "62d222a1300cd1d07fc71c1aa01f394d09468dc7f5bbf2ec5e4ae012b83c694a",
+    "packages/safe-js/src/interp/methods/regex.ts": "ce8bd3950c5ad18c5a669973c3803b48b7dc7a92c86d74e7a677035ccdb659df",
+    "packages/safe-js/src/interp/methods/regexp-iterator.ts": "806b842c5eff35aa9ac296285fb3dc39e98fd071b77dc80355843b34c1179cb1",
+    "packages/safe-js/src/interp/methods/string.ts": "a6b452bd1c1fb2a8a7179f5bf30d12074d7755fafe5665e792bb3ee98e6bcada"
+  },
+  "commands": [
+    "npm ci",
+    "node scripts/numberformat-data.mjs (packages/safe-js)",
+    "CI=1 node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts --maxWorkers=2",
+    "CI=1 node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex packages/safe-js/src/interp/methods/string-split.independent.test.ts --maxWorkers=2",
+    "CI=1 npm test -- --concurrency=4 --exclude-workspace=virtual-bash"
+  ],
+  "staged_initial_sha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8"
+}

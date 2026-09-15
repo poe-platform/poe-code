@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import * as api from "./index.js";
+import { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
+import { admitNativePromiseProperties as admitCorePromiseProperties } from "./core.js";
+import { admitNativePromiseProperties as admitWorkerdPromiseProperties } from "./workerd.js";
 import { dump } from "./dump.js";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
@@ -49,6 +52,9 @@ describe("@poe-code/safe-js public exports", () => {
   });
 
   it("re-exports the public entrypoints", () => {
+    expect(api.admitNativePromiseProperties).toBe(admitNativePromiseProperties);
+    expect(admitCorePromiseProperties).toBe(admitNativePromiseProperties);
+    expect(admitWorkerdPromiseProperties).toBe(admitNativePromiseProperties);
     expect(api.Budget).toBe(Budget);
     expect(api.SandboxError).toBe(SandboxError);
     expect(api.AgentSpawnError).toBe(AgentSpawnError);
@@ -94,6 +100,7 @@ describe("@poe-code/safe-js public exports", () => {
       "HostOperationResumePolicyError",
       "SandboxError",
       "SnapshotValidationError",
+      "admitNativePromiseProperties",
       "createRealm",
       "createReplayableRandom",
       "createSpawnUsageAccumulator",

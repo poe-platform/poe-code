@@ -1,0 +1,30 @@
+
+> @poe-code/safe-js@0.0.1 pretest:unit
+> node scripts/numberformat-data.mjs && npm run typecheck:fs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+
+> @poe-code/safe-js@0.0.1 typecheck:fs
+> node scripts/fs-type-contract.mjs
+
+{"resolution":"NodeNext","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"NodeNext","environment":"DOM","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"Node-only","contracts":25,"ok":true}
+{"resolution":"Bundler","environment":"DOM","contracts":25,"ok":true}
+
+> @poe-code/safe-js@0.0.1 test:unit
+> cd ../.. && vitest run packages/safe-js/src packages/safe-js/test
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/regex/semantics-cost-qualification.test.ts (70 tests) 455ms
+ ❯ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts (4 tests | 1 failed) 101ms
+   × splits with a regex literal when using the interpreter without installed globals 4ms
+   ✓ preserves string fallback after delete RegExp.prototype[Symbol.split] 43ms
+   ✓ preserves string fallback after RegExp.prototype[Symbol.split] = undefined 26ms
+   ✓ respects an explicitly null regex prototype and its string conversion 27ms
+FAIL packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts > splits with a regex literal when using the interpreter without installed globals
+ParseError: Regular expression literals are not supported at line 1, column 21.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { filename: '<input>', kind: 'ParseError', excerpt: '1 | return \'abba\'.split(/b+/)', caret: '  |                     ^', span: { start: { column: 21, line: 1, offset: 20 }, end: { column: 22, line: 1, offset: 21 } } }

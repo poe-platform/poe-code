@@ -12,7 +12,7 @@ const { runHarnessPair } = await import("./run.js");
 describe("managed MCP through the harness loader", () => {
   beforeEach(() => vol.reset());
 
-  it("rebinds named methods without reconnecting or repeating completed tools", async () => {
+  it.each(["2026-07-28", "2025-11-25"])("rebinds named methods without reconnecting or repeating completed tools (%s)", async (version) => {
     vol.fromJSON({
       "/repo/test.md": "---\nkind: test\nversion: 1\n---\n",
       "/repo/test.ajs":
@@ -28,14 +28,25 @@ describe("managed MCP through the harness loader", () => {
       const request = JSON.parse(String(init?.body));
       methods.push(request.method);
       if (request.id === undefined) return new Response(null, { status: 202 });
+      if (request.method === "server/discover" && version !== "2026-07-28") {
+        return Response.json({ jsonrpc: "2.0", id: request.id, error: { code: -32601, message: "Method not found" } });
+      }
       const result =
-        request.method === "initialize"
+        request.method === "server/discover"
+          ? {
+              resultType: "complete",
+              supportedVersions: [version],
+              capabilities: { tools: {} },
+              ttlMs: 0,
+              cacheScope: "private"
+            }
+          : request.method === "initialize"
           ? {
               protocolVersion: request.params.protocolVersion,
               capabilities: { tools: {} },
               serverInfo: { name: "test", version: "1" }
             }
-          : { content: [{ type: "text", text: "7" }] };
+          : { ...(version === "2026-07-28" ? { resultType: "complete" } : {}), content: [{ type: "text", text: "7" }] };
       return new Response(JSON.stringify({ jsonrpc: "2.0", id: request.id, result }), {
         headers: { "content-type": "application/json", "mcp-session-id": "test" }
       });
@@ -48,7 +59,9 @@ describe("managed MCP through the harness loader", () => {
     };
     let result = await runHarnessPair("/repo/test.md", options);
     expect(result).toMatchObject({ ok: true, returnValue: { content: [{ text: "7" }] } });
-    expect(methods.at(-1)).toBe("close");
+    expect(methods).toContain("server/discover");
+    expect(methods.includes("initialize")).toBe(version !== "2026-07-28");
+    expect(methods.at(-1)).toBe(version === "2026-07-28" ? "tools/call" : "close");
     const count = methods.length;
     for (let generation = 0; generation < 2; generation++) {
       vol.writeFileSync(options.snapshotPath, await dump(result));

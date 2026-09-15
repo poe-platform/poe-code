@@ -1,0 +1,20 @@
+{
+  "red": {
+    "numTotalTests": 8,
+    "numPassedTests": 1,
+    "numFailedTests": 7,
+    "numPendingTests": 0
+  },
+  "green": {
+    "numTotalTests": 106,
+    "numPassedTests": 106,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  },
+  "broad": {
+    "numTotalTests": 1141,
+    "numPassedTests": 1141,
+    "numFailedTests": 0,
+    "numPendingTests": 0
+  }
+}

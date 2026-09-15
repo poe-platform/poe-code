@@ -1,0 +1,51 @@
+import type { ExecutionMeter } from "./execution-budget.js";
+import { PythonRuntimeError } from "./error.js";
+import type { ClassAttribute, DescriptorSlots } from "./instance-attributes.js";
+import type { BoundMethodValue, BuiltinInvocationContext, FunctionValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { readRuntimeGetsetDescriptor, mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
+import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
+import { getRuntimeMethodDecorator, isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
+
+export interface RuntimeDescriptorContext {
+  /** Native accessors may reenter ordinary attribute/call/truth protocols. This
+   * capability does not enable attribute overrides on otherwise default lookup. */
+  readonly invocation?: BuiltinInvocationContext;
+  /** Actual native/opaque receiver type for explicit owner-less classmethod get. */
+  typeOf?(value: RuntimeValue): TypeValue;
+  /** Resolve slots on the value's type, never its instance dictionary. Exact
+   * Python functions and native descriptors use intrinsic slots, bypassing this hook. */
+  slots(value: RuntimeValue): DescriptorSlots<RuntimeValue, RuntimeValue, RuntimeValue> | undefined;
+}
+
+/** Function __get__ after argument binding. null denotes the class-access marker;
+ * guest None has the same meaning. A non-None owner need not itself be a type.
+ * The exposed wrapper's arity/keyword handling is a separate object-layer task.
+ */
+export function getRuntimeFunctionDescriptor(fn: FunctionValue, instance: RuntimeValue | null, owner: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): FunctionValue | BoundMethodValue {
+  meter.checkpoint();
+  if (instance === null || instance.kind === "none") {
+    if (owner.kind === "none") throw new PythonRuntimeError("TypeError", "__get__(None, None) is invalid");
+    return fn;
+  }
+  return values.boundMethod(fn, instance);
+}
+
+/** Adapt a value already found by class-MRO lookup for the shared descriptor
+ * precedence kernels. Preserve slot owners and captured value identity. MRO/type
+ * storage, __getattribute__ overrides and __getattr__ fallback remain separate.
+ */
+export function resolveRuntimeClassAttribute(value: RuntimeValue, context: RuntimeDescriptorContext, values: RuntimeValues, meter: ExecutionMeter): ClassAttribute<RuntimeValue, RuntimeValue, RuntimeValue> {
+  meter.checkpoint(1, value.kind === "function" || (value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" || value.kind === "staticmethod" || value.kind === "classmethod" ? 96 : value.kind === "getset_descriptor" || value.kind === "member_descriptor" ? 160 : 32);
+  const slots = value.kind === "function"
+    ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeFunctionDescriptor(value, instance, owner, values, meter) })
+    : (value.kind === "staticmethod" || value.kind === "classmethod") && !isRuntimeMethodDecoratorSubclass(value) ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDecorator(value, instance, owner, values, meter, context.typeOf?.bind(context)) })
+    : value.kind === "getset_descriptor" || value.kind === "member_descriptor" ? Object.freeze({
+      get: (instance: RuntimeValue | null, owner: RuntimeValue) => readRuntimeGetsetDescriptor(value, instance, owner, meter, context.invocation),
+      set: (instance: RuntimeValue, item: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "set", value: item }, meter, context.invocation),
+      delete: (instance: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "delete" }, meter, context.invocation)
+    })
+    : (value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDescriptor(value, instance, owner, values, meter, context.typeOf?.bind(context)) })
+    : context.slots(value);
+  meter.checkpoint();
+  return Object.freeze({ value, slots });
+}

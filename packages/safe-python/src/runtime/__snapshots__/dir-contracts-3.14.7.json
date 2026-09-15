@@ -1,0 +1,478 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "dir(1,2)",
+      "source": "events=[]\n\ntry:\n result=dir(1,2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'dir expected at most 1 argument, got 2'), [])"
+    },
+    {
+      "name": "dir(object=1)",
+      "source": "events=[]\n\ntry:\n result=dir(object=1)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'dir() takes no keyword arguments'), [])"
+    },
+    {
+      "name": "dir(1,x=2)",
+      "source": "events=[]\n\ntry:\n result=dir(1,x=2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'dir() takes no keyword arguments'), [])"
+    },
+    {
+      "name": "object.__dir__()",
+      "source": "events=[]\n\ntry:\n result=object.__dir__()\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'unbound method object.__dir__() needs an argument'), [])"
+    },
+    {
+      "name": "object.__dir__(1,2)",
+      "source": "events=[]\n\ntry:\n result=object.__dir__(1,2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'object.__dir__() takes no arguments (1 given)'), [])"
+    },
+    {
+      "name": "object.__dir__(1,x=2)",
+      "source": "events=[]\n\ntry:\n result=object.__dir__(1,x=2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'object.__dir__() takes no keyword arguments'), [])"
+    },
+    {
+      "name": "type.__dir__()",
+      "source": "events=[]\n\ntry:\n result=type.__dir__()\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'unbound method type.__dir__() needs an argument'), [])"
+    },
+    {
+      "name": "type.__dir__(1)",
+      "source": "events=[]\n\ntry:\n result=type.__dir__(1)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"descriptor '__dir__' for 'type' objects doesn't apply to a 'int' object\"), [])"
+    },
+    {
+      "name": "type.__dir__(type,1)",
+      "source": "events=[]\n\ntry:\n result=type.__dir__(type,1)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'type.__dir__() takes no arguments (1 given)'), [])"
+    },
+    {
+      "name": "type.__dir__(type,x=2)",
+      "source": "events=[]\n\ntry:\n result=type.__dir__(type,x=2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'type.__dir__() takes no keyword arguments'), [])"
+    },
+    {
+      "name": "custom []",
+      "source": "events=[]\nclass C:\n def __dir__(self): return []\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [])"
+    },
+    {
+      "name": "custom ['z','a','a']",
+      "source": "events=[]\nclass C:\n def __dir__(self): return ['z','a','a']\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'a', 'z'], [])"
+    },
+    {
+      "name": "custom (3,1,2)",
+      "source": "events=[]\nclass C:\n def __dir__(self): return (3,1,2)\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([1, 2, 3], [])"
+    },
+    {
+      "name": "custom 'zab'",
+      "source": "events=[]\nclass C:\n def __dir__(self): return 'zab'\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'b', 'z'], [])"
+    },
+    {
+      "name": "custom None",
+      "source": "events=[]\nclass C:\n def __dir__(self): return None\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"'NoneType' object is not iterable\"), [])"
+    },
+    {
+      "name": "custom 42",
+      "source": "events=[]\nclass C:\n def __dir__(self): return 42\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"'int' object is not iterable\"), [])"
+    },
+    {
+      "name": "custom {'z':1,'a':2}",
+      "source": "events=[]\nclass C:\n def __dir__(self): return {'z':1,'a':2}\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'z'], [])"
+    },
+    {
+      "name": "custom [1,'a']",
+      "source": "events=[]\nclass C:\n def __dir__(self): return [1,'a']\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"'<' not supported between instances of 'str' and 'int'\"), [])"
+    },
+    {
+      "name": "special lookup",
+      "source": "events=[]\nclass C:\n def __getattribute__(self,name): events.append(name); raise AssertionError(name)\n def __dir__(self): events.append('type-dir'); return ['z','a']\nc=C()\nobject.__setattr__(c,'__dir__',None)\ntry:\n result=dir(c)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'z'], ['type-dir'])"
+    },
+    {
+      "name": "descriptor binding and copy",
+      "source": "events=[]\nsource=['z','a','a']\nclass D:\n def __get__(self,receiver,owner):\n  events.append((receiver is c,owner is C)); return lambda: source\nclass C: __dir__=D()\nc=C()\nr=dir(c)\ntry:\n result=(r,source,r is source)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['a', 'a', 'z'], ['z', 'a', 'a'], False), [(True, True)])"
+    },
+    {
+      "name": "iteration order",
+      "source": "events=[]\nclass I:\n def __init__(self): self.i=0\n def __iter__(self): events.append('iter'); return self\n def __len__(self): events.append('len'); return 3\n def __next__(self):\n  events.append(('next',self.i)); self.i+=1\n  if self.i>3: raise StopIteration\n  return 4-self.i\nclass C:\n def __dir__(self): events.append('dir'); return I()\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([1, 2, 3], ['dir', 'iter', 'len', ('next', 0), ('next', 1), ('next', 2), ('next', 3)])"
+    },
+    {
+      "name": "callback AttributeError",
+      "source": "events=[]\nclass C:\n def __dir__(self): raise AttributeError('marker')\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('AttributeError', 'marker'), [])"
+    },
+    {
+      "name": "callback ValueError",
+      "source": "events=[]\nclass C:\n def __dir__(self): raise ValueError('marker')\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('ValueError', 'marker'), [])"
+    },
+    {
+      "name": "callback TypeError",
+      "source": "events=[]\nclass C:\n def __dir__(self): raise TypeError('marker')\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'marker'), [])"
+    },
+    {
+      "name": "noncallable",
+      "source": "events=[]\nclass C: __dir__=None\ntry:\n result=dir(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"'NoneType' object is not callable\"), [])"
+    },
+    {
+      "name": "locals lexical",
+      "source": "events=[]\ndef f(z):\n a=1\n return dir()\ntry:\n result=f(2)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'z'], [])"
+    },
+    {
+      "name": "locals mapping",
+      "source": "events=[]\nclass M(dict):\n def keys(self): events.append('keys'); return ('z','a')\nm=M(z=1,a=2)\nexec('answer=dir()',{},m)\ntry:\n result=m['answer']\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['a', 'z'], ['keys'])"
+    },
+    {
+      "name": "object namespace {'local':0,'same':1}",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={'local':0,'same':1}\nshape=Shape({'base':0,'same':2},(Shape({'ancestor':0},()),))\ntry:\n result=(object.__dir__(C()),dir(C()))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['local', 'same', 'base', 'ancestor'], ['override']), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'dict', 'bases'])"
+    },
+    {
+      "name": "object namespace None",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary=None\nshape=Shape({'base':0,'same':2},(Shape({'ancestor':0},()),))\ntry:\n result=(object.__dir__(C()),dir(C()))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['base', 'same', 'ancestor'], ['override']), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'dict', 'bases'])"
+    },
+    {
+      "name": "object namespace []",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary=[]\nshape=Shape({'base':0,'same':2},(Shape({'ancestor':0},()),))\ntry:\n result=(object.__dir__(C()),dir(C()))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['base', 'same', 'ancestor'], ['override']), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'dict', 'bases'])"
+    },
+    {
+      "name": "object namespace {'x':0}",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={'x':0}\nshape=Shape({'base':0,'same':2},(Shape({'ancestor':0},()),))\ntry:\n result=(object.__dir__(C()),dir(C()))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['x', 'base', 'same', 'ancestor'], ['override']), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'dict', 'bases'])"
+    },
+    {
+      "name": "bases ()",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['own'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases []",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},[])\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['own'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases {}",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},{})\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'dict is not a sequence'), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases None",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},None)\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"object of type 'NoneType' has no len()\"), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases 42",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},42)\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"object of type 'int' has no len()\"), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases (None,)",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},(None,))\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['own'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "bases 'a'",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'own':0},'a')\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['own'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "class dict None",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape(None,())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('AttributeError', \"'NoneType' object has no attribute 'keys'\"), [('get', '__dict__'), ('get', '__class__'), 'dict'])"
+    },
+    {
+      "name": "class dict []",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape([],())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('AttributeError', \"'list' object has no attribute 'keys'\"), [('get', '__dict__'), ('get', '__class__'), 'dict'])"
+    },
+    {
+      "name": "class dict [('pair',1)]",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape([('pair',1)],())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('AttributeError', \"'list' object has no attribute 'keys'\"), [('get', '__dict__'), ('get', '__class__'), 'dict'])"
+    },
+    {
+      "name": "class dict {'x':1}",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\ndictionary={}\nshape=Shape({'x':1},())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['x'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "optional __dict__ AttributeError",
+      "source": "events=[]\nclass C:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': raise AttributeError('marker')\n  return None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], ['__dict__', '__class__'])"
+    },
+    {
+      "name": "optional __dict__ ValueError",
+      "source": "events=[]\nclass C:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': raise ValueError('marker')\n  return None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('ValueError', 'marker'), ['__dict__'])"
+    },
+    {
+      "name": "optional __class__ AttributeError",
+      "source": "events=[]\nclass C:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__class__': raise AttributeError('marker')\n  return None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], ['__dict__', '__class__'])"
+    },
+    {
+      "name": "optional __class__ ValueError",
+      "source": "events=[]\nclass C:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__class__': raise ValueError('marker')\n  return None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('ValueError', 'marker'), ['__dict__', '__class__'])"
+    },
+    {
+      "name": "metaclass",
+      "source": "events=[]\nclass M(type):\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': return {'z':1,'a':2}\n  if n=='__bases__': return ()\n  return type.__getattribute__(self,n)\n def __dir__(self): return ['override']\nclass C(metaclass=M): pass\ntry:\n result=(type.__dir__(C),dir(C))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['z', 'a'], ['override']), ['__dict__', '__bases__'])"
+    },
+    {
+      "name": "subtype dict False",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def keys(self): events.append('keys'); return ['x']\n def __getitem__(self,key): events.append(('item',key)); return 1\ndictionary=D(z=0,a=1)\nshape=None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['z', 'a'], [('get', '__dict__'), ('get', '__class__')])"
+    },
+    {
+      "name": "subtype dict True",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def __iter__(self): raise AssertionError('iter')\n def keys(self): events.append('keys'); return ['x']\n def __getitem__(self,key): events.append(('item',key)); return 1\ndictionary=D(z=0,a=1)\nshape=None\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['x'], [('get', '__dict__'), 'keys', ('item', 'x'), ('get', '__class__')])"
+    },
+    {
+      "name": "metadata",
+      "source": "events=[]\n\ntry:\n result=[(d.__name__,type(d).__name__,d.__doc__,d.__text_signature__) for d in (dir,object.__dict__['__dir__'],type.__dict__['__dir__'])]\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([('dir', 'builtin_function_or_method', \"dir([object]) -> list of strings\\n\\nIf called without an argument, return the names in the current scope.\\nElse, return an alphabetized list of names comprising (some of) the\\nattributes of the given object, and of attributes reachable from it.\\nIf the object supplies a method named __dir__, it will be used;\\notherwise the default dir() logic is used and returns:\\n  for a module object: the module's attributes.\\n  for a class object:  its attributes, and recursively the attributes\\n    of its bases.\\n  for any other object: its attributes, its class's attributes, and\\n    recursively the attributes of its class's base classes.\", None), ('__dir__', 'method_descriptor', 'Default dir() implementation.', '($self, /)'), ('__dir__', 'method_descriptor', 'Specialized __dir__ implementation for types.', '($self, /)')], [])"
+    },
+    {
+      "name": "locals keys names",
+      "source": "events=[]\nnames=['z','a']\nclass M(dict):\n def keys(self): events.append('keys'); return names\nm=M()\ntry:\n exec('answer=dir()',{},m)\n observed=m['answer']\nexcept BaseException as e:\n observed=(type(e).__name__,str(e))\ntry:\n result=(observed,names)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['a', 'z'], ['a', 'z']), ['keys'])"
+    },
+    {
+      "name": "locals keys None",
+      "source": "events=[]\nnames=['z','a']\nclass M(dict):\n def keys(self): events.append('keys'); return None\nm=M()\ntry:\n exec('answer=dir()',{},m)\n observed=m['answer']\nexcept BaseException as e:\n observed=(type(e).__name__,str(e))\ntry:\n result=(observed,names)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((('TypeError', 'M.keys() returned a non-iterable (type NoneType)'), ['z', 'a']), ['keys'])"
+    },
+    {
+      "name": "locals keys 42",
+      "source": "events=[]\nnames=['z','a']\nclass M(dict):\n def keys(self): events.append('keys'); return 42\nm=M()\ntry:\n exec('answer=dir()',{},m)\n observed=m['answer']\nexcept BaseException as e:\n observed=(type(e).__name__,str(e))\ntry:\n result=(observed,names)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((('TypeError', 'M.keys() returned a non-iterable (type int)'), ['z', 'a']), ['keys'])"
+    },
+    {
+      "name": "locals keys iter(names)",
+      "source": "events=[]\nnames=['z','a']\nclass M(dict):\n def keys(self): events.append('keys'); return iter(names)\nm=M()\ntry:\n exec('answer=dir()',{},m)\n observed=m['answer']\nexcept BaseException as e:\n observed=(type(e).__name__,str(e))\ntry:\n result=(observed,names)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['a', 'z'], ['z', 'a']), ['keys'])"
+    },
+    {
+      "name": "native bases D() False",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n pass\nclass S(set):\n pass\ndictionary={}\nshape=Shape({},D())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "native bases D() True",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\nclass S(set):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\ndictionary={}\nshape=Shape({},D())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'length', ('get', 0)])"
+    },
+    {
+      "name": "native bases D(x=1) False",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n pass\nclass S(set):\n pass\ndictionary={}\nshape=Shape({},D(x=1))\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('KeyError', '0'), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "native bases D(x=1) True",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\nclass S(set):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\ndictionary={}\nshape=Shape({},D(x=1))\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'length', ('get', 0)])"
+    },
+    {
+      "name": "native bases S() False",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n pass\nclass S(set):\n pass\ndictionary={}\nshape=Shape({},S())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "native bases S() True",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\nclass S(set):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\ndictionary={}\nshape=Shape({},S())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'length', ('get', 0)])"
+    },
+    {
+      "name": "native bases S([1]) False",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n pass\nclass S(set):\n pass\ndictionary={}\nshape=Shape({},S([1]))\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', \"'S' object does not support indexing\"), [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases'])"
+    },
+    {
+      "name": "native bases S([1]) True",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\nclass D(dict):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\nclass S(set):\n def __len__(self): events.append('length'); return 1\n def __getitem__(self,i): events.append(('get',i)); return None\ndictionary={}\nshape=Shape({},S([1]))\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'length', ('get', 0)])"
+    },
+    {
+      "name": "object copy before class lookup",
+      "source": "events=[]\ndictionary={'before':1}\nclass C:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': return dictionary\n  dictionary['after']=2\n  return None\ntry:\n result=(object.__dir__(C()),list(dictionary))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((['before'], ['before', 'after']), ['__dict__', '__class__'])"
+    },
+    {
+      "name": "base sequence mutation",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\n\nclass Bases:\n def __len__(self): events.append('len'); return 2\n def __getitem__(self,i):\n  events.append(('getitem',i))\n  if i==0: return Shape({'first':1},())\n  return Shape({'last':2},())\ndictionary={}\nshape=Shape({'own':3},Bases())\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['own', 'first', 'last'], [('get', '__dict__'), ('get', '__class__'), 'dict', 'bases', 'len', ('getitem', 0), 'dict', 'bases', ('getitem', 1), 'dict', 'bases'])"
+    },
+    {
+      "name": "class optional __dict__ AttributeError",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\n\nclass Broken:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': raise AttributeError('marker')\n  if n=='__dict__': return {'base':1}\n  return ()\ndictionary={}\nshape=Broken()\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([], [('get', '__dict__'), ('get', '__class__'), '__dict__', '__bases__'])"
+    },
+    {
+      "name": "class optional __dict__ ValueError",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\n\nclass Broken:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__dict__': raise ValueError('marker')\n  if n=='__dict__': return {'base':1}\n  return ()\ndictionary={}\nshape=Broken()\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('ValueError', 'marker'), [('get', '__dict__'), ('get', '__class__'), '__dict__'])"
+    },
+    {
+      "name": "class optional __bases__ AttributeError",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\n\nclass Broken:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__bases__': raise AttributeError('marker')\n  if n=='__dict__': return {'base':1}\n  return ()\ndictionary={}\nshape=Broken()\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(['base'], [('get', '__dict__'), ('get', '__class__'), '__dict__', '__bases__'])"
+    },
+    {
+      "name": "class optional __bases__ ValueError",
+      "source": "events=[]\nclass Shape:\n def __init__(self,d,b): self.d=d; self.b=b\n def __getattribute__(self,n):\n  if n=='__dict__': events.append('dict'); return object.__getattribute__(self,'d')\n  if n=='__bases__': events.append('bases'); return object.__getattribute__(self,'b')\n  return object.__getattribute__(self,n)\nclass C:\n def __getattribute__(self,n):\n  events.append(('get',n))\n  if n=='__dict__': return dictionary\n  if n=='__class__': return shape\n  raise AttributeError(n)\n def __dir__(self): return ['override']\n\nclass Broken:\n def __getattribute__(self,n):\n  events.append(n)\n  if n=='__bases__': raise ValueError('marker')\n  if n=='__dict__': return {'base':1}\n  return ()\ndictionary={}\nshape=Broken()\ntry:\n result=object.__dir__(C())\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('ValueError', 'marker'), [('get', '__dict__'), ('get', '__class__'), '__dict__', '__bases__'])"
+    },
+    {
+      "name": "locals keys identity",
+      "source": "events=[]\nnames=['z','a']\nclass M(dict):\n def keys(self): return names\nm=M()\nexec('answer=dir()',{},m)\ntry:\n result=(m['answer'] is names,names)\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, ['a', 'z']), [])"
+    },
+    {
+      "name": "keys iterator reacquisition",
+      "source": "events=[]\nclass I:\n def __init__(self): self.i=0\n def __iter__(self): events.append('iter'); return self\n def __length_hint__(self): events.append('hint'); return 2\n def __next__(self):\n  events.append(('next',self.i)); self.i+=1\n  if self.i>2: raise StopIteration\n  return 3-self.i\nclass M(dict):\n def keys(self): events.append('keys'); return I()\nm=M()\nexec('answer=dir()',{},m)\ntry:\n result=m['answer']\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "([1, 2], ['keys', 'iter', 'iter', 'hint', ('next', 0), ('next', 1), ('next', 2)])"
+    },
+    {
+      "name": "materialization exception __iter__",
+      "source": "events=[]\nmarker=ValueError('marker')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __len__(self): events.append('len'); return 1\n def __next__(self): events.append('next'); raise StopIteration\n def __iter__(self): raise marker\nclass C:\n def __dir__(self): return I()\ntry:\n dir(C())\nexcept BaseException as e:\n observed=(e is marker,type(e).__name__,str(e))\ntry:\n result=observed\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, 'ValueError', 'marker'), [])"
+    },
+    {
+      "name": "materialization exception __len__",
+      "source": "events=[]\nmarker=ValueError('marker')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __len__(self): events.append('len'); return 1\n def __next__(self): events.append('next'); raise StopIteration\n def __len__(self): raise marker\nclass C:\n def __dir__(self): return I()\ntry:\n dir(C())\nexcept BaseException as e:\n observed=(e is marker,type(e).__name__,str(e))\ntry:\n result=observed\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, 'ValueError', 'marker'), ['iter'])"
+    },
+    {
+      "name": "materialization exception __next__",
+      "source": "events=[]\nmarker=ValueError('marker')\nclass I:\n def __iter__(self): events.append('iter'); return self\n def __len__(self): events.append('len'); return 1\n def __next__(self): events.append('next'); raise StopIteration\n def __next__(self): raise marker\nclass C:\n def __dir__(self): return I()\ntry:\n dir(C())\nexcept BaseException as e:\n observed=(e is marker,type(e).__name__,str(e))\ntry:\n result=observed\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, 'ValueError', 'marker'), ['iter', 'len'])"
+    },
+    {
+      "name": "sort exception source unchanged",
+      "source": "events=[]\nmarker=ValueError('marker')\nclass K:\n def __lt__(self,other): events.append('less'); raise marker\nitems=[K(),K()]\nclass C:\n def __dir__(self): return items\ntry:\n dir(C())\nexcept BaseException as e:\n observed=(e is marker,len(items))\ntry:\n result=observed\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, 2), ['less'])"
+    },
+    {
+      "name": "mapping dir keys error from iter",
+      "source": "events=[]\nclass Bad:\n def __iter__(self): events.append('iter'); raise TypeError('marker')\nclass M(dict):\n def keys(self): return Bad()\nm=M()\ntry:\n exec('answer=dir()',{},m)\nexcept BaseException as e:\n observed=(type(e).__name__,str(e))\ntry:\n result=observed\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "(('TypeError', 'M.keys() returned a non-iterable (type Bad)'), ['iter'])"
+    },
+    {
+      "name": "bound directory descriptor []",
+      "source": "events=[]\nvalue=[]\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor {}",
+      "source": "events=[]\nvalue={}\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor ()",
+      "source": "events=[]\nvalue=()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor set()",
+      "source": "events=[]\nvalue=set()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor frozenset()",
+      "source": "events=[]\nvalue=frozenset()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor b''",
+      "source": "events=[]\nvalue=b''\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor ''",
+      "source": "events=[]\nvalue=''\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor 0",
+      "source": "events=[]\nvalue=0\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor 0.0",
+      "source": "events=[]\nvalue=0.0\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor 0j",
+      "source": "events=[]\nvalue=0j\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor None",
+      "source": "events=[]\nvalue=None\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor True",
+      "source": "events=[]\nvalue=True\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor Ellipsis",
+      "source": "events=[]\nvalue=Ellipsis\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor NotImplemented",
+      "source": "events=[]\nvalue=NotImplemented\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor range(0)",
+      "source": "events=[]\nvalue=range(0)\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor slice(0)",
+      "source": "events=[]\nvalue=slice(0)\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor {}.keys()",
+      "source": "events=[]\nvalue={}.keys()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor {}.items()",
+      "source": "events=[]\nvalue={}.items()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    },
+    {
+      "name": "bound directory descriptor {}.values()",
+      "source": "events=[]\nvalue={}.values()\ntry:\n result=(value.__dir__.__self__ is value, value.__dir__.__name__, value.__dir__.__doc__, value.__dir__.__text_signature__, value.__dir__()==object.__dir__(value))\nexcept BaseException as e:\n result=(type(e).__name__,str(e))\nresult=(result,events)",
+      "expected": "((True, '__dir__', 'Default dir() implementation.', '($self, /)', True), [])"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "utc": "2026-09-12T08:48:27.823990+00:00",
+  "archive": "completed-report-checkpoint.tar.gz",
+  "restoredReports": 214,
+  "restoredBytes": 24152291,
+  "allOriginalPathHashesMatch": true,
+  "freeBeforeRestore": 850333696,
+  "freeAfterRestore": 825872384,
+  "disposition": "Host free space recovered concurrently; restore all reports immediately with sufficient aggregate/final artifact headroom. No source or result-byte changes."
+}

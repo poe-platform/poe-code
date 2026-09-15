@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+import { readBoundedResponseText } from "./http-response.js";
 import type {
   OAuthAuthorizationServerMetadata,
   OAuthDiscoveryResult,
@@ -5,7 +7,7 @@ import type {
   OAuthProtectedResourceMetadata,
   OAuthUnauthorizedChallenge,
 } from "mcp-oauth";
-import { canonicalizeResourceIndicator } from "mcp-oauth";
+import { canonicalizeResourceIndicator, fetchMcpResponse } from "mcp-oauth";
 
 export type {
   OAuthAuthorizationServerMetadata,
@@ -20,6 +22,7 @@ export interface OAuthDiscoveryCache {
     resourceUrl: string
   ): OAuthDiscoveryResult | null | undefined | Promise<OAuthDiscoveryResult | null | undefined>;
   set(resourceUrl: string, value: OAuthDiscoveryResult): void | Promise<void>;
+  delete?(resourceUrl: string): void | Promise<void>;
 }
 
 export interface OAuthMetadataDiscoveryOptions {
@@ -52,10 +55,14 @@ function isLoopbackHostname(hostname: string): boolean {
 
   return normalizedHostname === "localhost"
     || normalizedHostname === "::1"
-    || normalizedHostname.startsWith("127.");
+    || normalizedHostname === "[::1]"
+    || (isIP(normalizedHostname) === 4 && normalizedHostname.startsWith("127."));
 }
 
 function assertSecureUrl(url: URL, label: string): void {
+  if (url.username !== "" || url.password !== "" || url.hash !== "") {
+    throw new Error(`${label} must not include credentials or fragment`);
+  }
   if (url.protocol === "https:") {
     return;
   }
@@ -128,6 +135,27 @@ function validateAuthorizationServerMetadata(
     throw new Error("Authorization server metadata must include token_endpoint");
   }
 
+  for (const field of ["authorization_endpoint", "token_endpoint", "registration_endpoint"]) {
+    if (field === "registration_endpoint" && value[field] === undefined) {
+      continue;
+    }
+    let endpoint: URL;
+    try {
+      if (typeof value[field] !== "string") {
+        throw new Error();
+      }
+      endpoint = new URL(value[field]);
+    } catch {
+      throw new Error(`Authorization server metadata ${field} must be an absolute URL`);
+    }
+    if (endpoint.username !== "" || endpoint.password !== "" || endpoint.hash !== "") {
+      throw new Error(
+        `Authorization server metadata ${field} must not include credentials or fragment`
+      );
+    }
+    assertSecureUrl(endpoint, `Authorization server metadata ${field}`);
+  }
+
   if (
     !isStringArray(value.response_types_supported) ||
     !value.response_types_supported.includes("code")
@@ -149,17 +177,27 @@ function validateAuthorizationServerMetadata(
   return value as OAuthAuthorizationServerMetadata;
 }
 
-async function readJsonResponse(response: Response, label: string): Promise<unknown> {
+async function readJsonResponse(response: Response, label: string, signal: AbortSignal): Promise<unknown> {
   if (!response.ok) {
+    await response.body?.cancel().catch(() => undefined);
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     throw new Error(`${label} request failed (${statusDescriptor})`);
   }
 
+  const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
   try {
-    return await response.json();
+    return JSON.parse(text);
   } catch {
     throw new Error(`${label} response must be valid JSON`);
   }
+}
+
+async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, label: string): Promise<unknown> {
+  const signal = AbortSignal.timeout(10_000);
+  const response = await fetchMcpResponse(fetch, location, {
+    method: "GET", headers: { Accept: "application/json" }, signal
+  });
+  return readJsonResponse(response, label, signal);
 }
 
 function resolveWellKnownMetadataUrl(inputUrl: string | URL, suffix: string): string {
@@ -194,7 +232,7 @@ export function resolveProtectedResourceMetadataUrl(
   return resolvedResourceMetadataUrl.toString();
 }
 
-function normalizeAuthorizationServerIssuer(issuer: string | URL): string {
+function validateAuthorizationServerIssuer(issuer: string | URL): string {
   const input = typeof issuer === "string" ? issuer : issuer.toString();
   const url = new URL(input);
   if (url.search.length > 0 || url.hash.length > 0) {
@@ -203,18 +241,76 @@ function normalizeAuthorizationServerIssuer(issuer: string | URL): string {
 
   assertSecureUrl(url, "Authorization server issuer");
 
-  if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-    url.pathname = url.pathname.slice(0, -1);
-  }
-
-  return url.pathname === "/" ? url.origin : url.toString();
+  return input;
 }
 
 export function resolveAuthorizationServerMetadataUrl(issuer: string | URL): string {
   return resolveWellKnownMetadataUrl(
-    normalizeAuthorizationServerIssuer(issuer),
+    validateAuthorizationServerIssuer(issuer),
     "oauth-authorization-server"
   );
+}
+
+function authorizationServerMetadataLocations(issuer: string): string[] {
+  const locations = [
+    resolveAuthorizationServerMetadataUrl(issuer),
+    resolveWellKnownMetadataUrl(issuer, "openid-configuration")
+  ];
+  const issuerUrl = new URL(issuer);
+  if (issuerUrl.pathname !== "/") {
+    const path = issuerUrl.pathname.endsWith("/")
+      ? issuerUrl.pathname.slice(0, -1)
+      : issuerUrl.pathname;
+    issuerUrl.pathname = `${path}/.well-known/openid-configuration`;
+    locations.push(issuerUrl.toString());
+  }
+  return locations;
+}
+
+function validateCachedDiscovery(value: unknown, resource: string): OAuthDiscoveryResult {
+  if (!isObjectRecord(value) || value.resource !== resource) {
+    throw new Error("Cached OAuth discovery resource mismatch");
+  }
+  if (
+    typeof value.resourceMetadataUrl !== "string" ||
+    typeof value.authorizationServer !== "string" ||
+    typeof value.authorizationServerMetadataUrl !== "string"
+  ) {
+    throw new Error("Cached OAuth discovery is missing identity fields");
+  }
+  const resourceMetadata = validateProtectedResourceMetadata(value.resourceMetadata, resource);
+  const resourceMetadataLocation = new URL(value.resourceMetadataUrl);
+  if (
+    resourceMetadataLocation.username !== "" ||
+    resourceMetadataLocation.password !== "" ||
+    resourceMetadataLocation.hash !== ""
+  ) {
+    throw new Error(
+      "Cached OAuth discovery metadata location must not include credentials or fragment"
+    );
+  }
+  assertSecureUrl(resourceMetadataLocation, "Cached OAuth discovery metadata location");
+  const issuer = validateAuthorizationServerIssuer(value.authorizationServer);
+  if (!resourceMetadata.authorization_servers.includes(issuer)) {
+    throw new Error("Cached OAuth discovery issuer was not advertised by the resource");
+  }
+  if (
+    !authorizationServerMetadataLocations(issuer).includes(value.authorizationServerMetadataUrl)
+  ) {
+    throw new Error("Cached OAuth discovery metadata location does not match issuer");
+  }
+  const authorizationServerMetadata = validateAuthorizationServerMetadata(
+    value.authorizationServerMetadata,
+    issuer
+  );
+  return structuredClone({
+    resource,
+    resourceMetadataUrl: value.resourceMetadataUrl,
+    resourceMetadata,
+    authorizationServer: issuer,
+    authorizationServerMetadataUrl: value.authorizationServerMetadataUrl,
+    authorizationServerMetadata
+  });
 }
 
 export class OAuthMetadataDiscovery {
@@ -227,18 +323,39 @@ export class OAuthMetadataDiscovery {
     this.cache = cache;
   }
 
+  private async discoverProtectedResource(
+    resource: string,
+    resourceMetadataUrl?: string | URL
+  ): Promise<{ location: string; metadata: OAuthProtectedResourceMetadata }> {
+    const locations = new Set([resolveProtectedResourceMetadataUrl(resource, resourceMetadataUrl)]);
+    if (resourceMetadataUrl === undefined) {
+      locations.add(new URL("/.well-known/oauth-protected-resource", resource).toString());
+    }
+
+    let lastError: unknown;
+    for (const location of locations) {
+      try {
+        const metadata = validateProtectedResourceMetadata(
+          await fetchMetadata(this.fetchImpl, location, "Protected resource metadata"),
+          resource
+        );
+        return { location, metadata };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  }
+
   async discover(
     resourceUrl: string | URL,
     { resourceMetadataUrl }: OAuthMetadataLookupOptions = {}
   ): Promise<OAuthDiscoveryResult> {
     const cacheKey = canonicalizeResourceIndicator(resourceUrl);
-    const resourceMetadataLocation = resolveProtectedResourceMetadataUrl(
-      cacheKey,
-      resourceMetadataUrl
-    );
+    resolveProtectedResourceMetadataUrl(cacheKey, resourceMetadataUrl);
     const memoryCachedResult = this.memoryCache.get(cacheKey);
     if (memoryCachedResult !== undefined && resourceMetadataUrl === undefined) {
-      return memoryCachedResult;
+      return structuredClone(memoryCachedResult);
     }
 
     const sharedCachedResult = await this.cache?.get(cacheKey);
@@ -247,63 +364,50 @@ export class OAuthMetadataDiscovery {
       sharedCachedResult !== undefined &&
       resourceMetadataUrl === undefined
     ) {
-      this.memoryCache.set(cacheKey, sharedCachedResult);
-      return sharedCachedResult;
+      try {
+        const result = validateCachedDiscovery(sharedCachedResult, cacheKey);
+        this.memoryCache.set(cacheKey, structuredClone(result));
+        return result;
+      } catch {
+        await this.cache?.delete?.(cacheKey);
+      }
     }
 
-    const resourceMetadataResponse = await this.fetchImpl(resourceMetadataLocation, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-    const resourceMetadata = validateProtectedResourceMetadata(
-      await readJsonResponse(resourceMetadataResponse, "Protected resource metadata"),
-      cacheKey
-    );
+    const { location: resourceMetadataLocation, metadata: resourceMetadata } =
+      await this.discoverProtectedResource(cacheKey, resourceMetadataUrl);
 
     const authorizationServerErrors: string[] = [];
 
     for (const authorizationServer of resourceMetadata.authorization_servers) {
-      const normalizedAuthorizationServer = normalizeAuthorizationServerIssuer(
-        authorizationServer
-      );
-      const authorizationServerMetadataUrl =
-        resolveAuthorizationServerMetadataUrl(normalizedAuthorizationServer);
+      const normalizedAuthorizationServer = validateAuthorizationServerIssuer(authorizationServer);
+      const metadataLocations = authorizationServerMetadataLocations(normalizedAuthorizationServer);
 
-      try {
-        const authorizationServerResponse = await this.fetchImpl(authorizationServerMetadataUrl, {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-        });
-        const authorizationServerMetadata = validateAuthorizationServerMetadata(
-          await readJsonResponse(
-            authorizationServerResponse,
-            "Authorization server metadata"
-          ),
-          normalizedAuthorizationServer
-        );
+      for (const authorizationServerMetadataUrl of metadataLocations) {
+        try {
+          const authorizationServerMetadata = validateAuthorizationServerMetadata(
+            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "Authorization server metadata"),
+            normalizedAuthorizationServer
+          );
 
-        const result: OAuthDiscoveryResult = {
-          resource: resourceMetadata.resource,
-          resourceMetadataUrl: resourceMetadataLocation,
-          resourceMetadata,
-          authorizationServer: normalizedAuthorizationServer,
-          authorizationServerMetadataUrl,
-          authorizationServerMetadata,
-        };
+          const result: OAuthDiscoveryResult = {
+            resource: resourceMetadata.resource,
+            resourceMetadataUrl: resourceMetadataLocation,
+            resourceMetadata,
+            authorizationServer: normalizedAuthorizationServer,
+            authorizationServerMetadataUrl,
+            authorizationServerMetadata
+          };
 
-        this.memoryCache.set(cacheKey, result);
-        await this.cache?.set(cacheKey, result);
-        return result;
-      } catch (error) {
-        authorizationServerErrors.push(
-          `${authorizationServerMetadataUrl}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
+          this.memoryCache.set(cacheKey, structuredClone(result));
+          await this.cache?.set(cacheKey, structuredClone(result));
+          return result;
+        } catch (error) {
+          authorizationServerErrors.push(
+            `${authorizationServerMetadataUrl}: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
     }
 
@@ -538,7 +642,7 @@ export function parseBearerWwwAuthenticateHeader(
             break;
           }
 
-          params[parsedParam.name] = parsedParam.value;
+          params[parsedParam.name.toLowerCase()] = parsedParam.value;
           index = skipOptionalWhitespace(headerValue, parsedParam.nextIndex);
 
           if (headerValue[index] !== ",") {

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "test:conformance",
+    "--workspace=@poe-code/safe-js",
+    "--",
+    "--corpus",
+    "/private/tmp/safejs-baseline-test262-419d3e0",
+    "--timeout-ms",
+    "3000",
+    "--enumerate",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/manifest.json"
+  ],
+  "startedUtc": "2026-09-12T06:30:21.834687+00:00",
+  "exitCode": 0,
+  "elapsedSeconds": 27.970643250002468
+}

@@ -1,0 +1,632 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "cls.__or__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u.__or__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "cls.__or__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self|value.'\"), [])"
+    },
+    {
+      "name": "cls.__or__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "u.__or__.__self__ is u",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__.__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__or__(u, float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | float'), [])"
+    },
+    {
+      "name": "u.__or__(float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | float'), [])"
+    },
+    {
+      "name": "cls.__or__(u, None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | None'), [])"
+    },
+    {
+      "name": "u.__or__(None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | None'), [])"
+    },
+    {
+      "name": "cls.__or__(u, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "u.__or__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "cls.__or__(u, u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "u.__or__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "cls.__or__(u, other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | Other()'), [])"
+    },
+    {
+      "name": "u.__or__(other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | Other()'), [])"
+    },
+    {
+      "name": "cls.__or__(u, 0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, 0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | 0'), [])"
+    },
+    {
+      "name": "u.__or__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | 0'), [])"
+    },
+    {
+      "name": "cls.__or__(u, list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | list[int]'), [])"
+    },
+    {
+      "name": "u.__or__(list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__or__(list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | list[int]'), [])"
+    },
+    {
+      "name": "cls.__or__()",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' of 'typing.Union' object needs an argument\", (\"descriptor '__or__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__or__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__or__(u, int, str)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, int, str)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__or__(u, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(u, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __or__() takes no keyword arguments', ('wrapper __or__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__or__(0, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(0, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__or__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__or__(0, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__(0, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__or__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__or__.__get__(u) is cls.__or__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__.__get__(u) is cls.__or__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'False'), [])"
+    },
+    {
+      "name": "cls.__or__.__get__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__or__.__get__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' for 'typing.Union' objects doesn't apply to a 'int' object\", (\"descriptor '__or__' for 'typing.Union' objects doesn't apply to a 'int' object\",)), [])"
+    },
+    {
+      "name": "cls.__ror__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u.__ror__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "cls.__ror__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return value|self.'\"), [])"
+    },
+    {
+      "name": "cls.__ror__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "u.__ror__.__self__ is u",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__.__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'float | int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'float | int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'None | int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'None | int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'Other() | int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'Other() | int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, 0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, 0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, '0 | int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, '0 | int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__(u, list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'list[int] | int | str'), [])"
+    },
+    {
+      "name": "u.__ror__(list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ror__(list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'list[int] | int | str'), [])"
+    },
+    {
+      "name": "cls.__ror__()",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' of 'typing.Union' object needs an argument\", (\"descriptor '__ror__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__ror__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__ror__(u, int, str)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, int, str)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__ror__(u, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(u, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __ror__() takes no keyword arguments', ('wrapper __ror__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__ror__(0, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(0, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__ror__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__ror__(0, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__(0, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__ror__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__ror__.__get__(u) is cls.__ror__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__.__get__(u) is cls.__ror__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'False'), [])"
+    },
+    {
+      "name": "cls.__ror__.__get__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ror__.__get__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' for 'typing.Union' objects doesn't apply to a 'int' object\", (\"descriptor '__ror__' for 'typing.Union' objects doesn't apply to a 'int' object\",)), [])"
+    },
+    {
+      "name": "type.__or__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "int.__or__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "type.__or__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self|value.'\"), [])"
+    },
+    {
+      "name": "type.__or__.__objclass__ is type",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__.__objclass__ is type\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "int.__or__.__self__ is int",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__.__self__ is int\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'wrapper_descriptor' object has no attribute '__self__'\", (\"'wrapper_descriptor' object has no attribute '__self__'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | float'), [])"
+    },
+    {
+      "name": "int.__or__(float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'type'\", (\"descriptor '__or__' requires a 'int' object but received a 'type'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | None'), [])"
+    },
+    {
+      "name": "int.__or__(None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__or__' requires a 'int' object but received a 'NoneType'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"<class 'int'>\"), [])"
+    },
+    {
+      "name": "int.__or__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'type'\", (\"descriptor '__or__' requires a 'int' object but received a 'type'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "int.__or__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'typing.Union'\", (\"descriptor '__or__' requires a 'int' object but received a 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "int.__or__(other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'Other'\", (\"descriptor '__or__' requires a 'int' object but received a 'Other'\",)), [])"
+    },
+    {
+      "name": "type.__or__(int, 0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, 0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "int.__or__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "type.__or__(int, list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | list[int]'), [])"
+    },
+    {
+      "name": "int.__or__(list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__or__(list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'types.GenericAlias'\", (\"descriptor '__or__' requires a 'int' object but received a 'types.GenericAlias'\",)), [])"
+    },
+    {
+      "name": "type.__or__()",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' of 'type' object needs an argument\", (\"descriptor '__or__' of 'type' object needs an argument\",)), [])"
+    },
+    {
+      "name": "type.__or__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "type.__or__(int, int, str)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, int, str)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "type.__or__(int, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(int, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __or__() takes no keyword arguments', ('wrapper __or__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "type.__or__(0, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(0, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'type' object but received a 'int'\", (\"descriptor '__or__' requires a 'type' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "type.__or__(0, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__(0, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' requires a 'type' object but received a 'int'\", (\"descriptor '__or__' requires a 'type' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "type.__or__.__get__(int) is type.__or__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__.__get__(int) is type.__or__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'False'), [])"
+    },
+    {
+      "name": "type.__or__.__get__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__or__.__get__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__or__' for 'type' objects doesn't apply to a 'int' object\", (\"descriptor '__or__' for 'type' objects doesn't apply to a 'int' object\",)), [])"
+    },
+    {
+      "name": "type.__ror__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "int.__ror__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "type.__ror__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return value|self.'\"), [])"
+    },
+    {
+      "name": "type.__ror__.__objclass__ is type",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__.__objclass__ is type\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "int.__ror__.__self__ is int",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__.__self__ is int\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('AttributeError', \"'wrapper_descriptor' object has no attribute '__self__'\", (\"'wrapper_descriptor' object has no attribute '__self__'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'float | int'), [])"
+    },
+    {
+      "name": "int.__ror__(float)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(float)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'type'\", (\"descriptor '__ror__' requires a 'int' object but received a 'type'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'None | int'), [])"
+    },
+    {
+      "name": "int.__ror__(None)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(None)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'NoneType'\", (\"descriptor '__ror__' requires a 'int' object but received a 'NoneType'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"<class 'int'>\"), [])"
+    },
+    {
+      "name": "int.__ror__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'type'\", (\"descriptor '__ror__' requires a 'int' object but received a 'type'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str'), [])"
+    },
+    {
+      "name": "int.__ror__(u)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'typing.Union'\", (\"descriptor '__ror__' requires a 'int' object but received a 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "int.__ror__(other)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'Other'\", (\"descriptor '__ror__' requires a 'int' object but received a 'Other'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int, 0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, 0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "int.__ror__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "type.__ror__(int, list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'list[int] | int'), [])"
+    },
+    {
+      "name": "int.__ror__(list[int])",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int.__ror__(list[int])\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'types.GenericAlias'\", (\"descriptor '__ror__' requires a 'int' object but received a 'types.GenericAlias'\",)), [])"
+    },
+    {
+      "name": "type.__ror__()",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' of 'type' object needs an argument\", (\"descriptor '__ror__' of 'type' object needs an argument\",)), [])"
+    },
+    {
+      "name": "type.__ror__(int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "type.__ror__(int, int, str)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, int, str)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "type.__ror__(int, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(int, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __ror__() takes no keyword arguments', ('wrapper __ror__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "type.__ror__(0, value=int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(0, value=int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'type' object but received a 'int'\", (\"descriptor '__ror__' requires a 'type' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "type.__ror__(0, int)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__(0, int)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' requires a 'type' object but received a 'int'\", (\"descriptor '__ror__' requires a 'type' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "type.__ror__.__get__(int) is type.__ror__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__.__get__(int) is type.__ror__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'False'), [])"
+    },
+    {
+      "name": "type.__ror__.__get__(0)",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=type.__ror__.__get__(0)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ror__' for 'type' objects doesn't apply to a 'int' object\", (\"descriptor '__ror__' for 'type' objects doesn't apply to a 'int' object\",)), [])"
+    },
+    {
+      "name": "u|other",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u|other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | Other()'), [])"
+    },
+    {
+      "name": "other|u",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other|u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, '17'), ['or'])"
+    },
+    {
+      "name": "int|other",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=int|other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, '23'), ['ror'])"
+    },
+    {
+      "name": "other|int",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other|int\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, '17'), ['or'])"
+    },
+    {
+      "name": "u|float",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u|float\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | float'), [])"
+    },
+    {
+      "name": "float|u",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=float|u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'float | int | str'), [])"
+    },
+    {
+      "name": "u|None",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u|None\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'int | str | None'), [])"
+    },
+    {
+      "name": "None|u",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=None|u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'None | int | str'), [])"
+    },
+    {
+      "name": "cls.__getattribute__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__getattribute__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, name, /)'\"), [])"
+    },
+    {
+      "name": "u.__getattribute__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__getattribute__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, name, /)'\"), [])"
+    },
+    {
+      "name": "cls.__getattribute__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__getattribute__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return getattr(self, name).'\"), [])"
+    },
+    {
+      "name": "cls.__getitem__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__getitem__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, key, /)'\"), [])"
+    },
+    {
+      "name": "u.__getitem__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__getitem__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, key, /)'\"), [])"
+    },
+    {
+      "name": "cls.__getitem__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__getitem__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self[key].'\"), [])"
+    },
+    {
+      "name": "cls.__mro_entries__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__mro_entries__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, object, /)'\"), [])"
+    },
+    {
+      "name": "u.__mro_entries__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__mro_entries__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, object, /)'\"), [])"
+    },
+    {
+      "name": "cls.__mro_entries__.__doc__",
+      "source": "events=[]\nclass Other:\n def __repr__(self): return \"Other()\"\n def __or__(self, other): events.append('or'); return 17\n def __ror__(self, other): events.append('ror'); return 23\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__mro_entries__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'None'), [])"
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "oracle": "CPython 3.14.7; Unicode 16.0.0; Darwin arm64",
+  "adapter": "Explicit PythonSession input.readLine/output.write/output.flush using real open node:fs descriptors, readSync/writeSync/fsyncSync; guest stream protocols; no memfs. Ad hoc execution, not a unit test.",
+  "results": [
+    {
+      "name": "all scoped class dictionary and weakref descriptors preserve receiver contracts",
+      "sourceSha256": "1ebd2e5f28ce0cf77addb4095ed11ecaf801a545052cf6f204841794b8831c2c",
+      "result": {
+        "status": "ok"
+      },
+      "output": "codecs Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\ncodecs BufferedIncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\ncodecs IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\ncodecs BufferedIncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\ncodecs StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs StreamReaderWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'StreamReaderWriter' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'StreamReaderWriter' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'StreamReaderWriter' objects is not writable\",)\ncodecs StreamRecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'StreamRecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'StreamRecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'StreamRecoder' objects is not writable\",)\nencodings.ascii Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.ascii IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.ascii StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii StreamConverter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.latin_1 IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.latin_1 StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 StreamConverter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.utf_8 IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.utf_8 IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.utf_8 StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.utf_8 StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\n",
+      "readCalls": 0,
+      "oracleOutput": "codecs Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\ncodecs BufferedIncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\ncodecs IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\ncodecs BufferedIncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\ncodecs StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\ncodecs StreamReaderWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'StreamReaderWriter' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'StreamReaderWriter' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'StreamReaderWriter' objects is not writable\",)\ncodecs StreamRecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'StreamRecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'StreamRecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'StreamRecoder' objects is not writable\",)\nencodings.ascii Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.ascii IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.ascii StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.ascii StreamConverter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 Codec True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.latin_1 IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.latin_1 StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.latin_1 StreamConverter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.utf_8 IncrementalEncoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalEncoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalEncoder' objects is not writable\",)\nencodings.utf_8 IncrementalDecoder True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'IncrementalDecoder' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'IncrementalDecoder' objects is not writable\",)\nencodings.utf_8 StreamReader True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\nencodings.utf_8 StreamWriter True True None\nTrue True\n{} True\nTrue\n(\"descriptor '__dict__' for 'Codec' objects doesn't apply to a 'int' object\",)\nTrue\n(\"descriptor '__weakref__' for 'Codec' objects doesn't apply to a 'int' object\",)\n(\"attribute '__weakref__' of 'Codec' objects is not writable\",)\n"
+    },
+    {
+      "name": "buffer consumption invokes index after callback and preserves failed mutation",
+      "sourceSha256": "7230b8c31fb79ecdee4bdde1eb107e4287c119f9dcc1322764e93d4e7c807330",
+      "result": {
+        "status": "ok"
+      },
+      "output": "result cd [('abcd', 'strict', True), 'index']\nTrue ('index',) changed [('abcd', 'strict', False), 'index']\nresult (b'cd', 0) [(b'abcd', 'strict', True), 'index']\nTrue ('index',) (b'changed', 0) [(b'abcd', 'strict', False), 'index']\n",
+      "readCalls": 0,
+      "oracleOutput": "result cd [('abcd', 'strict', True), 'index']\nTrue ('index',) changed [('abcd', 'strict', False), 'index']\nresult (b'cd', 0) [(b'abcd', 'strict', True), 'index']\nTrue ('index',) (b'changed', 0) [(b'abcd', 'strict', False), 'index']\n"
+    },
+    {
+      "name": "writer materializes all lines before validating elements and encoding",
+      "sourceSha256": "77688a7057fb86b03a0b977f11fbc162ed02c1cc2a35aea4a03e9a7195481f2d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "TypeError ('sequence item 1: expected str instance, int found',) False ['first', 'invalid', 'last'] replace\nValueError ('source',) True ['first', 'invalid', 'last'] replace\n",
+      "readCalls": 0,
+      "oracleOutput": "TypeError ('sequence item 1: expected str instance, int found',) False ['first', 'invalid', 'last'] replace\nValueError ('source',) True ['first', 'invalid', 'last'] replace\n"
+    },
+    {
+      "name": "seek comparison and reset failures preserve exact ordering",
+      "sourceSha256": "0f57dcf21db737409fb68c66371b0a6218cc81c4cc7b2e54ada761eb82cdb115",
+      "result": {
+        "status": "ok"
+      },
+      "output": "False False False None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool')]\nFalse False True None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nFalse True False None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool')]\nFalse True True True ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nTrue False False None ['stream.seek', 'reader.reset', ('whence', 'eq', 0), ('whence', 'bool')]\nTrue False True None ['stream.seek', 'reader.reset', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nTrue True False True ['stream.seek', 'reader.reset']\nTrue True True True ['stream.seek', 'reader.reset']\n",
+      "readCalls": 0,
+      "oracleOutput": "False False False None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool')]\nFalse False True None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nFalse True False None ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool')]\nFalse True True True ['stream.seek', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nTrue False False None ['stream.seek', 'reader.reset', ('whence', 'eq', 0), ('whence', 'bool')]\nTrue False True None ['stream.seek', 'reader.reset', ('whence', 'eq', 0), ('whence', 'bool'), ('offset', 'eq', 0), ('offset', 'bool'), 'writer.reset']\nTrue True False True ['stream.seek', 'reader.reset']\nTrue True True True ['stream.seek', 'reader.reset']\n"
+    },
+    {
+      "name": "reader cached line aliasing and keepends failure mutation",
+      "sourceSha256": "37d82c7fd0b84c1df5381a006a0093e54966e8f1f8884c34cfbb61d797efc18e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "True [] [] True old\nTrue ['b\\n'] None False b\n\nTrue ['b\\n', 'c'] ['b\\n', 'c'] True old\n('sequence item 1: expected str instance, int found',) True ['a', 17, 'b'] old\n",
+      "readCalls": 0,
+      "oracleOutput": "True [] [] True old\nTrue ['b\\n'] None False b\n\nTrue ['b\\n', 'c'] ['b\\n', 'c'] True old\n('sequence item 1: expected str instance, int found',) True ['a', 17, 'b'] old\n"
+    },
+    {
+      "name": "iterencode and iterdecode throw and close do not finalize nested source",
+      "sourceSha256": "edcb1fa45544ec50152fb3b35a282accd7d3ffb88d80dd39cb842c469d26f900",
+      "result": {
+        "status": "ok"
+      },
+      "output": "A\nTrue\n[('init', 'strict'), ('convert', 'A', False)] []\nB [('init', 'strict'), ('convert', 'A', False), 'resumed']\n[('init', 'strict'), ('convert', 'A', False), 'resumed', 'source.finally']\nA\nNone\n[('init', 'strict'), ('convert', 'A', False)] []\nB [('init', 'strict'), ('convert', 'A', False), 'resumed']\n[('init', 'strict'), ('convert', 'A', False), 'resumed', 'source.finally']\nb'A'\nTrue\n[('init', 'strict'), ('convert', b'A', False)] []\nb'B' [('init', 'strict'), ('convert', b'A', False), 'resumed']\n[('init', 'strict'), ('convert', b'A', False), 'resumed', 'source.finally']\nb'A'\nNone\n[('init', 'strict'), ('convert', b'A', False)] []\nb'B' [('init', 'strict'), ('convert', b'A', False), 'resumed']\n[('init', 'strict'), ('convert', b'A', False), 'resumed', 'source.finally']\n",
+      "readCalls": 0,
+      "oracleOutput": "A\nTrue\n[('init', 'strict'), ('convert', 'A', False)] []\nB [('init', 'strict'), ('convert', 'A', False), 'resumed']\n[('init', 'strict'), ('convert', 'A', False), 'resumed', 'source.finally']\nA\nNone\n[('init', 'strict'), ('convert', 'A', False)] []\nB [('init', 'strict'), ('convert', 'A', False), 'resumed']\n[('init', 'strict'), ('convert', 'A', False), 'resumed', 'source.finally']\nb'A'\nTrue\n[('init', 'strict'), ('convert', b'A', False)] []\nb'B' [('init', 'strict'), ('convert', b'A', False), 'resumed']\n[('init', 'strict'), ('convert', b'A', False), 'resumed', 'source.finally']\nb'A'\nNone\n[('init', 'strict'), ('convert', b'A', False)] []\nb'B' [('init', 'strict'), ('convert', b'A', False), 'resumed']\n[('init', 'strict'), ('convert', b'A', False), 'resumed', 'source.finally']\n"
+    },
+    {
+      "name": "recoder resolves writer after decoder mutation and preserves joined bytes",
+      "sourceSha256": "10145fde237a95fa3b76e7b37b472a68be8d493a1032c670bfa792c77a62f76b",
+      "result": {
+        "status": "ok"
+      },
+      "output": "True [('decode', b'AB', 'changed'), ('replacement', 'converted')]\n",
+      "readCalls": 0,
+      "oracleOutput": "True [('decode', b'AB', 'changed'), ('replacement', 'converted')]\n"
+    },
+    {
+      "name": "UTF-8 descriptor-backed short reads and writes",
+      "sourceSha256": "20310ed208b3408195c5a01c416a775a0d5eec2317c80ab096e44ed20de0384d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "c3a90a\nf09f908d0a\n410a\n",
+      "readCalls": 6,
+      "oracleOutput": "c3a90a\nf09f908d0a\n410a\n"
+    },
+    {
+      "name": "reader.read",
+      "sourceSha256": "212641d020ad55cdb4f2e41f98456b4af50ba7e357a8cc98d75ec8a17cd71563",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "writer.write",
+      "sourceSha256": "0e31527b34c285ba4bed614bc8115830f106948caadd4ea2d058245e9e064870",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "paired.reset",
+      "sourceSha256": "82af76ed47ed808357b8772be07c9dd47991141f00bea39fcb1e5631858d68cd",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "recoder.seek",
+      "sourceSha256": "b4d436bcaa770516aa9feaeda78c3241e4efc2dab6bd18b52835ca3cdc56d384",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "incremental handler",
+      "sourceSha256": "57b68982a225a736f9d85a2edbdc45cf142eb31727cbec4a33d2f69422822e41",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "iterator source",
+      "sourceSha256": "899533db492f675937960602d73a753bf476cd1414341990a24902edec88a863",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "reader.readline",
+      "sourceSha256": "65c6aa8986d5a03a7a0ec038ff87d95c56dde668e3b54803938b75d0e7303370",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "reader.readlines",
+      "sourceSha256": "cea4a6e0820cb006e7a776d6c367a7d152d663d45b0e670eb21fa7ebbd5c5ce2",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "reader.tell",
+      "sourceSha256": "2c38bd2108f9e30173ad0ce7024239ae33d66ef8da2c2fd4cacf0d90c5c75dd3",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "writer.writelines source",
+      "sourceSha256": "415a2b3b207411e7238291ad444d432325e7bae41ce718ca28fa3ec2cf4f70a6",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "buffered decoder consumed index",
+      "sourceSha256": "bceaad8badd6ee68a6b3bc7f4f16db63925876448b055756c22c155875f22727",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "iterencode final callback",
+      "sourceSha256": "8bc046ca49cf7bed981b01b995667d7f6829b1efe973cb30bbfbca2112557f0d",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "iterdecode final callback",
+      "sourceSha256": "eeeecfc7b67705689add0b0ca81746d1345aac4b2f59685c04de483977ab374e",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "recoder frontend decoder",
+      "sourceSha256": "c7ff8dd3494d3e1a7231597a64b305f320cf64f7b4f4f960dc70a0b7f6e529f2",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    }
+  ]
+}

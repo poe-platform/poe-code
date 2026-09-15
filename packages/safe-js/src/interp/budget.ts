@@ -383,7 +383,7 @@ export class Budget {
     this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
   }
 
-  provisionDataUsage(usage: number): () => void {
+  provisionDataUsage(usage: number): (commit?: boolean) => void {
     const previous = this.accounting.currentDataSize;
     const previousRetained = this.accounting.retainedDataSize;
     const next = previous + usage;
@@ -394,12 +394,13 @@ export class Budget {
     this.accounting.provisionalScopes += 1;
 
     let released = false;
-    return () => {
+    return (commit = false) => {
       if (released) return;
       released = true;
       if (generation !== this.accounting.compileGeneration) return;
       this.accounting.provisionalScopes -= 1;
-      this.accounting.currentDataSize = previous + this.accounting.retainedDataSize - previousRetained;
+      if (!commit)
+        this.accounting.currentDataSize = previous + this.accounting.retainedDataSize - previousRetained;
     };
   }
 

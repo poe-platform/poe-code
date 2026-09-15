@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import {
   createAuthStoreSessionStore,
   createDefaultOAuthClientProvider,
@@ -12,6 +13,8 @@ import {
   type StoredOAuthSession
 } from "./index.js";
 import { createAuthStoreClientStore } from "./client/auth-store-session-store.js";
+
+installInMemoryHttp();
 
 const RESOURCE_URL = "https://resource.example.com/mcp";
 const NON_CANONICAL_RESOURCE_URL = "HTTPS://RESOURCE.EXAMPLE.COM:443/mcp#ignored";

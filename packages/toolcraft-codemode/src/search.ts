@@ -1,7 +1,7 @@
 import { defineCommand, type Scope, UserError } from "toolcraft";
 import { S, toJsonSchema } from "toolcraft-schema";
 
-import { resolveCommandEntries, type CommandEntry, type CommandEntryList } from "./tree.js";
+import { formatModuleSegment, resolveCommandEntries, type CommandEntry, type CommandEntryList } from "./tree.js";
 
 export type SearchDetail = "brief" | "detailed" | "full";
 
@@ -32,6 +32,7 @@ const K1 = 1.5;
 const B = 0.75;
 const FALLBACK_LIMIT = 10;
 const SEARCH_DETAILS = ["brief", "detailed", "full"] as const;
+const wordSegmenter = new Intl.Segmenter("en", { granularity: "word" });
 
 const searchParams = S.Object({
   query: S.String({ description: "Search query." }),
@@ -56,25 +57,33 @@ function isWordCharacter(character: string): boolean {
 }
 
 function tokenize(value: string): string[] {
+  const searchable = Array.from(value.normalize("NFC"), (character) =>
+    character !== "’" && character !== "‘" &&
+    (character.charCodeAt(0) > 127 || isWordCharacter(character.toLowerCase()))
+      ? character
+      : " "
+  ).join("");
   const tokens: string[] = [];
-  let current = "";
 
-  for (const character of value) {
-    const lowerCharacter = character.toLowerCase();
-
-    if (lowerCharacter.length === 1 && isWordCharacter(lowerCharacter)) {
-      current += lowerCharacter;
+  for (const word of wordSegmenter.segment(searchable)) {
+    if (!word.isWordLike) {
       continue;
     }
 
-    if (current.length > 0) {
-      tokens.push(current);
-      current = "";
+    const normalized = word.segment.toLowerCase();
+    const identifier = formatModuleSegment(word.segment);
+    const parts = identifier.split("_").filter((part) => part.length > 0);
+    if (parts.length === 0) {
+      continue;
     }
-  }
 
-  if (current.length > 0) {
-    tokens.push(current);
+    tokens.push(normalized);
+    if (identifier !== normalized) {
+      tokens.push(identifier);
+    }
+    if (parts.length > 1) {
+      tokens.push(...parts);
+    }
   }
 
   return tokens;

@@ -1,0 +1,1664 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (5 tests | 2 failed) 444ms
+   ✓ enforces admitted symbol and value string limits through binding 99ms
+   ✓ enforces admitted symbol and value string limits through host 91ms
+   × enforces admitted symbol and value string limits through replay 248ms
+   × enforces admitted symbol and value string limits through rebind 3ms
+   ✓ charges admitted symbol data and rolls back a rejected host outcome 2ms
+FAIL packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > enforces admitted symbol and value string limits through replay
+AssertionError: replay key: expected { value: { ok: true, …(3) } } to match object { error: { …(2) } }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
++   "value": {
++     "ok": true,
++     "returnValue": 1,
++     "snapshot": {
++       "bindings": {
++         "AggregateError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "AggregateError",
++         },
++         "Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Array",
++         },
++         "ArrayBuffer": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "ArrayBuffer",
++         },
++         "AsyncDisposableStack": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "AsyncDisposableStack",
++         },
++         "Atomics": {},
++         "BigInt": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "BigInt",
++         },
++         "BigInt64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "BigInt64Array",
++         },
++         "BigUint64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "BigUint64Array",
++         },
++         "Boolean": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Boolean",
++         },
++         "DataView": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "DataView",
++         },
++         "Date": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Date",
++         },
++         "DisposableStack": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "DisposableStack",
++         },
++         "Error": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Error",
++         },
++         "EvalError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "EvalError",
++         },
++         "FinalizationRegistry": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "FinalizationRegistry",
++         },
++         "Float16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float16Array",
++         },
++         "Float32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float32Array",
++         },
++         "Float64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float64Array",
++         },
++         "Function": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Function",
++         },
++         "Infinity": Infinity,
++         "Int16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int16Array",
++         },
++         "Int32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int32Array",
++         },
++         "Int8Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int8Array",
++         },
++         "Intl": {},
++         "Iterator": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Iterator",
++         },
++         "JSON": {},
++         "Map": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Map",
++         },
++         "Math": {},
++         "NaN": NaN,
++         "Number": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Number",
++         },
++         "Object": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Object",
++         },
++         "Promise": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Promise",
++         },
++         "Proxy": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Proxy",
++         },
++         "RangeError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "RangeError",
++         },
++         "ReferenceError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "ReferenceError",
++         },
++         "Reflect": {},
++         "RegExp": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "RegExp",
++         },
++         "Set": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Set",
++         },
++         "SharedArrayBuffer": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SharedArrayBuffer",
++         },
++         "String": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "String",
++         },
++         "SuppressedError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SuppressedError",
++         },
++         "Symbol": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "Symbol",
++         },
++         "SyntaxError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SyntaxError",
++         },
++         "Temporal": {},
++         "TypeError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "TypeError",
++         },
++         "URIError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "URIError",
++         },
++         "Uint16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint16Array",
++         },
++         "Uint32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint32Array",
++         },
++         "Uint8Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint8Array",
++         },
++         "Uint8ClampedArray": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint8ClampedArray",
++         },
++         "WeakMap": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakMap",
++         },
++         "WeakRef": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakRef",
++         },
++         "WeakSet": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakSet",
++         },
++         "console": {
+            "error": {
+-     "budget": "stringLength",
+-     "code": "budgetExceeded",
++             "call": [Function call],
++             "kind": "fn",
++             "name": "error",
++           },
++           "log": {
++             "call": [Function call],
++             "kind": "fn",
++             "name": "log",
++           },
++         },
++         "decodeURI": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "decodeURI",
++         },
++         "decodeURIComponent": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "decodeURIComponent",
++         },
++         "encodeURI": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "encodeURI",
++         },
++         "encodeURIComponent": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "encodeURIComponent",
++         },
++         "escape": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "escape",
++         },
++         "eval": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "eval",
++         },
++         "globalThis": {},
++         "input": {
++           "kind": "promise",
++           "promise": Promise {
++             Symbol(async_id_symbol): 2283,
++             Symbol(trigger_async_id_symbol): 2267,
++             Symbol(kResourceStore): {
++               "add": [Function add],
++               "functionSourceText": true,
++               "referenceReleases": Set {},
++               "reportError": [Function reportError],
++               "signal": AbortSignal {
++                 Symbol(kEvents): Map {},
++                 Symbol(events.maxEventTargetListeners): 0,
++                 Symbol(events.maxEventTargetListenersWarned): false,
++                 Symbol(kHandlers): Map {},
++                 Symbol(kAborted): true,
++                 Symbol(kReason): Error {
++                   "message": "SafeJS run finished.",
++                 },
++                 Symbol(kComposite): false,
++               },
++             },
++             Symbol(kResourceStore): SandboxPromiseRejectionTracker {
++               "fatalRejection": undefined,
++               "fatalWaiters": Set {},
++               "records": Set {
++                 {
++                   "observed": false,
++                   "promise": {
++                     "kind": "promise",
++                     "promise": Promise {
++                       Symbol(async_id_symbol): 2273,
++                       Symbol(trigger_async_id_symbol): 2267,
++                       Symbol(kResourceStore): {
++                         "add": [Function add],
++                         "functionSourceText": true,
++                         "referenceReleases": Set {},
++                         "reportError": [Function reportError],
++                         "signal": AbortSignal {
++                           Symbol(kEvents): Map {},
++                           Symbol(events.maxEventTargetListeners): 0,
++                           Symbol(events.maxEventTargetListenersWarned): false,
++                           Symbol(kHandlers): Map {},
++                           Symbol(kAborted): true,
++                           Symbol(kReason): Error {
++                             "message": "SafeJS run finished.",
++                           },
++                           Symbol(kComposite): false,
++                         },
++                       },
++                       Symbol(kResourceStore): [Circular],
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): PromiseReplay {
++                         "budget": undefined,
++                         "callbackCount": 0,
++                         "callbackTasks": Map {},
++                         "completedCallbacks": Set {},
++                         "events": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "executionTrace": undefined,
++                         "failure": undefined,
++                         "importedIds": Set {},
++                         "liveWaiters": Set {},
++                         "nextPromise": 2,
++                         "position": 1,
++                         "promiseIds": WeakMap {},
++                         "ready": Map {},
++                         "rejectors": Map {},
++                         "replaying": true,
++                         "restored": {
++                           "promises": 1,
++                           "settlements": [
++                             {
++                               "id": 1,
++                               "step": 4,
++                             },
++                           ],
++                           "steps": 5,
++                           "version": 1,
++                         },
++                         "restoredEvents": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "restoredImportedIds": Set {},
++                         "serializedImportedPromises": [],
++                         "steps": 5,
++                         "waiting": Set {},
++                       },
++                     },
++                   },
++                   "rejected": false,
++                 },
++                 {
++                   "observed": false,
++                   "promise": {
++                     "kind": "promise",
++                     "promise": Promise {
++                       Symbol(async_id_symbol): 2277,
++                       Symbol(trigger_async_id_symbol): 2267,
++                       Symbol(kResourceStore): {
++                         "add": [Function add],
++                         "functionSourceText": true,
++                         "referenceReleases": Set {},
++                         "reportError": [Function reportError],
++                         "signal": AbortSignal {
++                           Symbol(kEvents): Map {},
++                           Symbol(events.maxEventTargetListeners): 0,
++                           Symbol(events.maxEventTargetListenersWarned): false,
++                           Symbol(kHandlers): Map {},
++                           Symbol(kAborted): true,
++                           Symbol(kReason): Error {
++                             "message": "SafeJS run finished.",
++                           },
++                           Symbol(kComposite): false,
++                         },
++                       },
++                       Symbol(kResourceStore): [Circular],
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): PromiseReplay {
++                         "budget": undefined,
++                         "callbackCount": 0,
++                         "callbackTasks": Map {},
++                         "completedCallbacks": Set {},
++                         "events": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "executionTrace": undefined,
++                         "failure": undefined,
++                         "importedIds": Set {},
++                         "liveWaiters": Set {},
++                         "nextPromise": 2,
++                         "position": 1,
++                         "promiseIds": WeakMap {},
++                         "ready": Map {},
++                         "rejectors": Map {},
++                         "replaying": true,
++                         "restored": {
++                           "promises": 1,
++                           "settlements": [
++                             {
++                               "id": 1,
++                               "step": 4,
++                             },
++                           ],
++                           "steps": 5,
++                           "version": 1,
++                         },
++                         "restoredEvents": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "restoredImportedIds": Set {},
++                         "serializedImportedPromises": [],
++                         "steps": 5,
++                         "waiting": Set {},
++                       },
++                     },
++                   },
++                   "rejected": false,
++                 },
++                 {
++                   "observed": false,
++                   "promise": [Circular],
++                   "rejected": false,
++                 },
++               },
++               "recordsByPromise": WeakMap {},
++             },
++             Symbol(kResourceStore): undefined,
++             Symbol(kResourceStore): undefined,
++             Symbol(kResourceStore): PromiseReplay {
++               "budget": undefined,
++               "callbackCount": 0,
++               "callbackTasks": Map {},
++               "completedCallbacks": Set {},
++               "events": [
++                 {
++                   "id": 1,
++                   "kind": "promise",
++                   "step": 4,
++                 },
++               ],
++               "executionTrace": undefined,
++               "failure": undefined,
++               "importedIds": Set {},
++               "liveWaiters": Set {},
++               "nextPromise": 2,
++               "position": 1,
++               "promiseIds": WeakMap {},
++               "ready": Map {},
++               "rejectors": Map {},
++               "replaying": true,
++               "restored": {
++                 "promises": 1,
++                 "settlements": [
++                   {
++                     "id": 1,
++                     "step": 4,
++                   },
++                 ],
++                 "steps": 5,
++                 "version": 1,
++               },
++               "restoredEvents": [
++                 {
++                   "id": 1,
++                   "kind": "promise",
++                   "step": 4,
++                 },
++               ],
++               "restoredImportedIds": Set {},
++               "serializedImportedPromises": [],
++               "steps": 5,
++               "waiting": Set {},
++             },
++           },
++         },
++         "isFinite": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "isFinite",
++         },
++         "isNaN": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "isNaN",
++         },
++         "parseFloat": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "parseFloat",
++         },
++         "parseInt": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "parseInt",
++         },
++         "structuredClone": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "structuredClone",
++         },
++         "undefined": undefined,
++         "unescape": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "unescape",
++         },
++       },
++       "clock": undefined,
++       "executionSemantics": "jobs-v8",
++       "hostCalls": [
++         {
++           "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
++           "asynchronous": true,
++           "id": "8e7c5576-8812-4b21-a8ab-4d43233bba4e:1",
++           "lifecycle": "settled",
++           "moduleId": "<inputs>",
++           "operation": "[\"bindings\",\"input\"]",
++           "outcome": {
++             "status": "fulfilled",
++             "value": 7,
++           },
++           "policy": "read-side-effect",
++           "runId": "8e7c5576-8812-4b21-a8ab-4d43233bba4e",
++           "sourceHash": "63d4636b",
++         },
++       ],
++       "initialInputs": {
++         "nodes": [
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": false,
++             "properties": {
++               "bindings": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 1,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++               "entryPointArgs": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "tag": "undefined",
++                 },
++                 "writable": true,
++               },
++               "importMeta": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 6,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++               "imports": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 5,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++             },
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": false,
++             "properties": {
++               "input": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 2,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++             },
++           },
++           {
++             "id": "[\"bindings\",\"input\"]",
++             "kind": "promise-capability",
++             "properties": {
++               "id": 3,
++               "tag": "ref",
++             },
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++             "symbolProperties": [
++               [
++                 {
++                   "id": 4,
++                   "tag": "ref",
++                 },
++                 {
++                   "configurable": false,
++                   "enumerable": false,
++                   "value": 1,
++                   "writable": false,
++                 },
++               ],
++             ],
++           },
++           {
++             "description": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
++             "kind": "symbol",
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++           },
++         ],
++         "root": {
++           "id": 0,
++           "tag": "ref",
++         },
++       },
++       "promiseReplay": {
++         "promises": 1,
++         "settlements": [
++           {
++             "id": 1,
++             "step": 4,
++           },
++         ],
++         "steps": 5,
++         "version": 1,
++       },
++       "random": {
++         "initialState": 3035824981,
++         "seed": 3035824981,
++         "state": 3035824981,
++       },
++       "replay": {
++         "calls": [
++           {
++             "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
++             "asynchronous": true,
++             "id": "8e7c5576-8812-4b21-a8ab-4d43233bba4e:1",
++             "lifecycle": "settled",
++             "moduleId": "<inputs>",
++             "operation": "[\"bindings\",\"input\"]",
++             "outcome": {
++               "data": {
++                 "nodes": [],
++                 "root": 7,
++               },
++               "status": "fulfilled",
++             },
++             "policy": "read-side-effect",
++             "runId": "8e7c5576-8812-4b21-a8ab-4d43233bba4e",
++             "sourceHash": "63d4636b",
++           },
++         ],
++         "version": 1,
++       },
++       "sourceHash": "63d4636b",
++       "version": 2,
++     },
++     "stats": {
++       "nodeVisits": 6,
++     },
+    },
+  }
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:21:65
+     19|       : run(source, { budget, snapshot, bindings: surface === "replay"…
+     20|     ).then(value => ({ value }), error => ({ error }));
+     21|     if (length === 129) expect(outcome, `${surface} ${target}`).toMatc…
+       |                                                                 ^
+     22|     else expect(outcome).not.toHaveProperty("error");
+     23|   }
+
+FAIL packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > enforces admitted symbol and value string limits through rebind
+AssertionError: rebind key: expected { value: { input: Promise{…} } } to match object { error: { …(2) } }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "error": {
+-     "budget": "stringLength",
+-     "code": "budgetExceeded",
++   "value": {
++     "input": {
++       "kind": "promise",
++       "promise": Promise {
++         Symbol(async_id_symbol): 2562,
++         Symbol(trigger_async_id_symbol): 2561,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++       },
++     },
+    },
+  }
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:21:65
+     19|       : run(source, { budget, snapshot, bindings: surface === "replay"…
+     20|     ).then(value => ({ value }), error => ({ error }));
+     21|     if (length === 129) expect(outcome, `${surface} ${target}`).toMatc…
+       |                                                                 ^
+     22|     else expect(outcome).not.toHaveProperty("error");
+     23|   }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > enforces admitted symbol and value string limits through replay
+AssertionError: replay key: expected { value: { ok: true, …(3) } } to match object { error: { …(2) } }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
++   "value": {
++     "ok": true,
++     "returnValue": 1,
++     "snapshot": {
++       "bindings": {
++         "AggregateError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "AggregateError",
++         },
++         "Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Array",
++         },
++         "ArrayBuffer": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "ArrayBuffer",
++         },
++         "AsyncDisposableStack": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "AsyncDisposableStack",
++         },
++         "Atomics": {},
++         "BigInt": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "BigInt",
++         },
++         "BigInt64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "BigInt64Array",
++         },
++         "BigUint64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "BigUint64Array",
++         },
++         "Boolean": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Boolean",
++         },
++         "DataView": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "DataView",
++         },
++         "Date": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Date",
++         },
++         "DisposableStack": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "DisposableStack",
++         },
++         "Error": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Error",
++         },
++         "EvalError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "EvalError",
++         },
++         "FinalizationRegistry": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "FinalizationRegistry",
++         },
++         "Float16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float16Array",
++         },
++         "Float32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float32Array",
++         },
++         "Float64Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Float64Array",
++         },
++         "Function": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Function",
++         },
++         "Infinity": Infinity,
++         "Int16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int16Array",
++         },
++         "Int32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int32Array",
++         },
++         "Int8Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Int8Array",
++         },
++         "Intl": {},
++         "Iterator": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Iterator",
++         },
++         "JSON": {},
++         "Map": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Map",
++         },
++         "Math": {},
++         "NaN": NaN,
++         "Number": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Number",
++         },
++         "Object": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Object",
++         },
++         "Promise": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Promise",
++         },
++         "Proxy": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Proxy",
++         },
++         "RangeError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "RangeError",
++         },
++         "ReferenceError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "ReferenceError",
++         },
++         "Reflect": {},
++         "RegExp": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "RegExp",
++         },
++         "Set": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Set",
++         },
++         "SharedArrayBuffer": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SharedArrayBuffer",
++         },
++         "String": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "String",
++         },
++         "SuppressedError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SuppressedError",
++         },
++         "Symbol": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "Symbol",
++         },
++         "SyntaxError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "SyntaxError",
++         },
++         "Temporal": {},
++         "TypeError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "TypeError",
++         },
++         "URIError": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "URIError",
++         },
++         "Uint16Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint16Array",
++         },
++         "Uint32Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint32Array",
++         },
++         "Uint8Array": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint8Array",
++         },
++         "Uint8ClampedArray": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "Uint8ClampedArray",
++         },
++         "WeakMap": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakMap",
++         },
++         "WeakRef": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakRef",
++         },
++         "WeakSet": {
++           "call": [Function call],
++           "construct": [Function construct],
++           "kind": "fn",
++           "name": "WeakSet",
++         },
++         "console": {
+            "error": {
+-     "budget": "stringLength",
+-     "code": "budgetExceeded",
++             "call": [Function call],
++             "kind": "fn",
++             "name": "error",
++           },
++           "log": {
++             "call": [Function call],
++             "kind": "fn",
++             "name": "log",
++           },
++         },
++         "decodeURI": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "decodeURI",
++         },
++         "decodeURIComponent": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "decodeURIComponent",
++         },
++         "encodeURI": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "encodeURI",
++         },
++         "encodeURIComponent": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "encodeURIComponent",
++         },
++         "escape": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "escape",
++         },
++         "eval": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "eval",
++         },
++         "globalThis": {},
++         "input": {
++           "kind": "promise",
++           "promise": Promise {
++             Symbol(async_id_symbol): 2283,
++             Symbol(trigger_async_id_symbol): 2267,
++             Symbol(kResourceStore): {
++               "add": [Function add],
++               "functionSourceText": true,
++               "referenceReleases": Set {},
++               "reportError": [Function reportError],
++               "signal": AbortSignal {
++                 Symbol(kEvents): Map {},
++                 Symbol(events.maxEventTargetListeners): 0,
++                 Symbol(events.maxEventTargetListenersWarned): false,
++                 Symbol(kHandlers): Map {},
++                 Symbol(kAborted): true,
++                 Symbol(kReason): Error {
++                   "message": "SafeJS run finished.",
++                 },
++                 Symbol(kComposite): false,
++               },
++             },
++             Symbol(kResourceStore): SandboxPromiseRejectionTracker {
++               "fatalRejection": undefined,
++               "fatalWaiters": Set {},
++               "records": Set {
++                 {
++                   "observed": false,
++                   "promise": {
++                     "kind": "promise",
++                     "promise": Promise {
++                       Symbol(async_id_symbol): 2273,
++                       Symbol(trigger_async_id_symbol): 2267,
++                       Symbol(kResourceStore): {
++                         "add": [Function add],
++                         "functionSourceText": true,
++                         "referenceReleases": Set {},
++                         "reportError": [Function reportError],
++                         "signal": AbortSignal {
++                           Symbol(kEvents): Map {},
++                           Symbol(events.maxEventTargetListeners): 0,
++                           Symbol(events.maxEventTargetListenersWarned): false,
++                           Symbol(kHandlers): Map {},
++                           Symbol(kAborted): true,
++                           Symbol(kReason): Error {
++                             "message": "SafeJS run finished.",
++                           },
++                           Symbol(kComposite): false,
++                         },
++                       },
++                       Symbol(kResourceStore): [Circular],
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): PromiseReplay {
++                         "budget": undefined,
++                         "callbackCount": 0,
++                         "callbackTasks": Map {},
++                         "completedCallbacks": Set {},
++                         "events": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "executionTrace": undefined,
++                         "failure": undefined,
++                         "importedIds": Set {},
++                         "liveWaiters": Set {},
++                         "nextPromise": 2,
++                         "position": 1,
++                         "promiseIds": WeakMap {},
++                         "ready": Map {},
++                         "rejectors": Map {},
++                         "replaying": true,
++                         "restored": {
++                           "promises": 1,
++                           "settlements": [
++                             {
++                               "id": 1,
++                               "step": 4,
++                             },
++                           ],
++                           "steps": 5,
++                           "version": 1,
++                         },
++                         "restoredEvents": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "restoredImportedIds": Set {},
++                         "serializedImportedPromises": [],
++                         "steps": 5,
++                         "waiting": Set {},
++                       },
++                     },
++                   },
++                   "rejected": false,
++                 },
++                 {
++                   "observed": false,
++                   "promise": {
++                     "kind": "promise",
++                     "promise": Promise {
++                       Symbol(async_id_symbol): 2277,
++                       Symbol(trigger_async_id_symbol): 2267,
++                       Symbol(kResourceStore): {
++                         "add": [Function add],
++                         "functionSourceText": true,
++                         "referenceReleases": Set {},
++                         "reportError": [Function reportError],
++                         "signal": AbortSignal {
++                           Symbol(kEvents): Map {},
++                           Symbol(events.maxEventTargetListeners): 0,
++                           Symbol(events.maxEventTargetListenersWarned): false,
++                           Symbol(kHandlers): Map {},
++                           Symbol(kAborted): true,
++                           Symbol(kReason): Error {
++                             "message": "SafeJS run finished.",
++                           },
++                           Symbol(kComposite): false,
++                         },
++                       },
++                       Symbol(kResourceStore): [Circular],
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): undefined,
++                       Symbol(kResourceStore): PromiseReplay {
++                         "budget": undefined,
++                         "callbackCount": 0,
++                         "callbackTasks": Map {},
++                         "completedCallbacks": Set {},
++                         "events": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "executionTrace": undefined,
++                         "failure": undefined,
++                         "importedIds": Set {},
++                         "liveWaiters": Set {},
++                         "nextPromise": 2,
++                         "position": 1,
++                         "promiseIds": WeakMap {},
++                         "ready": Map {},
++                         "rejectors": Map {},
++                         "replaying": true,
++                         "restored": {
++                           "promises": 1,
++                           "settlements": [
++                             {
++                               "id": 1,
++                               "step": 4,
++                             },
++                           ],
++                           "steps": 5,
++                           "version": 1,
++                         },
++                         "restoredEvents": [
++                           {
++                             "id": 1,
++                             "kind": "promise",
++                             "step": 4,
++                           },
++                         ],
++                         "restoredImportedIds": Set {},
++                         "serializedImportedPromises": [],
++                         "steps": 5,
++                         "waiting": Set {},
++                       },
++                     },
++                   },
++                   "rejected": false,
++                 },
++                 {
++                   "observed": false,
++                   "promise": [Circular],
++                   "rejected": false,
++                 },
++               },
++               "recordsByPromise": WeakMap {},
++             },
++             Symbol(kResourceStore): undefined,
++             Symbol(kResourceStore): undefined,
++             Symbol(kResourceStore): PromiseReplay {
++               "budget": undefined,
++               "callbackCount": 0,
++               "callbackTasks": Map {},
++               "completedCallbacks": Set {},
++               "events": [
++                 {
++                   "id": 1,
++                   "kind": "promise",
++                   "step": 4,
++                 },
++               ],
++               "executionTrace": undefined,
++               "failure": undefined,
++               "importedIds": Set {},
++               "liveWaiters": Set {},
++               "nextPromise": 2,
++               "position": 1,
++               "promiseIds": WeakMap {},
++               "ready": Map {},
++               "rejectors": Map {},
++               "replaying": true,
++               "restored": {
++                 "promises": 1,
++                 "settlements": [
++                   {
++                     "id": 1,
++                     "step": 4,
++                   },
++                 ],
++                 "steps": 5,
++                 "version": 1,
++               },
++               "restoredEvents": [
++                 {
++                   "id": 1,
++                   "kind": "promise",
++                   "step": 4,
++                 },
++               ],
++               "restoredImportedIds": Set {},
++               "serializedImportedPromises": [],
++               "steps": 5,
++               "waiting": Set {},
++             },
++           },
++         },
++         "isFinite": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "isFinite",
++         },
++         "isNaN": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "isNaN",
++         },
++         "parseFloat": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "parseFloat",
++         },
++         "parseInt": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "parseInt",
++         },
++         "structuredClone": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "structuredClone",
++         },
++         "undefined": undefined,
++         "unescape": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "unescape",
++         },
++       },
++       "clock": undefined,
++       "executionSemantics": "jobs-v8",
++       "hostCalls": [
++         {
++           "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
++           "asynchronous": true,
++           "id": "8e7c5576-8812-4b21-a8ab-4d43233bba4e:1",
++           "lifecycle": "settled",
++           "moduleId": "<inputs>",
++           "operation": "[\"bindings\",\"input\"]",
++           "outcome": {
++             "status": "fulfilled",
++             "value": 7,
++           },
++           "policy": "read-side-effect",
++           "runId": "8e7c5576-8812-4b21-a8ab-4d43233bba4e",
++           "sourceHash": "63d4636b",
++         },
++       ],
++       "initialInputs": {
++         "nodes": [
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": false,
++             "properties": {
++               "bindings": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 1,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++               "entryPointArgs": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "tag": "undefined",
++                 },
++                 "writable": true,
++               },
++               "importMeta": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 6,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++               "imports": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 5,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++             },
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": false,
++             "properties": {
++               "input": {
++                 "configurable": true,
++                 "enumerable": true,
++                 "value": {
++                   "id": 2,
++                   "tag": "ref",
++                 },
++                 "writable": true,
++               },
++             },
++           },
++           {
++             "id": "[\"bindings\",\"input\"]",
++             "kind": "promise-capability",
++             "properties": {
++               "id": 3,
++               "tag": "ref",
++             },
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++             "symbolProperties": [
++               [
++                 {
++                   "id": 4,
++                   "tag": "ref",
++                 },
++                 {
++                   "configurable": false,
++                   "enumerable": false,
++                   "value": 1,
++                   "writable": false,
++                 },
++               ],
++             ],
++           },
++           {
++             "description": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
++             "kind": "symbol",
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++           },
++           {
++             "extensible": true,
++             "kind": "object",
++             "nullPrototype": true,
++             "properties": {},
++           },
++         ],
++         "root": {
++           "id": 0,
++           "tag": "ref",
++         },
++       },
++       "promiseReplay": {
++         "promises": 1,
++         "settlements": [
++           {
++             "id": 1,
++             "step": 4,
++           },
++         ],
++         "steps": 5,
++         "version": 1,
++       },
++       "random": {
++         "initialState": 3035824981,
++         "seed": 3035824981,
++         "state": 3035824981,
++       },
++       "replay": {
++         "calls": [
++           {
++             "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
++             "asynchronous": true,
++             "id": "8e7c5576-8812-4b21-a8ab-4d43233bba4e:1",
++             "lifecycle": "settled",
++             "moduleId": "<inputs>",
++             "operation": "[\"bindings\",\"input\"]",
++             "outcome": {
++               "data": {
++                 "nodes": [],
++                 "root": 7,
++               },
++               "status": "fulfilled",
++             },
++             "policy": "read-side-effect",
++             "runId": "8e7c5576-8812-4b21-a8ab-4d43233bba4e",
++             "sourceHash": "63d4636b",
++           },
++         ],
++         "version": 1,
++       },
++       "sourceHash": "63d4636b",
++       "version": 2,
++     },
++     "stats": {
++       "nodeVisits": 6,
++     },
+    },
+  }
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:21:65
+     19|       : run(source, { budget, snapshot, bindings: surface === "replay"…
+     20|     ).then(value => ({ value }), error => ({ error }));
+     21|     if (length === 129) expect(outcome, `${surface} ${target}`).toMatc…
+       |                                                                 ^
+     22|     else expect(outcome).not.toHaveProperty("error");
+     23|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission-budgets.test.ts > enforces admitted symbol and value string limits through rebind
+AssertionError: rebind key: expected { value: { input: Promise{…} } } to match object { error: { …(2) } }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "error": {
+-     "budget": "stringLength",
+-     "code": "budgetExceeded",
++   "value": {
++     "input": {
++       "kind": "promise",
++       "promise": Promise {
++         Symbol(async_id_symbol): 2562,
++         Symbol(trigger_async_id_symbol): 2561,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++         Symbol(kResourceStore): undefined,
++       },
++     },
+    },
+  }
+
+ ❯ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts:21:65
+     19|       : run(source, { budget, snapshot, bindings: surface === "replay"…
+     20|     ).then(value => ({ value }), error => ({ error }));
+     21|     if (length === 129) expect(outcome, `${surface} ${target}`).toMatc…
+       |                                                                 ^
+     22|     else expect(outcome).not.toHaveProperty("error");
+     23|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 3 passed (5)
+   Start at  18:12:21
+   Duration  3.91s (transform 2.62s, setup 38ms, import 3.35s, tests 444ms, environment 0ms)
+

@@ -1,6 +1,6 @@
 import { PassThrough, Writable } from "node:stream";
 import { setImmediate } from "node:timers/promises";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createServer } from "./server.js";
 
 function connectedFixture(maxStdioLineBytes?: number, objectMode = false) {
@@ -15,12 +15,35 @@ function connectedFixture(maxStdioLineBytes?: number, objectMode = false) {
     error => { outcome = { status: "rejected", error }; }
   );
   return {
-    readable, frames, connected, outcome: () => outcome,
+    readable, frames, connected, server, outcome: () => outcome,
     async cleanup() { readable.end(); await connected; readable.destroy(); writable.destroy(); }
   };
 }
 
 describe("stdio input line admission", () => {
+  it.each([
+    { name: "invalid lead byte", bytes: [0xff], complete: true },
+    { name: "unexpected continuation", bytes: [0x80], complete: true },
+    { name: "overlong encoding", bytes: [0xc0, 0xaf], complete: true },
+    { name: "encoded surrogate", bytes: [0xed, 0xa0, 0x80], complete: true },
+    { name: "truncated character at newline", bytes: [0xf0, 0x9f], complete: true },
+    { name: "truncated character at EOF", bytes: [0xf0, 0x9f], complete: false }
+  ])("rejects $name without executing altered arguments", async ({ bytes, complete }) => {
+    const fixture = connectedFixture();
+    const handler = vi.fn(() => "accepted");
+    fixture.server.tool("echo", "Echo", { type: "object", properties: { value: { type: "string" } } }, handler);
+    const prefix = Buffer.from('{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"echo","_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}},"arguments":{"value":"');
+    try {
+      fixture.readable.end(Buffer.concat([prefix, Buffer.from(bytes), ...(complete ? [Buffer.from('"}}}\n')] : [])]));
+      await fixture.connected;
+      expect(fixture.outcome()).toMatchObject({ status: "rejected" });
+      expect(handler).not.toHaveBeenCalled();
+      expect(fixture.frames).toEqual([]);
+      expect(fixture.readable.isPaused()).toBe(true);
+      expect(fixture.readable.listenerCount("data")).toBe(0);
+    } finally { await fixture.cleanup(); }
+  });
+
   it("bounds an unterminated line with the default one-MiB capacity", async () => {
     const fixture = connectedFixture();
     try {

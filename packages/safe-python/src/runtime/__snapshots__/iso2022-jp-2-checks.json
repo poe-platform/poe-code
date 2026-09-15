@@ -1,0 +1,85 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "source": {
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/_codecs_iso2022.c",
+    "sha256": "1dec516ad16a9aa179770b5accdd20efa77e7265c0a2a06d8d8913e4524c4010"
+  },
+  "checks": {
+    "red": {
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "failedSuites": 1,
+      "files": 1,
+      "slowestMilliseconds": 0,
+      "failures": [
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts",
+          "message": "Cannot find module './iso2022-jp-2-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts",
+          "tests": []
+        }
+      ]
+    },
+    "green": {
+      "passed": 8128,
+      "failed": 0,
+      "pending": 0,
+      "failedSuites": 0,
+      "files": 1,
+      "slowestMilliseconds": 11.172167000000059,
+      "failures": []
+    },
+    "recovery": {
+      "passed": 1234,
+      "failed": 0,
+      "pending": 0,
+      "failedSuites": 0,
+      "files": 3,
+      "slowestMilliseconds": 26.708959000000505,
+      "failures": []
+    },
+    "focused": {
+      "passed": 1455,
+      "failed": 0,
+      "pending": 0,
+      "failedSuites": 0,
+      "files": 11,
+      "slowestMilliseconds": 179.73262500000055,
+      "failures": []
+    },
+    "final": {
+      "passed": 10817,
+      "failed": 0,
+      "pending": 0,
+      "failedSuites": 0,
+      "files": 15,
+      "slowestMilliseconds": 127.8692919999994,
+      "failures": []
+    }
+  },
+  "typecheck": "npm run typecheck --workspace=@poe-code/safe-python (exit 0)",
+  "eslint": {
+    "command": "npx eslint packages/safe-python/src/runtime/iso2022-jp-codec.ts packages/safe-python/src/runtime/iso2022-jp-2-codec.ts packages/safe-python/src/runtime/iso2022-jp-codec.test.ts packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts packages/safe-python/src/runtime/iso2022-jp-restored-state.test.ts packages/safe-python/src/runtime/iso2022-jp-escape-user.test.ts packages/safe-python/src/runtime/runtime-multibyte-recovery.test.ts",
+    "exitCode": 0
+  },
+  "files": {
+    "iso2022-jp-codec.ts": "f6f37dcba26d9eda49c03238a5a72b27baaf9317b6766b4ee152588a3d19e5f3",
+    "iso2022-jp-2-codec.ts": "3aa4577a4fbd00d4efc05d6e9b09fea70bb48be8d5544fe9793f1b0eea06be80",
+    "iso2022-jp-codec.test.ts": "5d0885f33f7e423ca4ec606551fe462f6bebd7f34095e66b2dda9f4a99e93765",
+    "iso2022-jp-recovery.test.ts": "0168553069eb7ba29a56185299fd2d7038b444d8bbc62a93f1aaea5cbc6b8240",
+    "iso2022-jp-restored-state.test.ts": "a92abb892db5c7fa56d9d0b0206a615ac3c32b5193aa1b218438988fba187e25",
+    "iso2022-jp-escape-user.test.ts": "bdf2ebc31d54432dcfe5654ea6e69a2b15fcf122e19e3de5c19a8b03a8d710d2",
+    "runtime-multibyte-recovery.test.ts": "ef3910b72616b7592f870b267b550de47b0e38c07f1c1dfd27706fb4a4b52e63"
+  },
+  "oracles": {
+    "continuation": "ebecb389b68eebc641b0e2a365eea8fbd6c3f47e04119e84ba8d29f655f9f636",
+    "restored": "74cd034f912088189c30c810476d498b13f0a619985ef9426ab306843f154b93",
+    "recovery": "3a3c952f688f0a937cb80ecc556a0cb41455638e9414abafc6ed4c026c968425",
+    "escape": "92872c6b57eb2dc7de6dfeed7ae8d813c48c45dc6fe47421bba01a849345397e"
+  }
+}

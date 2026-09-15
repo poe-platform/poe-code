@@ -1,0 +1,207 @@
+{
+  "reference": {
+    "executable": "/opt/homebrew/bin/python3.14",
+    "flags": [
+      "-I",
+      "-"
+    ],
+    "identity": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\ndarwin little 16.0.0\n"
+  },
+  "cases": [
+    {
+      "name": "mbcs import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.mbcs\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'mbcs_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'mbcs_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'mbcs')\n    try:\n        codecs.lookup('mbcs')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: mbcs',)\n    else:\n        assert False\nassert encodings._cache['mbcs'] is None\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: "
+      }
+    },
+    {
+      "name": "oem import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.oem\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'oem_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'oem_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'oem')\n    try:\n        codecs.lookup('oem')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: oem',)\n    else:\n        assert False\nassert encodings._cache['oem'] is None\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: "
+      }
+    },
+    {
+      "name": "Windows code-page factory imports lazily and preserves argument precedence",
+      "source": "\nimport codecs\nimport encodings\nimport encodings._win_cp_codecs as module\nfrom encodings._win_cp_codecs import create_win32_code_page_codec as create\nassert encodings._win_cp_codecs is module\nassert module.codecs is codecs\nassert create is module.create_win32_code_page_codec\nassert create.__module__ == 'encodings._win_cp_codecs'\nassert create.__name__ == create.__qualname__ == 'create_win32_code_page_codec'\nassert create.__defaults__ is None and create.__kwdefaults__ is None\nassert module.__doc__ is None\nassert module.__package__ == 'encodings'\nfor cp in (0, 65001, None, object()):\n    try:\n        create(cp)\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'code_page_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs' and error.path == codecs.__file__\n        assert error.name_from == 'code_page_encode'\n    else:\n        assert False\ntry:\n    create()\nexcept TypeError as error:\n    assert error.args == (\"create_win32_code_page_codec() missing 1 required positional argument: 'cp'\",)\nelse:\n    assert False\nimport encodings._win_cp_codecs as again\nassert again is module\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: "
+      }
+    },
+    {
+      "name": "source.decode('decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "source.decode('decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "LookupError: unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "charmap encode mapping failure identity",
+      "source": "import _codecs\nfailure = KeyboardInterrupt('guest')\nclass Mapping:\n    def __getitem__(self, point):\n        raise failure\ndef recover(error):\n    raise failure\n_codecs.register_error('custom', recover)\ntry:\n    _codecs.charmap_encode('a', 'custom', Mapping())\nexcept KeyboardInterrupt as error:\n    assert error is failure, 'mapping identity'\n    assert error.__traceback__ is not None, 'mapping traceback'\n    assert not hasattr(error, '__notes__'), 'mapping notes'\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: mapping traceback"
+      }
+    },
+    {
+      "name": "charmap encode handler failure identity",
+      "source": "import _codecs\nfailure = KeyboardInterrupt('guest')\nclass Mapping:\n    def __getitem__(self, point):\n        return None\ndef recover(error):\n    raise failure\n_codecs.register_error('custom', recover)\ntry:\n    _codecs.charmap_encode('a', 'custom', Mapping())\nexcept KeyboardInterrupt as error:\n    assert error is failure, 'handler identity'\n    assert error.__traceback__ is not None, 'handler traceback'\n    assert not hasattr(error, '__notes__'), 'handler notes'\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: handler traceback"
+      }
+    },
+    {
+      "name": "charmap decode mapping failure identity",
+      "source": "import _codecs\nfailure = KeyboardInterrupt('guest')\nclass Mapping:\n    def __getitem__(self, point):\n        raise failure\ndef recover(error):\n    raise failure\n_codecs.register_error('custom', recover)\ntry:\n    _codecs.charmap_decode(b'a', 'custom', Mapping())\nexcept KeyboardInterrupt as error:\n    assert error is failure, 'mapping identity'\n    assert error.__traceback__ is not None, 'mapping traceback'\n    assert not hasattr(error, '__notes__'), 'mapping notes'\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: mapping traceback"
+      }
+    },
+    {
+      "name": "charmap decode handler failure identity",
+      "source": "import _codecs\nfailure = KeyboardInterrupt('guest')\nclass Mapping:\n    def __getitem__(self, point):\n        return None\ndef recover(error):\n    raise failure\n_codecs.register_error('custom', recover)\ntry:\n    _codecs.charmap_decode(b'a', 'custom', Mapping())\nexcept KeyboardInterrupt as error:\n    assert error is failure, 'handler identity'\n    assert error.__traceback__ is not None, 'handler traceback'\n    assert not hasattr(error, '__notes__'), 'handler notes'\nelse:\n    assert False\n",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "AssertionError: handler traceback"
+      }
+    }
+  ]
+}

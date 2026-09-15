@@ -4,6 +4,7 @@ type DashboardQuitCommandOptions = {
   abortController: AbortController;
   dashboard: Pick<Dashboard, "destroy" | "onCommand" | "stop">;
   requestCancellation: () => void;
+  cleanupComplete?: Promise<void>;
 };
 
 export { shouldUseInteractiveDashboard };
@@ -23,50 +24,28 @@ export function formatDashboardTimestamp(timestamp: number): string {
   return `[${hours}:${minutes}:${seconds}]`;
 }
 
-export function createDashboardLineBuffer(emit: (line: string) => void): {
-  push(chunk: string): void;
-  flush(): void;
-} {
-  let pending = "";
-
-  return {
-    push(chunk: string): void {
-      pending += chunk;
-      let newlineIndex = pending.indexOf("\n");
-      while (newlineIndex !== -1) {
-        const raw = pending.slice(0, newlineIndex);
-        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-        emit(line);
-        pending = pending.slice(newlineIndex + 1);
-        newlineIndex = pending.indexOf("\n");
-      }
-    },
-    flush(): void {
-      if (pending.length === 0) {
-        return;
-      }
-
-      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
-      emit(line);
-      pending = "";
-    }
-  };
-}
+export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "toolcraft-design";
 
 export function registerDashboardQuitCommands(options: DashboardQuitCommandOptions): void {
+  let forceQuitting = false;
   options.dashboard.onCommand((command) => {
     if (command === "quit") {
       options.requestCancellation();
       return;
     }
 
-    if (command !== "forceQuit") {
+    if (command !== "forceQuit" || forceQuitting) {
       return;
     }
 
+    forceQuitting = true;
     options.abortController.abort();
     options.dashboard.stop();
     options.dashboard.destroy();
-    process.exit(130);
+    if (options.cleanupComplete) {
+      void options.cleanupComplete.then(() => process.exit(130));
+    } else {
+      process.exit(130);
+    }
   });
 }

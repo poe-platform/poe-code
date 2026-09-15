@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts (2 tests) 51ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts (16 tests) 661ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts (2 tests) 150ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-race.test.ts (1 test) 36ms
+
+ Test Files  4 passed (4)
+      Tests  21 passed (21)
+   Start at  00:10:24
+   Duration  2.76s (transform 2.38s, setup 84ms, import 3.76s, tests 898ms, environment 0ms)

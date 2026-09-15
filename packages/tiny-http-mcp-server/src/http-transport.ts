@@ -1,9 +1,15 @@
 import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "node:http";
-import type { JSONRPCMessage, JSONRPCRequest, MessageSession, Server } from "tiny-stdio-mcp-server";
+import type {
+  JSONRPCMessage,
+  JSONRPCRequest,
+  MessageSession,
+  Server,
+  InitializeResult
+} from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
 import { formatErrorResponse, formatSuccessResponse } from "tiny-stdio-mcp-server/jsonrpc";
 import type { AuthenticatedIncomingMessage } from "./auth.js";
-import { JsonRpcMessageError, readAndClassifyBody } from "./parse-body.js";
+import { JsonRpcMessageError, readAndClassifyBody, type ClassifiedBody } from "./parse-body.js";
 import {
   createSessionStore,
   defaultSessionIdGenerator,
@@ -11,6 +17,7 @@ import {
   type SessionStore
 } from "./session.js";
 import { formatSseEvent, SSE_HEADERS } from "./sse.js";
+import { validateModernHeaders } from "./modern-headers.js";
 
 export type HttpObservabilityEvent =
   | {
@@ -72,6 +79,7 @@ export interface StreamableHttpTransportOptions {
   allowedOrigins?: readonly string[];
   allowedHosts?: readonly string[];
   maxRequestBytes?: number;
+  maxResponseBytes?: number;
   maxBatchSize?: number;
   maxSessions?: number;
   /** Maximum sessions per authenticated subject or client ID; defaults to 16. */
@@ -118,6 +126,7 @@ export class StreamableHttpTransport {
   private readonly allowedOrigins: ReadonlySet<string>;
   private readonly allowedHosts: ReadonlySet<string>;
   private readonly maxRequestBytes: number | undefined;
+  private readonly maxResponseBytes: number;
   private readonly maxBatchSize: number | undefined;
   private readonly maxSessions: number;
   private readonly maxSessionsPerSubject: number;
@@ -138,6 +147,8 @@ export class StreamableHttpTransport {
   private readonly responseRequestIds = new WeakMap<ServerResponse, string>();
   private readonly responseOrigins = new WeakMap<ServerResponse, string>();
   private readonly responseRejectionReasons = new WeakMap<ServerResponse, string>();
+  private readonly modernRequests = new Map<ServerResponse, AbortController>();
+  private readonly modernStreams = new Set<ServerResponse>();
   private nextNotificationEventId = 1;
   private nextRequestId = 1;
   private activeToolCalls = 0;
@@ -165,10 +176,13 @@ export class StreamableHttpTransport {
       1
     );
     this.maxBatchSize = validateOptionalIntegerOption("maxBatchSize", options.maxBatchSize, 1);
+    this.maxResponseBytes = validateOptionalIntegerOption("maxResponseBytes", options.maxResponseBytes, 1) ?? 16 * 1024 * 1024;
     this.maxSessions = validateOptionalIntegerOption("maxSessions", options.maxSessions, 1) ?? 128;
     this.maxSessionsPerSubject =
-      validateOptionalIntegerOption("maxSessionsPerSubject", options.maxSessionsPerSubject, 1) ?? 16;
-    this.sessionTtlMs = validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1) ?? 15 * 60_000;
+      validateOptionalIntegerOption("maxSessionsPerSubject", options.maxSessionsPerSubject, 1) ??
+      16;
+    this.sessionTtlMs =
+      validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1) ?? 15 * 60_000;
     this.maxStreamsPerSession =
       validateOptionalIntegerOption("maxStreamsPerSession", options.maxStreamsPerSession, 1) ?? 1;
     this.maxStreamBufferBytes =
@@ -250,6 +264,15 @@ export class StreamableHttpTransport {
         return;
       }
 
+      if (
+        req.headers["mcp-protocol-version"] === "2026-07-28" &&
+        req.method !== "POST" &&
+        req.method !== "OPTIONS"
+      ) {
+        this.respondWithStatus(res, 405, undefined, { Allow: "POST, OPTIONS" });
+        return;
+      }
+
       switch (req.method) {
         case "POST":
           await this.handlePost(req, res);
@@ -300,6 +323,12 @@ export class StreamableHttpTransport {
 
   async close(): Promise<void> {
     this.closed = true;
+    for (const [response, controller] of this.modernRequests) {
+      controller.abort();
+      response.end();
+    }
+    this.modernRequests.clear();
+    this.modernStreams.clear();
     if (this.sessionExpiryInterval !== undefined) {
       clearInterval(this.sessionExpiryInterval);
       this.sessionExpiryInterval = undefined;
@@ -365,6 +394,26 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const modern =
+      req.headers["mcp-protocol-version"] === "2026-07-28" ||
+      classified.messages.some((message) => {
+        if (!("method" in message)) return false;
+        const metadata = message.params?._meta;
+        return (
+          message.method === "server/discover" ||
+          (typeof metadata === "object" &&
+            metadata !== null &&
+            Object.prototype.hasOwnProperty.call(
+              metadata,
+              "io.modelcontextprotocol/protocolVersion"
+            ))
+        );
+      });
+    if (modern) {
+      await this.handleModernPost(req, res, classified);
+      return;
+    }
+
     const initMessage = classified.messages.find(
       (message) => this.isRequest(message) && message.method === "initialize"
     );
@@ -397,7 +446,10 @@ export class StreamableHttpTransport {
         }
 
         const authSubject = this.readAuthSubject(req);
-        if (authSubject !== undefined && this.sessionCount(authSubject) >= this.maxSessionsPerSubject) {
+        if (
+          authSubject !== undefined &&
+          this.sessionCount(authSubject) >= this.maxSessionsPerSubject
+        ) {
           this.respondWithRejection(
             res,
             429,
@@ -467,6 +519,19 @@ export class StreamableHttpTransport {
         if (!("method" in message)) {
           continue;
         }
+        if (
+          this.sessionIdGenerator === undefined &&
+          (message.method === "resources/subscribe" || message.method === "resources/unsubscribe")
+        ) {
+          if (this.isRequest(message))
+            responses.push(
+              formatErrorResponse(message.id, {
+                code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
+                message: "Method not found"
+              })
+            );
+          continue;
+        }
 
         const session = activeSession;
         if (
@@ -528,7 +593,23 @@ export class StreamableHttpTransport {
             this.activeToolCalls -= 1;
           }
         }
-        const { error, result } = handled;
+        const { error } = handled;
+        let { result } = handled;
+        if (
+          error === undefined &&
+          message.method === "initialize" &&
+          result !== undefined &&
+          this.sessionIdGenerator === undefined
+        ) {
+          const initialization = result as InitializeResult;
+          const capabilities = structuredClone(initialization.capabilities);
+          for (const category of ["tools", "prompts", "resources"] as const) {
+            const capability = capabilities[category];
+            if (capability !== undefined) delete capability.listChanged;
+          }
+          if (capabilities.resources !== undefined) delete capabilities.resources.subscribe;
+          result = { ...initialization, capabilities };
+        }
         if (isToolCall) {
           this.emit({
             type: "tool.end",
@@ -586,11 +667,148 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const frames = formattedResponses.map((data) => formatSseEvent({ data }));
+    if (frames.some((frame) => Buffer.byteLength(frame, "utf8") > this.maxResponseBytes)) {
+      res.destroy();
+      return;
+    }
     res.writeHead(200, this.withSessionHeader(SSE_HEADERS, sessionId, res));
-    for (const formattedResponse of formattedResponses) {
-      res.write(formatSseEvent({ data: formattedResponse }));
+    for (const frame of frames) {
+      this.writeToLiveStream(res, frame);
     }
     res.end();
+  }
+
+  private async handleModernPost(
+    req: IncomingMessage,
+    res: ServerResponse,
+    body: ClassifiedBody
+  ): Promise<void> {
+    const message = body.messages[0];
+    if (
+      body.isBatch ||
+      body.messages.length !== 1 ||
+      message === undefined ||
+      !("method" in message)
+    ) {
+      this.respondWithJsonRpcError(
+        res,
+        400,
+        JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        "Modern HTTP requires a single request or notification"
+      );
+      return;
+    }
+    const id = this.isRequest(message) ? message.id : null;
+    if (
+      !this.acceptsResponseType(req, "application/json") ||
+      !this.acceptsResponseType(req, "text/event-stream")
+    ) {
+      this.respondWithRejection(
+        res,
+        406,
+        "response_type_not_acceptable",
+        "Accept must allow application/json and text/event-stream."
+      );
+      return;
+    }
+    const headerError = validateModernHeaders(req.headers, message);
+    if (headerError !== undefined) {
+      this.respondWithJsonRpcError(res, 400, headerError.code, headerError.message, id);
+      return;
+    }
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    res.once("close", cancel);
+    req.once("aborted", cancel);
+    this.modernRequests.set(res, controller);
+    let streaming = false;
+    const write = (data: string): void => {
+      if (controller.signal.aborted || res.destroyed || res.writableEnded) return;
+      const frame = formatSseEvent({ data });
+      if (Buffer.byteLength(frame, "utf8") > this.maxResponseBytes) {
+        controller.abort(new Error("Modern SSE response size limit exceeded"));
+        res.destroy();
+        return;
+      }
+      if ((res.writableLength ?? 0) > this.maxStreamBufferBytes) {
+        controller.abort(new Error("Modern SSE output buffer limit exceeded"));
+        res.destroy();
+        return;
+      }
+      if (!streaming) {
+        res.writeHead(
+          200,
+          this.withSessionHeader({ ...SSE_HEADERS, "X-Accel-Buffering": "no" }, undefined, res)
+        );
+        streaming = true;
+        res.flushHeaders();
+        this.modernStreams.add(res);
+        this.startSseKeepAlive();
+      }
+      res.write(frame);
+    };
+    const session = this.server.createMessageSession((notification) =>
+      write(JSON.stringify(notification))
+    );
+    try {
+      if (!this.isRequest(message) && !message.method.startsWith("notifications/")) {
+        this.respondWithJsonRpcError(
+          res,
+          400,
+          JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+          "A request ID is required"
+        );
+        return;
+      }
+      const handled = await this.runWithRequestContext(req, () =>
+        session.handleMessage(message.method, message.params, {
+          ...(this.isRequest(message) ? { requestId: message.id as string | number } : {}),
+          signal: controller.signal,
+          parameterHeaders: req.headers
+        })
+      );
+      if (controller.signal.aborted || res.destroyed || res.writableEnded) return;
+      if (
+        !this.isRequest(message) ||
+        (handled.result === undefined && handled.error === undefined)
+      ) {
+        if (streaming) res.end();
+        else this.respondWithStatus(res, 202);
+        return;
+      }
+      const formatted =
+        handled.error === undefined
+          ? formatSuccessResponse(message.id, handled.result)
+          : formatErrorResponse(message.id, handled.error);
+      const status =
+        handled.error?.code === JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND
+          ? 404
+          : handled.error?.code === JSON_RPC_ERROR_CODES.INVALID_PARAMS ||
+              handled.error?.code === JSON_RPC_ERROR_CODES.UNSUPPORTED_PROTOCOL_VERSION ||
+              handled.error?.code === -32020 ||
+              handled.error?.code === -32021
+            ? 400
+            : 200;
+      if (streaming || (!this.enableJsonResponse && status === 200)) {
+        write(formatted);
+        if (!res.destroyed) res.end();
+      } else
+        this.respondWithStatus(
+          res,
+          status,
+          undefined,
+          { "Content-Type": "application/json" },
+          formatted
+        );
+    } finally {
+      session.close();
+      res.off("close", cancel);
+      req.off("aborted", cancel);
+      this.modernRequests.delete(res);
+      this.modernStreams.delete(res);
+      this.stopSseKeepAliveIfIdle();
+    }
   }
 
   private async handleGet(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -982,10 +1200,13 @@ export class StreamableHttpTransport {
     }
 
     this.sseKeepAliveInterval = setInterval(() => {
+      for (const response of this.modernStreams) {
+        if (!response.writableEnded) this.writeToLiveStream(response, ": keepalive\n\n");
+      }
       for (const streams of this.sseStreams.values()) {
         for (const response of streams) {
           if (!response.writableEnded) {
-            this.writeToLiveGetStream(response, ": keepalive\n\n");
+            this.writeToLiveStream(response, ": keepalive\n\n");
           }
         }
       }
@@ -994,7 +1215,10 @@ export class StreamableHttpTransport {
   }
 
   private stopSseKeepAliveIfIdle(): void {
-    if ([...this.sseStreams.values()].some((streams) => streams.size > 0)) {
+    if (
+      this.modernStreams.size > 0 ||
+      [...this.sseStreams.values()].some((streams) => streams.size > 0)
+    ) {
       return;
     }
 
@@ -1017,16 +1241,17 @@ export class StreamableHttpTransport {
 
     const id = this.nextNotificationEventId++;
     const data = JSON.stringify(notification);
-    this.recordSseEvent(sessionId, id, data);
     const streams = this.sseStreams.get(sessionId);
-    if (streams === undefined) {
-      return;
-    }
-
     const event = formatSseEvent({
       id: String(id),
       data
     });
+    if (Buffer.byteLength(event, "utf8") > this.maxResponseBytes) {
+      for (const response of streams ?? []) response.destroy();
+      return;
+    }
+    this.recordSseEvent(sessionId, id, data);
+    if (streams === undefined) return;
     let latestResponse: ServerResponse | undefined;
     for (const response of streams) {
       if (!response.writableEnded) {
@@ -1034,11 +1259,16 @@ export class StreamableHttpTransport {
       }
     }
     if (latestResponse !== undefined) {
-      this.writeToLiveGetStream(latestResponse, event);
+      this.writeToLiveStream(latestResponse, event);
     }
   }
 
-  private writeToLiveGetStream(response: ServerResponse, data: string): void {
+  private writeToLiveStream(response: ServerResponse, data: string): void {
+    if (response.destroyed || response.writableEnded) return;
+    if (Buffer.byteLength(data, "utf8") > this.maxResponseBytes) {
+      response.destroy();
+      return;
+    }
     if ((response.writableLength ?? 0) > this.maxStreamBufferBytes) {
       response.end();
       return;
@@ -1075,7 +1305,7 @@ export class StreamableHttpTransport {
     const history = this.sseEventHistory.get(sessionId) ?? [];
     for (const event of history) {
       if (event.id > lastEventId && !res.writableEnded) {
-        this.writeToLiveGetStream(res, formatSseEvent({ id: String(event.id), data: event.data }));
+        this.writeToLiveStream(res, formatSseEvent({ id: String(event.id), data: event.data }));
       }
     }
   }
@@ -1261,6 +1491,10 @@ export class StreamableHttpTransport {
     headers?: Record<string, string>,
     body?: string
   ): void {
+    if (body !== undefined && Buffer.byteLength(body, "utf8") > this.maxResponseBytes) {
+      res.destroy();
+      return;
+    }
     res.writeHead(statusCode, this.withSessionHeader(headers, sessionId, res));
     res.end(body);
   }

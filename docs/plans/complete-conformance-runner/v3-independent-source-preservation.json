@@ -1,0 +1,13 @@
+{
+  "observedUtc": "2026-09-12T08:15:11.465531+00:00",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "checkedSourceFiles": 10089,
+  "sourceMismatches": [],
+  "cachedDiffSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "cachedSafeBashUnchanged": true,
+  "workingLedgerPrefixUnchanged": true,
+  "originalLedgerBytes": 97605,
+  "runtimeDiffPaths": []
+}

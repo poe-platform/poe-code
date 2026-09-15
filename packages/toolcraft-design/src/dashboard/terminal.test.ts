@@ -1,6 +1,7 @@
 import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
 import { createTerminalDriver, parseKeypress } from "./terminal.js";
+import { diff, ScreenBuffer } from "./buffer.js";
 
 class TestStdin extends PassThrough {
   rawModes: boolean[] = [];
@@ -147,6 +148,29 @@ describe("parseKeypress", () => {
 });
 
 describe("createTerminalDriver", () => {
+  it("paints an adjacent row without moving the cursor for every cell", () => {
+    const stdout = new TestStdout();
+    const driver = createTerminalDriver({ stdin: new TestStdin(), stdout });
+    driver.flush(Array.from({ length: 80 }, (_, x) => ({
+      x, y: 0, cell: { ch: "x", style: {} }
+    })));
+    expect(Buffer.byteLength(stdout.output)).toBeLessThan(100);
+    expect(stdout.output).toBe("\u001b[1;1H" + "x".repeat(80));
+    driver.destroy();
+  });
+
+  it("advances across wide glyphs and combining text while positioning sparse rows", () => {
+    const stdout = new TestStdout();
+    const driver = createTerminalDriver({ stdin: new TestStdin(), stdout });
+    const screen = new ScreenBuffer(16, 3);
+    screen.put(0, 0, "界👩‍💻éX");
+    screen.put(8, 0, "Y");
+    screen.put(0, 1, "Z");
+    driver.flush(diff(new ScreenBuffer(16, 3), screen));
+    expect(stdout.output).toBe("\u001b[1;1H界👩‍💻éX\u001b[1;9HY\u001b[2;1HZ");
+    driver.destroy();
+  });
+
   it("writes escape sequences, flushes cells, and restores terminal state on destroy", () => {
     const stdin = new TestStdin();
     const stdout = new TestStdout(120, 42);

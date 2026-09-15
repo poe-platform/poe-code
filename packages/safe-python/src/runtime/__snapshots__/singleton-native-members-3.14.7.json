@@ -1,0 +1,2406 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "None own members",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", sorted(t.__dict__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ['__bool__', '__doc__', '__eq__', '__ge__', '__gt__', '__hash__', '__le__', '__lt__', '__ne__', '__new__', '__repr__'])"
+    },
+    {
+      "name": "None metadata __new__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__new__']).__name__, getattr(t.__dict__['__new__'], \"__doc__\", None), getattr(t.__dict__['__new__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('builtin_function_or_method', 'Create and return a new object.  See help(type) for accurate signature.', '($type, *args, **kwargs)'))"
+    },
+    {
+      "name": "None metadata __repr__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__repr__']).__name__, getattr(t.__dict__['__repr__'], \"__doc__\", None), getattr(t.__dict__['__repr__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return repr(self).', '($self, /)'))"
+    },
+    {
+      "name": "None metadata __hash__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__hash__']).__name__, getattr(t.__dict__['__hash__'], \"__doc__\", None), getattr(t.__dict__['__hash__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return hash(self).', '($self, /)'))"
+    },
+    {
+      "name": "None metadata __lt__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__lt__']).__name__, getattr(t.__dict__['__lt__'], \"__doc__\", None), getattr(t.__dict__['__lt__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self<value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __le__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__le__']).__name__, getattr(t.__dict__['__le__'], \"__doc__\", None), getattr(t.__dict__['__le__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self<=value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __eq__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__eq__']).__name__, getattr(t.__dict__['__eq__'], \"__doc__\", None), getattr(t.__dict__['__eq__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self==value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __ne__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__ne__']).__name__, getattr(t.__dict__['__ne__'], \"__doc__\", None), getattr(t.__dict__['__ne__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self!=value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __gt__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__gt__']).__name__, getattr(t.__dict__['__gt__'], \"__doc__\", None), getattr(t.__dict__['__gt__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self>value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __ge__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__ge__']).__name__, getattr(t.__dict__['__ge__'], \"__doc__\", None), getattr(t.__dict__['__ge__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return self>=value.', '($self, value, /)'))"
+    },
+    {
+      "name": "None metadata __bool__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__bool__']).__name__, getattr(t.__dict__['__bool__'], \"__doc__\", None), getattr(t.__dict__['__bool__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'True if self else False', '($self, /)'))"
+    },
+    {
+      "name": "None metadata __doc__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__doc__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'The type of the None singleton.')"
+    },
+    {
+      "name": "None t() is x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t() is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None t.__new__(t) is x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t) is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None t.__new__()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType.__new__(): not enough arguments')"
+    },
+    {
+      "name": "None t.__new__(1)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType.__new__(X): X is not a type object (int)')"
+    },
+    {
+      "name": "None t.__new__(object)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(object))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType.__new__(object): object is not a subtype of NoneType')"
+    },
+    {
+      "name": "None t(1)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType takes no arguments')"
+    },
+    {
+      "name": "None t(a=1)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t(a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType takes no arguments')"
+    },
+    {
+      "name": "None t.__new__(t,1,a=1)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t,1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NoneType takes no arguments')"
+    },
+    {
+      "name": "None bool(x)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", bool(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "None repr(x)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", repr(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'None')"
+    },
+    {
+      "name": "None str(x)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", str(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'None')"
+    },
+    {
+      "name": "None __eq__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None __eq__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None __eq__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __eq__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __eq__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __eq__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ne__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "None __ne__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "None __ne__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ne__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ne__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ne__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __lt__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __le__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __gt__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ None",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ NotImplemented",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ Ellipsis",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None __ge__ object()",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "None binding __repr__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'None')"
+    },
+    {
+      "name": "None binding __repr__ x,1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "name": "None binding __repr__ x,a=1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __repr__() takes no keyword arguments')"
+    },
+    {
+      "name": "None binding __repr__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'NoneType' object but received a 'int'\")"
+    },
+    {
+      "name": "None binding __repr__ 1,a=1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'NoneType' object but received a 'int'\")"
+    },
+    {
+      "name": "None binding __repr__ ",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' of 'NoneType' object needs an argument\")"
+    },
+    {
+      "name": "None binding __bool__ x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "None binding __bool__ x,1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "name": "None binding __bool__ x,a=1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __bool__() takes no keyword arguments')"
+    },
+    {
+      "name": "None binding __bool__ 1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' requires a 'NoneType' object but received a 'int'\")"
+    },
+    {
+      "name": "None binding __bool__ 1,a=1",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' requires a 'NoneType' object but received a 'int'\")"
+    },
+    {
+      "name": "None binding __bool__ ",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' of 'NoneType' object needs an argument\")"
+    },
+    {
+      "name": "NotImplemented own members",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", sorted(t.__dict__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ['__bool__', '__doc__', '__new__', '__reduce__', '__repr__'])"
+    },
+    {
+      "name": "NotImplemented metadata __new__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__new__']).__name__, getattr(t.__dict__['__new__'], \"__doc__\", None), getattr(t.__dict__['__new__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('builtin_function_or_method', 'Create and return a new object.  See help(type) for accurate signature.', '($type, *args, **kwargs)'))"
+    },
+    {
+      "name": "NotImplemented metadata __repr__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__repr__']).__name__, getattr(t.__dict__['__repr__'], \"__doc__\", None), getattr(t.__dict__['__repr__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return repr(self).', '($self, /)'))"
+    },
+    {
+      "name": "NotImplemented metadata __bool__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__bool__']).__name__, getattr(t.__dict__['__bool__'], \"__doc__\", None), getattr(t.__dict__['__bool__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'True if self else False', '($self, /)'))"
+    },
+    {
+      "name": "NotImplemented metadata __reduce__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__reduce__']).__name__, getattr(t.__dict__['__reduce__'], \"__doc__\", None), getattr(t.__dict__['__reduce__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('method_descriptor', None, '($self, /)'))"
+    },
+    {
+      "name": "NotImplemented metadata __doc__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__doc__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'The type of the NotImplemented singleton.')"
+    },
+    {
+      "name": "NotImplemented t() is x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t() is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented t.__new__(t) is x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t) is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented t.__new__()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType.__new__(): not enough arguments')"
+    },
+    {
+      "name": "NotImplemented t.__new__(1)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType.__new__(X): X is not a type object (int)')"
+    },
+    {
+      "name": "NotImplemented t.__new__(object)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(object))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType.__new__(object): object is not a subtype of NotImplementedType')"
+    },
+    {
+      "name": "NotImplemented t(1)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType takes no arguments')"
+    },
+    {
+      "name": "NotImplemented t(a=1)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t(a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType takes no arguments')"
+    },
+    {
+      "name": "NotImplemented t.__new__(t,1,a=1)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t,1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType takes no arguments')"
+    },
+    {
+      "name": "NotImplemented bool(x)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", bool(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplemented should not be used in a boolean context')"
+    },
+    {
+      "name": "NotImplemented repr(x)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", repr(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'NotImplemented')"
+    },
+    {
+      "name": "NotImplemented str(x)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", str(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'NotImplemented')"
+    },
+    {
+      "name": "NotImplemented __eq__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented __eq__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __eq__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented __eq__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __eq__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __eq__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ne__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "NotImplemented __ne__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ne__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "NotImplemented __ne__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ne__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ne__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __lt__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __le__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __gt__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ None",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ NotImplemented",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ Ellipsis",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented __ge__ object()",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "NotImplemented binding __repr__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'NotImplemented')"
+    },
+    {
+      "name": "NotImplemented binding __repr__ x,1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "name": "NotImplemented binding __repr__ x,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __repr__() takes no keyword arguments')"
+    },
+    {
+      "name": "NotImplemented binding __repr__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'NotImplementedType' object but received a 'int'\")"
+    },
+    {
+      "name": "NotImplemented binding __repr__ 1,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'NotImplementedType' object but received a 'int'\")"
+    },
+    {
+      "name": "NotImplemented binding __repr__ ",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' of 'NotImplementedType' object needs an argument\")"
+    },
+    {
+      "name": "NotImplemented binding __bool__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplemented should not be used in a boolean context')"
+    },
+    {
+      "name": "NotImplemented binding __bool__ x,1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "name": "NotImplemented binding __bool__ x,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __bool__() takes no keyword arguments')"
+    },
+    {
+      "name": "NotImplemented binding __bool__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' requires a 'NotImplementedType' object but received a 'int'\")"
+    },
+    {
+      "name": "NotImplemented binding __bool__ 1,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' requires a 'NotImplementedType' object but received a 'int'\")"
+    },
+    {
+      "name": "NotImplemented binding __bool__ ",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__bool__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__bool__' of 'NotImplementedType' object needs an argument\")"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'NotImplemented')"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ x,1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType.__reduce__() takes no arguments (1 given)')"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ x,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'NotImplementedType.__reduce__() takes no keyword arguments')"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ 1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'NotImplementedType' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ 1,a=1",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'NotImplementedType' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "NotImplemented binding __reduce__ ",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'unbound method NotImplementedType.__reduce__() needs an argument')"
+    },
+    {
+      "name": "Ellipsis own members",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", sorted(t.__dict__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ['__doc__', '__new__', '__reduce__', '__repr__'])"
+    },
+    {
+      "name": "Ellipsis metadata __new__",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__new__']).__name__, getattr(t.__dict__['__new__'], \"__doc__\", None), getattr(t.__dict__['__new__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('builtin_function_or_method', 'Create and return a new object.  See help(type) for accurate signature.', '($type, *args, **kwargs)'))"
+    },
+    {
+      "name": "Ellipsis metadata __repr__",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__repr__']).__name__, getattr(t.__dict__['__repr__'], \"__doc__\", None), getattr(t.__dict__['__repr__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('wrapper_descriptor', 'Return repr(self).', '($self, /)'))"
+    },
+    {
+      "name": "Ellipsis metadata __reduce__",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", (type(t.__dict__['__reduce__']).__name__, getattr(t.__dict__['__reduce__'], \"__doc__\", None), getattr(t.__dict__['__reduce__'], \"__text_signature__\", None)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('method_descriptor', None, '($self, /)'))"
+    },
+    {
+      "name": "Ellipsis metadata __doc__",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__doc__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'The type of the Ellipsis singleton.')"
+    },
+    {
+      "name": "Ellipsis t() is x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t() is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis t.__new__(t) is x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t) is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis t.__new__()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'ellipsis.__new__(): not enough arguments')"
+    },
+    {
+      "name": "Ellipsis t.__new__(1)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'ellipsis.__new__(X): X is not a type object (int)')"
+    },
+    {
+      "name": "Ellipsis t.__new__(object)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(object))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'ellipsis.__new__(object): object is not a subtype of ellipsis')"
+    },
+    {
+      "name": "Ellipsis t(1)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'EllipsisType takes no arguments')"
+    },
+    {
+      "name": "Ellipsis t(a=1)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t(a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'EllipsisType takes no arguments')"
+    },
+    {
+      "name": "Ellipsis t.__new__(t,1,a=1)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__(t,1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'EllipsisType takes no arguments')"
+    },
+    {
+      "name": "Ellipsis bool(x)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", bool(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis repr(x)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", repr(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'Ellipsis')"
+    },
+    {
+      "name": "Ellipsis str(x)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", str(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'Ellipsis')"
+    },
+    {
+      "name": "Ellipsis __eq__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis __eq__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __eq__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __eq__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis __eq__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __eq__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__eq__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ne__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "Ellipsis __ne__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ne__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ne__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', False)"
+    },
+    {
+      "name": "Ellipsis __ne__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ne__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ne__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __lt__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __le__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __gt__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ None",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, None))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ NotImplemented",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, NotImplemented))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ Ellipsis",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, Ellipsis))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, 1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis __ge__ object()",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x, object()))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "Ellipsis binding __repr__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'Ellipsis')"
+    },
+    {
+      "name": "Ellipsis binding __repr__ x,1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "name": "Ellipsis binding __repr__ x,a=1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __repr__() takes no keyword arguments')"
+    },
+    {
+      "name": "Ellipsis binding __repr__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'ellipsis' object but received a 'int'\")"
+    },
+    {
+      "name": "Ellipsis binding __repr__ 1,a=1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' requires a 'ellipsis' object but received a 'int'\")"
+    },
+    {
+      "name": "Ellipsis binding __repr__ ",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__repr__' of 'ellipsis' object needs an argument\")"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', 'Ellipsis')"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ x,1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'ellipsis.__reduce__() takes no arguments (1 given)')"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ x,a=1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'ellipsis.__reduce__() takes no keyword arguments')"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ 1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'ellipsis' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ 1,a=1",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__(1,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'ellipsis' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "Ellipsis binding __reduce__ ",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__reduce__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'unbound method ellipsis.__reduce__() needs an argument')"
+    },
+    {
+      "name": "list signatures __eq__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "list signatures __ne__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "list signatures __lt__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "list signatures __le__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "list signatures __gt__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "list signatures __ge__",
+      "source": "x=[]\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __eq__",
+      "source": "x=()\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __ne__",
+      "source": "x=()\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __lt__",
+      "source": "x=()\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __le__",
+      "source": "x=()\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __gt__",
+      "source": "x=()\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "tuple signatures __ge__",
+      "source": "x=()\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __eq__",
+      "source": "x={} \nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __ne__",
+      "source": "x={} \nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __lt__",
+      "source": "x={} \nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __le__",
+      "source": "x={} \nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __gt__",
+      "source": "x={} \nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "dict signatures __ge__",
+      "source": "x={} \nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __eq__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __ne__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __lt__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __le__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __gt__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "set signatures __ge__",
+      "source": "x=set()\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __eq__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __ne__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __lt__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __le__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __gt__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "frozenset signatures __ge__",
+      "source": "x=frozenset()\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __eq__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __ne__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __lt__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __le__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __gt__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "slice signatures __ge__",
+      "source": "x=slice(1)\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __eq__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __ne__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __lt__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __le__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __gt__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "cell signatures __ge__",
+      "source": "def f():\n x=1\n return lambda: x\nx=f().__closure__[0]\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __eq__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __ne__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __lt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __le__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __gt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __ge__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method signatures __hash__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\nresult=(t.__hash__.__text_signature__, x.__hash__.__text_signature__)\n",
+      "expected": "('($self, /)', '($self, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __eq__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __ne__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __lt__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __le__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __gt__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __ge__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "method-wrapper signatures __hash__",
+      "source": "x=object().__str__\nt=type(x)\nresult=(t.__hash__.__text_signature__, x.__hash__.__text_signature__)\n",
+      "expected": "('($self, /)', '($self, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __eq__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__eq__.__text_signature__, x.__eq__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __ne__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__ne__.__text_signature__, x.__ne__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __lt__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__lt__.__text_signature__, x.__lt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __le__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__le__.__text_signature__, x.__le__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __gt__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__gt__.__text_signature__, x.__gt__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __ge__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__ge__.__text_signature__, x.__ge__.__text_signature__)\n",
+      "expected": "('($self, value, /)', '($self, value, /)')"
+    },
+    {
+      "name": "builtin_function_or_method signatures __hash__",
+      "source": "x=[].append\nt=type(x)\nresult=(t.__hash__.__text_signature__, x.__hash__.__text_signature__)\n",
+      "expected": "('($self, /)', '($self, /)')"
+    },
+    {
+      "name": "dict owner __lt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", (t.__lt__.__objclass__ is t, t.__lt__ is t.__dict__['__lt__'], type(t.__lt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "dict ordering __lt__ x,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __lt__ x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __lt__ 1,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict ordering __lt__ ",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' of 'dict' object needs an argument\")"
+    },
+    {
+      "name": "dict ordering __lt__ x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "dict ordering __lt__ x,x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "dict ordering __lt__ x,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __lt__() takes no keyword arguments')"
+    },
+    {
+      "name": "dict ordering __lt__ 1,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict bound __lt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict reject binding __lt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' for 'dict' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "dict owner __le__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", (t.__le__.__objclass__ is t, t.__le__ is t.__dict__['__le__'], type(t.__le__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "dict ordering __le__ x,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __le__ x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __le__ 1,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict ordering __le__ ",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' of 'dict' object needs an argument\")"
+    },
+    {
+      "name": "dict ordering __le__ x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "dict ordering __le__ x,x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "dict ordering __le__ x,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __le__() takes no keyword arguments')"
+    },
+    {
+      "name": "dict ordering __le__ 1,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict bound __le__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict reject binding __le__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' for 'dict' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "dict owner __gt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", (t.__gt__.__objclass__ is t, t.__gt__ is t.__dict__['__gt__'], type(t.__gt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "dict ordering __gt__ x,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __gt__ x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __gt__ 1,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict ordering __gt__ ",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' of 'dict' object needs an argument\")"
+    },
+    {
+      "name": "dict ordering __gt__ x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "dict ordering __gt__ x,x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "dict ordering __gt__ x,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __gt__() takes no keyword arguments')"
+    },
+    {
+      "name": "dict ordering __gt__ 1,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict bound __gt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict reject binding __gt__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' for 'dict' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "dict owner __ge__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", (t.__ge__.__objclass__ is t, t.__ge__ is t.__dict__['__ge__'], type(t.__ge__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "dict ordering __ge__ x,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __ge__ x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict ordering __ge__ 1,x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict ordering __ge__ ",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' of 'dict' object needs an argument\")"
+    },
+    {
+      "name": "dict ordering __ge__ x",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "dict ordering __ge__ x,x,1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "dict ordering __ge__ x,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __ge__() takes no keyword arguments')"
+    },
+    {
+      "name": "dict ordering __ge__ 1,x,a=1",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'dict' object but received a 'int'\")"
+    },
+    {
+      "name": "dict bound __ge__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "dict reject binding __ge__",
+      "source": "x={}\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' for 'dict' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method owner __lt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", (t.__lt__.__objclass__ is t, t.__lt__ is t.__dict__['__lt__'], type(t.__lt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method ordering __lt__ x,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __lt__ x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __lt__ 1,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method ordering __lt__ ",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' of 'method' object needs an argument\")"
+    },
+    {
+      "name": "method ordering __lt__ x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method ordering __lt__ x,x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method ordering __lt__ x,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __lt__() takes no keyword arguments')"
+    },
+    {
+      "name": "method ordering __lt__ 1,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method bound __lt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method reject binding __lt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' for 'method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method owner __le__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", (t.__le__.__objclass__ is t, t.__le__ is t.__dict__['__le__'], type(t.__le__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method ordering __le__ x,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __le__ x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __le__ 1,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method ordering __le__ ",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' of 'method' object needs an argument\")"
+    },
+    {
+      "name": "method ordering __le__ x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method ordering __le__ x,x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method ordering __le__ x,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __le__() takes no keyword arguments')"
+    },
+    {
+      "name": "method ordering __le__ 1,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method bound __le__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method reject binding __le__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' for 'method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method owner __gt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", (t.__gt__.__objclass__ is t, t.__gt__ is t.__dict__['__gt__'], type(t.__gt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method ordering __gt__ x,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __gt__ x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __gt__ 1,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method ordering __gt__ ",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' of 'method' object needs an argument\")"
+    },
+    {
+      "name": "method ordering __gt__ x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method ordering __gt__ x,x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method ordering __gt__ x,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __gt__() takes no keyword arguments')"
+    },
+    {
+      "name": "method ordering __gt__ 1,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method bound __gt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method reject binding __gt__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' for 'method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method owner __ge__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", (t.__ge__.__objclass__ is t, t.__ge__ is t.__dict__['__ge__'], type(t.__ge__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method ordering __ge__ x,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __ge__ x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method ordering __ge__ 1,x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method ordering __ge__ ",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' of 'method' object needs an argument\")"
+    },
+    {
+      "name": "method ordering __ge__ x",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method ordering __ge__ x,x,1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method ordering __ge__ x,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __ge__() takes no keyword arguments')"
+    },
+    {
+      "name": "method ordering __ge__ 1,x,a=1",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'method' object but received a 'int'\")"
+    },
+    {
+      "name": "method bound __ge__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method reject binding __ge__",
+      "source": "class C:\n def f(self): pass\nx=C().f\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' for 'method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method-wrapper owner __lt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", (t.__lt__.__objclass__ is t, t.__lt__ is t.__dict__['__lt__'], type(t.__lt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ x,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ 1,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ ",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' of 'method-wrapper' object needs an argument\")"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ x,x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ x,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __lt__() takes no keyword arguments')"
+    },
+    {
+      "name": "method-wrapper ordering __lt__ 1,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper bound __lt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper reject binding __lt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' for 'method-wrapper' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method-wrapper owner __le__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", (t.__le__.__objclass__ is t, t.__le__ is t.__dict__['__le__'], type(t.__le__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method-wrapper ordering __le__ x,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __le__ x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __le__ 1,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper ordering __le__ ",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' of 'method-wrapper' object needs an argument\")"
+    },
+    {
+      "name": "method-wrapper ordering __le__ x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method-wrapper ordering __le__ x,x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method-wrapper ordering __le__ x,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __le__() takes no keyword arguments')"
+    },
+    {
+      "name": "method-wrapper ordering __le__ 1,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper bound __le__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper reject binding __le__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' for 'method-wrapper' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method-wrapper owner __gt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", (t.__gt__.__objclass__ is t, t.__gt__ is t.__dict__['__gt__'], type(t.__gt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ x,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ 1,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ ",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' of 'method-wrapper' object needs an argument\")"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ x,x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ x,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __gt__() takes no keyword arguments')"
+    },
+    {
+      "name": "method-wrapper ordering __gt__ 1,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper bound __gt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper reject binding __gt__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' for 'method-wrapper' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "method-wrapper owner __ge__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", (t.__ge__.__objclass__ is t, t.__ge__ is t.__dict__['__ge__'], type(t.__ge__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ x,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ 1,x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ ",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' of 'method-wrapper' object needs an argument\")"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ x",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ x,x,1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ x,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __ge__() takes no keyword arguments')"
+    },
+    {
+      "name": "method-wrapper ordering __ge__ 1,x,a=1",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'method-wrapper' object but received a 'int'\")"
+    },
+    {
+      "name": "method-wrapper bound __ge__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "method-wrapper reject binding __ge__",
+      "source": "x=object().__str__\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' for 'method-wrapper' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "builtin_function_or_method owner __lt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", (t.__lt__.__objclass__ is t, t.__lt__ is t.__dict__['__lt__'], type(t.__lt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ x,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ 1,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ ",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' of 'builtin_function_or_method' object needs an argument\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ x,x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ x,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __lt__() takes no keyword arguments')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __lt__ 1,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method bound __lt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method reject binding __lt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__lt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__lt__' for 'builtin_function_or_method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "builtin_function_or_method owner __le__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", (t.__le__.__objclass__ is t, t.__le__ is t.__dict__['__le__'], type(t.__le__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ x,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ 1,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ ",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' of 'builtin_function_or_method' object needs an argument\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ x,x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ x,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __le__() takes no keyword arguments')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __le__ 1,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method bound __le__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method reject binding __le__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__le__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__le__' for 'builtin_function_or_method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "builtin_function_or_method owner __gt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", (t.__gt__.__objclass__ is t, t.__gt__ is t.__dict__['__gt__'], type(t.__gt__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ x,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ 1,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ ",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' of 'builtin_function_or_method' object needs an argument\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ x,x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ x,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __gt__() takes no keyword arguments')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __gt__ 1,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method bound __gt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method reject binding __gt__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__gt__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__gt__' for 'builtin_function_or_method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "builtin_function_or_method owner __ge__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", (t.__ge__.__objclass__ is t, t.__ge__ is t.__dict__['__ge__'], type(t.__ge__).__name__))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', (True, True, 'wrapper_descriptor'))"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ x,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ 1,x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ ",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__())\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' of 'builtin_function_or_method' object needs an argument\")"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ x",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 0')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ x,x,1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'expected 1 argument, got 2')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ x,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(x,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', 'wrapper __ge__() takes no keyword arguments')"
+    },
+    {
+      "name": "builtin_function_or_method ordering __ge__ 1,x,a=1",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__(1,x,a=1))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' requires a 'builtin_function_or_method' object but received a 'int'\")"
+    },
+    {
+      "name": "builtin_function_or_method bound __ge__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(x,t)(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', NotImplemented)"
+    },
+    {
+      "name": "builtin_function_or_method reject binding __ge__",
+      "source": "x=[].append\nt=type(x)\ntry:\n result=(\"ok\", t.__ge__.__get__(1,t))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('TypeError', \"descriptor '__ge__' for 'builtin_function_or_method' objects doesn't apply to a 'int' object\")"
+    },
+    {
+      "name": "dict subtype override __lt__",
+      "source": "class D(dict):\n def __lt__(self, other): return \"override\"\nx=D()\ntry:\n result=(\"ok\", (x < x, dict.__lt__(x,x), x.__lt__(x)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('override', NotImplemented, 'override'))"
+    },
+    {
+      "name": "dict subtype override __le__",
+      "source": "class D(dict):\n def __le__(self, other): return \"override\"\nx=D()\ntry:\n result=(\"ok\", (x <= x, dict.__le__(x,x), x.__le__(x)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('override', NotImplemented, 'override'))"
+    },
+    {
+      "name": "dict subtype override __gt__",
+      "source": "class D(dict):\n def __gt__(self, other): return \"override\"\nx=D()\ntry:\n result=(\"ok\", (x > x, dict.__gt__(x,x), x.__gt__(x)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('override', NotImplemented, 'override'))"
+    },
+    {
+      "name": "dict subtype override __ge__",
+      "source": "class D(dict):\n def __ge__(self, other): return \"override\"\nx=D()\ntry:\n result=(\"ok\", (x >= x, dict.__ge__(x,x), x.__ge__(x)))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', ('override', NotImplemented, 'override'))"
+    },
+    {
+      "name": "None canonical hash(x)==t.__hash__(x)",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", hash(x)==t.__hash__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None canonical t.__new__.__self__ is t",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__.__self__ is t)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None canonical t.__new__ is t.__new__",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__new__ is t.__new__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None canonical t.__repr__.__get__(x,t).__self__ is x",
+      "source": "x=None\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__.__get__(x,t).__self__ is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('AttributeError', \"'wrapper_descriptor' object has no attribute '__self__'\")"
+    },
+    {
+      "name": "NotImplemented canonical hash(x)==t.__hash__(x)",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", hash(x)==t.__hash__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented canonical t.__new__.__self__ is t",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__.__self__ is t)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented canonical t.__new__ is t.__new__",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__new__ is t.__new__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "NotImplemented canonical t.__repr__.__get__(x,t).__self__ is x",
+      "source": "x=NotImplemented\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__.__get__(x,t).__self__ is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis canonical hash(x)==t.__hash__(x)",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", hash(x)==t.__hash__(x))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis canonical t.__new__.__self__ is t",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__.__self__ is t)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis canonical t.__new__ is t.__new__",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__new__ is t.__new__)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "Ellipsis canonical t.__repr__.__get__(x,t).__self__ is x",
+      "source": "x=Ellipsis\nt=type(x)\ntry:\n result=(\"ok\", t.__repr__.__get__(x,t).__self__ is x)\nexcept Exception as e:\n result=(type(e).__name__, str(e))\n",
+      "expected": "('ok', True)"
+    },
+    {
+      "name": "None own dictionary order",
+      "source": "x=None\nt=type(x)\nresult=list(t.__dict__)\n",
+      "expected": "['__new__', '__repr__', '__hash__', '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__', '__bool__', '__doc__']"
+    },
+    {
+      "name": "NotImplemented own dictionary order",
+      "source": "x=NotImplemented\nt=type(x)\nresult=list(t.__dict__)\n",
+      "expected": "['__new__', '__repr__', '__bool__', '__reduce__', '__doc__']"
+    },
+    {
+      "name": "Ellipsis own dictionary order",
+      "source": "x=Ellipsis\nt=type(x)\nresult=list(t.__dict__)\n",
+      "expected": "['__new__', '__repr__', '__reduce__', '__doc__']"
+    },
+    {
+      "name": "None payload hash None",
+      "source": "result=hash(None)\n",
+      "expected": "4238894112"
+    },
+    {
+      "name": "None payload hash (None,)",
+      "source": "result=hash((None,))\n",
+      "expected": "9181102132670838864"
+    },
+    {
+      "name": "None payload hash (None,None)",
+      "source": "result=hash((None,None))\n",
+      "expected": "8339407666115719588"
+    },
+    {
+      "name": "None payload hash (1,None,2)",
+      "source": "result=hash((1,None,2))\n",
+      "expected": "-1812271708992745902"
+    },
+    {
+      "name": "None payload hash slice(None)",
+      "source": "result=hash(slice(None))\n",
+      "expected": "4032618106351268893"
+    },
+    {
+      "name": "None payload hash slice(None,None,None)",
+      "source": "result=hash(slice(None,None,None))\n",
+      "expected": "4032618106351268893"
+    },
+    {
+      "name": "None payload hash slice(None,1,None)",
+      "source": "result=hash(slice(None,1,None))\n",
+      "expected": "-344020932372729183"
+    },
+    {
+      "name": "None payload hash slice(0,None,-1)",
+      "source": "result=hash(slice(0,None,-1))\n",
+      "expected": "-1295905665242562118"
+    },
+    {
+      "name": "None payload hash range(0)",
+      "source": "result=hash(range(0))\n",
+      "expected": "2676694398852732306"
+    },
+    {
+      "name": "None payload hash range(1)",
+      "source": "result=hash(range(1))\n",
+      "expected": "-6721383568238688696"
+    },
+    {
+      "name": "None payload hash range(10,10)",
+      "source": "result=hash(range(10,10))\n",
+      "expected": "2676694398852732306"
+    },
+    {
+      "name": "None payload hash range(3,4)",
+      "source": "result=hash(range(3,4))\n",
+      "expected": "3985224588053030672"
+    },
+    {
+      "name": "None payload hash frozenset([None])",
+      "source": "result=hash(frozenset([None]))\n",
+      "expected": "6611776082492875612"
+    },
+    {
+      "name": "None payload hash frozenset([None,1])",
+      "source": "result=hash(frozenset([None,1]))\n",
+      "expected": "-3172218236538438857"
+    },
+    {
+      "name": "None payload hash frozenset([(None,)])",
+      "source": "result=hash(frozenset([(None,)]))\n",
+      "expected": "-9053493737427201075"
+    },
+    {
+      "name": "None native hash descriptor",
+      "source": "result=type(None).__hash__(None)\n",
+      "expected": "4238894112"
+    }
+  ]
+}

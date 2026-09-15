@@ -26,7 +26,8 @@
   },
   "poeCode": {
     "inlinedDependencies": [
-      "mcp-oauth"
+      "mcp-oauth",
+      "tiny-stdio-mcp-server"
     ]
   }
 }

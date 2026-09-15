@@ -128,7 +128,7 @@ async function createFixture(format: "json" | "sse", session: boolean) {
       return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
     },
   });
-  const client = new McpClient({
+  const client = new McpClient({ protocolVersion: "2025-03-26",
     clientInfo: { name: "lifecycle-client", version: "1" },
     requestTimeoutMs: 50,
   });

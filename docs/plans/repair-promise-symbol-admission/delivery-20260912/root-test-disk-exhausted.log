@@ -1,0 +1,97 @@
+
+> poe-code@0.0.0-dev test
+> node scripts/build-workspaces.mjs --test-unit
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> poe-code@0.0.0-dev test:unit:shared
+> node scripts/test-vitest-workspaces.mjs . packages/acp-telemetry packages/agent-child-process packages/agent-code-review packages/agent-gaslight packages/agent-harness packages/agent-harness-tools packages/agent-hook-config packages/agent-spawn packages/agent-stash packages/agent-trace-viewer packages/agent-traces packages/braintrust packages/experiment-loop packages/frontmatter packages/github-review packages/github-workflows packages/maestro packages/maestro-tui packages/markdown-reader packages/mcp-oauth-server packages/memory packages/opencode-poe-auth packages/package-lint packages/process-launcher packages/process-runner packages/ralph packages/safe-bash-playground packages/superintendent packages/task-list packages/toolcraft packages/toolcraft-codemode packages/toolcraft-landing-page packages/toolcraft-openapi packages/toolcraft-schema packages/workspace-resolver
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+Unit workspace poe-code: running 521 files
+Unit workspace @poe-code/acp-telemetry: running 6 files
+Unit workspace @poe-code/agent-child-process: running 1 files
+Unit workspace agent-code-review: running 12 files
+Unit workspace @poe-code/agent-gaslight: running 4 files
+Unit workspace @poe-code/agent-harness: running 13 files
+Unit workspace @poe-code/agent-harness-tools: running 17 files
+Unit workspace @poe-code/agent-hook-config: running 8 files
+Unit workspace @poe-code/agent-spawn: running 23 files
+Unit workspace agent-stash: running 13 files
+Unit workspace @poe-code/agent-trace-viewer: running 8 files
+Unit workspace @poe-code/agent-traces: running 9 files
+Unit workspace @poe-code/braintrust: running 9 files
+Unit workspace @poe-code/experiment-loop: running 3 files
+Unit workspace @poe-code/frontmatter: running 1 files
+Unit workspace github-review: running 6 files
+Unit workspace @poe-code/github-workflows: running 10 files
+Unit workspace @poe-code/maestro: running 27 files
+Unit workspace @poe-code/maestro-tui: running 3 files
+Unit workspace @poe-code/markdown-reader: running 7 files
+Unit workspace mcp-oauth-server: running 2 files
+Unit workspace @poe-code/memory: running 29 files
+Unit workspace opencode-poe-auth: running 1 files
+Unit workspace @poe-code/package-lint: running 13 files
+Unit workspace @poe-code/process-launcher: running 11 files
+Unit workspace @poe-code/process-runner: running 9 files
+Unit workspace @poe-code/ralph: running 2 files
+Unit workspace safe-bash-playground: running 8 files
+Unit workspace @poe-code/superintendent: running 34 files
+Unit workspace @poe-code/task-list: running 19 files
+Unit workspace toolcraft: running 52 files
+Unit workspace toolcraft-codemode: running 6 files
+Unit workspace toolcraft-landing-page: running 3 files
+Unit workspace toolcraft-openapi: running 21 files
+Unit workspace toolcraft-schema: running 6 files
+Unit workspace @poe-code/workspace-resolver: running 2 files
+ ❯ packages/process-runner/src/docker/docker-runner.test.ts (19 tests | 1 failed) 22ms
+     ✓ calls docker run in foreground and exposes streams in piped mode 6ms
+     ✓ calls docker run -it and exposes null streams in interactive mode 1ms
+     ✓ kill with SIGTERM spawns docker stop 1ms
+     ✓ kill with SIGKILL spawns docker kill 0ms
+     ✓ parses exit code from the docker process close event 0ms
+     ✓ resolves with exit code 1 when the docker process fails to spawn 0ms
+     ✓ generates a container name from the command and random suffix 1ms
+     ✓ uses engine auto-detection when options.engine is omitted 1ms
+     ✓ uses context auto-detection when options.context is omitted 1ms
+     ✓ passes mounts from options to buildDockerRunArgs 1ms
+     ✓ passes ports from options to buildDockerRunArgs 0ms
+     × passes env from RunSpec to buildDockerRunArgs 3ms
+     ✓ aborting the run triggers docker stop 1ms
+     ✓ waits for the docker run child to close before resolving an aborted run 0ms
+     ✓ terminates the host docker process if abort does not close the child 2ms
+     ✓ does not spawn a container command when already aborted 0ms
+     ✓ does not report success after an aborted command later exits zero 0ms
+     ✓ contains stop process spawn errors raised while aborting 1ms
+     ✓ kill with other signals spawns docker kill with a signal override 0ms
+FAIL packages/process-runner/src/docker/docker-runner.test.ts > createDockerRunner > passes env from RunSpec to buildDockerRunArgs
+Error: ENOSPC: no space left on device, mkdtemp '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/poe-docker-env-XXXXXX'
+ ❯ createDockerEnvFile packages/process-runner/src/docker/env-file.ts:16:21
+     14|   }
+     15|
+     16|   const directory = mkdtempSync(path.join(tmpdir(), "poe-docker-env-")…
+       |                     ^
+     17|   const filePath = path.join(directory, "env");
+     18|   let active = true;
+ ❯ Object.exec packages/process-runner/src/docker/docker-runner.ts:39:23
+ ❯ packages/process-runner/src/docker/docker-runner.test.ts:270:61
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errno: -28, code: 'ENOSPC', syscall: 'mkdtemp', path: '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/poe-docker-env-XXXXXX' }
+Error: Build or unit execution interrupted by SIGINT
+    at taskError (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:174:17)
+    at stop (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:299:34)
+    at process.<anonymous> (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:304:77)
+    at process.emit (node:events:519:28) {
+  exitCode: 1
+}

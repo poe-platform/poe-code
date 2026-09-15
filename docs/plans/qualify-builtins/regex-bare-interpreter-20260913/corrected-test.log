@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts (4 tests) 81ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  17:58:30
+   Duration  1.87s (transform 1.34s, setup 38ms, import 1.69s, tests 81ms, environment 0ms)
+

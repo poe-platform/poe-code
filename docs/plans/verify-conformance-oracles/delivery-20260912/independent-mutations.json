@@ -1,0 +1,28 @@
+{
+  "sourceSha": "5d773e11d14f769972bb0a3beadb952aff2cc8bd",
+  "fixtureStorage": "memory; baseline source transpiled into data URL without modifying repository files",
+  "controls": [
+    {
+      "name": "malformed completion",
+      "baselineAccepted": true,
+      "baselineSuccess": true,
+      "currentRejected": true,
+      "error": "Incomplete or mixed-provenance report"
+    },
+    {
+      "name": "duplicate modes",
+      "baselineAccepted": true,
+      "baselineSuccess": true,
+      "currentRejected": true,
+      "error": "Invalid manifest variants"
+    },
+    {
+      "name": "missing unsupported reason",
+      "baselineAccepted": true,
+      "baselineSuccess": false,
+      "currentRejected": true,
+      "error": "Invalid execution result"
+    }
+  ],
+  "passingNeighbor": true
+}

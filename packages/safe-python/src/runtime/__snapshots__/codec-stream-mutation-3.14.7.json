@@ -1,0 +1,21 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\n",
+  "cases": [
+    {
+      "name": "buffered state truth and indexing preserve mutation on failure",
+      "output": "None\nFalse  ['bool']\nNone\nTrue state ['bool']\nTrue\nFalse mutated ['bool']\nTrue\nFalse mutated ['bool']\nNone\nTrue ([], 0) [0]\nTrue\nFalse (b'mutated', 0) [0]\n"
+    },
+    {
+      "name": "stream reader bytearray and memoryview short reads preserve native concatenation",
+      "output": "bytes 'é\\n' '' b'' \nbytearray 'é\\n' '' b'' \nmemoryview 'é\\n' '' b'' \n"
+    },
+    {
+      "name": "reader character buffer inplace addition preserves callback identity and failure mutation",
+      "output": "True\nFalse b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text'), ('decode', b'changed', 'strict'), ('iadd', 'text')]\nTrue\nTrue b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text')]\n"
+    },
+    {
+      "name": "stream delegation preserves descriptor errors and close exception identity",
+      "output": "True ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\n"
+    }
+  ]
+}

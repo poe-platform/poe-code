@@ -1,0 +1,57 @@
+{
+  "source": "import binascii, sys, unicodedata\nprint(sys.version)\nprint(unicodedata.unidata_version, sys.byteorder)\nfor checksum in (binascii.crc32, binascii.crc_hqx):\n    print(checksum.__name__, repr(checksum.__doc__), repr(checksum.__text_signature__))\n    data = bytearray(b'A')\n    events = []\n    class Seed:\n        def __index__(self):\n            events.append('index')\n            try:\n                data.extend(b'B')\n            except BufferError:\n                events.append('pinned')\n            else:\n                raise AssertionError('buffer not pinned')\n            data[0] = 66\n            return -(1 << 100) - 1\n    result = checksum(data, Seed())\n    assert result == checksum(b'B', -1)\n    data.extend(b'C')\n    print(result, events, bytes(data))\n    for args in [(), (b'',), (b'', 0, 1), (None, 0), ('', 0), (b'', None), (b'', 2**100)]:\n        try:\n            print(repr(args), checksum(*args))\n        except Exception as error:\n            print(repr(args), type(error).__name__, error.args)\n    try:\n        checksum(data=b'', crc=0)\n    except TypeError as error:\n        print(error.args)\n",
+  "oracle": {
+    "executable": "/opt/homebrew/bin/python3.14",
+    "arguments": [
+      "-I",
+      "-c"
+    ],
+    "status": 0,
+    "stdout": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0 little\ncrc32 'Compute CRC-32 incrementally.' '($module, data, crc=0, /)'\n1731059523 ['index', 'pinned'] b'BC'\n() TypeError ('crc32 expected at least 1 argument, got 0',)\n(b'',) 0\n(b'', 0, 1) TypeError ('crc32 expected at most 2 arguments, got 3',)\n(None, 0) TypeError (\"a bytes-like object is required, not 'NoneType'\",)\n('', 0) TypeError (\"a bytes-like object is required, not 'str'\",)\n(b'', None) TypeError (\"'NoneType' object cannot be interpreted as an integer\",)\n(b'', 1267650600228229401496703205376) 0\n('binascii.crc32() takes no keyword arguments',)\ncrc_hqx 'Compute CRC-CCITT incrementally.' '($module, data, crc, /)'\n35190 ['index', 'pinned'] b'BC'\n() TypeError ('crc_hqx expected 2 arguments, got 0',)\n(b'',) TypeError ('crc_hqx expected 2 arguments, got 1',)\n(b'', 0, 1) TypeError ('crc_hqx expected 2 arguments, got 3',)\n(None, 0) TypeError (\"a bytes-like object is required, not 'NoneType'\",)\n('', 0) TypeError (\"a bytes-like object is required, not 'str'\",)\n(b'', None) TypeError (\"'NoneType' object cannot be interpreted as an integer\",)\n(b'', 1267650600228229401496703205376) 0\n('binascii.crc_hqx() takes no keyword arguments',)\n",
+    "stderr": ""
+  },
+  "red": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- runtime-crc-functions --maxWorkers=2",
+    "status": 1,
+    "diagnostic": "Cannot find module './runtime-crc-functions.js'"
+  },
+  "publicGate": {
+    "sourceArtifact": "crc-public-contract-3.14.7.json",
+    "status": "exception",
+    "diagnostic": "No module named 'binascii'",
+    "verified": false
+  },
+  "initialReplay": {
+    "passed": 254,
+    "failed": 2,
+    "pending": 0,
+    "files": 7,
+    "slowestMs": 252.3674170000013,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts",
+        "name": "replays pinned checksum binding batch 68",
+        "messages": [
+          "ExecutionLimitError: execution step limit exceeded\n    at ExecutionBudget.checkpoint (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts:67:23)\n    at crc32 (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/crc.ts:12:12)\n    at Object.invoke (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.ts:43:48)\n    at invoke (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts:12:112)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts:28:12\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts",
+        "name": "replays pinned checksum binding batch 69",
+        "messages": [
+          "ExecutionLimitError: execution step limit exceeded\n    at ExecutionBudget.checkpoint (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts:67:23)\n    at crc32 (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/crc.ts:12:12)\n    at Object.invoke (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.ts:43:48)\n    at invoke (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts:12:112)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-crc-functions.test.ts:28:12\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)"
+        ]
+      }
+    ]
+  },
+  "final": {
+    "passed": 258,
+    "failed": 0,
+    "pending": 0,
+    "files": 7,
+    "slowestMs": 183.56858400000056,
+    "failures": [],
+    "command": "npm run test --workspace=@poe-code/safe-python -- runtime-crc-functions crc.test runtime-codec-registry runtime-codec-dispatch session-codec-incremental-replay session-core-codec-cancellation --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-crc-binding-final.json"
+  },
+  "scope": "Internal native binding evidence only. Complete binascii module, guest buffer APIs, imports, tracebacks and real-service public verification remain unfinished."
+}

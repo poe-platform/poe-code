@@ -1,0 +1,4 @@
+
+> @poe-code/safe-js@0.0.1 test:conformance
+> tsx test/conformance/command.ts --corpus /tmp/safejs-baseline-test262-419d3e0 --report /Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/proto-name/upstream.jsonl --include language/expressions/object/__proto__-fn-name.js --include language/expressions/object/__proto__-duplicate-computed.js --include language/expressions/object/__proto__-permitted-dup.js --include language/expressions/object/__proto__-permitted-dup-shorthand.js
+

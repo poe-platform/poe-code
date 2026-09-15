@@ -1,0 +1,18 @@
+{
+  "command": "node --import tsx --input-type=module -e [read pinned manifest/reports; aggregateReports; compare historical aggregate counts and no unexecuted variants]",
+  "qualification": "Current accounting code applied to unchanged historical receipts, not fresh runtime fixture execution",
+  "initialAcquisitionFailure": "npx tsx -e selected CJS loading; portable Intl data import MODULE_NOT_FOUND. Explicit ESM execution follows.",
+  "complete": true,
+  "success": false,
+  "counts": {
+    "files": 53876,
+    "fixtures": 294,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 102926,
+    "passed": 93220,
+    "failed": 6388,
+    "unsupported": 3318
+  },
+  "unexecutedVariants": []
+}

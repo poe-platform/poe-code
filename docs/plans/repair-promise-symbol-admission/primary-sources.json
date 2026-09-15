@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://262.ecma-international.org/16.0/",
+    "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+    "bytes": 8169822
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Promise/promise.js",
+    "sha256": "d4222c66cca33422a9d51587dd3abd271b0e4483e27658137cba25c6c63e1058",
+    "bytes": 723
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Promise/property-order.js",
+    "sha256": "9e784fd070bf100a894ea3abd9a34dcc845f8600251d2c1962449ceae31a4938",
+    "bytes": 545
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Object/getOwnPropertySymbols/object-contains-symbol-property-with-description.js",
+    "sha256": "d6bd3354061fa806c6175f0f175ef5bbd4814d3f1a2a22f2bf78b8c2825c93d2",
+    "bytes": 606
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/test/built-ins/Reflect/ownKeys/return-on-corresponding-order.js",
+    "sha256": "a012e60d1625ccd8e5f3136b58d7d6f151dc1c0eb6f3debd367e88d4ea471c7c",
+    "bytes": 1377
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/assert.js",
+    "sha256": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+    "bytes": 4881
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/sta.js",
+    "sha256": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+    "bytes": 792
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/propertyHelper.js",
+    "sha256": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+    "bytes": 18956
+  },
+  {
+    "url": "https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/LICENSE",
+    "sha256": "4dd9244dfe8197c75348c4b24ab53d29d3b1cfad143ac76b5a3d8942aa354ce0",
+    "bytes": 2213
+  }
+]

@@ -35,3 +35,28 @@ it("does not invoke a thrown object's constructor getter during reporting", asyn
     expect(await realm.evaluate("reads")).toMatchObject({ status: "normal", value: 0 });
   } finally { await realm.dispose(); }
 });
+
+it("records actionable error phase, constructor, and budget diagnostics without invoking guest getters", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(classifyScriptOutcome(await realm.evaluate('throw new TypeError("counterexample")')))
+      .toMatchObject({ status: "failed", detail: { phase: "runtime", type: "TypeError", message: "counterexample" } });
+    expect(classifyScriptOutcome({ status: "host-error", error: Object.assign(new Error("step cap"), { code: "budgetExceeded", budget: "steps" }) }))
+      .toMatchObject({ status: "failed", detail: { message: "step cap", code: "budgetExceeded", budget: "steps" } });
+  } finally { await realm.dispose(); }
+});
+
+it.each([
+  ["0", { phase: "runtime", type: "TypeError" }, "missing-throw"],
+  ["throw 42", undefined, "unexpected-throw"],
+  ["throw new TypeError()", { phase: "parse", type: "TypeError" }, "wrong-phase"],
+  ["return 0", { phase: "runtime", type: "SyntaxError" }, "wrong-phase"],
+  ["throw new RangeError()", { phase: "runtime", type: "TypeError" }, "wrong-error-type"]
+] as const)("preserves the exact oracle failure reason for %s", async (source, negative, reason) => {
+  const realm = createTest262Realm();
+  try {
+    expect(classifyScriptOutcome(await realm.evaluate(source), negative)).toMatchObject({ status: "failed", reason });
+    expect(classifyScriptOutcome(await realm.evaluate("throw new TypeError()"), { phase: "runtime", type: "TypeError" }))
+      .toEqual({ status: "passed" });
+  } finally { await realm.dispose(); }
+});

@@ -1,0 +1,26 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "cases": [
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\nread '' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144, -1]\nNone b'' '' None 6\n"
+    },
+    {
+      "name": "UTF-8 final failure preserves state for policy changes and retry",
+      "output": "'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nstrict ('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') (b'\\xe2\\x82', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nreplace '�' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nignore '' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nsurrogateescape '\\udce2\\udc82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nbackslashreplace '\\\\xe2\\\\x82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n"
+    },
+    {
+      "name": "ascii stream retry after sink failure preserves writes and policy",
+      "output": "sink 413f3f\nTrue ('sink failure',) replace\nsink 413f3f\nsink 413f3f5a\nNone None None\n['413f3f', '413f3f', '413f3f5a']\n"
+    },
+    {
+      "name": "latin-1 stream retry after sink failure preserves writes and policy",
+      "output": "sink 41e93f\nTrue ('sink failure',) replace\nsink 41e93f\nsink 41e93f5a\nNone None None\n['41e93f', '41e93f', '41e93f5a']\n"
+    },
+    {
+      "name": "utf-8 stream retry after sink failure preserves writes and policy",
+      "output": "sink 41c3a93f\nTrue ('sink failure',) replace\nsink 41c3a93f\nsink 41c3a93f5a\nNone None None\n['41c3a93f', '41c3a93f', '41c3a93f5a']\n"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "reference": "CPython 3.14.7 / Unicode 16.0.0 / Darwin little endian",
+  "status": "unresolved; exploratory public differential evidence, not real-service certification",
+  "cases": [
+    {
+      "replacement": "'?'",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((type(error).__name__, error.start, error.end))\n    if isinstance(error, UnicodeEncodeError):\n        return ('?', error.end)\n    return ('\\ud800', error.end)\ncodecs.register_error('strict', handler)\ntry:\n    exec(b'# coding: ascii\\n#\\xff\\nvalue = 42')\n    print('ok', globals().get('value'))\nexcept BaseException as error:\n    print(type(error).__name__, str(error))\nprint(events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ok 42\n[('UnicodeDecodeError', 17, 18), ('UnicodeEncodeError', 17, 18)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18)]\n"
+      },
+      "matches": false
+    },
+    {
+      "replacement": "b'?'",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((type(error).__name__, error.start, error.end))\n    if isinstance(error, UnicodeEncodeError):\n        return (b'?', error.end)\n    return ('\\ud800', error.end)\ncodecs.register_error('strict', handler)\ntry:\n    exec(b'# coding: ascii\\n#\\xff\\nvalue = 42')\n    print('ok', globals().get('value'))\nexcept BaseException as error:\n    print(type(error).__name__, str(error))\nprint(events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ok 42\n[('UnicodeDecodeError', 17, 18), ('UnicodeEncodeError', 17, 18)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18)]\n"
+      },
+      "matches": false
+    },
+    {
+      "replacement": "b'\\xff'",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((type(error).__name__, error.start, error.end))\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\xff', error.end)\n    return ('\\ud800', error.end)\ncodecs.register_error('strict', handler)\ntry:\n    exec(b'# coding: ascii\\n#\\xff\\nvalue = 42')\n    print('ok', globals().get('value'))\nexcept BaseException as error:\n    print(type(error).__name__, str(error))\nprint(events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ok 42\n[('UnicodeDecodeError', 17, 18), ('UnicodeEncodeError', 17, 18)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18)]\n"
+      },
+      "matches": false
+    },
+    {
+      "replacement": "b'\\x00'",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((type(error).__name__, error.start, error.end))\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x00', error.end)\n    return ('\\ud800', error.end)\ncodecs.register_error('strict', handler)\ntry:\n    exec(b'# coding: ascii\\n#\\xff\\nvalue = 42')\n    print('ok', globals().get('value'))\nexcept BaseException as error:\n    print(type(error).__name__, str(error))\nprint(events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "ok None\n[('UnicodeDecodeError', 17, 18), ('UnicodeEncodeError', 17, 18)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18)]\n"
+      },
+      "matches": false
+    },
+    {
+      "replacement": "'\\ud800'",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((type(error).__name__, error.start, error.end))\n    if isinstance(error, UnicodeEncodeError):\n        return ('\\ud800', error.end)\n    return ('\\ud800', error.end)\ncodecs.register_error('strict', handler)\ntry:\n    exec(b'# coding: ascii\\n#\\xff\\nvalue = 42')\n    print('ok', globals().get('value'))\nexcept BaseException as error:\n    print(type(error).__name__, str(error))\nprint(events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18), ('UnicodeEncodeError', 17, 18)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "SyntaxError 'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed (<string>, line 0)\n[('UnicodeDecodeError', 17, 18)]\n"
+      },
+      "matches": false
+    }
+  ]
+}

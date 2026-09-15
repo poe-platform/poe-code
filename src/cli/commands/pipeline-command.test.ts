@@ -1264,7 +1264,7 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("routes pipeline progress through the dashboard when --tui is enabled", async () => {
+  it.each([false, true].flatMap(taskCompleted => [undefined, { inputTokens: 80, outputTokens: 20 }].map(initializationUsage => ({ taskCompleted, initializationUsage }))))("routes pipeline progress with $taskCompleted and $initializationUsage through the dashboard", async ({ taskCompleted, initializationUsage }) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1272,13 +1272,19 @@ describe("pipeline run command", () => {
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ currentAction: "Preparing pipeline" }));
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ text: `${expectedTimestamp} Config · Agent: codex · Model: gpt-5.2 · Plan: custom-plan.yaml` }));
+      options.onLockWait?.("/repo/custom-plan.yaml");
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ currentAction: "Waiting for another run" }));
       options.onPlanResolved?.({
         planPath: "custom-plan.yaml",
         done: 1,
         failed: 0,
         open: 2,
-        total: 3
+        total: 3,
+        ...(initializationUsage ? { initializationUsage } : {})
       });
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ tokensIn: initializationUsage?.inputTokens ?? 0, tokensOut: initializationUsage?.outputTokens ?? 0 }));
       options.onTaskStart?.({
         taskId: "auth-hardening",
         taskTitle: "Auth hardening",
@@ -1298,7 +1304,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
-        taskCompleted: true,
+        taskCompleted,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -1311,8 +1317,8 @@ describe("pipeline run command", () => {
         runsCompleted: 1,
         totalDurationMs: 2_000,
         metrics: {
-          totalInputTokens: 120,
-          totalOutputTokens: 45,
+          totalInputTokens: 120 + (initializationUsage?.inputTokens ?? 0),
+          totalOutputTokens: 45 + (initializationUsage?.outputTokens ?? 0),
           totalCachedTokens: 0,
           tasksCompleted: 1,
           tasksFailed: 0,
@@ -1369,6 +1375,11 @@ describe("pipeline run command", () => {
         ts: 0
       },
       {
+        kind: "status",
+        text: `${expectedTimestamp} Waiting for another pipeline operation · /repo/custom-plan.yaml`,
+        ts: 0
+      },
+      {
         kind: "info",
         text: `${expectedTimestamp} Tasks · 1/3 done, 2 open`,
         ts: 0
@@ -1380,17 +1391,17 @@ describe("pipeline run command", () => {
       },
       {
         kind: "success",
-        text: `${expectedTimestamp} Task auth-hardening done in 2s (tokens: 120 in / 45 out)`,
+        text: `${expectedTimestamp} ${taskCompleted ? "Task auth-hardening" : "Step implement for auth-hardening"} done in 2s (tokens: 120 in / 45 out)`,
         ts: 0
       }
     ]);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "done",
-        iterations: 1,
-        tokensIn: 120,
-        tokensOut: 45,
-        currentAction: "Task 2/3 · auth-hardening · implement · step 1/2"
+        iterations: taskCompleted ? 1 : 0,
+        tokensIn: 120 + (initializationUsage?.inputTokens ?? 0),
+        tokensOut: 45 + (initializationUsage?.outputTokens ?? 0),
+        currentAction: "Task 2/3 · Auth hardening · implement · step 1/2"
       })
     );
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
@@ -1400,6 +1411,47 @@ describe("pipeline run command", () => {
     );
     expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([false, true].flatMap(tui => [undefined, "implement", "setup", "teardown"].map(stage => ({ tui, stage }))))("reports cancellation separately from failure with tui=$tui and stage=$stage", async ({ tui, stage }) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+    const dashboardMock = createDashboardMock();
+    if (tui) vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    const logs: string[] = [];
+    const phase = stage === "setup" || stage === "teardown" ? stage : undefined;
+    const expected = phase ? `${phase} cancelled in 2s` : `Task work${stage ? ` (${stage})` : ""} cancelled in 2s`;
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onTaskComplete?.({
+        taskId: "work", taskTitle: phase ?? "Work", taskIndex: 1, totalTasks: 1,
+        ...(phase ? { phase } : stage ? { stepName: stage } : {}),
+        durationMs: 2_000, success: false, taskCompleted: false, cancelled: true,
+        usage: { inputTokens: 120, outputTokens: 45 }
+      });
+      return {
+        stopReason: "cancelled", planPath: "custom-plan.yaml", runsCompleted: 0,
+        totalDurationMs: 2_000,
+        metrics: { totalInputTokens: 120, totalOutputTokens: 45, totalCachedTokens: 0, tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0 }
+      };
+    });
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({ fs, prompts: vi.fn(), env: { cwd, homeDir }, logger: message => logs.push(message) });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await withMockedTerminal(() => program.parseAsync([
+      "node", "cli", "--yes", "pipeline", "run", ...(tui ? ["--tui"] : []),
+      "--agent", "codex", "--plan", "custom-plan.yaml"
+    ]));
+    if (tui) {
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ kind: "status", text: `${expectedTimestamp} ${expected} (tokens: 120 in / 45 out)` }));
+      expect(dashboardMock.appendOutput).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
+      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ iterations: 0, tokensIn: 120, tokensOut: 45 }));
+    } else {
+      expect(logs.some(message => message.includes(expected))).toBe(true);
+      expect(logs.some(message => message.includes("failed in"))).toBe(false);
+    }
+    expect(process.exitCode).toBe(130);
   });
 
   it("uses the pipeline.tui config value when set", async () => {
@@ -1622,7 +1674,60 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("aborts the pipeline when the dashboard quit command is used", async () => {
+  it("clears stale task context and restores the dashboard when execution throws", async () => {
+    const dashboardMock = createDashboardMock();
+    const displayedStats: Record<string, unknown> = {};
+    dashboardMock.updateStats.mockImplementation((partial) =>
+      Object.assign(displayedStats, partial)
+    );
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onTaskStart?.({
+        taskId: "auth-hardening",
+        taskTitle: "Auth hardening",
+        taskIndex: 1,
+        totalTasks: 1,
+        stepName: "implement",
+        stepIndex: 1,
+        totalSteps: 1
+      });
+      expect(displayedStats.currentAction).toBeDefined();
+      throw new Error("fake execution failed");
+    });
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await expect(
+      withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "pipeline",
+          "run",
+          "--tui",
+          "--agent",
+          "codex",
+          "--plan",
+          "custom-plan.yaml"
+        ])
+      )
+    ).rejects.toThrow();
+    expect(displayedStats.status).toBe("error");
+    expect(displayedStats.currentAction).toBeUndefined();
+    expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["quit", "forceQuit"])("waits for pipeline cleanup after dashboard %s", async (command) => {
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1630,7 +1735,9 @@ describe("pipeline run command", () => {
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      dashboardMock.commandHandlers[0]?.("quit");
+      dashboardMock.commandHandlers[0]?.(command);
+      expect(exit).not.toHaveBeenCalled();
+      if (command === "forceQuit") expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
 
       expect(options.signal?.aborted).toBe(true);
 
@@ -1677,7 +1784,9 @@ describe("pipeline run command", () => {
       ])
     );
 
-    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+    if (command === "forceQuit") {
+      expect(exit).toHaveBeenCalledExactlyOnceWith(130);
+    } else expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
       kind: "status",
       text: `${expectedTimestamp} Cancellation requested`,
       ts: 0
@@ -1686,17 +1795,18 @@ describe("pipeline run command", () => {
     expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
   });
 
-  it("cancels the pipeline when SIGINT is received in dashboard mode", async () => {
+  it.each(["SIGINT", "SIGTERM"] as const)("cancels and cleans up the dashboard on %s", async (signal) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
     const dashboardMock = createDashboardMock();
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+    const listeners = process.listeners(signal);
 
     try {
       vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-        process.emit("SIGINT");
+        process.emit(signal);
 
         expect(options.signal?.aborted).toBe(true);
 
@@ -1751,12 +1861,15 @@ describe("pipeline run command", () => {
       });
       expect(process.exitCode).toBe(130);
       expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
+      expect(process.listeners(signal)).toEqual(listeners);
+      expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+      expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
     } finally {
       exitSpy.mockRestore();
     }
   });
 
-  it("streams child-agent stdout and stderr into the dashboard via tee", async () => {
+  it.each(["poe-agent", "codex"])("renders %s output without duplicating event protocol rows", async (agent) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1765,11 +1878,22 @@ describe("pipeline run command", () => {
 
     vi.mocked(sdkSpawn).mockImplementationOnce((_agent, input) => {
       input.tee?.stdout?.write("Inspecting repo");
+      if (agent !== "codex") {
+        expect(dashboardMock.appendOutput.mock.calls.some(([item]) => item.text.includes("Inspecting repo"))).toBe(true);
+      }
       input.tee?.stdout?.write("...\nsecond line\npartial");
       input.tee?.stderr?.write("Tool warning\npartial stderr");
+      expect(dashboardMock.appendOutput.mock.calls.some(([item]) => item.text.includes("partial stderr"))).toBe(true);
 
       return {
-        events: (async function* () {})(),
+        events: (async function* () {
+          if (agent === "codex") {
+            yield { event: "agent_message" as const, text: "Rendered response" };
+            expect(dashboardMock.appendOutput.mock.calls.some(([item]) =>
+              item.text.includes("Rendered response")
+            )).toBe(true);
+          }
+        })(),
         result: Promise.resolve({
           stdout: "",
           stderr: "",
@@ -1794,7 +1918,7 @@ describe("pipeline run command", () => {
       });
 
       await options.runAgent?.({
-        agent: "codex",
+        agent,
         prompt: "Inspect the repo",
         mode: "yolo",
         cwd,
@@ -1864,8 +1988,9 @@ describe("pipeline run command", () => {
     );
 
     expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith(
-      "codex",
+      agent,
       expect.objectContaining({
+        captureSession: false,
         prompt: "Inspect the repo",
         cwd,
         model: "gpt-5.2",
@@ -1880,24 +2005,29 @@ describe("pipeline run command", () => {
     );
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
-    expect(
-      outputs.some(
-        (item) =>
-          item.kind === "tool" &&
-          item.text.includes("[auth-hardening:implement] Inspecting repo...")
-      )
-    ).toBe(true);
-    expect(
-      outputs.some(
-        (item) =>
-          item.kind === "tool" && item.text.includes("[auth-hardening:implement] second line")
-      )
-    ).toBe(true);
-    expect(
-      outputs.some(
-        (item) => item.kind === "tool" && item.text.includes("[auth-hardening:implement] partial")
-      )
-    ).toBe(true);
+    if (agent === "codex") {
+      expect(outputs.some((item) => item.text.includes("Inspecting repo"))).toBe(false);
+      expect(outputs.filter((item) => item.text.includes("Rendered response"))).toHaveLength(1);
+    } else {
+      expect(
+        outputs.some(
+          (item) =>
+            item.kind === "tool" &&
+            item.text.includes("[auth-hardening:implement] Inspecting repo...")
+        )
+      ).toBe(true);
+      expect(
+        outputs.some(
+          (item) =>
+            item.kind === "tool" && item.text.includes("[auth-hardening:implement] second line")
+        )
+      ).toBe(true);
+      expect(
+        outputs.some(
+          (item) => item.kind === "tool" && item.text.includes("[auth-hardening:implement] partial")
+        )
+      ).toBe(true);
+    }
     expect(
       outputs.some(
         (item) =>
@@ -1924,7 +2054,8 @@ describe("pipeline run command", () => {
 
     vi.mocked(sdkSpawn)
       .mockImplementationOnce((_agent, input) => {
-        input.tee?.stdout?.write("first attempt output\n");
+        input.tee?.stdout?.write("first attempt output");
+        input.tee?.stderr?.write("first attempt warning\u001b]HIDDEN_UNFINISHED_OSC");
 
         return {
           events: (async function* () {})(),
@@ -1935,7 +2066,7 @@ describe("pipeline run command", () => {
         events: (async function* () {})(),
         result: Promise.resolve({
           stdout: "retry fallback output",
-          stderr: "",
+          stderr: "retry fallback warning",
           exitCode: 0,
           usage: {
             inputTokens: 120,
@@ -1956,7 +2087,7 @@ describe("pipeline run command", () => {
       });
 
       await options.runAgent?.({
-        agent: "codex",
+        agent: "poe-agent",
         prompt: "Inspect the repo",
         mode: "yolo",
         cwd,
@@ -2027,6 +2158,9 @@ describe("pipeline run command", () => {
     expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(2);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    expect(outputs.some(item => item.kind === "error" && item.text.includes("retry fallback warning"))).toBe(true);
+    expect(outputs.filter(item => item.kind === "tool" && item.text.includes("attempt output"))[0]!.text)
+      .not.toContain("retry fallback output");
     expect(
       outputs.some(
         (item) =>

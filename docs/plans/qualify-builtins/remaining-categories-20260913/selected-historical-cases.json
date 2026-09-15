@@ -1,0 +1,278 @@
+[
+  {
+    "id": "built-ins/ArrayIteratorPrototype/next/args-mapped-expansion-after-exhaustion.js#sloppy",
+    "owner": "qualify-builtins",
+    "category": "semantic-candidate-unvalidated",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Attempted to call a non-function value.",
+      "type": "TypeError"
+    },
+    "esid": "sec-%arrayiteratorprototype%.next",
+    "report": "04250-04499.jsonl",
+    "sourceHash": "197a5107cbd9a4e157e1bce157988f5d9fcbd5825a6c860b70e04a177de360b3",
+    "control": {
+      "id": "built-ins/ArrayIteratorPrototype/next/Uint8ClampedArray.js#sloppy",
+      "sourceHash": "3618a02c7a655dc3b0128c15ca0ba1cda73dc6f6858046397dfe6a6a3cfadd6a",
+      "variantSourceHash": "3618a02c7a655dc3b0128c15ca0ba1cda73dc6f6858046397dfe6a6a3cfadd6a",
+      "report": "04250-04499.jsonl",
+      "reportSha256": "8bb1192591743db9f10d3fcb84d520dcedfb80a77ba1cf3a3124860b35dac982"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/Date/UTC/fp-evaluation-order.js#sloppy",
+    "owner": "qualify-builtins",
+    "category": "semantic-candidate-unvalidated",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "precision in MakeDate Expected SameValue(\u00ab34448384\u00bb, \u00ab34447360\u00bb) to be true",
+      "type": "Test262Error"
+    },
+    "esid": "sec-date.utc",
+    "report": "05750-05999.jsonl",
+    "sourceHash": "aed1e6ce51bb7b3c6ae503989be3d8654432b064ece38677d03aeb3eb9876c09",
+    "control": {
+      "id": "built-ins/Date/UTC/coercion-order.js#sloppy",
+      "sourceHash": "b932549d0c7aa87bd5bc86f1968d0e07d454b0f02124ae5ef89d29318e5de016",
+      "variantSourceHash": "b932549d0c7aa87bd5bc86f1968d0e07d454b0f02124ae5ef89d29318e5de016",
+      "report": "05750-05999.jsonl",
+      "reportSha256": "244476e0e2bee11d6d071344e6ceb5dc705111ec1012629a3cf73251755bb668"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/decodeURI/S15.1.3.1_A1.10_T1.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-decodeuri-encodeduri",
+    "report": "24500-24749.jsonl",
+    "sourceHash": "c2907f1491a4be1b7868f7d322bbae4b813f3e63ae52786ca04c17cfd2fbee96",
+    "control": {
+      "id": "built-ins/decodeURI/S15.1.3.1_A1.1_T1.js#sloppy",
+      "sourceHash": "bf9652de96b4093bb5cda9bdb7dea67f204231355c2864caa1a2f4cbbc687bc5",
+      "variantSourceHash": "bf9652de96b4093bb5cda9bdb7dea67f204231355c2864caa1a2f4cbbc687bc5",
+      "report": "24500-24749.jsonl",
+      "reportSha256": "59020e66f97f100b510ac9ef73fffc38feaec4abf4ab793258f7a79f7160e59a"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/decodeURIComponent/S15.1.3.2_A1.10_T1.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-decodeuricomponent-encodeduricomponent",
+    "report": "24500-24749.jsonl",
+    "sourceHash": "acb714a6121726888d59222cfa7a56e4a61f2657c6d51d6d0db18df7fe564876",
+    "control": {
+      "id": "built-ins/decodeURIComponent/S15.1.3.2_A1.1_T1.js#sloppy",
+      "sourceHash": "a9390ab59612ba7b9ad4a7293a55c86efc23828b4345ed0c7816305756e90aa6",
+      "variantSourceHash": "a9390ab59612ba7b9ad4a7293a55c86efc23828b4345ed0c7816305756e90aa6",
+      "report": "24500-24749.jsonl",
+      "reportSha256": "59020e66f97f100b510ac9ef73fffc38feaec4abf4ab793258f7a79f7160e59a"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/encodeURI/S15.1.3.3_A1.1_T2.js#strict",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-encodeuri-uri",
+    "report": "24500-24749.jsonl",
+    "sourceHash": "aea6423be8057cf115e9e2d2f0d40fff9ac62c3b5f83d951b1d38b8e777750a0",
+    "control": {
+      "id": "built-ins/encodeURI/S15.1.3.3_A1.1_T1.js#strict",
+      "sourceHash": "eecb6562da7855d7613e2eff10ac1c0c3c1b76f937c9156bd1174d0fbfd4a6d0",
+      "variantSourceHash": "dc97448d4dc0f1d409991e670a4078167ac8d614eb5751fdf7572955ac1bdd10",
+      "report": "24500-24749.jsonl",
+      "reportSha256": "59020e66f97f100b510ac9ef73fffc38feaec4abf4ab793258f7a79f7160e59a"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/encodeURIComponent/S15.1.3.4_A1.1_T1.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-encodeuricomponent-uricomponent",
+    "report": "24500-24749.jsonl",
+    "sourceHash": "41149d929246eeaf26c543759b39a1d6e3b2ae98cb77bc81ba3504dffe5463fd",
+    "control": {
+      "id": "built-ins/encodeURIComponent/S15.1.3.4_A3.1_T1.js#sloppy",
+      "sourceHash": "7d4999ae9adeb42dc3df6af84d3efb66b44bf05eb81f9a862f4cac71b4ce0a2f",
+      "variantSourceHash": "7d4999ae9adeb42dc3df6af84d3efb66b44bf05eb81f9a862f4cac71b4ce0a2f",
+      "report": "24500-24749.jsonl",
+      "reportSha256": "59020e66f97f100b510ac9ef73fffc38feaec4abf4ab793258f7a79f7160e59a"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/JSON/parse/reviver-context-source-object-literal.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-json.parse",
+    "report": "07750-07999.jsonl",
+    "sourceHash": "ed57958a6dde5b80e545731ddda59924b8ee3eacdef2fd18ec24f2b683fcb1ac",
+    "control": {
+      "id": "built-ins/JSON/parse/reviver-context-source-array-literal.js#sloppy",
+      "sourceHash": "ea84b49e993be6e1b7b8617903daa54cc19dcf8b27cc6db0a0247a358f350a84",
+      "variantSourceHash": "ea84b49e993be6e1b7b8617903daa54cc19dcf8b27cc6db0a0247a358f350a84",
+      "report": "07750-07999.jsonl",
+      "reportSha256": "fa7876a66bc77ef5309219ec74aa9ae0919c0e7f1cfd3a6403f3c2c0abad90de"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/Math/ceil/S15.8.2.6_A7.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": null,
+    "report": "08250-08499.jsonl",
+    "sourceHash": "c53159002b96d3939ec16be1298f63bd128b1c74a53eec3088de20c1a9884885",
+    "control": {
+      "id": "built-ins/Math/ceil/S15.8.2.6_A6.js#sloppy",
+      "sourceHash": "081d41a03af78530601b708f351b80ad022803fe4cc92bf0b88f9875ffe042ea",
+      "variantSourceHash": "081d41a03af78530601b708f351b80ad022803fe4cc92bf0b88f9875ffe042ea",
+      "report": "08250-08499.jsonl",
+      "reportSha256": "9ea4f8df9052bc746703ab6b46ab186872e8ed23e7e047156465fa523b3c4600"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/Object/freeze/typedarray-backed-by-resizable-buffer.js#sloppy",
+    "owner": "qualify-exotic-object-invariants",
+    "category": "semantic-candidate-unvalidated",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected a TypeError to be thrown but no exception was thrown at all",
+      "type": "Test262Error"
+    },
+    "esid": "sec-object.freeze",
+    "report": "11000-11249.jsonl",
+    "sourceHash": "f14dd66d0ce75e72910f9c8b0539bea247bac283ed7c78f0109222c593fbf3e9",
+    "control": {
+      "id": "built-ins/Object/freeze/throws-when-false.js#sloppy",
+      "sourceHash": "4953385e5433f1aa073097fc63935ec1c51c4e54a96934e236a909f0776dbecf",
+      "variantSourceHash": "4953385e5433f1aa073097fc63935ec1c51c4e54a96934e236a909f0776dbecf",
+      "report": "11000-11249.jsonl",
+      "reportSha256": "454471b015245ec7d67a402616c5034eaa1e61a11427ed14ea0c4727f68e9567"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/parseFloat/S15.1.2.3_A6.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-parsefloat-string",
+    "report": "24750-24999.jsonl",
+    "sourceHash": "e53e97da27a6e3b70839867b49ad6d1153bbfb58f9edbfe93c3b6a09d0f137f3",
+    "control": {
+      "id": "built-ins/parseFloat/S15.1.2.3_A5_T4.js#sloppy",
+      "sourceHash": "f2d878f5332c393ea18eb0a8c2ea5125e73d2b634b053af6f193fa9279201952",
+      "variantSourceHash": "f2d878f5332c393ea18eb0a8c2ea5125e73d2b634b053af6f193fa9279201952",
+      "report": "24750-24999.jsonl",
+      "reportSha256": "332bc8b8a95272426b96a74e2313bc370cd7f8f14aab99f3764f9c658210f0d4"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/parseInt/S15.1.2.2_A7.2_T1.js#sloppy",
+    "owner": "qualify-resource-and-timing-behavior",
+    "category": "budget-or-timeout",
+    "reason": "timeout",
+    "detail": {
+      "phase": "host",
+      "code": "worker-wall-timeout",
+      "message": "Isolated variant exceeded 3000 ms; child terminated"
+    },
+    "esid": "sec-parseint-string-radix",
+    "report": "24750-24999.jsonl",
+    "sourceHash": "a8a4234ec0b14605ee8cffeaba08e4c412aee1e0c911ce250ec791e0a5c6beaa",
+    "control": {
+      "id": "built-ins/parseInt/S15.1.2.2_A7.1_T2.js#sloppy",
+      "sourceHash": "7bbbabde13262914f9d84b95120cd5dfe7aa77e22f8f298be605b201f18d8a7f",
+      "variantSourceHash": "7bbbabde13262914f9d84b95120cd5dfe7aa77e22f8f298be605b201f18d8a7f",
+      "report": "24750-24999.jsonl",
+      "reportSha256": "332bc8b8a95272426b96a74e2313bc370cd7f8f14aab99f3764f9c658210f0d4"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  },
+  {
+    "id": "built-ins/Symbol/for/cross-realm.js#sloppy",
+    "owner": "qualify-builtins",
+    "category": "semantic-candidate-unvalidated",
+    "reason": "unexpected-throw",
+    "detail": {
+      "phase": "runtime",
+      "message": "Expected SameValue(\u00abSymbol(parent)\u00bb, \u00abSymbol(parent)\u00bb) to be true",
+      "type": "Test262Error"
+    },
+    "esid": "sec-symbol.for",
+    "report": "17250-17499.jsonl",
+    "sourceHash": "e673ec2add6fa10cdad2e1110eaf1851eba169a942be6e1f54945bd8b704fe60",
+    "control": {
+      "id": "built-ins/Symbol/for/create-value.js#sloppy",
+      "sourceHash": "5fab9c921059060c488a0e139f240b7a7b0b4a99629e44018fea94dc5f1f4b82",
+      "variantSourceHash": "5fab9c921059060c488a0e139f240b7a7b0b4a99629e44018fea94dc5f1f4b82",
+      "report": "17250-17499.jsonl",
+      "reportSha256": "2fa754571f1b7f99b7ce97047cbb41e0b0af3fe858168f6dccf62ffe9b631592"
+    },
+    "disposition": "QB-REVALIDATE: historical nonpass; not a validated current product defect",
+    "targetDisposition": "fixture-to-edition-reconciliation-pending"
+  }
+]

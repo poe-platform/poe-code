@@ -1,0 +1,390 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts (10 tests | 10 failed) 350ms
+   × does not infer a name through a parenthesized assignment target: function(){} 64ms
+   × does not infer a name through a parenthesized assignment target: ()=>0 31ms
+   × does not infer a name through a parenthesized assignment target: function*(){} 32ms
+   × does not infer a name through a parenthesized assignment target: async function(){} 27ms
+   × does not infer a name through a parenthesized assignment target: class {} 29ms
+   × keeps named neighbors and logical assignment semantics: = 26ms
+   × keeps named neighbors and logical assignment semantics: ||= 27ms
+   × keeps named neighbors and logical assignment semantics: ??= 22ms
+   × keeps named neighbors and logical assignment semantics: &&= 27ms
+   × preserves inferred and explicit names, source and generator replay 63ms
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: function(){}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: ()=>0
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: function*(){}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: async function(){}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: class {}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: =
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', 'b' ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "a",
+      "b",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:20:29
+     18|     (a) ${operator} function(){}; b ${operator} function(){};return [a…
+     19|   expect(new Script(`(()=>{${source}})()`).runInNewContext()).toEqual(…
+     20|   expect(await run(source)).toMatchObject({ok:true,returnValue:["","b"…
+       |                             ^
+     21| });
+     22|
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: ||=
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', 'b' ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "a",
+      "b",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:20:29
+     18|     (a) ${operator} function(){}; b ${operator} function(){};return [a…
+     19|   expect(new Script(`(()=>{${source}})()`).runInNewContext()).toEqual(…
+     20|   expect(await run(source)).toMatchObject({ok:true,returnValue:["","b"…
+       |                             ^
+     21| });
+     22|
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: ??=
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', 'b' ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "a",
+      "b",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:20:29
+     18|     (a) ${operator} function(){}; b ${operator} function(){};return [a…
+     19|   expect(new Script(`(()=>{${source}})()`).runInNewContext()).toEqual(…
+     20|   expect(await run(source)).toMatchObject({ok:true,returnValue:["","b"…
+       |                             ^
+     21| });
+     22|
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: &&=
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', 'b' ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "a",
+      "b",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:20:29
+     18|     (a) ${operator} function(){}; b ${operator} function(){};return [a…
+     19|   expect(new Script(`(()=>{${source}})()`).runInNewContext()).toEqual(…
+     20|   expect(await run(source)).toMatchObject({ok:true,returnValue:["","b"…
+       |                             ^
+     21| });
+     22|
+
+FAIL packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > preserves inferred and explicit names, source and generator replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -1,9 +1,9 @@
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      "named",
+      "kept",
+      "function*(){yield 7;}",
+      7,
+      true,
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:32:75
+     30|   for(let i=0;i<3;i++){
+     31|     const settled=pending.catch(error=>error);
+     32|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     33|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     34|   }
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: function(){}
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: ()=>0
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: function*(){}
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: async function(){}
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > does not infer a name through a parenthesized assignment target: class {}
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      {
+        "configurable": true,
+        "enumerable": false,
+-       "value": "",
++       "value": "fn",
+        "writable": false,
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:12:31
+     10|     const native=new Script(`(()=>{${source}})()`).runInNewContext();
+     11|     expect(native[0]).toBe("");
+     12|     expect(await run(source)).toMatchObject({ok:true,returnValue:["",{…
+       |                               ^
+     13|   }
+     14| );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: =
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: ||=
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: ??=
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > keeps named neighbors and logical assignment semantics: &&=
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', 'b' ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "a",
+      "b",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:20:29
+     18|     (a) ${operator} function(){}; b ${operator} function(){};return [a…
+     19|   expect(new Script(`(()=>{${source}})()`).runInNewContext()).toEqual(…
+     20|   expect(await run(source)).toMatchObject({ok:true,returnValue:["","b"…
+       |                             ^
+     21| });
+     22|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  packages/safe-js/src/interp/parenthesized-assignment-name.test.ts > preserves inferred and explicit names, source and generator replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ '', …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -1,9 +1,9 @@
+  {
+    "ok": true,
+    "returnValue": [
+-     "",
++     "fn",
+      "named",
+      "kept",
+      "function*(){yield 7;}",
+      7,
+      true,
+
+ ❯ packages/safe-js/src/interp/parenthesized-assignment-name.test.ts:32:75
+     30|   for(let i=0;i<3;i++){
+     31|     const settled=pending.catch(error=>error);
+     32|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     33|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     34|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed (10)
+   Start at  11:01:15
+   Duration  2.60s (transform 1.61s, setup 44ms, import 2.04s, tests 350ms, environment 0ms)
+

@@ -1,0 +1,2866 @@
+{
+  "utf7": {
+    "count": 30000,
+    "seed": 9123,
+    "generator": "seed=(Math.imul(seed,1664525)+1013904223)>>>0; random(n)=Math.floor(seed/4294967296*n)",
+    "sampleOrder": "length=random(30); bytes=Array.from({length},()=>alphabet[random(alphabet.length)]); errors=policies[random(5)]; final=!!random(2)",
+    "alphabet": [
+      43,
+      45,
+      65,
+      66,
+      67,
+      68,
+      50,
+      65,
+      65,
+      47,
+      255,
+      128,
+      0,
+      92,
+      126,
+      10
+    ],
+    "policies": [
+      "strict",
+      "ignore",
+      "replace",
+      "backslashreplace",
+      "surrogateescape"
+    ],
+    "driver": "import json,sys,codecs,unicodedata\nassert sys.version_info[:3]==(3,14,7) and unicodedata.unidata_version=='16.0.0'\nout=[]\nfor s in json.load(sys.stdin):\n try:\n  text,n=codecs.utf_7_decode(bytes(s['input']),s['errors'],s['final']);out.append({'result':[list(map(ord,text)),n]})\n except UnicodeDecodeError as e:out.append({'error':[e.encoding,list(e.object),e.start,e.end,e.reason]})\njson.dump(out,sys.stdout)",
+    "inputSHA256": "c6125c5a987a15d1a84d95dacb8a5245fe6376d9e2e15b17b5c34b5766d75833",
+    "expectedSHA256": "1ed7ab984e797be387b5a33ae2cf726e0ab84a1a05f283b80fa79a3599b8e405",
+    "actualSHA256": "1ed7ab984e797be387b5a33ae2cf726e0ab84a1a05f283b80fa79a3599b8e405",
+    "failures": []
+  },
+  "gate": {
+    "passed": 508,
+    "failed": 28,
+    "pending": 0,
+    "files": [
+      {
+        "file": "packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "assertions": [
+          {
+            "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-handler-unregister-resume.test.ts",
+        "assertions": [
+          {
+            "name": "'ascii encode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'ascii decode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'cp1252 encode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'cp1252 decode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8 encode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8 decode unregister during resume'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8-sig encode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8-sig decode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-le encode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-le decode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-be encode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-be decode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-le encode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-le decode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-be encode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-be decode unregister during re…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'ascii encode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'ascii decode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'cp1252 encode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'cp1252 decode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8 encode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8 decode unregister during resume' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8-sig encode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-8-sig decode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-le encode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-le decode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-be encode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-16-be decode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-le encode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-le decode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-be encode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "'utf-32-be decode unregister during re…' keeps cancellation terminal",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-interpreter-isolation.test.ts",
+        "assertions": [
+          {
+            "name": "isolates 'utf-8' caches, recovery handlers and pending bytes across cancellation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "isolates 'utf-16-le' caches, recovery handlers and pending bytes across cancellation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "isolates 'utf-32-be' caches, recovery handlers and pending bytes across cancellation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "isolates 'utf-7' caches, recovery handlers and pending bytes across cancellation",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "assertions": [
+          {
+            "name": "native codec slots: 'type mutation retains the previous va…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'repr slot is initialized during nativ…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'source mutation retains the copied na…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'real service callback observes initia…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'comparison fixup retains the inherite…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'CodecInfo __eq__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'CodecInfo __hash__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'CodecInfo __new__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'CodecInfo __doc__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalEncoder __eq__ inheritance…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalEncoder __hash__ inheritan…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalEncoder __new__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalEncoder __doc__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalDecoder __eq__ inheritance…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalDecoder __hash__ inheritan…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalDecoder __new__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'IncrementalDecoder __doc__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalEncoder __eq__ inh…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalEncoder __hash__ i…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalEncoder __new__ in…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalEncoder __doc__ in…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalDecoder __eq__ inh…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalDecoder __hash__ i…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalDecoder __new__ in…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'BufferedIncrementalDecoder __doc__ in…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReader __eq__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReader __hash__ inheritance pro…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReader __new__ inheritance prob…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReader __doc__ inheritance prob…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamWriter __eq__ inheritance probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamWriter __hash__ inheritance pro…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamWriter __new__ inheritance prob…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamWriter __doc__ inheritance prob…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReaderWriter __eq__ inheritance…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReaderWriter __hash__ inheritan…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReaderWriter __new__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamReaderWriter __doc__ inheritanc…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamRecoder __eq__ inheritance prob…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamRecoder __hash__ inheritance pr…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamRecoder __new__ inheritance pro…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'StreamRecoder __doc__ inheritance pro…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'hash inheritance failure 1'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native codec slots: 'hash inheritance failure 2'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native codec slots: 'hash inheritance failure 3'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native codec slots: 'new fixup failure disables allocation'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'published class uses inherited alloca…'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'ordered intrinsic probes'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'hash fixup failure clears the native …'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "native codec slots: 'inherited hash mutation'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__eq__' stage 1 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__eq__' stage 2 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__eq__' stage 3 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__hash__' stage 1 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__hash__' stage 2 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__hash__' stage 3 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__hash__' stage 4 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__new__' stage 1 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps '__new__' stage 2 cancellation fatal",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps slot mutation isolated between interpreters",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "assertions": [
+          {
+            "name": "native wide codec module: 'utf-16 registry and module API'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-16 incremental encoder state and …'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-16 every incremental split and st…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-16 stream adapters BOM and reset'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-32 registry and module API'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-32 incremental encoder state and …'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-32 every incremental split and st…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "native wide codec module: 'utf-32 stream adapters BOM and reset'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-source-registry.test.ts",
+        "assertions": [
+          {
+            "name": "source registry: 'source decoder receives an ownerless …'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: source-contract (source.py, line 0): expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:23:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "source registry: 'source callback failures retain nativ…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:24:28\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "source registry: 'source codec callbacks use the suppli…'",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: unknown encoding: source-service (source.py, line 0): expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:23:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          },
+          {
+            "name": "keeps cancellation in source decoder callbacks terminal",
+            "status": "failed",
+            "failureMessages": [
+              "AssertionError: expected 'exception' to be 'terminated' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:37:25\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+            ]
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-stream-cancellation.test.ts",
+        "assertions": [
+          {
+            "name": "cancels 'reader.read' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'writer.write' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'paired.reset' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'recoder.seek' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'incremental handler' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'iterator source' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'reader.readline' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'reader.readlines' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'reader.tell' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'writer.writelines source' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'buffered decoder consumed index' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'iterencode final callback' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'iterdecode final callback' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancels 'recoder frontend decoder' without resuming guest calls",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/codec-adversarial-oracle.test.ts",
+        "assertions": [
+          {
+            "name": "utf7: pinned adversarial decoding rows 0–499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 500–999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 1000–1499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 1500–1999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 2000–2499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 2500–2999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 3000–3499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 3500–3999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 4000–4499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 4500–4999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 5000–5499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 5500–5999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 6000–6499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 6500–6999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 7000–7499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 7500–7999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 8000–8499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 8500–8999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 9000–9499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 9500–9999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 10000–10499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 10500–10999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 11000–11499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 11500–11999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 12000–12499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 12500–12999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 13000–13499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 13500–13999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 14000–14499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "utf7: pinned adversarial decoding rows 14500–14999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 0–499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 500–999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 1000–1499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 1500–1999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 2000–2499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 2500–2999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 3000–3499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 3500–3999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 4000–4499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 4500–4999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 5000–5499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 5500–5999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 6000–6499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 6500–6999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 7000–7499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 7500–7999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 8000–8499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 8500–8999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 9000–9499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 9500–9999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 10000–10499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 10500–10999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 11000–11499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 11500–11999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 12000–12499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 12500–12999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 13000–13499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 13500–13999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 14000–14499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 14500–14999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 15000–15499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 15500–15999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 16000–16499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 16500–16999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 17000–17499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 17500–17999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 18000–18499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 18500–18999",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 19000–19499",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "escape: pinned adversarial decoding rows 19500–19999",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/codec-seeded-decode-oracle.test.ts",
+        "assertions": [
+          {
+            "name": "matches the pinned adversarial 'UTF-7' corpus",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches the pinned adversarial 'UTF-8/16/32' corpus",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches the pinned adversarial 'escape bytes' corpus",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/codec-seeded-encode-oracle.test.ts",
+        "assertions": [
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'ascii' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'latin-1' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-8' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-7' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-le' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-16-be' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-le' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'strict'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'ignore'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'replace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'backslashreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'xmlcharrefreplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'namereplace'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'surrogateescape'",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned encoder corpus: 'utf-32-be' / 'surrogatepass'",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "assertions": [
+          {
+            "name": "normalizes names, caches successful identity, and isolates registries",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retries failed initialization before returning an exact cached name",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates original spelling before using normalized cache: cached\u0000",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates original spelling before using normalized cache: cached\ud800",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates original spelling before using normalized cache: cached\u0000\ud800",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates original spelling before using normalized cache: 💥\ud800\ud801z",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "registration preserves cache; unregister removes only the first identity and clears hits only when found",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "does not cache misses or guest failures",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains normalized search-name identity across misses, failures and cache invalidation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects search tuples with 0 elements",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects search tuples with 3 elements",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects search tuples with 5 elements",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects lists and noncallables without invoking guest equality",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "uses a fixed initial search length but live entries during mutation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates NUL and surrogate encoding names before searching",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps error handlers case sensitive, replaceable and separate from codec cache",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 0)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 1)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 2)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 3)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 4)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 5)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 6)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 7)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates search return or failure (throws=false)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates search return or failure (throws=true)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates error handler names at the C-string boundary: x\u0000y",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates error handler names at the C-string boundary: \ud800",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "checks adjusted negative and positive resume bounds: -4n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "checks adjusted negative and positive resume bounds: 4n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "returns validated replacement identity and resume position: -1n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "returns validated replacement identity and resume position: 1n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "permits bytes only for encoding replacements and validates tuple shape before position",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates custom error handlers (throws=false)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates custom error handlers (throws=true)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "does not reenter a retained encode error handler after termination",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "does not reenter a retained decode error handler after termination",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "checks cancellation before invoking a retained encode error handler",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "checks cancellation before invoking a retained decode error handler",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "detects search-path shrinkage during lookup without taking a snapshot",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects resume positions outside pinned Py_ssize_t: 9223372036854775808n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects resume positions outside pinned Py_ssize_t: -9223372036854775809n",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "accepts boolean positions and invokes __index__ through the explicit protocol",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts",
+        "assertions": [
+          {
+            "name": "preserves replacement and resume validation order in ascii_encode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves replacement and resume validation order in latin_1_encode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves replacement and resume validation order in utf_8_encode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves replacement and resume validation order in ascii_decode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves replacement and resume validation order in utf_8_decode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal inside an invalid replacement's resume position (throws=false)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal inside an invalid replacement's resume position (throws=true)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects malformed error-handler tuples before invoking their position",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "binds the six positional-only core codec functions with lazy errors and UTF-8 finality",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+            "status": "failed",
+            "failureMessages": [
+              "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+            "status": "failed",
+            "failureMessages": [
+              "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+            "status": "failed",
+            "failureMessages": [
+              "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "uses ascii decode recovery's mutated object after negative __index__",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "uses utf_8 decode recovery's mutated object after negative __index__",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves ascii native error fast paths while consulting registered fallback handlers",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves latin_1 native error fast paths while consulting registered fallback handlers",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves utf_8 native error fast paths while consulting registered fallback handlers",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal through ascii_encode registered recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal through latin_1_encode registered recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal through utf_8_encode registered recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal through ascii_decode registered recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "keeps cancellation fatal through utf_8_decode registered recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves ascii_encode strict exception source subtype identity",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves latin_1_encode strict exception source subtype identity",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "validates embedded nulls and surrogate error names even for empty input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "holds and releases decoder buffer exports in argument order: ok",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "holds and releases decoder buffer exports in argument order: invalid-errors",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "holds and releases decoder buffer exports in argument order: invalid-final",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "holds and releases decoder buffer exports in argument order: cancel-final",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "holds and releases decoder buffer exports in argument order: cancel-acquire",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects nonbuffers in ascii_decode without iterable or __bytes__ coercion",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects nonbuffers in latin_1_decode without iterable or __bytes__ coercion",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "rejects nonbuffers in utf_8_decode without iterable or __bytes__ coercion",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode copies raw bytes and UTF-8 text with native argument validation",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: ok",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: invalid-errors",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: copy-failure",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: acquire-failure",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: cancel-acquire",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode releases the explicit buffer export: cancel-copy",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "readbuffer_encode preserves every byte and canonical small-byte identities",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/utf-incremental-edge-oracle.test.ts",
+        "assertions": [
+          {
+            "name": "pins the incremental edge oracle to CPython 3.14.7, Unicode 16 and little endian",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'strict'/[ 43, 50, 68, 51, 101, 65, 65, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'replace'/[ 43, 50, 68, 51, 101, 65, 65, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogatepass'/[ 43, 50, 68, 51, 101, 65, 65, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogateescape'/[ 43, 50, 68, 51, 101, 65, 65, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'strict'/[ 43, 65, 66, 45, 255, 43 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'replace'/[ 43, 65, 66, 45, 255, 43 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogatepass'/[ 43, 65, 66, 45, 255, 43 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogateescape'/[ 43, 65, 66, 45, 255, 43 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'strict'/[ 65, 43, 50, 65, 65, 43, 65, 65, 45 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'replace'/[ 65, 43, 50, 65, 65, 43, 65, 65, 45 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogatepass'/[ 65, 43, 50, 65, 65, 43, 65, 65, 45 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-7'/'surrogateescape'/[ 65, 43, 50, 65, 65, 43, 65, 65, 45 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'strict'/[ 65, 240, 159, 152, 128, 237, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'replace'/[ 65, 240, 159, 152, 128, 237, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogatepass'/[ 65, 240, 159, 152, 128, 237, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogateescape'/[ 65, 240, 159, 152, 128, 237, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'strict'/[ 239, 187, 191, 244, 144, 128, …(3) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'replace'/[ 239, 187, 191, 244, 144, 128, …(3) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogatepass'/[ 239, 187, 191, 244, 144, 128, …(3) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogateescape'/[ 239, 187, 191, 244, 144, 128, …(3) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'strict'/[ 226, 130, 172, 240, 159 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'replace'/[ 226, 130, 172, 240, 159 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogatepass'/[ 226, 130, 172, 240, 159 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-8'/'surrogateescape'/[ 226, 130, 172, 240, 159 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'strict'/[ 255, 254, 65, +0, +0, 216, 61, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'replace'/[ 255, 254, 65, +0, +0, 216, 61, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogatepass'/[ 255, 254, 65, +0, +0, 216, 61, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogateescape'/[ 255, 254, 65, +0, +0, 216, 61, …(4) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'strict'/[ Array(10) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'replace'/[ Array(10) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogatepass'/[ Array(10) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogateescape'/[ Array(10) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'strict'/[ 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'replace'/[ 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogatepass'/[ 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16'/'surrogateescape'/[ 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'strict'/[ 65, +0, +0, 216, 61, 216, +0, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'replace'/[ 65, +0, +0, 216, 61, 216, +0, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogatepass'/[ 65, +0, +0, 216, 61, 216, +0, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogateescape'/[ 65, +0, +0, 216, 61, 216, +0, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'strict'/[ 255, 254, +0, 220, 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'replace'/[ 255, 254, +0, 220, 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogatepass'/[ 255, 254, +0, 220, 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogateescape'/[ 255, 254, +0, 220, 65, +0, +0, 216 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'strict'/[ 61, 216, +0, 222, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'replace'/[ 61, 216, +0, 222, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogatepass'/[ 61, 216, +0, 222, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-le'/'surrogateescape'/[ 61, 216, +0, 222, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'strict'/[ +0, 65, 216, +0, 216, 61, 222, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'replace'/[ +0, 65, 216, +0, 216, 61, 222, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogatepass'/[ +0, 65, 216, +0, 216, 61, 222, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogateescape'/[ +0, 65, 216, +0, 216, 61, 222, …(2) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'strict'/[ 254, 255, 220, +0, +0, 65, 216, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'replace'/[ 254, 255, 220, +0, +0, 65, 216, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogatepass'/[ 254, 255, 220, +0, +0, 65, 216, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogateescape'/[ 254, 255, 220, +0, +0, 65, 216, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'strict'/[ 216, 61, 222, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'replace'/[ 216, 61, 222, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogatepass'/[ 216, 61, 222, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-16-be'/'surrogateescape'/[ 216, 61, 222, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'strict'/[ 255, 254, +0, +0, 65, +0, +0, …(6) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'replace'/[ 255, 254, +0, +0, 65, +0, +0, …(6) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogatepass'/[ 255, 254, +0, +0, 65, +0, +0, …(6) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogateescape'/[ 255, 254, +0, +0, 65, +0, +0, …(6) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'strict'/[ +0, +0, 254, 255, +0, 1, 246, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'replace'/[ +0, +0, 254, 255, +0, 1, 246, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogatepass'/[ +0, +0, 254, 255, +0, 1, 246, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogateescape'/[ +0, +0, 254, 255, +0, 1, 246, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'strict'/[ 65, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'replace'/[ 65, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogatepass'/[ 65, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32'/'surrogateescape'/[ 65, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'strict'/[ 65, +0, +0, +0, +0, 216, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'replace'/[ 65, +0, +0, +0, +0, 216, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogatepass'/[ 65, +0, +0, +0, +0, 216, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogateescape'/[ 65, +0, +0, +0, +0, 216, +0, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'strict'/[ 255, 254, +0, +0, +0, +0, 17, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'replace'/[ 255, 254, +0, +0, +0, +0, 17, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogatepass'/[ 255, 254, +0, +0, +0, +0, 17, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogateescape'/[ 255, 254, +0, +0, +0, +0, 17, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'strict'/[ +0, 246, 1, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'replace'/[ +0, 246, 1, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogatepass'/[ +0, 246, 1, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-le'/'surrogateescape'/[ +0, 246, 1, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'strict'/[ +0, +0, +0, 65, +0, +0, 216, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'replace'/[ +0, +0, +0, 65, +0, +0, 216, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogatepass'/[ +0, +0, +0, 65, +0, +0, 216, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogateescape'/[ +0, +0, +0, 65, +0, +0, 216, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'strict'/[ +0, +0, 254, 255, +0, 17, +0, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'replace'/[ +0, +0, 254, 255, +0, 17, +0, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogatepass'/[ +0, +0, 254, 255, +0, 17, +0, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogateescape'/[ +0, +0, 254, 255, +0, 17, +0, …(5) ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'strict'/[ +0, 1, 246, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'replace'/[ +0, 1, 246, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogatepass'/[ +0, 1, 246, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches every split and post-failure state for 'utf-32-be'/'surrogateescape'/[ +0, 1, 246, +0, +0 ]",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-7 state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-8 state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-16 state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-16-le state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-16-be state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-32 state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-32-le state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves buffered utf-32-be state when cancellation precedes final input",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "assertions": [
+          {
+            "name": "preserves reentrant byte-order changes from UTF-16 recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves reentrant byte-order changes from UTF-32 recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "finishes initial UTF-16 BOM detection after reentrant recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "finishes initial UTF-32 BOM detection after reentrant recovery",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves reentrant UTF-16 encoder reset after initial selection",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves reentrant UTF-32 encoder reset after initial selection",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains UTF-16 callback mutations when recovery raises or cancels",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains UTF-32 callback mutations when recovery raises or cancels",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves every split, endian selection and owned state for UTF-16",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves every split, endian selection and owned state for UTF-32",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "requires a BOM only for native incremental UTF-16 and leaves failures uncommitted",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "requires a BOM only for native incremental UTF-32 and leaves failures uncommitted",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "normalizes internal integer state and emits BOM only after successful UTF-16 encode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "normalizes internal integer state and emits BOM only after successful UTF-32 encode",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "observes cancellation before mutation and budgets output storage",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "detects a big-endian BOM at every split for native UTF-16",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "detects a big-endian BOM at every split for native UTF-32",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "supports recovery across buffered input, including a replacement longer than the original bytes",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/utf7.test.ts",
+        "assertions": [
+          {
+            "name": "retains original UTF-7 EOF error bounds after input replacement (original length 1)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains original UTF-7 EOF error bounds after input replacement (original length 7)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned UTF-7 decode values, consumed counts and exact failures",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "matches pinned UTF-7 encoding including direct sets, plus escaping and lone surrogates",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "buffers complete shift runs until termination at every split and restores decoder state",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "resumes in replacement input, preserves emitted text before faults and grows callback output",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "does not commit buffered state after errors and copies supplied state",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates recovery return and failure (throws=false)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "cancellation dominates recovery return and failure (throws=true)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "meters non-advancing recovery and encoder input",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "assertions": [
+          {
+            "name": "incremental UTF-8 decoding handles every chunk boundary in 194,128",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding handles every chunk boundary in 226,130,172",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding handles every chunk boundary in 240,144,128,128",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding handles every chunk boundary in 65,239,187,191,66",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding buffers one byte at a time and survives empty chunks",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with strict",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with replace",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogatepass",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogateescape",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding rejects already-invalid partial prefixes immediately",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding flushes incomplete bytes using the current error policy",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding keeps old pending state on failure and reports the complete combined input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding copies input tails and state snapshots without aliasing",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding allows decoder state containing ordinary bytes and ignores auxiliary state",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding leaves state unchanged when buffer assembly exceeds its budget",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "incremental UTF-8 decoding does not commit pending-state replacement after a cancelled checkpoint",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/runtime/utf8-signature.test.ts",
+        "assertions": [
+          {
+            "name": "emits a signature on every stateless encode, including empty input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "strips exactly one leading signature and includes it in the consumed count",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains ambiguous signature prefix [] even on final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains ambiguous signature prefix [ 239 ] even on final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "retains ambiguous signature prefix [ 239, 187 ] even on final input",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (strict)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (ignore)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (replace)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (surrogatepass)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (surrogateescape)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "decodes every byte split without losing BOM or multibyte state (backslashreplace)",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "commits BOM detection before decode failure but retains the previous buffer",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "roundtrips owned buffers and integer state without normalizing its value",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "emits once per encoder reset and consumes first state before a Unicode error",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves split surrogate policy surrogatepass",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "preserves split surrogate policy surrogateescape",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "checks cancellation before mutating either state",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "does not replace buffered state when combined-input allocation is denied",
+            "status": "passed",
+            "failureMessages": []
+          },
+          {
+            "name": "allows an error policy change to recover buffered multibyte input after the BOM",
+            "status": "passed",
+            "failureMessages": []
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,981 @@
+{
+  "adapter": "Real readSync/writeSync/fsyncSync file descriptors; complete write loops; descriptors closed and temporary files removed.",
+  "results": [
+    {
+      "name": "ascii encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'?A?Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'!A!Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "ascii encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "ascii encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "ascii decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 1, (b'', 0)), ('remove', True), ('fault', 2, 3, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "ascii decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "ascii decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "cp1252 encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'?A?Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'!A!Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "cp1252 encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "cp1252 encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "cp1252 decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 1, (b'', 0)), ('remove', True), ('fault', 2, 3, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "cp1252 decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "cp1252 decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8 encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'?A?Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'!A!Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-8 encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8 encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8 decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 6,
+      "writes": 24,
+      "stdout": "result ???A???Z (b'', 0)\nevents [('fault', 0, 1, (b'', 0)), ('remove', True), ('fault', 1, 2, (b'', 0)), ('remove', False), ('fault', 2, 3, (b'', 0)), ('remove', False), ('fault', 4, 5, (b'', 0)), ('remove', False), ('fault', 5, 6, (b'', 0)), ('remove', False), ('fault', 6, 7, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !!!A!!!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-8 decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8 decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'\\xef\\xbb\\xbf?A?Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'\\xef\\xbb\\xbf!A!Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 6,
+      "writes": 24,
+      "stdout": "result ???A???Z (b'', 0)\nevents [('fault', 0, 1, (b'', 0)), ('remove', True), ('fault', 1, 2, (b'', 0)), ('remove', False), ('fault', 2, 3, (b'', 0)), ('remove', False), ('fault', 4, 5, (b'', 0)), ('remove', False), ('fault', 5, 6, (b'', 0)), ('remove', False), ('fault', 6, 7, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !!!A!!!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-8-sig decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'?\\x00A\\x00?\\x00Z\\x00' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'!\\x00A\\x00!\\x00Z\\x00' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 2, (b'', 0)), ('remove', True), ('fault', 4, 6, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-le decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'\\x00?\\x00A\\x00?\\x00Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'\\x00!\\x00A\\x00!\\x00Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 2, (b'', 0)), ('remove', True), ('fault', 4, 6, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-16-be decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'!\\x00\\x00\\x00A\\x00\\x00\\x00!\\x00\\x00\\x00Z\\x00\\x00\\x00' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 4, (b'', 0)), ('remove', True), ('fault', 8, 12, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-le decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be encode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z' 0\nevents [('fault', 0, 1, 0), ('remove', True), ('fault', 2, 3, 0), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry b'\\x00\\x00\\x00!\\x00\\x00\\x00A\\x00\\x00\\x00!\\x00\\x00\\x00Z' 0\n",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be encode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be encode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be decode unregister during resume",
+      "mode": "continue",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 2,
+      "writes": 24,
+      "stdout": "result ?A?Z (b'', 0)\nevents [('fault', 0, 4, (b'', 0)), ('remove', True), ('fault', 8, 12, (b'', 0)), ('remove', False)]\nmissing LookupError (\"unknown error handler name 'remove-during-resume'\",) True\nretry !A!Z (b'', 0)\n",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be decode unregister during resume",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "name": "utf-32-be decode unregister during resume",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resume": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "passed": true
+    }
+  ]
+}

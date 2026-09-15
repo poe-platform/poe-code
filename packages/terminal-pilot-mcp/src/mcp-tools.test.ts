@@ -166,6 +166,8 @@ describe("terminal-pilot-mcp tool surface", () => {
           arguments: { command: "bash" }
         })
       ).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "terminal-pilot", version: "0.0.1" } },
         content: [{ type: "text", text: JSON.stringify({ session: "s1", pid: 1234 }) }],
         structuredContent: { session: "s1", pid: 1234 }
       });
@@ -214,7 +216,7 @@ describe("terminal-pilot-mcp tool surface", () => {
         },
         outputSchema: {
           properties: {
-            exit_code: { type: "integer", nullable: true }
+            exit_code: { type: ["integer", "null"] }
           }
         }
       });
@@ -240,7 +242,7 @@ describe("terminal-pilot-mcp tool surface", () => {
         },
         outputSchema: {
           properties: {
-            exit_code: { type: "integer", nullable: true }
+            exit_code: { type: ["integer", "null"] }
           }
         }
       });
@@ -259,7 +261,7 @@ describe("terminal-pilot-mcp tool surface", () => {
                 cols: { type: "integer", minimum: 1 }
               }
             },
-            exit_code: { type: "integer", nullable: true }
+            exit_code: { type: ["integer", "null"] }
           }
         }
       });
@@ -276,7 +278,7 @@ describe("terminal-pilot-mcp tool surface", () => {
           properties: {
             session: { type: "string" },
             pid: { type: "integer", minimum: 1 },
-            exit_code: { type: "integer", nullable: true }
+            exit_code: { type: ["integer", "null"] }
           }
         }
       });

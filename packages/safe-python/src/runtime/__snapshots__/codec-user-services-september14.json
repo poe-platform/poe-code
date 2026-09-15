@@ -1,0 +1,267 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "Real file descriptors; bytewise readSync; full writeSync loop; fsyncSync; descriptors closed and temporary adapter files removed in finally.",
+  "rows": [
+    {
+      "name": "iso2022_jp",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'\\x1b(B?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4375040)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_jp_1",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp_1')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'\\x1b(B?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp_1', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_1', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp_1', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_1', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp_1', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_1', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4375040)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp_1')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_jp_2",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp_2')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'\\x1b(B?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp_2', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_2', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp_2', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_2', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp_2', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_2', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4375040)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp_2')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_jp_3",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp_3')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(O$w'\nstate 4378368\nencoded b'\\x1b(B?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp_3', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378368)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(O$w'\nstate 4378368\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp_3', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378368)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(O$w'\nstate 4378368\nfailure ValueError ('encoder recovery failed',)\nstate 4378368\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp_3', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378368)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp_3')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp_2004')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(Q$w'\nstate 4378880\nencoded b'\\x1b(B?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp_2004', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378880)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(Q$w'\nstate 4378880\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp_2004', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378880)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b''\nstate 73403331633923\nencoded b'\\x1b$(Q$w'\nstate 4378880\nfailure ValueError ('encoder recovery failed',)\nstate 4378880\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp_2004', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4378880)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp_2004')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_jp_ext')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'\\x1b(B?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents keep [('iso2022_jp_ext', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_ext', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nencoded b'?'\nstate 4342272\nencoded b'?Z'\nstate 4342272\nencoded b''\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents reset [('iso2022_jp_ext', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_ext', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4342272)]\nencoded b'\\x1b$B0l'\nstate 4375040\nencoded b'$+'\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nfailure ValueError ('encoder recovery failed',)\nstate 4375040\nencoded b'\\x1b(B'\nstate 4342272\nencoded b'A~'\nstate 4342272\nreset 4342272\nevents raise [('iso2022_jp_ext', '゚', 0, 1, 'illegal multibyte sequence', 4375040), ('iso2022_jp_ext', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 4375040)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_jp_ext')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "iso2022_kr",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('iso2022_kr')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'\\x1b$)C\\x0eli'\nstate 1099524424192\nencoded b'*+'\nstate 1099524424192\nencoded b'\\x0f?'\nstate 12796416\nencoded b'?Z'\nstate 12796416\nencoded b''\nstate 12796416\nencoded b'A~'\nstate 12796416\nreset 12796416\nevents keep [('iso2022_kr', '゚', 0, 1, 'illegal multibyte sequence', 1099524424192), ('iso2022_kr', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 12796416)]\nencoded b'\\x1b$)C\\x0eli'\nstate 1099524424192\nencoded b'*+'\nstate 1099524424192\nencoded b'?'\nstate 12796416\nencoded b'?Z'\nstate 12796416\nencoded b''\nstate 12796416\nencoded b'A~'\nstate 12796416\nreset 12796416\nevents reset [('iso2022_kr', '゚', 0, 1, 'illegal multibyte sequence', 1099524424192), ('iso2022_kr', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 12796416)]\nencoded b'\\x1b$)C\\x0eli'\nstate 1099524424192\nencoded b'*+'\nstate 1099524424192\nfailure ValueError ('encoder recovery failed',)\nstate 1099524424192\nfailure ValueError ('encoder recovery failed',)\nstate 1099524424192\nencoded b'\\x0f'\nstate 12796416\nencoded b'A~'\nstate 12796416\nreset 12796416\nevents raise [('iso2022_kr', '゚', 0, 1, 'illegal multibyte sequence', 1099524424192), ('iso2022_kr', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 1099524424192)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: iso2022_kr')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "hz",
+      "source": "import codecs\nfactory = codecs.getincrementalencoder('hz')\nfailure = ValueError('encoder recovery failed')\nfor action in ('keep', 'reset', 'raise'):\n    events = []\n    encoder = factory('stateful-user')\n    def recover(error):\n        events.append((error.encoding, error.object, error.start, error.end, error.reason, encoder.getstate()))\n        assert input() == 'ready'\n        if action == 'reset':\n            encoder.reset()\n        if action == 'raise':\n            raise failure\n        return ('?', error.end - len(error.object) if error.end < len(error.object) else error.end)\n    codecs.register_error('stateful-user', recover)\n    for part, final in [('一', False), ('か', False), ('゚', False), ('\\ud800Z', False), ('', True), ('A~', True)]:\n        try:\n            print('encoded', encoder.encode(part, final))\n        except ValueError as error:\n            assert error is failure\n            print('failure', type(error).__name__, error.args)\n        saved = encoder.getstate()\n        print('state', saved)\n        restored = factory('stateful-user')\n        restored.setstate(saved)\n        assert restored.getstate() == saved\n        encoder = restored\n    encoder.reset()\n    print('reset', encoder.getstate())\n    print('events', action, events)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "encoded b'~{R;'\nstate 256\nencoded b'$+'\nstate 256\nencoded b'~}?'\nstate 0\nencoded b'?Z'\nstate 0\nencoded b''\nstate 0\nencoded b'A~~'\nstate 0\nreset 0\nevents keep [('hz', '゚', 0, 1, 'illegal multibyte sequence', 256), ('hz', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 0)]\nencoded b'~{R;'\nstate 256\nencoded b'$+'\nstate 256\nencoded b'?'\nstate 0\nencoded b'?Z'\nstate 0\nencoded b''\nstate 0\nencoded b'A~~'\nstate 0\nreset 0\nevents reset [('hz', '゚', 0, 1, 'illegal multibyte sequence', 256), ('hz', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 0)]\nencoded b'~{R;'\nstate 256\nencoded b'$+'\nstate 256\nfailure ValueError ('encoder recovery failed',)\nstate 256\nfailure ValueError ('encoder recovery failed',)\nstate 256\nencoded b'~}'\nstate 0\nencoded b'A~~'\nstate 0\nreset 0\nevents raise [('hz', '゚', 0, 1, 'illegal multibyte sequence', 256), ('hz', '\\ud800Z', 0, 1, 'illegal multibyte sequence', 256)]\n"
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: hz')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "source.decode('decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "source.decode('decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "str(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "str(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": 0,
+        "stdout": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "LookupError('unknown encoding: decoder-contract')",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "matches": false
+    }
+  ]
+}

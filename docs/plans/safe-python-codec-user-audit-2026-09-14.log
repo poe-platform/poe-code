@@ -1,0 +1,2283 @@
+
+> @poe-code/safe-python@0.0.0-dev test:unit
+> vitest run --config vitest.config.ts src/session-codec src/session-core-codec src/session-source-codec src/session-charmap-codec src/session-utf7 --maxWorkers=2 --pool=forks
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+
+ ❯ src/session-codec-native-slots.test.ts (59 tests | 3 failed) 1068ms
+   × native codec slots: 'hash inheritance failure 1' 20ms
+   × native codec slots: 'hash inheritance failure 2' 19ms
+   × native codec slots: 'hash inheritance failure 3' 16ms
+ ❯ src/session-codec-incremental-callback-user.test.ts (120 tests | 18 failed) 2908ms
+   × incremental callback user audit: 'utf-8; reenter; return' 65ms
+   × incremental callback user audit: 'utf-8; reenter; raise' 57ms
+   × incremental callback user audit: 'utf-8; reenter; overflow' 48ms
+   × incremental callback user audit: 'utf-8-sig; reenter; return' 70ms
+   × incremental callback user audit: 'utf-8-sig; reenter; raise' 47ms
+   × incremental callback user audit: 'utf-8-sig; reenter; overflow' 44ms
+   × incremental callback user audit: 'utf-16-le; reenter; return' 48ms
+   × incremental callback user audit: 'utf-16-le; reenter; raise' 49ms
+   × incremental callback user audit: 'utf-16-le; reenter; overflow' 45ms
+   × incremental callback user audit: 'utf-16-be; reenter; return' 46ms
+   × incremental callback user audit: 'utf-16-be; reenter; raise' 46ms
+   × incremental callback user audit: 'utf-16-be; reenter; overflow' 73ms
+   × incremental callback user audit: 'utf-32-le; reenter; return' 50ms
+   × incremental callback user audit: 'utf-32-le; reenter; raise' 51ms
+   × incremental callback user audit: 'utf-32-le; reenter; overflow' 42ms
+   × incremental callback user audit: 'utf-32-be; reenter; return' 42ms
+   × incremental callback user audit: 'utf-32-be; reenter; raise' 45ms
+   × incremental callback user audit: 'utf-32-be; reenter; overflow' 46ms
+ ❯ src/session-utf7-codec-api.test.ts (18 tests | 1 failed) 317ms
+   × preserves decoder guest failures, traceback and native-call note behavior 19ms
+ ❯ src/session-codec-callback-service.test.ts (66 tests | 18 failed) 2391ms
+   × 'utf-8' unwinds service failure at callback 250 and repeats after reset 67ms
+   × 'utf-8-sig' unwinds service failure at callback 250 and repeats after reset 50ms
+   × 'utf-16-le' unwinds service failure at callback 250 and repeats after reset 54ms
+   × 'utf-16-be' unwinds service failure at callback 250 and repeats after reset 48ms
+   × 'utf-32-le' unwinds service failure at callback 250 and repeats after reset 54ms
+   × 'utf-32-be' unwinds service failure at callback 250 and repeats after reset 43ms
+   × 'utf-8' cancels at callback 250 (service throws: false) without crossing interpreters 73ms
+   × 'utf-8' cancels at callback 250 (service throws: true) without crossing interpreters 65ms
+   × 'utf-8-sig' cancels at callback 250 (service throws: false) without crossing interpreters 67ms
+   × 'utf-8-sig' cancels at callback 250 (service throws: true) without crossing interpreters 59ms
+   × 'utf-16-le' cancels at callback 250 (service throws: false) without crossing interpreters 68ms
+   × 'utf-16-le' cancels at callback 250 (service throws: true) without crossing interpreters 58ms
+   × 'utf-16-be' cancels at callback 250 (service throws: false) without crossing interpreters 60ms
+   × 'utf-16-be' cancels at callback 250 (service throws: true) without crossing interpreters 61ms
+   × 'utf-32-le' cancels at callback 250 (service throws: false) without crossing interpreters 56ms
+   × 'utf-32-le' cancels at callback 250 (service throws: true) without crossing interpreters 55ms
+   × 'utf-32-be' cancels at callback 250 (service throws: false) without crossing interpreters 71ms
+   × 'utf-32-be' cancels at callback 250 (service throws: true) without crossing interpreters 62ms
+ ❯ src/session-codec-encoder-callback-state.test.ts (80 tests | 16 failed) 2229ms
+   × 'utf-16; keep; negative resume' 29ms
+   × 'utf-16; keep; index failure' 14ms
+   × 'utf-16; reset; negative resume' 19ms
+   × 'utf-16; reset; index failure' 30ms
+   × 'utf-16; setstate; negative resume' 21ms
+   × 'utf-16; setstate; index failure' 23ms
+   × 'utf-16; nested; negative resume' 22ms
+   × 'utf-16; nested; index failure' 24ms
+   × 'utf-32; keep; negative resume' 22ms
+   × 'utf-32; keep; index failure' 20ms
+   × 'utf-32; reset; negative resume' 22ms
+   × 'utf-32; reset; index failure' 30ms
+   × 'utf-32; setstate; negative resume' 19ms
+   × 'utf-32; setstate; index failure' 16ms
+   × 'utf-32; nested; negative resume' 15ms
+   × 'utf-32; nested; index failure' 19ms
+ ❯ src/session-codec-native-failures.test.ts (118 tests | 8 failed) 1924ms
+   × native codec failure: 'u16: text.encode(encoding)' 74ms
+   × native codec failure: 'u16: str.encode(text, encoding)' 28ms
+   × native codec failure: 'u16: bytes(text, encoding)' 26ms
+   × native codec failure: 'u16: bytes.__new__(bytes, text, encod…' 18ms
+   × native codec failure: 'u32: text.encode(encoding)' 17ms
+   × native codec failure: 'u32: str.encode(text, encoding)' 18ms
+   × native codec failure: 'u32: bytes(text, encoding)' 21ms
+   × native codec failure: 'u32: bytes.__new__(bytes, text, encod…' 18ms
+ ❯ src/session-codec-resume-validation-matrix.test.ts (19 tests | 4 failed) 926ms
+   × codec recovery validation: 'utf-16 encode' 106ms
+   × codec recovery validation: 'utf-16 decode' 86ms
+   × codec recovery validation: 'utf-32 encode' 102ms
+   × codec recovery validation: 'utf-32 decode' 85ms
+ ❯ src/session-codec-cstring-replacement.test.ts (15 tests | 6 failed) 645ms
+   × 'c2 decoded 8 as UTF-8 replacement' 125ms
+   × 'c2 decoded 88 as UTF-8 replacement' 78ms
+   × 'c4 decoded 8 as UTF-8 replacement' 65ms
+   × 'c4 decoded 88 as UTF-8 replacement' 59ms
+   × 'f0 decoded 8 as UTF-8 replacement' 58ms
+   × 'f0 decoded 88 as UTF-8 replacement' 59ms
+ ❯ src/session-codec-stateful-encoder-user.test.ts (24 tests | 24 failed) 446ms
+   × 'iso2022_jp' restores encoder state after recovery and guest failure 72ms
+   × 'iso2022_jp_1' restores encoder state after recovery and guest failure 25ms
+   × 'iso2022_jp_2' restores encoder state after recovery and guest failure 21ms
+   × 'iso2022_jp_3' restores encoder state after recovery and guest failure 19ms
+   × 'iso2022_jp_2004' restores encoder state after recovery and guest failure 18ms
+   × 'iso2022_jp_ext' restores encoder state after recovery and guest failure 17ms
+   × 'iso2022_kr' restores encoder state after recovery and guest failure 17ms
+   × 'hz' restores encoder state after recovery and guest failure 12ms
+   × 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=false) 24ms
+   × 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=true) 20ms
+   × 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=false) 18ms
+   × 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=true) 17ms
+   × 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=false) 14ms
+   × 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=true) 13ms
+   × 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=false) 15ms
+   × 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=true) 15ms
+   × 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=false) 14ms
+   × 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=true) 13ms
+   × 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=false) 14ms
+   × 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=true) 13ms
+   × 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=false) 13ms
+   × 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=true) 14ms
+   × 'hz' keeps encoder recovery cancellation terminal (throws=false) 12ms
+   × 'hz' keeps encoder recovery cancellation terminal (throws=true) 13ms
+ ❯ src/session-codec-frozen-execution.test.ts (25 tests | 1 failed) 498ms
+   × frozen execution: 'late frozen import failure retains es…' 26ms
+ ❯ src/session-charmap-codec-api.test.ts (19 tests | 4 failed) 371ms
+   × preserves 'encode' 'mapping' failure identity 16ms
+   × preserves 'encode' 'handler' failure identity 14ms
+   × preserves 'decode' 'mapping' failure identity 13ms
+   × preserves 'decode' 'handler' failure identity 14ms
+ ❯ src/session-codec-callback-recursion.test.ts (6 tests | 6 failed) 384ms
+   × repeated 'utf-8' callback recursion preserves exact tracebacks and reset 119ms
+   × repeated 'utf-8-sig' callback recursion preserves exact tracebacks and reset 65ms
+   × repeated 'utf-16-le' callback recursion preserves exact tracebacks and reset 52ms
+   × repeated 'utf-16-be' callback recursion preserves exact tracebacks and reset 53ms
+   × repeated 'utf-32-le' callback recursion preserves exact tracebacks and reset 48ms
+   × repeated 'utf-32-be' callback recursion preserves exact tracebacks and reset 47ms
+ ❯ src/session-codec-module.test.ts (10 tests | 1 failed) 203ms
+   × shares imported registrations with native text methods and constructors 25ms
+ ❯ src/session-codec-public-contracts.test.ts (20 tests | 9 failed) 372ms
+   × public codec contract: 'byte escape types, argument precedenc…' 38ms
+   × public codec contract: 'Punycode public decoder factories ret…' 41ms
+   × public codec contract: 'charmap surrogateescape retains origi…' 18ms
+   × public codec contract: 'callback failures preserve identity, …' 19ms
+   × public codec contract: 'all standard handlers through publish…' 15ms
+   × public codec contract: 'custom codecs shared by encode/decode…' 15ms
+   × public codec contract: 'decoder subtype identity and tuple ov…' 18ms
+   × public codec contract: 'stream reader/writer adapters over a …' 12ms
+   × public codec contract: 'UTF-16/32 rejected replacements resto…' 16ms
+ ❯ src/session-codec-native-wide-modules.test.ts (10 tests | 10 failed) 216ms
+   × native wide codec module: 'utf-16 registry and module API' 57ms
+   × native wide codec module: 'utf-16 incremental encoder state and …' 25ms
+   × native wide codec module: 'utf-16 every incremental split and st…' 17ms
+   × native wide codec module: 'utf-16 missing BOM and truncated inpu…' 20ms
+   × native wide codec module: 'utf-16 stream adapters BOM and reset' 19ms
+   × native wide codec module: 'utf-32 registry and module API' 15ms
+   × native wide codec module: 'utf-32 incremental encoder state and …' 15ms
+   × native wide codec module: 'utf-32 every incremental split and st…' 14ms
+   × native wide codec module: 'utf-32 missing BOM and truncated inpu…' 19ms
+   × native wide codec module: 'utf-32 stream adapters BOM and reset' 15ms
+ ❯ src/session-codec-decoder-consumers.test.ts (8 tests | 8 failed) 182ms
+   × registered decoder consumer: 'source.decode(\'decoder-contract\'): …' 60ms
+   × registered decoder consumer: 'source.decode(\'decoder-contract\'): …' 21ms
+   × registered decoder consumer: 'bytes.decode(source, \'decoder-contra…' 21ms
+   × registered decoder consumer: 'bytes.decode(source, \'decoder-contra…' 17ms
+   × registered decoder consumer: 'str(source, \'decoder-contract\'): om…' 17ms
+   × registered decoder consumer: 'str(source, \'decoder-contract\'): ex…' 17ms
+   × registered decoder consumer: 'str.__new__(str, source, \'decoder-co…' 14ms
+   × registered decoder consumer: 'str.__new__(str, source, \'decoder-co…' 15ms
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts (6 tests | 6 failed) 173ms
+   × 'gb2312' preserves callback and restored pending state 66ms
+   × 'gbk' preserves callback and restored pending state 26ms
+   × 'euc_jis_2004' preserves callback and restored pending state 23ms
+   × 'euc_jisx0213' preserves callback and restored pending state 21ms
+   × 'shift_jis_2004' preserves callback and restored pending state 18ms
+   × 'shift_jisx0213' preserves callback and restored pending state 18ms
+ ❯ src/session-core-codec-buffers.test.ts (18 tests | 18 failed) 177ms
+   × public codec buffer contract: 'ascii inherited buffer failure preced…' 42ms
+   × public codec buffer contract: 'ascii validates buffer hook result be…' 13ms
+   × public codec buffer contract: 'ascii uses and releases an overridden…' 10ms
+   × public codec buffer contract: 'ascii rejects a strided memoryview' 7ms
+   × public codec buffer contract: 'latin_1 inherited buffer failure prec…' 10ms
+   × public codec buffer contract: 'latin_1 validates buffer hook result …' 8ms
+   × public codec buffer contract: 'latin_1 uses and releases an overridd…' 6ms
+   × public codec buffer contract: 'latin_1 rejects a strided memoryview' 6ms
+   × public codec buffer contract: 'utf_8 inherited buffer failure preced…' 11ms
+   × public codec buffer contract: 'utf_8 validates buffer hook result be…' 7ms
+   × public codec buffer contract: 'utf_8 uses and releases an overridden…' 7ms
+   × public codec buffer contract: 'utf_8 rejects a strided memoryview' 6ms
+   × keeps cancellation in 'ascii' buffer acquisition fatal (throws=false) 12ms
+   × keeps cancellation in 'ascii' buffer acquisition fatal (throws=true) 8ms
+   × keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false) 8ms
+   × keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true) 6ms
+   × keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false) 7ms
+   × keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true) 5ms
+ ❯ src/session-codec-stream-mutation.test.ts (4 tests | 1 failed) 137ms
+   × 'stream reader bytearray and memoryvie…' 23ms
+ ❯ src/session-codec-source-registry.test.ts (4 tests | 4 failed) 122ms
+   × source registry: 'source decoder receives an ownerless …' 58ms
+   × source registry: 'source callback failures retain nativ…' 24ms
+   × source registry: 'source codec callbacks use the suppli…' 17ms
+   × keeps cancellation in source decoder callbacks terminal 22ms
+ ❯ src/session-codec-standard-rejection.test.ts (3 tests | 3 failed) 160ms
+   × standard handler rejections preserve pinned exception metadata (normal) 87ms
+   × standard handler rejections preserve pinned exception metadata (cancel-return) 37ms
+   × standard handler rejections preserve pinned exception metadata (cancel-throw) 36ms
+ ❯ src/session-codec-platform-modules.test.ts (6 tests | 3 failed) 161ms
+   × platform codec: 'mbcs import failure and registry cache' 62ms
+   × platform codec: 'oem import failure and registry cache' 25ms
+   × platform codec: 'Windows code-page factory imports laz…' 18ms
+ ❯ src/session-codec-rot13-undefined-integration.test.ts (4 tests | 4 failed) 111ms
+   × 'ROT13 bytes consumer nontext rejection' 35ms
+   × 'undefined bytes consumer' 12ms
+   × 'guest module spec' 36ms
+   × 'undefined traceback' 27ms
+ ❯ src/session-codec-stream-traceback.test.ts (1 test | 1 failed) 55ms
+   × retains caller and codec frames with pinned instruction positions 54ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 177 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/session-charmap-codec-api.test.ts > preserves 'encode' 'mapping' failure identity
+ FAIL  src/session-charmap-codec-api.test.ts > preserves 'decode' 'mapping' failure identity
+AssertionError: mapping traceback: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ run src/session-charmap-codec-api.test.ts:13:32
+     11|     if(message.status==="ok")detail=String(message.value.primitive);
+     12|   }
+     13|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     14| }
+     15|
+ ❯ src/session-charmap-codec-api.test.ts:135:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/177]⎯
+
+ FAIL  src/session-charmap-codec-api.test.ts > preserves 'encode' 'handler' failure identity
+ FAIL  src/session-charmap-codec-api.test.ts > preserves 'decode' 'handler' failure identity
+AssertionError: handler traceback: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ run src/session-charmap-codec-api.test.ts:13:32
+     11|     if(message.status==="ok")detail=String(message.value.primitive);
+     12|   }
+     13|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     14| }
+     15|
+ ❯ src/session-charmap-codec-api.test.ts:135:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/177]⎯
+
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-8' callback recursion preserves exact tracebacks and reset
+AssertionError: prefix '' (b'\xed', 0)
+: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-recursion.test.ts:19:26
+     17|   });
+     18|   const result = session.exec(source);
+     19|   expect(result, output).toEqual({status: "ok"});
+       |                          ^
+     20|   expect(output).toBe(row.stdout);
+     21| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/177]⎯
+
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-8-sig' callback recursion preserves exact tracebacks and reset
+AssertionError: prefix '' (b'\xef', 1)
+: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-recursion.test.ts:19:26
+     17|   });
+     18|   const result = session.exec(source);
+     19|   expect(result, output).toEqual({status: "ok"});
+       |                          ^
+     20|   expect(output).toBe(row.stdout);
+     21| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/177]⎯
+
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-16-le' callback recursion preserves exact tracebacks and reset
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-32-le' callback recursion preserves exact tracebacks and reset
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-32-be' callback recursion preserves exact tracebacks and reset
+AssertionError: prefix '' (b'\x00', 0)
+: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-recursion.test.ts:19:26
+     17|   });
+     18|   const result = session.exec(source);
+     19|   expect(result, output).toEqual({status: "ok"});
+       |                          ^
+     20|   expect(output).toBe(row.stdout);
+     21| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/177]⎯
+
+ FAIL  src/session-codec-callback-recursion.test.ts > repeated 'utf-16-be' callback recursion preserves exact tracebacks and reset
+AssertionError: prefix '' (b'\xd8', 0)
+: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-recursion.test.ts:19:26
+     17|   });
+     18|   const result = session.exec(source);
+     19|   expect(result, output).toEqual({status: "ok"});
+       |                          ^
+     20|   expect(output).toBe(row.stdout);
+     21| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8' unwinds service failure at callback 250 and repeats after reset
+AssertionError: {"reads":86,"output":""}: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:22:51
+     20|   });
+     21|   const result = session.exec(expected.source);
+     22|   expect(result, JSON.stringify({reads, output})).toEqual({status: "ok…
+       |                                                   ^
+     23|   expect(reads).toBe(stopAt * 2);
+     24|   expect(output).toBe(expected.stdout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8-sig' unwinds service failure at callback 250 and repeats after reset
+AssertionError: {"reads":75,"output":""}: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:22:51
+     20|   });
+     21|   const result = session.exec(expected.source);
+     22|   expect(result, JSON.stringify({reads, output})).toEqual({status: "ok…
+       |                                                   ^
+     23|   expect(reads).toBe(stopAt * 2);
+     24|   expect(output).toBe(expected.stdout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-le' unwinds service failure at callback 250 and repeats after reset
+AssertionError: {"reads":112,"output":""}: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:22:51
+     20|   });
+     21|   const result = session.exec(expected.source);
+     22|   expect(result, JSON.stringify({reads, output})).toEqual({status: "ok…
+       |                                                   ^
+     23|   expect(reads).toBe(stopAt * 2);
+     24|   expect(output).toBe(expected.stdout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-be' unwinds service failure at callback 250 and repeats after reset
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-le' unwinds service failure at callback 250 and repeats after reset
+AssertionError: {"reads":115,"output":""}: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:22:51
+     20|   });
+     21|   const result = session.exec(expected.source);
+     22|   expect(result, JSON.stringify({reads, output})).toEqual({status: "ok…
+       |                                                   ^
+     23|   expect(reads).toBe(stopAt * 2);
+     24|   expect(output).toBe(expected.stdout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-be' unwinds service failure at callback 250 and repeats after reset
+AssertionError: {"reads":117,"output":""}: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }
+
+- Expected
++ Received
+
+  {
+-   "status": "ok",
++   "message": "Maximum call stack size exceeded",
++   "reason": "internal",
++   "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:22:51
+     20|   });
+     21|   const result = session.exec(expected.source);
+     22|   expect(result, JSON.stringify({reads, output})).toEqual({status: "ok…
+       |                                                   ^
+     23|   expect(reads).toBe(stopAt * 2);
+     24|   expect(output).toBe(expected.stdout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8' cancels at callback 250 (service throws: false) without crossing interpreters
+AssertionError: {"reads":97,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8' cancels at callback 250 (service throws: true) without crossing interpreters
+AssertionError: {"reads":111,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8-sig' cancels at callback 250 (service throws: false) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-8-sig' cancels at callback 250 (service throws: true) without crossing interpreters
+AssertionError: {"reads":84,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-le' cancels at callback 250 (service throws: false) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-le' cancels at callback 250 (service throws: true) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-be' cancels at callback 250 (service throws: false) without crossing interpreters
+AssertionError: {"reads":122,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-16-be' cancels at callback 250 (service throws: true) without crossing interpreters
+AssertionError: {"reads":125,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/177]⎯
+
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-le' cancels at callback 250 (service throws: false) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-le' cancels at callback 250 (service throws: true) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-be' cancels at callback 250 (service throws: false) without crossing interpreters
+ FAIL  src/session-codec-callback-service.test.ts > 'utf-32-be' cancels at callback 250 (service throws: true) without crossing interpreters
+AssertionError: {"reads":131,"output":""}: expected { status: 'terminated', …(2) } to match object { status: 'terminated', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "reason": "cancelled",
++   "reason": "internal",
+    "status": "terminated",
+  }
+
+ ❯ src/session-codec-callback-service.test.ts:53:53
+     51|     expect(isolated.exec(independent)).toEqual({status: "ok"});
+     52|     expect(isolatedReads).toBe(0);
+     53|     expect(result, JSON.stringify({reads, output})).toMatchObject({sta…
+       |                                                     ^
+     54|     expect(reads).toBe(stopAt);
+     55|     expect(output).toBe("");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/177]⎯
+
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'c2 decoded 8 as UTF-8 replacement'
+AssertionError: expected '\'8\' True\nok\nok\n2\nutf-8\nok\nok\…' to be '\'8\' True\nok\nok\n2\nutf-8\nok\nok\…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -79,12 +79,12 @@
+  latin1 b'8'
+  latin1 b'8'
+  utf8 b'8'
+  utf8 b'8'
+  utf8 b'8'
+- utf16 b'\xff\xfe8\x00'
++ utf16 LookupError unknown encoding: utf16
+  utf16 b'\xff\xfe8\x00'
+  utf16 b'\xff\xfe8\x00'
+- utf32 b'\xff\xfe\x00\x008\x00\x00\x00'
++ utf32 LookupError unknown encoding: utf32
+  utf32 b'\xff\xfe\x00\x008\x00\x00\x00'
+  utf32 b'\xff\xfe\x00\x008\x00\x00\x00'
+
+
+ ❯ src/session-codec-cstring-replacement.test.ts:16:18
+     14|   });
+     15|   expect(session.exec(source).status).toBe('ok');
+     16|   expect(output).toBe(expected.stdout);
+       |                  ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/177]⎯
+
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'c2 decoded 88 as UTF-8 replacement'
+AssertionError: expected '\'88\' False\nUnicodeEncodeError True…' to be '\'88\' False\nUnicodeEncodeError True…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -79,12 +79,12 @@
+  latin1 b'88'
+  latin1 b'88'
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+- utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
++ utf16 LookupError unknown encoding: utf16
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+- utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
++ utf32 LookupError unknown encoding: utf32
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+
+
+ ❯ src/session-codec-cstring-replacement.test.ts:16:18
+     14|   });
+     15|   expect(session.exec(source).status).toBe('ok');
+     16|   expect(output).toBe(expected.stdout);
+       |                  ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/177]⎯
+
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'c4 decoded 8 as UTF-8 replacement'
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'f0 decoded 8 as UTF-8 replacement'
+AssertionError: expected '\'8\' False\nUnicodeEncodeError True …' to be '\'8\' False\nUnicodeEncodeError True …' // Object.is equality
+
+- Expected
++ Received
+
+@@ -79,12 +79,12 @@
+  latin1 UnicodeEncodeError True latin-1 0 1 ordinal not in range(256)
+  latin1 UnicodeEncodeError True latin-1 0 1 ordinal not in range(256)
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+- utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
++ utf16 LookupError unknown encoding: utf16
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+- utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
++ utf32 LookupError unknown encoding: utf32
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+
+
+ ❯ src/session-codec-cstring-replacement.test.ts:16:18
+     14|   });
+     15|   expect(session.exec(source).status).toBe('ok');
+     16|   expect(output).toBe(expected.stdout);
+       |                  ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/177]⎯
+
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'c4 decoded 88 as UTF-8 replacement'
+ FAIL  src/session-codec-cstring-replacement.test.ts > 'f0 decoded 88 as UTF-8 replacement'
+AssertionError: expected '\'88\' False\nUnicodeEncodeError True…' to be '\'88\' False\nUnicodeEncodeError True…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -79,12 +79,12 @@
+  latin1 UnicodeEncodeError True latin-1 0 1 ordinal not in range(256)
+  latin1 UnicodeEncodeError True latin-1 0 1 ordinal not in range(256)
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+  utf8 UnicodeEncodeError True utf-8 0 1 surrogates not allowed
+- utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
++ utf16 LookupError unknown encoding: utf16
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+  utf16 UnicodeEncodeError True utf-16 0 1 surrogates not allowed
+- utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
++ utf32 LookupError unknown encoding: utf32
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+  utf32 UnicodeEncodeError True utf-32 0 1 surrogates not allowed
+
+
+ ❯ src/session-codec-cstring-replacement.test.ts:16:18
+     14|   });
+     15|   expect(session.exec(source).status).toBe('ok');
+     16|   expect(output).toBe(expected.stdout);
+       |                  ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/177]⎯
+
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'source.decode(\'decoder-contract\'): …'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'source.decode(\'decoder-contract\'): …'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'bytes.decode(source, \'decoder-contra…'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'bytes.decode(source, \'decoder-contra…'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str(source, \'decoder-contract\'): om…'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str(source, \'decoder-contract\'): ex…'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str.__new__(str, source, \'decoder-co…'
+ FAIL  src/session-codec-decoder-consumers.test.ts > registered decoder consumer: 'str.__new__(str, source, \'decoder-co…'
+AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-decoder-consumers.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/177]⎯
+
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; keep; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; keep; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; reset; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; reset; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; setstate; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; setstate; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; nested; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-16; nested; index failure'
+AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-encoder-callback-state.test.ts:22:37
+     20|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     21|   }
+     22|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     23|   expect(output).toBe(oracle.output);
+     24| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/177]⎯
+
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; keep; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; keep; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; reset; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; reset; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; setstate; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; setstate; index failure'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; nested; negative resume'
+ FAIL  src/session-codec-encoder-callback-state.test.ts > 'utf-32; nested; index failure'
+AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-encoder-callback-state.test.ts:22:37
+     20|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     21|   }
+     22|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     23|   expect(output).toBe(oracle.output);
+     24| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/177]⎯
+
+ FAIL  src/session-codec-frozen-execution.test.ts > frozen execution: 'late frozen import failure retains es…'
+AssertionError: 'code' object has no attribute 'co_consts': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-frozen-execution.test.ts:42:33
+     40|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     41|   }
+     42|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     43|   expect(stdout).toBe(output);
+     44|   // The mutated base class and the imported module cannot leak to a n…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/177]⎯
+
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8; reenter; overflow'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8-sig; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8-sig; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-8-sig; reenter; overflow'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-le; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-le; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-le; reenter; overflow'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-be; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-be; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-16-be; reenter; overflow'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-le; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-le; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-le; reenter; overflow'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-be; reenter; return'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-be; reenter; raise'
+ FAIL  src/session-codec-incremental-callback-user.test.ts > incremental callback user audit: 'utf-32-be; reenter; overflow'
+AssertionError: {"status":"terminated","reason":"internal","message":"Maximum call stack size exceeded"}: expected 'terminated' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "terminated"
+
+ ❯ src/session-codec-incremental-callback-user.test.ts:22:91
+     20|   });
+     21|   const result = session.exec(source);
+     22|   expect(result.status, result.status === "terminated" ? JSON.stringif…
+       |                                                                                           ^
+     23|   expect(output).toBe(row.stdout);
+     24| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/177]⎯
+
+ FAIL  src/session-codec-module.test.ts > shares imported registrations with native text methods and constructors
+AssertionError: unknown encoding: public_text: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ run src/session-codec-module.test.ts:13:32
+     11|     if(message.status==="ok")detail=String(message.value.primitive);
+     12|   }
+     13|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     14| }
+     15|
+ ❯ src/session-codec-module.test.ts:77:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'gb2312' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: gb2312'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'gbk' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: gbk'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'euc_jis_2004' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: euc_jis_2004'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'euc_jisx0213' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: euc_jisx0213'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'shift_jis_2004' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: shift_jis_2004'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/177]⎯
+
+ FAIL  src/session-codec-multibyte-encoder-reentry.test.ts > 'shift_jisx0213' preserves callback and restored pending state
+AssertionError: LookupError('unknown encoding: shift_jisx0213'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-multibyte-encoder-reentry.test.ts:24:37
+     22|     if (detail.status === 'ok') diagnostic += String(detail.value.prim…
+     23|   }
+     24|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     25|   expect(output).toBe(oracle.stdout);
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/177]⎯
+
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: text.encode(encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: str.encode(text, encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: bytes(text, encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u16: bytes.__new__(bytes, text, encod…'
+AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-native-failures.test.ts:14:32
+     12|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     13|   }
+     14|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/177]⎯
+
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: text.encode(encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: str.encode(text, encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: bytes(text, encoding)'
+ FAIL  src/session-codec-native-failures.test.ts > native codec failure: 'u32: bytes.__new__(bytes, text, encod…'
+AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-native-failures.test.ts:14:32
+     12|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     13|   }
+     14|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/177]⎯
+
+ FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 1'
+ FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 2'
+ FAIL  src/session-codec-native-slots.test.ts > native codec slots: 'hash inheritance failure 3'
+AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-native-slots.test.ts:15:41
+     13|     if (diagnostic.status === "ok") detail = diagnostic.value.primitiv…
+     14|   }
+     15|   expect(result.status, String(detail)).toBe("ok");
+       |                                         ^
+     16| });
+     17|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/177]⎯
+
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 registry and module API'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 incremental encoder state and …'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 every incremental split and st…'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 missing BOM and truncated inpu…'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-16 stream adapters BOM and reset'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 registry and module API'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 incremental encoder state and …'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 every incremental split and st…'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 missing BOM and truncated inpu…'
+ FAIL  src/session-codec-native-wide-modules.test.ts > native wide codec module: 'utf-32 stream adapters BOM and reset'
+AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-native-wide-modules.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/177]⎯
+
+ FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'mbcs import failure and registry cache'
+ FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'oem import failure and registry cache'
+ FAIL  src/session-codec-platform-modules.test.ts > platform codec: 'Windows code-page factory imports laz…'
+AssertionError: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-platform-modules.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'byte escape types, argument precedenc…'
+AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'Punycode public decoder factories ret…'
+AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'charmap surrogateescape retains origi…'
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'all standard handlers through publish…'
+AssertionError: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'callback failures preserve identity, …'
+AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'custom codecs shared by encode/decode…'
+AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'decoder subtype identity and tuple ov…'
+AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'stream reader/writer adapters over a …'
+AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/177]⎯
+
+ FAIL  src/session-codec-public-contracts.test.ts > public codec contract: 'UTF-16/32 rejected replacements resto…'
+AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-public-contracts.test.ts:23:32
+     21|     if(diagnostic.status==="ok")detail=String(diagnostic.value.primiti…
+     22|   }
+     23|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     24|   expect(output).toBe(expected!.stdout);
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/177]⎯
+
+ FAIL  src/session-codec-resume-validation-matrix.test.ts > codec recovery validation: 'utf-16 encode'
+AssertionError: expected 'utf-16 encode ? -4 [] (\'LookupError\…' to be 'utf-16 encode ? -4 [(1, 2, \'surrogat…' // Object.is equality
+
+- Expected
++ Received
+
+- utf-16 encode ? -4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? -3 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? -1 [(1, 2, 'surrogates not allowed'), 'index'] ('ok', b'\xff\xfeA\x00?\x00B\x00')
+- utf-16 encode ? 0 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? 1 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? 3 [(1, 2, 'surrogates not allowed'), 'index'] ('ok', b'\xff\xfeA\x00?\x00')
+- utf-16 encode ? 4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode ? -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' -4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' -3 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-16', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' -1 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-16', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' 0 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-16', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' 1 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-16', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' 3 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-16', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' 4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode b'?' -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None -4 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None -3 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None -1 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None 0 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None 1 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None 3 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None 4 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
+- utf-16 encode None -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-16' codec failed"])
++ utf-16 encode ? -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode ? -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode b'?' -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 encode None -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
+
+
+ ❯ src/session-codec-resume-validation-matrix.test.ts:21:18
+     19|   });
+     20|   expect(session.exec(source)).toEqual({status: "ok"});
+     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…
+       |                  ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/177]⎯
+
+ FAIL  src/session-codec-resume-validation-matrix.test.ts > codec recovery validation: 'utf-16 decode'
+AssertionError: expected 'utf-16 decode ? -4 [] (\'LookupError\…' to be 'utf-16 decode ? -4 [(2, 3, \'truncate…' // Object.is equality
+
+- Expected
++ Received
+
+- utf-16 decode ? -4 [(2, 3, 'truncated data'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? -3 [(2, 3, 'truncated data'), 'index', (2, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? -1 [(2, 3, 'truncated data'), 'index', (2, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? 0 [(2, 3, 'truncated data'), 'index', (2, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? 1 [(2, 3, 'truncated data'), 'index'] ('ok', 'ａ?䋿')
+- utf-16 decode ? 3 [(2, 3, 'truncated data'), 'index'] ('ok', 'ａ?')
+- utf-16 decode ? 4 [(2, 3, 'truncated data'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? 9223372036854775808 [(2, 3, 'truncated data'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode ? -9223372036854775809 [(2, 3, 'truncated data'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' -4 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' -3 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' -1 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' 0 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' 1 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' 3 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' 4 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' 9223372036854775808 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode b'?' -9223372036854775809 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None -4 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None -3 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None -1 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None 0 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None 1 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None 3 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None 4 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None 9223372036854775808 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
+- utf-16 decode None -9223372036854775809 [(2, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-16' codec failed"])
++ utf-16 decode ? -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode ? -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode b'?' -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None -4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None -3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None -1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None 0 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None 1 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None 3 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None 4 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-16',), None)
++ utf-16 decode None -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-16',), None)
+
+
+ ❯ src/session-codec-resume-validation-matrix.test.ts:21:18
+     19|   });
+     20|   expect(session.exec(source)).toEqual({status: "ok"});
+     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…
+       |                  ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/177]⎯
+
+ FAIL  src/session-codec-resume-validation-matrix.test.ts > codec recovery validation: 'utf-32 encode'
+AssertionError: expected 'utf-32 encode ? -4 [] (\'LookupError\…' to be 'utf-32 encode ? -4 [(1, 2, \'surrogat…' // Object.is equality
+
+- Expected
++ Received
+
+- utf-32 encode ? -4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? -3 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? -1 [(1, 2, 'surrogates not allowed'), 'index'] ('ok', b'\xff\xfe\x00\x00A\x00\x00\x00?\x00\x00\x00B\x00\x00\x00')
+- utf-32 encode ? 0 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? 1 [(1, 2, 'surrogates not allowed'), 'index', (1, 2, 'surrogates not allowed')] ('RuntimeError', ('repeated',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? 3 [(1, 2, 'surrogates not allowed'), 'index'] ('ok', b'\xff\xfe\x00\x00A\x00\x00\x00?\x00\x00\x00')
+- utf-32 encode ? 4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode ? -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' -4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' -3 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-32', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' -1 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-32', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' 0 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-32', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' 1 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-32', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' 3 [(1, 2, 'surrogates not allowed'), 'index'] ('UnicodeEncodeError', ('utf-32', 'A\ud800B', 1, 2, 'surrogates not allowed'), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' 4 [(1, 2, 'surrogates not allowed'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode b'?' -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None -4 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None -3 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None -1 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None 0 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None 1 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None 3 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None 4 [(1, 2, 'surrogates not allowed'), 'index'] ('TypeError', ('encoding error handler must return (str/bytes, int) tuple',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None 9223372036854775808 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
+- utf-32 encode None -9223372036854775809 [(1, 2, 'surrogates not allowed'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["encoding with 'utf-32' codec failed"])
++ utf-32 encode ? -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode ? -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode b'?' -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 encode None -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
+
+
+ ❯ src/session-codec-resume-validation-matrix.test.ts:21:18
+     19|   });
+     20|   expect(session.exec(source)).toEqual({status: "ok"});
+     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…
+       |                  ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/177]⎯
+
+ FAIL  src/session-codec-resume-validation-matrix.test.ts > codec recovery validation: 'utf-32 decode'
+AssertionError: expected 'utf-32 decode ? -4 [] (\'LookupError\…' to be 'utf-32 decode ? -4 [(0, 3, \'truncate…' // Object.is equality
+
+- Expected
++ Received
+
+- utf-32 decode ? -4 [(0, 3, 'truncated data'), 'index'] ('IndexError', ('position -1 from error handler out of bounds',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? -3 [(0, 3, 'truncated data'), 'index', (0, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? -1 [(0, 3, 'truncated data'), 'index', (2, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? 0 [(0, 3, 'truncated data'), 'index', (0, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? 1 [(0, 3, 'truncated data'), 'index', (1, 3, 'truncated data')] ('RuntimeError', ('repeated',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? 3 [(0, 3, 'truncated data'), 'index'] ('ok', '?')
+- utf-32 decode ? 4 [(0, 3, 'truncated data'), 'index'] ('IndexError', ('position 4 from error handler out of bounds',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? 9223372036854775808 [(0, 3, 'truncated data'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode ? -9223372036854775809 [(0, 3, 'truncated data'), 'index'] ('OverflowError', ('Python int too large to convert to C ssize_t',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' -4 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' -3 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' -1 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' 0 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' 1 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' 3 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' 4 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' 9223372036854775808 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode b'?' -9223372036854775809 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None -4 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None -3 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None -1 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None 0 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None 1 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None 3 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None 4 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None 9223372036854775808 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
+- utf-32 decode None -9223372036854775809 [(0, 3, 'truncated data')] ('TypeError', ('decoding error handler must return (str, int) tuple',), ["decoding with 'utf-32' codec failed"])
++ utf-32 decode ? -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode ? -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode b'?' -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None -4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None -3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None -1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None 0 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None 1 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None 3 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None 4 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None 9223372036854775808 [] ('LookupError', ('unknown encoding: utf-32',), None)
++ utf-32 decode None -9223372036854775809 [] ('LookupError', ('unknown encoding: utf-32',), None)
+
+
+ ❯ src/session-codec-resume-validation-matrix.test.ts:21:18
+     19|   });
+     20|   expect(session.exec(source)).toEqual({status: "ok"});
+     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…
+       |                  ^
+     22| });
+     23|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/177]⎯
+
+ FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'ROT13 bytes consumer nontext rejection'
+AssertionError: expected 'LookupError unknown encoding: rot13\n' to be 'LookupError \'rot13\' is not a text e…' // Object.is equality
+
+- Expected
++ Received
+
+- LookupError 'rot13' is not a text encoding; use codecs.decode() to handle arbitrary codecs
++ LookupError unknown encoding: rot13
+
+
+ ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18
+     12|   });
+     13|   expect(session.exec(source).status).toBe('ok');
+     14|   expect(output).toBe(expected);
+       |                  ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/177]⎯
+
+ FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'undefined bytes consumer'
+AssertionError: expected 'LookupError unknown encoding: undefin…' to be 'UnicodeError undefined encoding\n' // Object.is equality
+
+- Expected
++ Received
+
+- UnicodeError undefined encoding
++ LookupError unknown encoding: undefined
+
+
+ ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18
+     12|   });
+     13|   expect(session.exec(source).status).toBe('ok');
+     14|   expect(output).toBe(expected);
+       |                  ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/177]⎯
+
+ FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'guest module spec'
+AssertionError: expected 'AttributeError module \'encodings.rot…' to be 'encodings.rot_13\n' // Object.is equality
+
+- Expected
++ Received
+
+- encodings.rot_13
++ AttributeError module 'encodings.rot_13' has no attribute '__spec__'
+
+
+ ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18
+     12|   });
+     13|   expect(session.exec(source).status).toBe('ok');
+     14|   expect(output).toBe(expected);
+       |                  ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/177]⎯
+
+ FAIL  src/session-codec-rot13-undefined-integration.test.ts > 'undefined traceback'
+AssertionError: expected 'False\n' to be 'True\n' // Object.is equality
+
+- Expected
++ Received
+
+- True
++ False
+
+
+ ❯ src/session-codec-rot13-undefined-integration.test.ts:14:18
+     12|   });
+     13|   expect(session.exec(source).status).toBe('ok');
+     14|   expect(output).toBe(expected);
+       |                  ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/177]⎯
+
+ FAIL  src/session-codec-source-registry.test.ts > source registry: 'source decoder receives an ownerless …'
+AssertionError: unknown encoding: source-contract (source.py, line 0): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-source-registry.test.ts:23:33
+     21|   // Check the discriminant before a deep matcher can inspect opaque h…
+     22|   // Keep the complete result/output assertion once execution has succ…
+     23|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     24|   expect({result, output}).toEqual({result: {status: "ok"}, output: re…
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/177]⎯
+
+ FAIL  src/session-codec-source-registry.test.ts > source registry: 'source callback failures retain nativ…'
+AssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }
+
+- Expected
++ Received
+
+  {
+-   "output": "SyntaxError ('value failure', ('source.py', 0, -1, None)) False
++   "output": "SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False
+  None True
+  source.py 0 -1 None
+- SyntaxError ('lookup failure', ('source.py', 0, -1, None)) False
++ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False
+  None True
+  source.py 0 -1 None
+- TypeError ('type failure',) True
+- [\"decoding with 'source-failure' codec failed\"] True
+- None None None None
+- RuntimeError ('runtime failure',) True
+- [\"decoding with 'source-failure' codec failed\"] True
+- None None None None
++ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False
++ None True
++ source.py 0 -1 None
++ SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False
++ None True
++ source.py 0 -1 None
+  ",
+    "result": {
+      "status": "ok",
+    },
+  }
+
+ ❯ src/session-codec-source-registry.test.ts:24:28
+     22|   // Keep the complete result/output assertion once execution has succ…
+     23|   expect(result.status, detail).toBe("ok");
+     24|   expect({result, output}).toEqual({result: {status: "ok"}, output: re…
+       |                            ^
+     25| });
+     26|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/177]⎯
+
+ FAIL  src/session-codec-source-registry.test.ts > source registry: 'source codec callbacks use the suppli…'
+AssertionError: unknown encoding: source-service (source.py, line 0): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-source-registry.test.ts:23:33
+     21|   // Check the discriminant before a deep matcher can inspect opaque h…
+     22|   // Keep the complete result/output assertion once execution has succ…
+     23|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     24|   expect({result, output}).toEqual({result: {status: "ok"}, output: re…
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/177]⎯
+
+ FAIL  src/session-codec-source-registry.test.ts > keeps cancellation in source decoder callbacks terminal
+AssertionError: expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-source-registry.test.ts:37:25
+     35|   });
+     36|   const result = session.exec(codecSourceRegistryCases[2].source);
+     37|   expect(result.status).toBe("terminated");
+       |                         ^
+     38|   expect(result).toMatchObject({status: "terminated", reason: "cancell…
+     39|   expect(reads).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/177]⎯
+
+ FAIL  src/session-codec-standard-rejection.test.ts > standard handler rejections preserve pinned exception metadata (normal)
+AssertionError: expected 'strict TypeError (\'strict_errors() t…' to be 'strict TypeError (\'strict_errors() t…' // Object.is equality
+
+- Expected
++ Received
+
+- strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None True
++ strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None False
+- strict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None True
++ strict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None False
+- strict TypeError ('strict_errors() takes no keyword arguments',) None None True
++ strict TypeError ('strict_errors() takes no keyword arguments',) None None False
+- strict TypeError ('codec must pass exception instance',) None None True
++ strict TypeError ('codec must pass exception instance',) None None False
+- ignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None True
++ ignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None False
+- ignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None True
++ ignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None False
+- ignore TypeError ('ignore_errors() takes no keyword arguments',) None None True
++ ignore TypeError ('ignore_errors() takes no keyword arguments',) None None False
+- ignore TypeError ("don't know how to handle NoneType in error callback",) None None True
++ ignore TypeError ("don't know how to handle NoneType in error callback",) None None False
+- replace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None True
++ replace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None False
+- replace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None True
++ replace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None False
+- replace TypeError ('replace_errors() takes no keyword arguments',) None None True
++ replace TypeError ('replace_errors() takes no keyword arguments',) None None False
+- replace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ replace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None False
+- xmlcharrefreplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ xmlcharrefreplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None False
+- backslashreplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ backslashreplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- namereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None True
++ namereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None False
+- namereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None True
++ namereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None False
+- namereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None True
++ namereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None False
+- namereplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ namereplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- surrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None True
++ surrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None False
+- surrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None True
++ surrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None False
+- surrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None True
++ surrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None False
+- surrogatepass TypeError ("don't know how to handle NoneType in error callback",) None None True
++ surrogatepass TypeError ("don't know how to handle NoneType in error callback",) None None False
+- surrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None True
++ surrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None False
+- surrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None True
++ surrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None False
+- surrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None True
++ surrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None False
+- surrogateescape TypeError ("don't know how to handle NoneType in error callback",) None None True
++ surrogateescape TypeError ("don't know how to handle NoneType in error callback",) None None False
+- ignore object TypeError ("UnicodeError 'object' attribute is not set",) False True
++ ignore object TypeError ("UnicodeError 'object' attribute is not set",) False False
+- replace object TypeError ("UnicodeError 'object' attribute must be a bytes",) False True
++ replace object TypeError ("UnicodeError 'object' attribute must be a bytes",) False False
+- surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute is not set",) False True
++ surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute is not set",) False False
+- surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute must be a string",) False True
++ surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute must be a string",) False False
+  continue
+
+
+ ❯ src/session-codec-standard-rejection.test.ts:32:18
+     30|     expect(session.eval("1")).toBe(result);
+     31|   }
+     32|   expect(output).toBe(mode === "normal" ? reference.oracle.stdout : re…
+       |                  ^
+     33| });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/177]⎯
+
+ FAIL  src/session-codec-standard-rejection.test.ts > standard handler rejections preserve pinned exception metadata (cancel-return)
+ FAIL  src/session-codec-standard-rejection.test.ts > standard handler rejections preserve pinned exception metadata (cancel-throw)
+AssertionError: expected 'strict TypeError (\'strict_errors() t…' to be 'strict TypeError (\'strict_errors() t…' // Object.is equality
+
+- Expected
++ Received
+
+- strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None True
++ strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None False
+- strict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None True
++ strict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None False
+- strict TypeError ('strict_errors() takes no keyword arguments',) None None True
++ strict TypeError ('strict_errors() takes no keyword arguments',) None None False
+- strict TypeError ('codec must pass exception instance',) None None True
++ strict TypeError ('codec must pass exception instance',) None None False
+- ignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None True
++ ignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None False
+- ignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None True
++ ignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None False
+- ignore TypeError ('ignore_errors() takes no keyword arguments',) None None True
++ ignore TypeError ('ignore_errors() takes no keyword arguments',) None None False
+- ignore TypeError ("don't know how to handle NoneType in error callback",) None None True
++ ignore TypeError ("don't know how to handle NoneType in error callback",) None None False
+- replace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None True
++ replace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None False
+- replace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None True
++ replace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None False
+- replace TypeError ('replace_errors() takes no keyword arguments',) None None True
++ replace TypeError ('replace_errors() takes no keyword arguments',) None None False
+- replace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ replace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None False
+- xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None True
++ xmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None False
+- xmlcharrefreplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ xmlcharrefreplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None False
+- backslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None True
++ backslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None False
+- backslashreplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ backslashreplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- namereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None True
++ namereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None False
+- namereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None True
++ namereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None False
+- namereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None True
++ namereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None False
+- namereplace TypeError ("don't know how to handle NoneType in error callback",) None None True
++ namereplace TypeError ("don't know how to handle NoneType in error callback",) None None False
+- surrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None True
++ surrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None False
+- surrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None True
++ surrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None False
+- surrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None True
++ surrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None False
+- surrogatepass TypeError ("don't know how to handle NoneType in error callback",) None None True
++ surrogatepass TypeError ("don't know how to handle NoneType in error callback",) None None False
+- surrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None True
++ surrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None False
+- surrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None True
++ surrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None False
+- surrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None True
++ surrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None False
+- surrogateescape TypeError ("don't know how to handle NoneType in error callback",) None None True
++ surrogateescape TypeError ("don't know how to handle NoneType in error callback",) None None False
+- ignore object TypeError ("UnicodeError 'object' attribute is not set",) False True
++ ignore object TypeError ("UnicodeError 'object' attribute is not set",) False False
+- replace object TypeError ("UnicodeError 'object' attribute must be a bytes",) False True
++ replace object TypeError ("UnicodeError 'object' attribute must be a bytes",) False False
+- surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute is not set",) False True
++ surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute is not set",) False False
+- surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute must be a string",) False True
++ surrogatepass encoding TypeError ("UnicodeError 'encoding' attribute must be a string",) False False
+
+
+ ❯ src/session-codec-standard-rejection.test.ts:32:18
+     30|     expect(session.eval("1")).toBe(result);
+     31|   }
+     32|   expect(output).toBe(mode === "normal" ? reference.oracle.stdout : re…
+       |                  ^
+     33| });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_1'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_2'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_3'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_2004'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_ext'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_kr'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: hz'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[68/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[69/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_1'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[70/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_2'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[71/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_3'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[72/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_2004'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[73/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_ext'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[74/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_kr'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[75/177]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: hz'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[76/177]⎯
+
+ FAIL  src/session-codec-stream-mutation.test.ts > 'stream reader bytearray and memoryvie…'
+AssertionError: exception: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stream-mutation.test.ts:20:37
+     18|     if (message.status === 'ok') diagnostic += ': ' + String(message.v…
+     19|   }
+     20|   expect(result.status, diagnostic).toBe('ok');
+       |                                     ^
+     21|   expect(output).toBe(reference.cases.find(row => row.name === name)!.…
+     22| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[77/177]⎯
+
+ FAIL  src/session-codec-stream-traceback.test.ts > retains caller and codec frames with pinned instruction positions
+AssertionError: expected '' to be '<module> 3 66\nencode 204 12\n' // Object.is equality
+
+- Expected
++ Received
+
+- <module> 3 66
+- encode 204 12
+-
+
+ ❯ src/session-codec-stream-traceback.test.ts:19:18
+     17| `;
+     18|   expect(session.exec(source,{filename:'<codec-trace>'})).toMatchObjec…
+     19|   expect(output).toBe('<module> 3 66\nencode 204 12\n');
+       |                  ^
+     20| });
+     21|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[78/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii inherited buffer failure preced…'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 inherited buffer failure prec…'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 inherited buffer failure preced…'
+AssertionError: decoder ignored __buffer__: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-core-codec-buffers.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[79/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii validates buffer hook result be…'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 validates buffer hook result …'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 validates buffer hook result be…'
+AssertionError: invalid buffer hook result accepted: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-core-codec-buffers.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[80/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii uses and releases an overridden…'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 uses and releases an overridd…'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 uses and releases an overridden…'
+AssertionError: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-core-codec-buffers.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[81/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'ascii rejects a strided memoryview'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'latin_1 rejects a strided memoryview'
+ FAIL  src/session-core-codec-buffers.test.ts > public codec buffer contract: 'utf_8 rejects a strided memoryview'
+AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-core-codec-buffers.test.ts:14:33
+     12|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     13|   }
+     14|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     15| });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[82/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)
+AssertionError: throws=false: expected [] to deeply equal [ 'cancel' ]
+
+- Expected
++ Received
+
+- [
+-   "cancel",
+- ]
++ []
+
+ ❯ src/session-core-codec-buffers.test.ts:34:40
+     32|     print('recovered')
+     33| `);
+     34|     expect(writes, `throws=${throws}`).toEqual(["cancel"]);
+       |                                        ^
+     35|     expect(result).toMatchObject({status: "terminated", reason: "cance…
+     36|     expect(session.eval("1")).toMatchObject({status: "terminated", rea…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[83/177]⎯
+
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)
+ FAIL  src/session-core-codec-buffers.test.ts > keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)
+AssertionError: throws=true: expected [] to deeply equal [ 'cancel' ]
+
+- Expected
++ Received
+
+- [
+-   "cancel",
+- ]
++ []
+
+ ❯ src/session-core-codec-buffers.test.ts:34:40
+     32|     print('recovered')
+     33| `);
+     34|     expect(writes, `throws=${throws}`).toEqual(["cancel"]);
+       |                                        ^
+     35|     expect(result).toMatchObject({status: "terminated", reason: "cance…
+     36|     expect(session.eval("1")).toMatchObject({status: "terminated", rea…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[84/177]⎯
+
+ FAIL  src/session-utf7-codec-api.test.ts > preserves decoder guest failures, traceback and native-call note behavior
+AssertionError: UTF-7 callback traceback: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ run src/session-utf7-codec-api.test.ts:13:32
+     11|     if(message.status==="ok")detail=String(message.value.primitive);
+     12|   }
+     13|   expect(result.status,detail).toBe("ok");
+       |                                ^
+     14| }
+     15|
+ ❯ src/session-utf7-codec-api.test.ts:194:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[85/177]⎯
+
+
+ Test Files  24 failed | 137 passed (161)
+      Tests  177 failed | 5305 passed (5482)
+   Start at  10:06:24
+   Duration  132.79s (transform 10.75s, setup 0ms, import 121.71s, tests 129.53s, environment 8ms)
+
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error workspace @poe-code/safe-python@0.0.0-dev
+npm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts src/session-codec src/session-core-codec src/session-source-codec src/session-charmap-codec src/session-utf7 --maxWorkers=2 --pool=forks

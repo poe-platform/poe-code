@@ -1,12 +1,15 @@
 import * as readline from "readline";
-import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "toolcraft-schema";
+import { compileJsonSchema, formatIssues, normalizeLegacyNullability, type CompiledJsonSchema } from "toolcraft-schema";
 import type {
   ServerOptions,
   ToolDefinition,
   ToolHandler,
   CallToolResult,
+  InputRequiredResult,
+  HandlerRequestContext,
   HandleResult,
   InitializeResult,
+  DiscoverResult,
   Tool,
   Prompt,
   PromptDefinition,
@@ -18,6 +21,7 @@ import type {
   ResourceTemplateDefinition,
   Transport,
   JSONSchema,
+  OutputSchema,
   SDKTransport,
   JSONRPCMessage,
   JSONRPCRequest,
@@ -25,16 +29,28 @@ import type {
   JSONRPCNotification
 } from "./types.js";
 import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
-import { parseMessage, formatSuccessResponse, formatErrorResponse } from "./jsonrpc.js";
-import type { TypedSchema } from "./schema.js";
+import {
+  parseMessage,
+  formatSuccessResponse,
+  formatErrorResponse,
+  isRequestId
+} from "./jsonrpc.js";
+import type { TypedSchema, TypedOutputSchema } from "./schema.js";
 import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
 import { StdioOutput } from "./stdio-output.js";
 import { StdioInput } from "./stdio-input.js";
+import { isBase64 } from "./base64.js";
+import { selectRequestProtocol, decorateModernResult, MODERN_PROTOCOL_VERSION } from "./protocol.js";
+import { SubscriptionRegistry } from "./subscriptions.js";
+import { waitForRequest } from "./request-cancellation.js";
+import { isJsonValue } from "toolcraft-schema";
+import { isValidUri } from "./uri.js";
+import { getParameterHeaders, validateParameterHeaders, type ParameterHeader } from "./headers.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
-const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
+const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION, MODERN_PROTOCOL_VERSION]);
 
 export interface Server {
   tool<TIn, TOut = never>(
@@ -42,7 +58,7 @@ export interface Server {
     description: string,
     inputSchema: TypedSchema<TIn>,
     handler: ToolHandler<TIn, TOut>,
-    outputSchema?: TypedSchema<TOut>
+    outputSchema?: TypedOutputSchema<TOut>
   ): Server;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
@@ -64,7 +80,11 @@ export interface Server {
   createMessageSession(
     listener?: (notification: JSONRPCNotification) => void | Promise<void>
   ): MessageSession;
-  handleMessage(method: string, params?: Record<string, unknown>): Promise<HandleResult>;
+  handleMessage(
+    method: string,
+    params?: Record<string, unknown>,
+    context?: MessageRequestContext
+  ): Promise<HandleResult>;
   listen(): Promise<void>;
   connect(transport: Transport): Promise<void>;
   connectSDK(transport: SDKTransport): Promise<void>;
@@ -75,6 +95,12 @@ export interface MessageSessionContext {
   notify(method: string, params?: Record<string, unknown>): Promise<void>;
 }
 
+export interface MessageRequestContext {
+  requestId?: string | number;
+  signal?: AbortSignal;
+  parameterHeaders?: Record<string, string | string[] | undefined>;
+}
+
 export type CustomMethodHandler = (
   params: Record<string, unknown> | undefined,
   session: MessageSessionContext
@@ -82,7 +108,8 @@ export type CustomMethodHandler = (
 
 export type MessageHandler = (
   method: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  context?: MessageRequestContext
 ) => Promise<HandleResult>;
 
 export interface MessageSession {
@@ -92,23 +119,64 @@ export interface MessageSession {
 
 interface LifecycleState {
   initialized: boolean;
+  protocolVersion: string;
   initializeAccepted: boolean;
   notificationReady: boolean;
   resourceSubscriptions: Set<string>;
   abortController: AbortController;
+  admissions: Set<AbortController>;
+  requests: Map<string | number | symbol, AbortController>;
+  subscriptions: SubscriptionRegistry;
   listener?: (notification: JSONRPCNotification) => void | Promise<void>;
+}
+
+function createLifecycleState(
+  listener: ((notification: JSONRPCNotification) => void | Promise<void>) | undefined,
+  supportNotifications: boolean,
+  supportResourceSubscriptions: boolean
+): LifecycleState {
+  const abortController = new AbortController();
+  const admissions = new Set<AbortController>();
+  const requests = new Map<string | number | symbol, AbortController>();
+  abortController.signal.addEventListener(
+    "abort",
+    () => {
+      for (const admission of admissions) admission.abort(abortController.signal.reason);
+      admissions.clear();
+      for (const request of requests.values()) request.abort(abortController.signal.reason);
+      requests.clear();
+    },
+    { once: true }
+  );
+  return {
+    initialized: false,
+    protocolVersion: PROTOCOL_VERSION,
+    initializeAccepted: false,
+    notificationReady: false,
+    resourceSubscriptions: new Set(),
+    abortController,
+    admissions,
+    requests,
+    subscriptions: new SubscriptionRegistry(
+      listener ?? (() => {}),
+      supportNotifications,
+      supportResourceSubscriptions
+    ),
+    listener
+  };
 }
 
 interface RegisteredToolDefinition extends ToolDefinition {
   inputValidator: CompiledJsonSchema;
   outputValidator?: CompiledJsonSchema;
+  parameterHeaders: ParameterHeader[];
 }
 
 interface RegisteredResourceTemplateDefinition extends ResourceTemplateDefinition {
   template: UriTemplate;
 }
 
-function compileToolSchema(schema: JSONSchema): CompiledJsonSchema {
+function compileToolSchema(schema: unknown): CompiledJsonSchema {
   try {
     return compileJsonSchema(schema);
   } catch (error) {
@@ -129,12 +197,14 @@ export function createServer(options: ServerOptions): Server {
   const maxQueuedToolCalls = options.maxQueuedToolCalls ?? 64;
   const maxStdioOutputBytes = options.maxStdioOutputBytes ?? 1024 * 1024;
   const maxPendingStdioMessages = options.maxPendingStdioMessages ?? 128;
+  const maxActiveRequests = options.maxActiveRequests ?? 128;
   const maxStdioLineBytes = options.maxStdioLineBytes ?? 1024 * 1024;
   for (const [name, value, minimum] of [
     ["maxConcurrentToolCalls", maxConcurrentToolCalls, 1],
     ["maxQueuedToolCalls", maxQueuedToolCalls, 0],
     ["maxStdioOutputBytes", maxStdioOutputBytes, 1],
     ["maxPendingStdioMessages", maxPendingStdioMessages, 1],
+    ["maxActiveRequests", maxActiveRequests, 1],
     ["maxStdioLineBytes", maxStdioLineBytes, 1]
   ] as const) {
     if (!Number.isSafeInteger(value) || value < minimum) {
@@ -155,20 +225,64 @@ export function createServer(options: ServerOptions): Server {
     (notification: JSONRPCNotification) => void | Promise<void>,
     LifecycleState
   >();
-  const defaultLifecycle: LifecycleState = {
-    initialized: false,
-    initializeAccepted: false,
-    notificationReady: false,
-    resourceSubscriptions: new Set(),
-    abortController: new AbortController()
-  };
+  const defaultLifecycle = createLifecycleState(
+    (notification) => {
+      for (const listener of notificationListeners) listener(notification);
+    },
+    supportNotifications,
+    supportResourceSubscriptions
+  );
   const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
+  let activeRequests = 0;
 
-  const handleMessageWithLifecycle = async (
+  const describeCapabilities = (): InitializeResult["capabilities"] => ({
+    tools: {
+      ...(supportNotifications ? { listChanged: true } : {})
+    },
+    prompts: {
+      ...(supportNotifications ? { listChanged: true } : {})
+    },
+    resources: {
+      ...(supportNotifications ? { listChanged: true } : {}),
+      ...(supportResourceSubscriptions ? { subscribe: true } : {})
+    }
+  });
+
+  const dispatchMessage = async (
     method: string,
     lifecycle: LifecycleState,
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
+    modern = false,
+    requestSignal = lifecycle.abortController.signal,
+    parameterHeaders?: Record<string, string | string[] | undefined>
   ): Promise<HandleResult> => {
+    const handlerContext: HandlerRequestContext = {
+      signal: requestSignal,
+      ...(modern && params?.requestState !== undefined
+        ? { requestState: params.requestState as string }
+        : {}),
+      ...(modern && params?.inputResponses !== undefined
+        ? { inputResponses: params.inputResponses as Record<string, unknown> }
+        : {}),
+      clientCapabilities: modern
+        ? ((params?._meta as Record<string, unknown>)[
+            "io.modelcontextprotocol/clientCapabilities"
+          ] as Record<string, unknown>)
+        : {}
+    };
+    if (method === "server/discover") {
+      const result: DiscoverResult = {
+        resultType: "complete",
+        supportedVersions: [...SUPPORTED_PROTOCOL_VERSIONS].reverse(),
+        capabilities: describeCapabilities(),
+        _meta: {
+          "io.modelcontextprotocol/serverInfo": { name: options.name, version: options.version }
+        },
+        ttlMs: 0,
+        cacheScope: "private"
+      };
+      return { result };
+    }
     // Allow ping and initialize before initialization
     if (method === "ping") {
       return { result: {} };
@@ -187,26 +301,17 @@ export function createServer(options: ServerOptions): Server {
         typeof params?.protocolVersion === "string" ? params.protocolVersion : undefined;
       const result: InitializeResult = {
         protocolVersion:
-          requestedProtocol !== undefined && SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
+          requestedProtocol !== undefined && requestedProtocol !== MODERN_PROTOCOL_VERSION &&
+          SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
             ? requestedProtocol
             : PROTOCOL_VERSION,
-        capabilities: {
-          tools: {
-            ...(supportNotifications ? { listChanged: true } : {})
-          },
-          prompts: {
-            ...(supportNotifications ? { listChanged: true } : {})
-          },
-          resources: {
-            ...(supportNotifications ? { listChanged: true } : {}),
-            ...(supportResourceSubscriptions ? { subscribe: true } : {})
-          }
-        },
+        capabilities: describeCapabilities(),
         serverInfo: {
           name: options.name,
           version: options.version
         }
       };
+      lifecycle.protocolVersion = result.protocolVersion;
       return { result };
     }
 
@@ -225,7 +330,7 @@ export function createServer(options: ServerOptions): Server {
     }
 
     // All other methods require initialization
-    if (!lifecycle.initialized) {
+    if (!modern && !lifecycle.initialized) {
       return {
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
@@ -241,9 +346,9 @@ export function createServer(options: ServerOptions): Server {
         delete (descriptor as Partial<RegisteredToolDefinition>).handler;
         delete (descriptor as Partial<RegisteredToolDefinition>).inputValidator;
         delete (descriptor as Partial<RegisteredToolDefinition>).outputValidator;
-        toolList.push({
-          ...(descriptor as Tool)
-        });
+        delete (descriptor as Partial<RegisteredToolDefinition>).parameterHeaders;
+        if (!modern && descriptor.outputSchema?.type !== "object") delete descriptor.outputSchema;
+        toolList.push(structuredClone(descriptor as Tool));
       }
       return { result: { tools: toolList } };
     }
@@ -273,7 +378,17 @@ export function createServer(options: ServerOptions): Server {
         };
       }
 
+      if (params?.arguments !== undefined && !isJsonObject(params.arguments))
+        return invalidParams("Tool arguments must be an object");
       const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
+      if (modern && parameterHeaders !== undefined) {
+        const headerError = validateParameterHeaders(
+          tool.parameterHeaders,
+          toolArgs,
+          parameterHeaders
+        );
+        if (headerError !== undefined) return { error: { code: -32020, message: headerError } };
+      }
       const inputValidation = tool.inputValidator.validate(toolArgs);
       if (options.validateToolArguments !== false && !inputValidation.ok) {
         return {
@@ -286,43 +401,57 @@ export function createServer(options: ServerOptions): Server {
       }
 
       try {
-        let handlerResult: ToolReturn | CallToolResult;
-        const admissionTimeout = options.toolCallTimeoutMs === undefined ? undefined : new AbortController();
-        const admissionSignal = AbortSignal.any([
-          lifecycle.abortController.signal,
-          ...(admissionTimeout === undefined ? [] : [admissionTimeout.signal])
-        ]);
+        let handlerResult: ToolReturn | CallToolResult | InputRequiredResult;
+        const admissionController = new AbortController();
+        const sessionSignal = requestSignal;
+        const admissionSignal = admissionController.signal;
+        const cancelAdmission = () => admissionController.abort(sessionSignal.reason);
+        if (sessionSignal.aborted) admissionController.abort(sessionSignal.reason);
+        else {
+          lifecycle.admissions.add(admissionController);
+          if (sessionSignal !== lifecycle.abortController.signal)
+            sessionSignal.addEventListener("abort", cancelAdmission, { once: true });
+        }
         const handlerPromise = (async () => {
           const release = await toolAdmission.acquire(admissionSignal);
           try {
             admissionSignal.throwIfAborted();
-            return await tool.handler(toolArgs);
-          } finally { release(); }
+            return await tool.handler(toolArgs, { ...handlerContext, signal: admissionSignal });
+          } finally {
+            release();
+          }
         })();
-        if (options.toolCallTimeoutMs === undefined) {
-          handlerResult = await handlerPromise;
-        } else {
-          let timeout: ReturnType<typeof setTimeout> | undefined;
-          handlerResult = await Promise.race([
-            handlerPromise,
-            new Promise<never>((_resolve, reject) => {
-              timeout = setTimeout(() => {
-                const error = new ToolError(
-                  JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-                  `Tool call timed out: ${toolName}`
-                );
-                admissionTimeout!.abort(error);
-                reject(error);
-              }, options.toolCallTimeoutMs);
-            })
-          ]).finally(() => {
-            if (timeout !== undefined) {
-              clearTimeout(timeout);
-            }
-          });
+        try {
+          if (options.toolCallTimeoutMs === undefined) {
+            handlerResult = await handlerPromise;
+          } else {
+            let timeout: ReturnType<typeof setTimeout> | undefined;
+            handlerResult = await Promise.race([
+              handlerPromise,
+              new Promise<never>((_resolve, reject) => {
+                timeout = setTimeout(() => {
+                  const error = new ToolError(
+                    JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                    `Tool call timed out: ${toolName}`
+                  );
+                  admissionController.abort(error);
+                  reject(error);
+                }, options.toolCallTimeoutMs);
+              })
+            ]).finally(() => {
+              if (timeout !== undefined) {
+                clearTimeout(timeout);
+              }
+            });
+          }
+        } finally {
+          lifecycle.admissions.delete(admissionController);
+          sessionSignal.removeEventListener("abort", cancelAdmission);
         }
-        const result = normalizeToolResult(handlerResult, tool.outputSchema);
-        const outputValidation = tool.outputValidator?.validate(result.structuredContent);
+        if (modern && isInputRequiredResult(handlerResult)) return { result: handlerResult };
+        const outputSchema = modern || tool.outputSchema?.type === "object" ? tool.outputSchema : undefined;
+        const result = normalizeToolResult(handlerResult, tool.outputSchema, modern);
+        const outputValidation = outputSchema === undefined ? undefined : tool.outputValidator?.validate(result.structuredContent);
         if (result.isError !== true && outputValidation !== undefined && !outputValidation.ok) {
           throw new ToolError(
             JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
@@ -354,7 +483,7 @@ export function createServer(options: ServerOptions): Server {
     if (method === "prompts/list") {
       return {
         result: {
-          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => prompt)
+          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => structuredClone(prompt))
         }
       };
     }
@@ -376,8 +505,9 @@ export function createServer(options: ServerOptions): Server {
       }
 
       try {
-        const result = await prompt.handler(args);
-        if (!isGetPromptResult(result)) {
+        const result = await prompt.handler(args, handlerContext);
+        if (modern && isInputRequiredResult(result)) return { result };
+        if (!isGetPromptResult(result, modern || lifecycle.protocolVersion === PROTOCOL_VERSION)) {
           return internalError("Invalid prompt result");
         }
         return { result };
@@ -389,7 +519,7 @@ export function createServer(options: ServerOptions): Server {
     if (method === "resources/list") {
       return {
         result: {
-          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => resource)
+          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => structuredClone(resource))
         }
       };
     }
@@ -398,7 +528,7 @@ export function createServer(options: ServerOptions): Server {
       return {
         result: {
           resourceTemplates: [...resourceTemplates.values()].map(
-            ({ handler: _handler, template: _template, ...resourceTemplate }) => resourceTemplate
+            ({ handler: _handler, template: _template, ...resourceTemplate }) => structuredClone(resourceTemplate)
           )
         }
       };
@@ -416,7 +546,8 @@ export function createServer(options: ServerOptions): Server {
       }
 
       try {
-        const result = await resource.handler(uri);
+        const result = await resource.handler(uri, handlerContext);
+        if (modern && isInputRequiredResult(result)) return { result };
         if (!isReadResourceResult(result)) {
           return internalError("Invalid resource result");
         }
@@ -458,9 +589,13 @@ export function createServer(options: ServerOptions): Server {
     if (customMethod !== undefined) {
       try {
         const result = await customMethod(params, {
-          signal: lifecycle.abortController.signal,
+          signal: requestSignal,
           async notify(notificationMethod, notificationParams) {
-            if (!lifecycle.notificationReady || lifecycle.listener === undefined) {
+            if (
+              requestSignal.aborted ||
+              (!modern && !lifecycle.notificationReady) ||
+              lifecycle.listener === undefined
+            ) {
               return;
             }
             await lifecycle.listener({
@@ -472,6 +607,15 @@ export function createServer(options: ServerOptions): Server {
         });
         return { result };
       } catch (error) {
+        if (error instanceof ToolError) {
+          return {
+            error: {
+              code: error.code,
+              message: error.message,
+              ...(error.data === undefined ? {} : { data: error.data })
+            }
+          };
+        }
         return internalError(toErrorMessage(error));
       }
     }
@@ -484,24 +628,114 @@ export function createServer(options: ServerOptions): Server {
     };
   };
 
+  const handleMessageWithLifecycle = async (
+    method: string,
+    lifecycle: LifecycleState,
+    params?: Record<string, unknown>,
+    context?: MessageRequestContext
+  ): Promise<HandleResult> => {
+    if (method === "notifications/cancelled") {
+      const id = params?.requestId;
+      if (typeof id === "string" || typeof id === "number") {
+        lifecycle.requests.get(id)?.abort(new Error("Request cancelled"));
+      }
+      return { result: undefined };
+    }
+    const protocol = selectRequestProtocol(method, params, SUPPORTED_PROTOCOL_VERSIONS);
+    if (protocol.error !== undefined) return { error: protocol.error };
+    const directLegacy = !protocol.modern && context === undefined;
+    if (
+      protocol.modern &&
+      context !== undefined &&
+      context.requestId !== undefined &&
+      !isRequestId(context.requestId)
+    ) {
+      return {
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request ID" }
+      };
+    }
+    if (activeRequests >= maxActiveRequests) {
+      return { error: { code: -32000, message: "Too many active requests" } };
+    }
+    const key = context?.requestId ?? Symbol("request");
+    if (lifecycle.requests.has(key)) {
+      return {
+        error: {
+          code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+          message: "Request ID is already active"
+        }
+      };
+    }
+    const controller = new AbortController();
+    const parents = context?.signal === undefined ? [] : [context.signal];
+    const signal = controller.signal;
+    if (lifecycle.abortController.signal.aborted)
+      controller.abort(lifecycle.abortController.signal.reason);
+    const abort = (event: Event) => controller.abort((event.target as AbortSignal).reason);
+    for (const parent of parents) {
+      if (parent.aborted) controller.abort(parent.reason);
+      else parent.addEventListener("abort", abort, { once: true });
+    }
+    const cleanup = () => {
+      for (const parent of parents) parent.removeEventListener("abort", abort);
+    };
+    if (signal.aborted) {
+      cleanup();
+      return { result: undefined };
+    }
+    lifecycle.requests.set(key, controller);
+    activeRequests += 1;
+    const operation =
+      protocol.modern && method === "subscriptions/listen"
+        ? lifecycle.subscriptions.listen(context?.requestId, params?.notifications, signal)
+        : dispatchMessage(
+            method,
+            lifecycle,
+            params,
+            protocol.modern,
+            directLegacy ? lifecycle.abortController.signal : signal,
+            context?.parameterHeaders
+          );
+    const release = () => {
+      activeRequests -= 1;
+      if (lifecycle.requests.get(key) === controller) lifecycle.requests.delete(key);
+    };
+    void operation.then(release, release);
+    try {
+      const handled = directLegacy ? await operation : await waitForRequest(operation, signal);
+      if (handled === undefined || (!directLegacy && signal.aborted)) return { result: undefined };
+      return protocol.modern
+        ? decorateModernResult(
+            method,
+            handled,
+            { name: options.name, version: options.version },
+            (params?._meta as Record<string, unknown>)[
+              "io.modelcontextprotocol/clientCapabilities"
+            ] as Record<string, unknown>
+          )
+        : handled;
+    } finally {
+      cleanup();
+      controller.abort();
+    }
+  };
+
   const createMessageSession = (
     listener?: (notification: JSONRPCNotification) => void | Promise<void>
   ): MessageSession => {
-    const lifecycle: LifecycleState = {
-      initialized: false,
-      initializeAccepted: false,
-      notificationReady: false,
-      resourceSubscriptions: new Set(),
-      abortController: new AbortController(),
-      listener
-    };
+    const lifecycle = createLifecycleState(
+      listener,
+      supportNotifications,
+      supportResourceSubscriptions
+    );
     messageLifecycles.add(lifecycle);
     if (listener !== undefined) {
       connectionNotificationListeners.set(listener, lifecycle);
     }
 
     return {
-      handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
+      handleMessage: (method, params, context) =>
+        handleMessageWithLifecycle(method, lifecycle, params, context),
       close: () => {
         lifecycle.abortController.abort();
         if (listener !== undefined) {
@@ -512,13 +746,14 @@ export function createServer(options: ServerOptions): Server {
     };
   };
 
-  const handleMessage: MessageHandler = (method, params) =>
-    handleMessageWithLifecycle(method, defaultLifecycle, params);
+  const handleMessage: MessageHandler = (method, params, context) =>
+    handleMessageWithLifecycle(method, defaultLifecycle, params, context);
 
   const processLine = async (
     line: string,
     write: (data: string) => Promise<void>,
-    messageHandler: MessageHandler
+    messageHandler: MessageHandler,
+    subscriptionSignal?: AbortSignal
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
@@ -528,6 +763,12 @@ export function createServer(options: ServerOptions): Server {
     }
 
     const { request, isNotification } = parsed;
+    if (
+      isNotification &&
+      !request.method.startsWith("notifications/") &&
+      selectRequestProtocol(request.method, request.params, SUPPORTED_PROTOCOL_VERSIONS).modern
+    )
+      return;
 
     if (isNotification && request.method === "initialize") {
       return;
@@ -546,7 +787,16 @@ export function createServer(options: ServerOptions): Server {
 
     let handled: HandleResult;
     try {
-      handled = await messageHandler(request.method, request.params);
+      handled = await messageHandler(
+        request.method,
+        request.params,
+        !isNotification && (request as JSONRPCRequest).id !== null
+          ? {
+              requestId: (request as JSONRPCRequest).id as string | number,
+              ...(request.method === "subscriptions/listen" ? { signal: subscriptionSignal } : {})
+            }
+          : undefined
+      );
     } catch {
       if (!isNotification) {
         const requestWithId = request as JSONRPCRequest;
@@ -591,6 +841,9 @@ export function createServer(options: ServerOptions): Server {
     }
 
     await Promise.all(
+      [...messageLifecycles].map((lifecycle) => lifecycle.subscriptions.emit(method, params))
+    );
+    await Promise.all(
       [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
         if (lifecycle.notificationReady && canSend(lifecycle)) {
           await listener(notification);
@@ -605,25 +858,29 @@ export function createServer(options: ServerOptions): Server {
       description: string,
       inputSchema: TypedSchema<TIn>,
       handler: ToolHandler<TIn, TOut>,
-      outputSchema?: TypedSchema<TOut>
+      outputSchema?: TypedOutputSchema<TOut>
     ): Server {
       assertNonEmptyName(name, "Tool name required");
       if (tools.has(name)) {
         throw new Error(`Tool already registered: ${name}`);
       }
-      const inputValidator = compileToolSchema(inputSchema as JSONSchema);
+      const inputSchemaSnapshot = normalizeLegacyNullability(inputSchema);
+      const outputSchemaSnapshot = outputSchema === undefined ? undefined : normalizeLegacyNullability(outputSchema) as OutputSchema;
+      const inputValidator = compileToolSchema(inputSchemaSnapshot);
+      assertObjectRootSchema(inputSchemaSnapshot, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
-      if (outputSchema !== undefined) {
-        assertObjectRootSchema(outputSchema, "outputSchema");
-        outputValidator = compileToolSchema(outputSchema as JSONSchema);
+      if (outputSchemaSnapshot !== undefined) {
+        assertOutputSchema(outputSchemaSnapshot);
+        outputValidator = compileToolSchema(outputSchemaSnapshot);
       }
       tools.set(name, {
         name,
         description,
-        inputSchema: inputSchema as JSONSchema,
-        ...(outputSchema === undefined ? {} : { outputSchema: outputSchema as JSONSchema }),
+        inputSchema: inputSchemaSnapshot,
+        ...(outputSchemaSnapshot === undefined ? {} : { outputSchema: outputSchemaSnapshot }),
         handler: handler as ToolHandler,
         inputValidator,
+        parameterHeaders: getParameterHeaders(inputSchemaSnapshot),
         ...(outputValidator === undefined ? {} : { outputValidator })
       });
       return server;
@@ -637,16 +894,22 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(definition.name)) {
         throw new Error(`Tool already registered: ${definition.name}`);
       }
-      const inputValidator = compileToolSchema(definition.inputSchema);
+      const descriptor = structuredClone(definition);
+      const inputSchema = normalizeLegacyNullability(descriptor.inputSchema);
+      const inputValidator = compileToolSchema(inputSchema);
+      assertObjectRootSchema(inputSchema, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
-      if (definition.outputSchema !== undefined) {
-        assertObjectRootSchema(definition.outputSchema, "outputSchema");
-        outputValidator = compileToolSchema(definition.outputSchema);
+      if (descriptor.outputSchema !== undefined) {
+        descriptor.outputSchema = normalizeLegacyNullability(descriptor.outputSchema) as OutputSchema;
+        assertOutputSchema(descriptor.outputSchema);
+        outputValidator = compileToolSchema(descriptor.outputSchema);
       }
       tools.set(definition.name, {
-        ...definition,
+        ...descriptor,
+        inputSchema,
         handler: handler as ToolHandler,
         inputValidator,
+        parameterHeaders: getParameterHeaders(inputSchema),
         ...(outputValidator === undefined ? {} : { outputValidator })
       });
       return server;
@@ -657,7 +920,7 @@ export function createServer(options: ServerOptions): Server {
       if (prompts.has(definition.name)) {
         throw new Error(`Prompt already registered: ${definition.name}`);
       }
-      prompts.set(definition.name, { ...definition, handler });
+      prompts.set(definition.name, { ...structuredClone(definition), handler });
       return server;
     },
 
@@ -668,7 +931,7 @@ export function createServer(options: ServerOptions): Server {
       if (resources.has(definition.uri)) {
         throw new Error(`Resource already registered: ${definition.uri}`);
       }
-      resources.set(definition.uri, { ...definition, handler });
+      resources.set(definition.uri, { ...structuredClone(definition), handler });
       return server;
     },
 
@@ -677,7 +940,7 @@ export function createServer(options: ServerOptions): Server {
       if (resourceTemplates.has(definition.uriTemplate)) {
         throw new Error(`Resource template already registered: ${definition.uriTemplate}`);
       }
-      resourceTemplates.set(definition.uriTemplate, { ...definition, handler, template });
+      resourceTemplates.set(definition.uriTemplate, { ...structuredClone(definition), handler, template });
       return server;
     },
 
@@ -713,7 +976,9 @@ export function createServer(options: ServerOptions): Server {
     async notifyToolsChanged(): Promise<void> {
       if (
         supportNotifications &&
-        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+        [...messageLifecycles].some(
+          (lifecycle) => lifecycle.notificationReady || lifecycle.subscriptions.size > 0
+        )
       ) {
         await broadcastNotification("notifications/tools/list_changed");
       }
@@ -722,7 +987,9 @@ export function createServer(options: ServerOptions): Server {
     async notifyPromptsChanged(): Promise<void> {
       if (
         supportNotifications &&
-        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+        [...messageLifecycles].some(
+          (lifecycle) => lifecycle.notificationReady || lifecycle.subscriptions.size > 0
+        )
       ) {
         await broadcastNotification("notifications/prompts/list_changed");
       }
@@ -731,7 +998,9 @@ export function createServer(options: ServerOptions): Server {
     async notifyResourcesChanged(): Promise<void> {
       if (
         supportNotifications &&
-        [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)
+        [...messageLifecycles].some(
+          (lifecycle) => lifecycle.notificationReady || lifecycle.subscriptions.size > 0
+        )
       ) {
         await broadcastNotification("notifications/resources/list_changed");
       }
@@ -761,6 +1030,7 @@ export function createServer(options: ServerOptions): Server {
         let inputClosed = false;
         let settled = false;
         const pendingMessages = new Set<Promise<void>>();
+        const subscriptions = new AbortController();
         const output = new StdioOutput(transport.writable, maxStdioOutputBytes, fail, finish);
         const listener = (notification: JSONRPCNotification) =>
           output.write(`${JSON.stringify(notification)}\n`);
@@ -808,8 +1078,9 @@ export function createServer(options: ServerOptions): Server {
           }
           const message = processLine(
             line,
-            data => output.write(data),
-            session.handleMessage
+            (data) => output.write(data),
+            session.handleMessage,
+            subscriptions.signal
           );
           if (!settled) pendingMessages.add(message);
           void message.then(() => {
@@ -820,6 +1091,7 @@ export function createServer(options: ServerOptions): Server {
 
         rl.on("close", () => {
           inputClosed = true;
+          subscriptions.abort();
           finish();
         });
         transport.readable.pipe(input);
@@ -839,6 +1111,12 @@ export function createServer(options: ServerOptions): Server {
 
           // Handle notifications (no id) - don't respond
           if (!("id" in message) || message.id === undefined) {
+            if (
+              !message.method.startsWith("notifications/") &&
+              selectRequestProtocol(message.method, message.params, SUPPORTED_PROTOCOL_VERSIONS)
+                .modern
+            )
+              return;
             if (message.method === "initialize") {
               return;
             }
@@ -864,9 +1142,25 @@ export function createServer(options: ServerOptions): Server {
           }
 
           const request = message as JSONRPCRequest;
+          if (
+            selectRequestProtocol(request.method, request.params, SUPPORTED_PROTOCOL_VERSIONS)
+              .modern &&
+            !isRequestId(request.id)
+          ) {
+            await transport.send({
+              jsonrpc: "2.0",
+              id: null,
+              error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request ID" }
+            });
+            return;
+          }
           let handled: HandleResult;
           try {
-            handled = await session.handleMessage(request.method, request.params);
+            handled = await session.handleMessage(
+              request.method,
+              request.params,
+              request.id === null ? undefined : { requestId: request.id }
+            );
           } catch {
             await transport.send({
               jsonrpc: "2.0",
@@ -945,15 +1239,6 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function isValidUri(uri: string): boolean {
-  try {
-    new URL(uri);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function assertNonEmptyName(name: string, message: string): void {
   if (name.length === 0) {
     throw new Error(message);
@@ -1008,7 +1293,16 @@ function findReadableResource(
   return [...resourceTemplates.values()].find((template) => template.template.match(uri) !== null);
 }
 
-function isCallToolResult(value: unknown): value is CallToolResult {
+function isInputRequiredResult(value: unknown): value is InputRequiredResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    (value as Record<string, unknown>).resultType === "input_required"
+  );
+}
+
+function isCallToolResult(value: unknown, modern: boolean): value is CallToolResult {
   if (!hasContentArray(value) || !value.content.every(isContentItem)) {
     return false;
   }
@@ -1016,7 +1310,7 @@ function isCallToolResult(value: unknown): value is CallToolResult {
   if (
     hasOwnProperty(value, "structuredContent") &&
     value.structuredContent !== undefined &&
-    !isJsonObject(value.structuredContent)
+    !(isJsonValue(value.structuredContent) && (modern || isJsonObject(value.structuredContent)))
   ) {
     return false;
   }
@@ -1030,58 +1324,78 @@ function isCallToolResult(value: unknown): value is CallToolResult {
 
 function normalizeToolResult(
   handlerResult: unknown,
-  outputSchema: JSONSchema | undefined
+  outputSchema: OutputSchema | undefined,
+  modern: boolean
 ): CallToolResult {
-  if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
+  if (!modern && outputSchema !== undefined && outputSchema.type !== "object") {
+    const result = normalizeToolResult(handlerResult, outputSchema, true);
+    const { structuredContent, ...legacyResult } = result;
+    return {
+      ...legacyResult,
+      content: typeof handlerResult === "string"
+        ? [{ type: "text", text: handlerResult }]
+        : legacyResult.content.length > 0 || structuredContent === undefined
+        ? legacyResult.content
+        : [{ type: "text", text: JSON.stringify(structuredContent) }]
+    };
+  }
+  if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult, modern)) {
+    if (outputSchema !== undefined) throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, "Invalid tool result");
     throw new Error("Invalid tool result");
   }
 
   if (outputSchema === undefined) {
-    const result = isCallToolResult(handlerResult)
+    const result = isCallToolResult(handlerResult, modern)
       ? handlerResult
       : { content: toContentBlocks(handlerResult as ToolReturn) };
-    if (!isCallToolResult(result)) {
+    if (!isCallToolResult(result, modern)) {
       throw new Error("Invalid tool result");
     }
 
     return result;
   }
 
-  if (isCallToolResult(handlerResult) && handlerResult.isError === true) {
+  if (isCallToolResult(handlerResult, modern) && handlerResult.isError === true) {
     return handlerResult;
   }
 
-  const callToolResult = isCallToolResult(handlerResult) ? handlerResult : undefined;
+  const callToolResult = isCallToolResult(handlerResult, modern) ? handlerResult : undefined;
   const structuredContent = callToolResult ? callToolResult.structuredContent : handlerResult;
 
-  if (!isJsonObject(structuredContent)) {
+  if (!(isJsonValue(structuredContent) && (modern || isJsonObject(structuredContent)))) {
     throw new ToolError(
       JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-      "Structured tool result must be an object"
+      modern ? "Structured tool result must be JSON" : "Structured tool result must be a JSON object"
     );
   }
 
   return {
+    ...callToolResult,
     content:
       callToolResult !== undefined && callToolResult.content.length > 0
         ? callToolResult.content
         : [{ type: "text", text: JSON.stringify(structuredContent) }],
-    ...(callToolResult?.isError !== undefined ? { isError: callToolResult.isError } : {}),
     structuredContent
   };
 }
 
-function assertObjectRootSchema(schema: JSONSchema, path: string): void {
-  if (schema.type !== "object") {
+function assertObjectRootSchema(schema: unknown, path: string): asserts schema is JSONSchema {
+  if (typeof schema !== "object" || schema === null || !("type" in schema) || schema.type !== "object") {
     throw new Error(`${path} root type must be "object"`);
   }
+}
+
+function assertOutputSchema(schema: OutputSchema): void {
+  if (typeof schema !== "object" || schema === null || Array.isArray(schema))
+    throw new Error("outputSchema must be a JSON Schema object");
 }
 
 function isJsonObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isGetPromptResult(value: unknown): boolean {
+
+function isGetPromptResult(value: unknown, modern = false): boolean {
   if (typeof value !== "object" || value === null || !hasOwnProperty(value, "messages")) {
     return false;
   }
@@ -1098,7 +1412,7 @@ function isGetPromptResult(value: unknown): boolean {
         hasOwnProperty(message, "role") &&
         (message.role === "user" || message.role === "assistant") &&
         hasOwnProperty(message, "content") &&
-        isPromptContentItem(message.content)
+        (modern ? isContentItem(message.content) : isPromptContentItem(message.content))
     )
   );
 }
@@ -1218,29 +1532,6 @@ function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
     (priority === undefined || typeof priority === "number") &&
     (lastModified === undefined || typeof lastModified === "string")
   );
-}
-
-function isBase64(value: string): boolean {
-  if (value.length === 0) {
-    return true;
-  }
-
-  if (value.length % 4 !== 0) {
-    return false;
-  }
-
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  const paddingStart = value.indexOf("=");
-  const encoded = paddingStart === -1 ? value : value.slice(0, paddingStart);
-  const padding = paddingStart === -1 ? "" : value.slice(paddingStart);
-  if (padding.length > 2 || [...padding].some((character) => character !== "=")) {
-    return false;
-  }
-  if ([...encoded].some((character) => !alphabet.includes(character))) {
-    return false;
-  }
-
-  return Buffer.from(value, "base64").toString("base64") === value;
 }
 
 function isPromptContentItem(value: unknown): boolean {

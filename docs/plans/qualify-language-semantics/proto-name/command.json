@@ -1,0 +1,19 @@
+[
+  "npm",
+  "run",
+  "test:conformance",
+  "--workspace=@poe-code/safe-js",
+  "--",
+  "--corpus",
+  "/tmp/safejs-baseline-test262-419d3e0",
+  "--report",
+  "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/proto-name/upstream.jsonl",
+  "--include",
+  "language/expressions/object/__proto__-fn-name.js",
+  "--include",
+  "language/expressions/object/__proto__-duplicate-computed.js",
+  "--include",
+  "language/expressions/object/__proto__-permitted-dup.js",
+  "--include",
+  "language/expressions/object/__proto__-permitted-dup-shorthand.js"
+]

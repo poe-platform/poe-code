@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (5 tests) 631ms
+   ✓ enforces admitted symbol and value string limits through replay  417ms
+ ✓ packages/safe-js/src/snapshot/input-symbol-references.test.ts (9 tests) 9ms
+ ✓ packages/safe-js/src/interp/native-promise-admission.test.ts (22 tests) 1748ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  18:19:19
+   Duration  6.20s (transform 6.82s, setup 178ms, import 9.03s, tests 2.39s, environment 0ms)
+

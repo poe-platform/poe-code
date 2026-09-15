@@ -1,3 +1,4 @@
+export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
 export { run, type RunOptions, type RunResult } from "./run.js";
 export { Budget } from "./interp/budget.js";
 export { declareHostOperation } from "./interp/host-bridge.js";

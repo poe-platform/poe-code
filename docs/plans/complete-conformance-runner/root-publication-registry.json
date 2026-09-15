@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-12T14:23:50.523Z",
+  "sourceSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+  "name": "poe-code",
+  "version": "15.0.26",
+  "gitHead": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/poe-code-published-15026-rvDot3",
+  "tarballUrl": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.26.tgz",
+  "tarballBytes": 34299981,
+  "sha512": "148d5305fe9a1b57f92ede9ed04d73d762861523869c5ae13872eadf7310533d22ed20bd92106deee7c9189f18731b9ca65e06552702368713398e3aae2d3f22",
+  "integrity": "sha512-FI1TBf6aG1f5Lt6e0E1z12KGFSOGnFrhOHLq33MQUz0i7SC9khBt7ufJGJ8Ycxucpl4GVScCNocTOY46ri0/Ig==",
+  "signatures": [
+    {
+      "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+      "valid": true
+    }
+  ],
+  "provenance": {
+    "_type": "https://in-toto.io/Statement/v1",
+    "subject": [
+      {
+        "name": "pkg:npm/poe-code@15.0.26",
+        "digest": {
+          "sha512": "148d5305fe9a1b57f92ede9ed04d73d762861523869c5ae13872eadf7310533d22ed20bd92106deee7c9189f18731b9ca65e06552702368713398e3aae2d3f22"
+        }
+      }
+    ],
+    "predicateType": "https://slsa.dev/provenance/v1",
+    "predicate": {
+      "buildDefinition": {
+        "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+        "externalParameters": {
+          "workflow": {
+            "ref": "refs/heads/main",
+            "repository": "https://github.com/poe-platform/poe-code",
+            "path": ".github/workflows/release.yml"
+          }
+        },
+        "internalParameters": {
+          "github": {
+            "event_name": "push",
+            "repository_id": "1078492326",
+            "repository_owner_id": "129537891"
+          }
+        },
+        "resolvedDependencies": [
+          {
+            "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+            "digest": {
+              "gitCommit": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c"
+            }
+          }
+        ]
+      },
+      "runDetails": {
+        "builder": {
+          "id": "https://github.com/actions/runner/github-hosted"
+        },
+        "metadata": {
+          "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34697326933/attempts/1"
+        }
+      }
+    }
+  },
+  "provenanceCryptographicVerification": "Decoded source/subject identity only; npm audit signatures follows installed registry spec."
+}

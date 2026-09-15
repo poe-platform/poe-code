@@ -1,0 +1,47 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "pkg:npm/poe-code@15.0.32",
+      "digest": {
+        "sha512": "3f2570a04dc7bfd725731ebe17185606bda989281b2d4d8079fe63357dacb845a49dc5a62df2da6e0e943cdec6b360d96b00ec1e17c655d8d8a043b67ac00b30"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+      "externalParameters": {
+        "workflow": {
+          "ref": "refs/heads/main",
+          "repository": "https://github.com/poe-platform/poe-code",
+          "path": ".github/workflows/release.yml"
+        }
+      },
+      "internalParameters": {
+        "github": {
+          "event_name": "push",
+          "repository_id": "1078492326",
+          "repository_owner_id": "129537891"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+          "digest": {
+            "gitCommit": "4d44bf1342b5a0e8193801120ca5127e4b48e1d1"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/actions/runner/github-hosted"
+      },
+      "metadata": {
+        "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34752098772/attempts/1"
+      }
+    }
+  }
+}

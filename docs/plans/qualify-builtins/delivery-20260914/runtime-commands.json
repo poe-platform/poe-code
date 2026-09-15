@@ -1,0 +1,47 @@
+[
+  {
+    "name": "node18-min",
+    "command": [
+      "npx",
+      "--yes",
+      "--package=node@18.18.0",
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/globals/bigint-constructor.test.ts",
+      "packages/safe-js/src/interp/array-length-coercion.test.ts",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts"
+    ],
+    "exitCode": 1,
+    "durationSeconds": 4.6005230830014625
+  },
+  {
+    "name": "node20",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v20.20.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/globals/bigint-constructor.test.ts",
+      "packages/safe-js/src/interp/array-length-coercion.test.ts",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts"
+    ],
+    "exitCode": 0,
+    "durationSeconds": 3.8081144589996256
+  },
+  {
+    "name": "node24",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "packages/safe-js/src/interp/globals/bigint-constructor.test.ts",
+      "packages/safe-js/src/interp/array-length-coercion.test.ts",
+      "packages/safe-js/src/interp/resizable-typed-array-integrity.test.ts",
+      "packages/safe-js/src/interp/methods/string-regexp-bare-interpreter.test.ts"
+    ],
+    "exitCode": 0,
+    "durationSeconds": 3.1660689169984835
+  }
+]

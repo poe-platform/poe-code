@@ -1,0 +1,6 @@
+{
+  "maxWorkers": 4,
+  "minimumFreeBytes": 8589934592,
+  "changedUtc": "2026-09-12T15:01:13.830981+00:00",
+  "reason": "Restored original4 cap after memory_pressure reports64% free and disk stabilizes19.4GB; V4 artifacts48MB and no active contention signal. Keep raised8GiB disk admissionfloor. No reexecution, timeout or budget change; all earlier raw outcomes retained."
+}

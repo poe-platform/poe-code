@@ -1,0 +1,2755 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "name": "feff after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 1, '\\ufeffsuffix', 2, 1)\n"
+    },
+    {
+      "name": "feff after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "feff after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "feff after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 5, 'name\\ufeffsuffix', 2, 5)\n"
+    },
+    {
+      "name": "feff after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "feff after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "feff after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+FEFF', ('invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2))\n('invalid non-printable character U+FEFF', 'invalid-source.py', 2, 2, '𝒙\\ufeffsuffix', 2, 2)\n"
+    },
+    {
+      "name": "feff after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "feff after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 1, '\\xa0suffix', 2, 1))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 1, '\\xa0suffix', 2, 1)\n"
+    },
+    {
+      "name": "a0 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 5, 'name\\xa0suffix', 2, 5)\n"
+    },
+    {
+      "name": "a0 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+00A0', ('invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2))\n('invalid non-printable character U+00A0', 'invalid-source.py', 2, 2, '𝒙\\xa0suffix', 2, 2)\n"
+    },
+    {
+      "name": "a0 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "a0 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 1, '\\u200bsuffix', 2, 1)\n"
+    },
+    {
+      "name": "200b after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 5, 'name\\u200bsuffix', 2, 5)\n"
+    },
+    {
+      "name": "200b after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+200B', ('invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2))\n('invalid non-printable character U+200B', 'invalid-source.py', 2, 2, '𝒙\\u200bsuffix', 2, 2)\n"
+    },
+    {
+      "name": "200b after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "200b after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 1, '😀suffix', 2, 1))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 1, '😀suffix', 2, 1)\n"
+    },
+    {
+      "name": "1f600 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 5, 'name😀suffix', 2, 5))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 5, 'name😀suffix', 2, 5)\n"
+    },
+    {
+      "name": "1f600 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\nSyntaxError (\"invalid character '😀' (U+1F600)\", ('invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2))\n(\"invalid character '😀' (U+1F600)\", 'invalid-source.py', 2, 2, '𝒙😀suffix', 2, 2)\n"
+    },
+    {
+      "name": "1f600 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f600 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 1, '²suffix', 2, 1))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 1, '²suffix', 2, 1)\n"
+    },
+    {
+      "name": "b2 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 5, 'name²suffix', 2, 5))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 5, 'name²suffix', 2, 5)\n"
+    },
+    {
+      "name": "b2 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\nSyntaxError (\"invalid character '²' (U+00B2)\", ('invalid-source.py', 2, 2, '𝒙²suffix', 2, 2))\n(\"invalid character '²' (U+00B2)\", 'invalid-source.py', 2, 2, '𝒙²suffix', 2, 2)\n"
+    },
+    {
+      "name": "b2 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b2 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "301 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\nSyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\nSyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\nSyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\nSyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\nSyntaxError (\"invalid character '́' (U+0301)\", ('invalid-source.py', 2, 1, '́suffix', 2, 1))\n(\"invalid character '́' (U+0301)\", 'invalid-source.py', 2, 1, '́suffix', 2, 1)\n"
+    },
+    {
+      "name": "301 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "301 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "301 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 12,
+      "flushes": 1,
+      "output": "ok\nok\nok\nok\nok\nok\n"
+    },
+    {
+      "name": "301 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "ok"
+    },
+    {
+      "name": "301 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "ok"
+    },
+    {
+      "name": "301 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 12,
+      "flushes": 1,
+      "output": "ok\nok\nok\nok\nok\nok\n"
+    },
+    {
+      "name": "301 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "ok"
+    },
+    {
+      "name": "301 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "ok"
+    },
+    {
+      "name": "378 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 1, '\\u0378suffix', 2, 1))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 1, '\\u0378suffix', 2, 1)\n"
+    },
+    {
+      "name": "378 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "378 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "378 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 5, 'name\\u0378suffix', 2, 5)\n"
+    },
+    {
+      "name": "378 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "378 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "378 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0378', ('invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2))\n('invalid non-printable character U+0378', 'invalid-source.py', 2, 2, '𝒙\\u0378suffix', 2, 2)\n"
+    },
+    {
+      "name": "378 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "378 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 1, '🫩suffix', 2, 1))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 1, '🫩suffix', 2, 1)\n"
+    },
+    {
+      "name": "1fae9 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 5, 'name🫩suffix', 2, 5))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 5, 'name🫩suffix', 2, 5)\n"
+    },
+    {
+      "name": "1fae9 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\nSyntaxError (\"invalid character '🫩' (U+1FAE9)\", ('invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2))\n(\"invalid character '🫩' (U+1FAE9)\", 'invalid-source.py', 2, 2, '𝒙🫩suffix', 2, 2)\n"
+    },
+    {
+      "name": "1fae9 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1fae9 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 1, '\\x01suffix', 2, 1))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 1, '\\x01suffix', 2, 1)\n"
+    },
+    {
+      "name": "1 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 5, 'name\\x01suffix', 2, 5)\n"
+    },
+    {
+      "name": "1 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0001', ('invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2))\n('invalid non-printable character U+0001', 'invalid-source.py', 2, 2, '𝒙\\x01suffix', 2, 2)\n"
+    },
+    {
+      "name": "1 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 1, '\\x07suffix', 2, 1))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 1, '\\x07suffix', 2, 1)\n"
+    },
+    {
+      "name": "7 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 5, 'name\\x07suffix', 2, 5)\n"
+    },
+    {
+      "name": "7 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0007', ('invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2))\n('invalid non-printable character U+0007', 'invalid-source.py', 2, 2, '𝒙\\x07suffix', 2, 2)\n"
+    },
+    {
+      "name": "7 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 1, '\\x08suffix', 2, 1))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 1, '\\x08suffix', 2, 1)\n"
+    },
+    {
+      "name": "8 after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 5, 'name\\x08suffix', 2, 5)\n"
+    },
+    {
+      "name": "8 after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\nSyntaxError ('invalid non-printable character U+0008', ('invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2))\n('invalid non-printable character U+0008', 'invalid-source.py', 2, 2, '𝒙\\x08suffix', 2, 2)\n"
+    },
+    {
+      "name": "8 after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "8 after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 1, '\\x0bsuffix', 2, 1)\n"
+    },
+    {
+      "name": "b after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 5, 'name\\x0bsuffix', 2, 5)\n"
+    },
+    {
+      "name": "b after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000B', ('invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2))\n('invalid non-printable character U+000B', 'invalid-source.py', 2, 2, '𝒙\\x0bsuffix', 2, 2)\n"
+    },
+    {
+      "name": "b after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "b after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 1, '\\x0esuffix', 2, 1))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 1, '\\x0esuffix', 2, 1)\n"
+    },
+    {
+      "name": "e after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 5, 'name\\x0esuffix', 2, 5)\n"
+    },
+    {
+      "name": "e after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+000E', ('invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2))\n('invalid non-printable character U+000E', 'invalid-source.py', 2, 2, '𝒙\\x0esuffix', 2, 2)\n"
+    },
+    {
+      "name": "e after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "e after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 1, '\\x1fsuffix', 2, 1)\n"
+    },
+    {
+      "name": "1f after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 5, 'name\\x1fsuffix', 2, 5)\n"
+    },
+    {
+      "name": "1f after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+001F', ('invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2))\n('invalid non-printable character U+001F', 'invalid-source.py', 2, 2, '𝒙\\x1fsuffix', 2, 2)\n"
+    },
+    {
+      "name": "1f after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "1f after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after start",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 1, '\\x7fsuffix', 2, 1)\n"
+    },
+    {
+      "name": "7f after start",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after start",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after name",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 5, 'name\\x7fsuffix', 2, 5)\n"
+    },
+    {
+      "name": "7f after name",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after name",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after 𝒙",
+      "mode": "normal",
+      "passed": true,
+      "result": {
+        "status": "ok"
+      },
+      "writes": 36,
+      "flushes": 1,
+      "output": "SyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\nSyntaxError ('invalid non-printable character U+007F', ('invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2))\n('invalid non-printable character U+007F', 'invalid-source.py', 2, 2, '𝒙\\x7fsuffix', 2, 2)\n"
+    },
+    {
+      "name": "7f after 𝒙",
+      "mode": "cancel-return",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    },
+    {
+      "name": "7f after 𝒙",
+      "mode": "cancel-throw",
+      "passed": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "writes": 1,
+      "flushes": 1,
+      "output": "SyntaxError"
+    }
+  ]
+}

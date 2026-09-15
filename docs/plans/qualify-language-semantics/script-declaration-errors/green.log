@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/test/conformance/script-declaration-errors.test.ts (10 tests) 207ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 789ms
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 585ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 350ms
+ ✓ packages/safe-js/src/interp/global-scope.test.ts (3 tests) 3ms
+
+ Test Files  5 passed (5)
+      Tests  87 passed (87)
+   Start at  11:31:18
+   Duration  3.54s (transform 2.66s, setup 96ms, import 4.63s, tests 1.93s, environment 0ms)
+

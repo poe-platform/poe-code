@@ -1,0 +1,129 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "decode": {
+    "strict": {
+      "records": 32768,
+      "sha256": "c8db5404c05ab26ce1fd70b927758f2f3733348e6be4b8b96c662184aad812bf"
+    },
+    "ignore": {
+      "records": 32768,
+      "sha256": "d5958fab16ceb98edeca98da2a72f20a093b078a8a035f4645aa9c6458bace97"
+    },
+    "replace": {
+      "records": 32768,
+      "sha256": "2e144be2c6abdc929787c94aee8ac897578d03976b87e2ee47ec786ed19185d2"
+    }
+  },
+  "incremental": {
+    "strict": {
+      "records": 131072,
+      "sha256": "4c93baf8a1d3eeb38ea04f349b95b3e06788ef78565f9f95d5eb7a7e76054c8a"
+    },
+    "ignore": {
+      "records": 131072,
+      "sha256": "c8cad5bcd55c2bd0c9fb04b6c2cd8a41e176cb812c54b3aa104c9eee6196bd98"
+    },
+    "replace": {
+      "records": 131072,
+      "sha256": "b1d41d97731c383a59361126f7cd0641e0d2e55315b56e05ef87c8733fd8cb32"
+    }
+  },
+  "encode": {
+    "ignore": {
+      "length": 34560,
+      "sha256": "9f11f4cee3fc8d932d929ddaaa050e6f5e14e6592cc07f81e52a8e92088cc15c"
+    },
+    "replace": {
+      "length": 1134125,
+      "sha256": "1098e332d9ac5fd5067d87f6e3494d2a6f02de57aef1c3e4cd77dc1839a97768"
+    }
+  },
+  "strictEncode": {
+    "records": 1114112,
+    "sha256": "1d2582ebd2fe3d5de24db78e9ea458c04dd6c6cb663df4c0013307bf82abca6a",
+    "planes": [
+      "db3b6618a3f209e9cb8083a356efc6903c9a4fc693d3d99c87d2313e1b716294",
+      "ef0aa87cbfab6fb7208f1b89c0716f3bb1de5f5ced59962478bcf1533ccfdc59",
+      "f0a175c5a4e5303ee7a13ce605c0da2a743760896aff236b77adca3b3136bbbd",
+      "7faaa2cc2e783faeedde099d68dccc598f019d671c20bc116f479f18dc3740b0",
+      "7aa91fa00a4c9b6e8b781be1eb09795aaac0a355df4be5782cf61b3ce57d931a",
+      "221f90dfeef90b0d4707f5edca6878364b5537609d1fe73609cb689f407c063c",
+      "81c00d30ed9ac475a1e3f7164111e03732de52198cd1f664cdae8067fdee4634",
+      "cf25f9d92e4e6ec9003f956ab48d40da139b060f7a23dd7f4f87f5acd63bfba5",
+      "5e5343ebf949464626672f3de86e6c459e36fd8c9c896e76cfdf18d7f3efc98f",
+      "7cda77fdfdc256b3c45f6430203d86084090137c67aba553e3dc3cee47a205ae",
+      "a6d6af6cd4809faa23ac872e195704b38d4d1c5584af29612397151bba75fdc7",
+      "92bbffc5c2907bd8ae2c7345b63f49f9b8ca99728d3cf7a9e03f4056d6241db4",
+      "a809eaaacfe2c2784b61ac5f0c78d92487742cddde84600cadab1ce1814e96a1",
+      "edd20d72082dc48d1843cad24b575aa0ee3cfec487372843c3e40aafa81d4627",
+      "1270eafc1a442c25a4d419624f61d5b674109d3133cfcacd66e824649d9a3803",
+      "ef30f1c6126bf0a73910a3e6305d88dc8942b7c3c09061734bd70aa9c17c3682",
+      "b27eb545732aee80ff96973b5daa3a2253b43e50fa0acda86669ba0e7b37fee8"
+    ]
+  },
+  "triples": {
+    "strict": [
+      "995d2fb4420c34aabb6f5ebc40787ecee20f94cf6e360778988d0dadcb73f0b2",
+      "4a8db5de35865378c20a96d2b19247c1226387824492eb2829b80be2b0463689",
+      "cbd72cb2fca7840cd1ea8bb47ff71fbe42592a3d8a3b08d6376cd1e45c036828",
+      "29990c8e15359f16b5053453c296d8e7561a160aa1b54bcc514cc2c6ea95233b",
+      "ca892558d28e8f21e57e6dba7f511c030c46ac4d1f3196f9e6f18a5c1bf52673",
+      "ec49da8a6ea17e30263878e673451bcc24dd559bda17778e66a442f801b11606",
+      "3ba242f3c7526effcd11ec275cc1fd3c5a8dcd4dc96526b2f1fe93e11ab43639",
+      "39556ba04f4fb19a954370aae58bf508f8fb3e00da600a43ef0b414f03f81911",
+      "c1607055b099e3443cf1e51d85d006b6a8ddd32c91ab598d7a1967d972a5e950",
+      "0bea15db5154657c6d7a309c77f6e93764a5940a9fd8f667526841c9b90efc1a",
+      "771bdd315968ad3fa68ca78f982e5bca4d16d26f7e212e9d30584b834613c98f",
+      "fc8c952b079faaada490b7268699c42b1a0767aa2e72d55493eab25ca5eddde8",
+      "84a1106e05972607622e873d54d5eadbd47014bf22c36e0ba70b9f984734b21f",
+      "eecdde31259dbf6ed225aa9537f64f22d7060402d17b2fa0898aec3d1e5c6caa",
+      "4bcfcae91cc70b014688745f42097a106947c464685b987e4e644e26fde989be",
+      "c0088743407733cdb3462f45f19884fca8b40d8a3cb45c7fa2f48636df8c6381"
+    ],
+    "ignore": [
+      "2bb22a2a68150895bb38d9d827b4bd0ab5789d8bb789cf388f27b85996bd7edb",
+      "22181dc057ca134e3fa810ffb89db217de73b30cca8174c51e8f71f9df731e6c",
+      "eab56749f3360d324dbadda3a91ea87dbc97e847ae4baa5a55deff3449722b1a",
+      "d90c0349c3b45bcbbf2207fc33db8cc82f01a8d373d2f0950a45faafa98e9c4f",
+      "9c8f57e98203c763f8e9d6e269e6ef18ef979af510acf4135f9f949ca625a2cf",
+      "24600051c515e6b462608f2e01dfce12cd9d37e23e7015f214972e6f237724f3",
+      "7b4641c480281b6d93825937e3d9f1f3986f5a8abbc13de683fff408802ceb7e",
+      "1bc3900b745867ee4e705e3427cc0e08c76432d62912aec9b20eca0a0b095954",
+      "9b6799ebd4c09c6437daeba0babecab96fa2c58c0203bfdf1792a7ad07f73b92",
+      "0c909a056b9e0f1ae92460645bef96dd4a1449eedc9f4a8068b6813f7b0d7a13",
+      "63df45cc1bd8b6472b06e092c29e2cb1736daeeb6345405fbfab274a3cc9859e",
+      "1eaf5a6aac2bfdc0e7d9e1f28be66e174310f3f901814dd26123391b40be5efd",
+      "d6dc5f7a68fa3a8efda37cbbbe3c88feee40a003444fcb283ee0d52a11f59f43",
+      "925ffe32192415cf9583832b8790b61f5725e4c6a482f548232d0fb1f0c85bb0",
+      "db375f611663682fc414d5ff74a00d01aefd71cc9935299eb576592f7dbb5c01",
+      "9f5a6dd49ac7b4d2310bb71d4b2fd86a1a220941a6b4e92861cb78a0494bb848"
+    ],
+    "replace": [
+      "588b91b04cf72f799e540d568c0f34929c86182400f8e821739f95d958d615c0",
+      "28dd5bbd1f2a5c83dd50f78199af6b1c57b24da1b3095e62a71ed9cc066894fe",
+      "dfbaf81f835d82c357dda8b1ea62e7a8fc9b01cc589154a08eb93b00ac14e109",
+      "498cfff455383f032115660416b06e68d2d0890a5cd434b0b82a820054c95d51",
+      "b8f37f4b09d026054484e99355dbe2abfe1bfb4e90387e5ddbfe56c3f75789fb",
+      "fc16e02fda350c83a4aab2e437b50d8c94f4e581f4830c5a399830af587f040e",
+      "09e2fd061ae3df742bf58dbc8d872b6fcd7d1e3ad5c056884746e27d13c7b8b9",
+      "11a840f799391d8877a4e325fcdb2d17eaec480144e9f88de4f1d14f8568b278",
+      "937e24f2e12875aaefd46b5256fccb018d741824171ae9e5b00a391ba35ec435",
+      "26cf56a8779b90a35effb8cc0f07c285ccebac58f786e9084f0e62b8a0baf3b0",
+      "aa49f40d8253874a75b1592fc0d6caf60b03f72b9e791ee5faeb2e88e910dded",
+      "4a73fdfcd49a55c7686b97094df7f2a798a03b445e422e38627f1f95c5ddbc4a",
+      "08ec6642ef87884614b35cd7778d482fcfbe2f053c66568329c1cbc26ba738e8",
+      "1046f081ac6c0156cf401b99444fa64950e2b12986e86501fbaa8ad6ba98e02a",
+      "5d30b9af74926d1a107be15cbbc0511a42473a6675d6be1a8a7c390c21d13d18",
+      "7b240ba29db278c756c200418a4cb7c3071b07ce62c83ad8d139ae8899a42b44"
+    ]
+  },
+  "oracleSource": "import codecs, hashlib, json, struct, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\nassert sys.platform == 'darwin' and sys.byteorder == 'little'\n\ndef digest(rows):\n    h = hashlib.sha256()\n    for row in rows:\n        h.update((json.dumps(row, separators=(',', ':'), ensure_ascii=True) + '\\n').encode())\n    return h.hexdigest()\n\ndef failure(e):\n    return ['error', e.encoding, list(e.object), e.start, e.end, e.reason]\n\ndef decode_rows(errors):\n    for first in range(128, 256):\n        for second in range(256):\n            try:\n                text, consumed = codecs.getdecoder('euc_jisx0213')(bytes([first, second]), errors)\n                yield ['ok', list(map(ord, text)), consumed]\n            except UnicodeDecodeError as e:\n                yield failure(e)\n\ndef state(d):\n    pending, flags = d.getstate()\n    return [list(pending), str(flags)]\n\ndef call(d, data, final):\n    try:\n        result = ['ok', list(map(ord, d.decode(data, final)))]\n    except UnicodeDecodeError as e:\n        result = failure(e)\n    return [result, state(d)]\n\ndef split_row(data, split, final, errors):\n    d = codecs.getincrementaldecoder('euc_jisx0213')(errors)\n    d.setstate((b'', 0x123456789abcdef0))\n    row = [call(d, data[:split], False), call(d, data[split:], final), call(d, b'', True)]\n    d.reset()\n    row.append(state(d))\n    return row\n\ndef incremental_rows(errors):\n    for first in range(256):\n        for second in range(256):\n            for final in (False, True):\n                yield split_row(bytes([first, second]), 1, final, errors)\n\nresult = {\n    'reference': {'version': sys.version, 'unicode': unicodedata.unidata_version, 'platform': sys.platform, 'byteorder': sys.byteorder},\n    'decode': {p: {'records':32768, 'sha256':digest(decode_rows(p))} for p in ('strict', 'ignore', 'replace')},\n    'incremental': {p: {'records':131072, 'sha256':digest(incremental_rows(p))} for p in ('strict', 'ignore', 'replace')},\n    'encode': {}\n}\ntext = ''.join(map(chr, range(0x110000)))\nfor p in ('ignore', 'replace'):\n    data = text.encode('euc_jisx0213', p)\n    result['encode'][p] = {'length':len(data), 'sha256':hashlib.sha256(data).hexdigest()}\n# Strict singletons preserve exact fault metadata and every successful spelling.\ndef encodings(start=0, end=0x110000):\n    for point in range(start, end):\n        try:\n            yield ['ok', list(chr(point).encode('euc_jisx0213'))]\n        except UnicodeEncodeError as e:\n            yield ['error', e.encoding, list(map(ord,e.object)), e.start, e.end, e.reason]\nresult['strictEncode'] = {'records':0x110000, 'sha256':digest(encodings())}\nresult['strictEncode']['planes'] = [digest(encodings(p*0x10000, (p+1)*0x10000)) for p in range(17)]\n\ndef triples(errors, block):\n    for second in range(block*16, (block+1)*16):\n        for third in range(256):\n            for split in range(4):\n                for final in (False, True):\n                    yield split_row(bytes([0x8f, second, third]), split, final, errors)\nresult['triples'] = {p:[digest(triples(p,b)) for b in range(16)] for p in ('strict','ignore','replace')}\n\nprint(json.dumps(result, indent=2))\n",
+  "sources": {
+    "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/emu_jisx0213_2000.h": "b8db3dce0aac8d433ea5f3ba057547c52727b9e3391971b278c9eb4cb61a7aca"
+  }
+}

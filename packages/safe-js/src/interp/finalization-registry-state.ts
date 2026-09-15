@@ -10,6 +10,7 @@ type FinalizationCell = {
   token?: ReturnType<typeof createWeakReferenceState>;
   heldValue: SandboxValue;
   queued: boolean;
+  release?: () => void;
 };
 
 // The caller owns scheduling, error reporting and lifetime. Native GC notices
@@ -21,7 +22,7 @@ export class FinalizationRegistryState {
 
   constructor(
     readonly cleanup: (heldValue: SandboxValue) => Promise<void>,
-    private readonly enqueue: (job: () => Promise<void>, heldValue: SandboxValue) => void
+    private readonly enqueue: (job: () => Promise<void>, cell: FinalizationCell) => void
   ) {
     this.native = new FinalizationRegistry(cell => this.notify(cell));
   }
@@ -31,8 +32,13 @@ export class FinalizationRegistryState {
     cell.queued = true;
     this.enqueue(async () => {
       if (this.disposed || !this.cells.delete(cell)) return;
-      await this.cleanup(cell.heldValue);
-    }, cell.heldValue);
+      try { await this.cleanup(cell.heldValue); }
+      finally {
+        cell.heldValue = undefined;
+        cell.release?.();
+        cell.release = undefined;
+      }
+    }, cell);
   }
 
   register(target: WeakTarget | undefined, heldValue: SandboxValue, token?: WeakTarget): void {
@@ -55,6 +61,11 @@ export class FinalizationRegistryState {
       if (cell.token?.deref() !== token) continue;
       this.native.unregister(cell);
       this.cells.delete(cell);
+      // A cancelled job may never be dispatched. Drop its payload and owner
+      // roots now rather than retaining them through that queued closure.
+      cell.heldValue = undefined;
+      cell.release?.();
+      cell.release = undefined;
       removed = true;
     }
     return removed;
@@ -63,7 +74,12 @@ export class FinalizationRegistryState {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    for (const cell of this.cells) this.native.unregister(cell);
+    for (const cell of this.cells) {
+      this.native.unregister(cell);
+      cell.heldValue = undefined;
+      cell.release?.();
+      cell.release = undefined;
+    }
     this.cells.clear();
   }
 }

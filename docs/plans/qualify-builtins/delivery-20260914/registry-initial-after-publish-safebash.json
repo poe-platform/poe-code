@@ -1,0 +1,22 @@
+{
+  "version": "0.1.590",
+  "dist": {
+    "integrity": "sha512-MGRAZi/A8Ll43odQQd5FExVY9zul4s7mRbb//hf+J8holV6d9sUsLXNAokzcbaq+YOEADcBx0tERw/+t3U6Adg==",
+    "shasum": "313c89562fe7af017657405bdbe448a1d8fa164d",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.590.tgz",
+    "fileCount": 1645,
+    "unpackedSize": 26143278,
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.590",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "signatures": [
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEQCIH7ZCwtbOF+RRbhnU8F2KZSA2azfYSK6vprlgYpOlRhNAiAVvINLJe0SOnrkjddMAYP0eLWCXOEWPtL30eLuFULmeQ=="
+      }
+    ]
+  }
+}

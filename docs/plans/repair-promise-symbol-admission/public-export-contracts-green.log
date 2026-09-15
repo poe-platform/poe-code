@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/core.test.ts (1 test) 7ms
+ ✓ packages/safe-js/src/index.test.ts (17 tests) 139ms
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  19:12:13
+   Duration  2.99s (transform 3.60s, setup 83ms, import 4.79s, tests 146ms, environment 0ms)
+

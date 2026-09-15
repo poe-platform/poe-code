@@ -1,0 +1,47 @@
+{
+  "target": "CPython 3.14.7 / Unicode 16.0.0",
+  "source": "import codecs\ndef handler(error):\n    replacement = input()\n    return (replacement, -1)\ncodecs.register_error('service_resume', handler)\nprint(('\\ud800' + 'A').encode('ascii', 'service_resume'))\n",
+  "stdin": "?\n",
+  "oracle": {
+    "exit": 0,
+    "stdout": "b'?A'\n",
+    "stderr": ""
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "exit": 0,
+      "stdout": "b'?A'\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 2
+    },
+    {
+      "mode": "return",
+      "exit": 0,
+      "stdout": "",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "mode": "throw",
+      "exit": 0,
+      "stdout": "",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    }
+  ],
+  "scope": "Existing public ASCII registry recovery with real readSync/writeSync services, not missing Big5/CP950 publication."
+}

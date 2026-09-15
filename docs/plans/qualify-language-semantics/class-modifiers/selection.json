@@ -1,0 +1,7 @@
+[
+  "language/statements/class/accessor-name-static-computed-yield-expr.js",
+  "language/statements/class/async-gen-meth-escaped-async.js",
+  "language/statements/class/async-meth-escaped-async.js",
+  "language/statements/class/syntax/class-method-propname-constructor.js",
+  "language/statements/class/syntax/escaped-static.js"
+]

@@ -1,0 +1,115 @@
+{
+  "observedUtc": "2026-09-12T13:13:18.796614+00:00",
+  "disposition": "Pre-task publication observations; do not establish delivery of task commits.",
+  "packages": {
+    "@poe-platform/safe-js": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.560",
+        "dist": {
+          "shasum": "279bb7ca56911a3ba4e4ac733da48cab085bd76f",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.560.tgz",
+          "fileCount": 373,
+          "integrity": "sha512-Z+d7Gb6uNCMNqel2e/5irWYZwcTIkvH+kGw1f8CoTx/4nMXlKENWag05H3jBbwKApNSwACZelQdJmIL7hPQqRg==",
+          "signatures": [
+            {
+              "sig": "MEUCIQDYVslagLWFUwLgYO51PxY27U3pogqWog2Wb2HUCH3N4AIga70qqCwHXsfd3OSn7X7a/DpgaDsj8f1XB/1k8xLg+GM=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIQDVOEPvaxQ02KPjOkRFYGS/yFfS1iZ5nEUOow1mQl7Q8wIgMk5Q7M6ZF3CYrIuUQrj2NrZAk5JLsGJYjMMMf+3/g1c="
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.560",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 42881045
+        }
+      },
+      "stderr": ""
+    },
+    "@poe-platform/safe-fs": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.560",
+        "dist": {
+          "integrity": "sha512-9BZJV7Imza9S5kU7cABD9JAJYlUlm/HhHj//fJzcBba+rDIDh1tU8S3vc+q4iuLBPfcSi827xuv7n8+P9t8vMA==",
+          "shasum": "94a25a32ebb215d1ce1e0ccba7b00b35494e6826",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.560.tgz",
+          "fileCount": 141,
+          "unpackedSize": 716920,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.560",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIQDrRAz9ATCHr8A04hBLvGKDuxEIP8B01C3VonSLYhpN6gIgMNXYpTW4cOg5olHw4IdHmGUx1SuIIIHvI6tBDQ01e20="
+            }
+          ]
+        }
+      },
+      "stderr": ""
+    },
+    "@poe-platform/safe-bash": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.560",
+        "dist": {
+          "integrity": "sha512-GtR4bC83+dOwoSPB7kPBVQ/J2iBGDPcoCrN+zsSFv0PEtx1FvNmYrkCcHUpVsi90dBeO0ilBN17k1467wNZrBQ==",
+          "shasum": "628c61477bf0df03f99f4feaef9d44bb0bc2e316",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.560.tgz",
+          "fileCount": 1645,
+          "unpackedSize": 26143278,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.560",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIQCDZD7IjG5QqW2p+nv8wafwU3mp5JGfqLtBOLQZfsaI5gIgc6e5lkLDkMj4aYX2Jm/szpe8TPExhpie6N8hwMQBxlY="
+            }
+          ]
+        }
+      },
+      "stderr": ""
+    },
+    "poe-code": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "15.0.25",
+        "gitHead": "16fd655592118dbac4cf6764b8a2f3c8f6138786",
+        "dist": {
+          "integrity": "sha512-sIoYUHDzV/DPsUCafVqTmw5WzZrYxwy9MUUhkJR3VbZWbkDHaCdpL0l8ERhA5n1XcEka+/drYTWGMByQfNQcBA==",
+          "shasum": "9b99a5cf88730126d25b185a7eed355d5364f3cb",
+          "tarball": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.25.tgz",
+          "fileCount": 5822,
+          "unpackedSize": 209311164,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/poe-code@15.0.25",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEYCIQDfPJEX9K1uOzgL6qPD1EgzHxRxeSI/Ew1USJld/u8yiQIhANQJ46suA+t8yhcEOKfftE3Kj9sPdtjZCgOQVgqqk+i6"
+            }
+          ]
+        }
+      },
+      "stderr": ""
+    }
+  }
+}

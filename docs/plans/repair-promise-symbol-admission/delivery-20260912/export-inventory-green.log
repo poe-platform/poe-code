@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ tests/integration/standalone-package-metadata.test.ts (21 tests) 26ms
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  19:59:23
+   Duration  304ms (transform 64ms, setup 66ms, import 48ms, tests 26ms, environment 0ms)
+

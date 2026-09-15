@@ -1,0 +1,24 @@
+{
+  "observedUtc": "2026-09-12T09:00:43.542553+00:00",
+  "schedule": "resume-batch-schedule.json",
+  "selections": 216,
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "counts": {
+    "files": 53876,
+    "fixtures": 294,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 102926,
+    "passed": 93157,
+    "failed": 6451,
+    "unsupported": 3318
+  },
+  "distinctFiles": 53876,
+  "distinctVariants": 102926,
+  "sourceFilesChecked": 10089,
+  "sourceMismatches": [],
+  "aggregateCountsAgree": true,
+  "aggregateComplete": true,
+  "aggregateSuccess": false,
+  "issues": []
+}

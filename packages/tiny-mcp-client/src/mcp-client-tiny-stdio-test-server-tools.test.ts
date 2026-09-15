@@ -6,7 +6,7 @@ describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {
   it("completes full lifecycle: connect, list tools, call each tool, and close", async () => {
     const server = createTestServer();
     const { client, cleanup } = await createTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -71,7 +71,7 @@ describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {
   it("lists caesar_cipher_encrypt and word_of_the_day via createTestPair", async () => {
     const server = createTestServer();
     const { client, cleanup } = await createTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -94,7 +94,7 @@ describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {
   it("returns khoor when calling caesar_cipher_encrypt with text=hello", async () => {
     const server = createTestServer();
     const { client, cleanup } = await createTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -119,7 +119,7 @@ describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {
   it("returns the expected text for word_of_the_day", async () => {
     const server = createTestServer();
     const { client, cleanup } = await createTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",

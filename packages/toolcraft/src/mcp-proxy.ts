@@ -8,8 +8,10 @@ import type { Tool as ClientTool } from "tiny-mcp-client";
 import type { Command, Group, Scope } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { convertJsonSchema } from "./json-schema-converter.js";
+import { asMCPResult } from "./mcp-result.js";
+import { isProxyNode, markProxyNode } from "./mcp-proxy-metadata.js";
 import { findProjectRoot } from "./project-root.js";
-import type { ObjectSchema } from "toolcraft-schema";
+import { formatIssues, validate, type ObjectSchema } from "toolcraft-schema";
 
 export { findProjectRoot } from "./project-root.js";
 
@@ -20,9 +22,7 @@ const DEFAULT_CLIENT_INFO = {
   name: "toolcraft",
   version: "0.0.1",
 } as const;
-const proxyNodeSymbol = Symbol("toolcraft.mcpProxyNode");
 const proxyConnectionSymbol = Symbol("toolcraft.mcpProxyConnection");
-const shutdownDisposers = new Set<() => Promise<void>>();
 
 interface InternalGroupConfig<TServices extends object = Record<string, never>> {
   mcp?: McpServerConfig;
@@ -34,6 +34,7 @@ interface InternalGroupConfig<TServices extends object = Record<string, never>> 
 interface HotProxyConnection {
   client?: McpClient;
   connecting?: Promise<McpClient>;
+  closing?: Promise<void>;
   config: McpServerConfig;
   dispose: () => Promise<void>;
   name: string;
@@ -76,31 +77,12 @@ function getInternalGroupConfig<TServices extends object>(
     {}) as InternalGroupConfig<TServices>;
 }
 
-function isProxyNode(node: GroupChild<any>): boolean {
-  return (node as GroupChild<any> & { [proxyNodeSymbol]?: true })[proxyNodeSymbol] === true;
-}
-
-function markProxyNode<TNode extends GroupChild<any>>(node: TNode): TNode {
-  Object.defineProperty(node, proxyNodeSymbol, {
-    configurable: false,
-    enumerable: false,
-    value: true,
-    writable: false,
-  });
-
-  return node;
-}
-
 function cloneSecrets(secrets: Record<string, { env: string; description?: string; optional?: boolean }>) {
   return { ...secrets };
 }
 
 function cloneScope(scope: Scope[] | undefined): Scope[] | undefined {
   return scope === undefined ? undefined : [...scope];
-}
-
-function registerShutdownDispose(dispose: () => Promise<void>): void {
-  shutdownDisposers.add(dispose);
 }
 
 function getProxyConnection(group: Group<any>): HotProxyConnection | undefined {
@@ -150,10 +132,6 @@ function createProxyCommand(
     ? undefined
     : convertJsonSchema(tool.outputSchema as Parameters<typeof convertJsonSchema>[0]);
 
-  if (result !== undefined && result.kind !== "object") {
-    throw new Error(`upstream tool "${tool.name}" must define an object output schema`);
-  }
-
   return markProxyNode({
     kind: "command",
     name: commandName,
@@ -171,19 +149,33 @@ function createProxyCommand(
     confirm: false,
     requires: parent.requires,
     handler: async (ctx) => {
-      const client = await ensureConnected(connection);
+      ctx.signal?.throwIfAborted();
+      const connecting = ensureConnected(connection);
+      const client = ctx.signal === undefined ? await connecting : await new Promise<McpClient>((resolve, reject) => {
+        const signal = ctx.signal!;
+        const abort = () => {
+          signal.removeEventListener("abort", abort);
+          reject(signal.reason);
+        };
+        signal.addEventListener("abort", abort, { once: true });
+        connecting.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+        if (signal.aborted) abort();
+      });
+      ctx.signal?.throwIfAborted();
       const toolResult = await client.callTool({
         name: tool.name,
         arguments: ctx.params as Record<string, unknown>,
-      });
-      if (result === undefined) {
-        return toolResult;
+      }, { signal: ctx.signal });
+      if (result === undefined || toolResult.isError === true) {
+        return asMCPResult(toolResult);
       }
       if (toolResult.structuredContent === undefined) {
         throw new Error(
           `upstream tool "${tool.name}" declared outputSchema but returned no structuredContent`
         );
       }
+      const validation = validate(result, toolResult.structuredContent);
+      if (!validation.ok) throw new Error(`upstream tool "${tool.name}" returned invalid structuredContent: ${formatIssues(validation.issues)}`);
       return toolResult.structuredContent;
     },
     render: undefined,
@@ -233,25 +225,25 @@ function createConnection(name: string, config: McpServerConfig): HotProxyConnec
   const connection: HotProxyConnection = {
     name,
     config,
-    async dispose(): Promise<void> {
-      shutdownDisposers.delete(connection.dispose);
-      connection.connecting = undefined;
-
-      if (connection.client === undefined) {
-        return;
-      }
-
-      const client = connection.client;
-      connection.client = undefined;
-      await client.close();
+    dispose(): Promise<void> {
+      if (connection.closing !== undefined) return connection.closing;
+      connection.closing = (async () => {
+        await connection.connecting?.catch(() => undefined);
+        const client = connection.client;
+        connection.client = undefined;
+        if (client !== undefined) await client.close();
+      })().finally(() => {
+        connection.closing = undefined;
+      });
+      return connection.closing;
     },
   };
 
-  registerShutdownDispose(connection.dispose);
   return connection;
 }
 
 async function ensureConnected(connection: HotProxyConnection): Promise<McpClient> {
+  if (connection.closing !== undefined) await connection.closing;
   if (connection.client !== undefined && connection.client.state === "ready") {
     return connection.client;
   }
@@ -354,12 +346,22 @@ async function fetchCache(
     logger.info(`MCP ${name}: listing tools`);
 
     const tools: Tool[] = [];
+    const seenCursors = new Set<string>();
     let cursor: string | undefined;
+    let pages = 0;
 
     do {
       const page = await client.listTools(cursor === undefined ? {} : { cursor });
+      pages++;
       tools.push(...page.tools);
       cursor = page.nextCursor;
+      if (cursor !== undefined) {
+        if (seenCursors.has(cursor)) {
+          throw new Error("upstream tools/list returned a repeated pagination cursor");
+        }
+        seenCursors.add(cursor);
+        if (pages >= 128) throw new Error("upstream exceeded the tool pagination limit (128 pages)");
+      }
     } while (cursor !== undefined);
 
     logger.info(`MCP ${name}: found ${tools.length} tools`);
@@ -430,23 +432,6 @@ function populateGroupFromTools(
   }
 }
 
-function replaceProxyChildrenSafely(
-  group: Group<any>,
-  tools: Tool[],
-  rename: Record<string, string> | undefined,
-  connection: HotProxyConnection
-): void {
-  const previousChildren = snapshotGroupChildren(group);
-  try {
-    populateGroupFromTools(group, tools, rename, connection);
-  } catch (error) {
-    for (const [capturedGroup, children] of previousChildren) {
-      capturedGroup.children = children;
-    }
-    throw error;
-  }
-}
-
 function snapshotGroupChildren(group: Group<any>): Map<Group<any>, GroupChild<any>[]> {
   const snapshot = new Map<Group<any>, GroupChild<any>[]>();
   const visit = (current: Group<any>): void => {
@@ -506,15 +491,19 @@ async function resolveSingleProxy(
     validateRenameMap(name, tools, internal.rename);
     const previousConnection = getProxyConnection(group);
     const nextConnection = createConnection(name, config);
+    const previousChildren = snapshotGroupChildren(group);
 
     try {
-      replaceProxyChildrenSafely(group, tools, internal.rename, nextConnection);
+      populateGroupFromTools(group, tools, internal.rename, nextConnection);
       if (shouldWriteCache) {
         await writeCache(cachePath, cache);
         createLogger((message) => process.stderr.write(`${message}\n`)).info(`MCP ${name}: wrote ${cachePath}`);
       }
       setProxyConnection(group, nextConnection);
     } catch (error) {
+      for (const [capturedGroup, children] of previousChildren) {
+        capturedGroup.children = children;
+      }
       await nextConnection.dispose();
       throw error;
     }
@@ -656,4 +645,21 @@ export async function resolveMcpProxies(
 ): Promise<void> {
   const groups = collectProxyGroups(root);
   await Promise.all(groups.map((group) => resolveSingleProxy(group, options)));
+}
+
+export async function disposeMcpProxies(root: Group<any>): Promise<void> {
+  const connections = new Set(
+    collectProxyGroups(root).flatMap((group) => {
+      const connection = getProxyConnection(group);
+      return connection === undefined ? [] : [connection];
+    })
+  );
+  const outcomes = await Promise.allSettled([...connections].map((connection) => connection.dispose()));
+  const failures = outcomes.flatMap((outcome) => outcome.status === "rejected" ? [outcome.reason] : []);
+  if (failures.length > 0) {
+    throw new AggregateError(
+      failures,
+      failures.map((error) => error instanceof Error ? error.message : String(error)).join("; ")
+    );
+  }
 }

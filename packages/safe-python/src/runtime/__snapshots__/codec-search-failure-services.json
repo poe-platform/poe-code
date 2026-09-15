@@ -1,0 +1,42 @@
+{
+  "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ntry:\n    codecs.lookup('')\nexcept LookupError as error:\n    print(type(error).__name__, error.args)\ndef second(name):\n    raise AssertionError('removed search called')\ndef first(name):\n    codecs.unregister(second)\n    return None\ncodecs.register(first)\ncodecs.register(second)\ntry:\n    codecs.lookup('')\nexcept IndexError as error:\n    print(type(error).__name__, error.args)\nprint(input())\n",
+  "provenance": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "oracle": {
+    "status": 0,
+    "stdout": "LookupError (\"no codec search functions registered: can't find encoding\",)\nIndexError ('list index out of range',)\ncontinue\n",
+    "stderr": ""
+  },
+  "runs": [
+    {
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "LookupError (\"no codec search functions registered: can't find encoding\",)\nIndexError ('list index out of range',)\ncontinue\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "LookupError (\"no codec search functions registered: can't find encoding\",)\nIndexError ('list index out of range',)\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "LookupError (\"no codec search functions registered: can't find encoding\",)\nIndexError ('list index out of range',)\n",
+      "reads": 1,
+      "verified": true
+    }
+  ]
+}

@@ -5,13 +5,18 @@ const PortablePluralRules = numberFormatIntl.PluralRules;
 const select = PortablePluralRules.prototype.select;
 const selectRange = PortablePluralRules.prototype.selectRange;
 const resolvedOptions = PortablePluralRules.prototype.resolvedOptions;
+const pluralCategoryOrder = ["zero", "one", "two", "few", "many", "other"];
 export type ResolvedPluralRulesOptions = Record<string, string | number | string[]>;
 const states = new WeakMap<object, { native: object; options: ResolvedPluralRulesOptions }>();
 
 export function createSandboxPluralRules(locales: string | string[], options: Record<string, string | number | boolean | string[]>): SandboxObject {
   const native = new PortablePluralRules(locales, options);
   const value = Object.create(null) as SandboxObject;
-  states.set(value, { native, options: { ...Reflect.apply(resolvedOptions, native, []) } });
+  const resolved = { ...Reflect.apply(resolvedOptions, native, []) };
+  // ECMA-402 17.3.2 requires this order, even when the backend sorts alphabetically.
+  resolved.pluralCategories = [...resolved.pluralCategories].sort((a, b) =>
+    pluralCategoryOrder.indexOf(a) - pluralCategoryOrder.indexOf(b));
+  states.set(value, { native, options: resolved });
   return value;
 }
 

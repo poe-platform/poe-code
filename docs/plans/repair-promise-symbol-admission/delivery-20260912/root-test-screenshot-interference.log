@@ -1,0 +1,75 @@
+
+> poe-code@0.0.0-dev test
+> node scripts/build-workspaces.mjs --test-unit
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> virtual-bash@0.0.0 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs
+
+
+> poe-code@0.0.0-dev test:unit:shared
+> node scripts/test-vitest-workspaces.mjs . packages/acp-telemetry packages/agent-child-process packages/agent-code-review packages/agent-gaslight packages/agent-harness packages/agent-harness-tools packages/agent-hook-config packages/agent-spawn packages/agent-stash packages/agent-trace-viewer packages/agent-traces packages/braintrust packages/experiment-loop packages/frontmatter packages/github-review packages/github-workflows packages/maestro packages/maestro-tui packages/markdown-reader packages/mcp-oauth-server packages/memory packages/opencode-poe-auth packages/package-lint packages/process-launcher packages/process-runner packages/ralph packages/safe-bash-playground packages/superintendent packages/task-list packages/toolcraft packages/toolcraft-codemode packages/toolcraft-landing-page packages/toolcraft-openapi packages/toolcraft-schema packages/workspace-resolver
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+Unit workspace poe-code: running 521 files
+Unit workspace @poe-code/acp-telemetry: running 6 files
+Unit workspace @poe-code/agent-child-process: running 1 files
+Unit workspace agent-code-review: running 12 files
+Unit workspace @poe-code/agent-gaslight: running 4 files
+Unit workspace @poe-code/agent-harness: running 13 files
+Unit workspace @poe-code/agent-harness-tools: running 17 files
+Unit workspace @poe-code/agent-hook-config: running 8 files
+Unit workspace @poe-code/agent-spawn: running 23 files
+Unit workspace agent-stash: running 13 files
+Unit workspace @poe-code/agent-trace-viewer: running 8 files
+Unit workspace @poe-code/agent-traces: running 9 files
+Unit workspace @poe-code/braintrust: running 9 files
+Unit workspace @poe-code/experiment-loop: running 3 files
+Unit workspace @poe-code/frontmatter: running 1 files
+Unit workspace github-review: running 6 files
+Unit workspace @poe-code/github-workflows: running 10 files
+Unit workspace @poe-code/maestro: running 27 files
+Unit workspace @poe-code/maestro-tui: running 3 files
+Unit workspace @poe-code/markdown-reader: running 7 files
+Unit workspace mcp-oauth-server: running 2 files
+Unit workspace @poe-code/memory: running 29 files
+Unit workspace opencode-poe-auth: running 1 files
+Unit workspace @poe-code/package-lint: running 13 files
+Unit workspace @poe-code/process-launcher: running 11 files
+Unit workspace @poe-code/process-runner: running 9 files
+Unit workspace @poe-code/ralph: running 2 files
+Unit workspace safe-bash-playground: running 8 files
+Unit workspace @poe-code/superintendent: running 34 files
+Unit workspace @poe-code/task-list: running 19 files
+Unit workspace toolcraft: running 52 files
+Unit workspace toolcraft-codemode: running 6 files
+Unit workspace toolcraft-landing-page: running 3 files
+Unit workspace toolcraft-openapi: running 21 files
+Unit workspace toolcraft-schema: running 6 files
+Unit workspace @poe-code/workspace-resolver: running 2 files
+ ❯ packages/safe-fs/tests/real-read-budget-review.test.ts (0 test)
+FAIL packages/safe-fs/tests/real-read-budget-review.test.ts
+Error: Cannot find package 'poe-code/safe-fs/core' imported from /Users/kjopek/Workspace/poe-code/packages/safe-bash/src/contracts/errors.ts
+ ❯ packages/safe-bash/src/contracts/errors.ts:1:1
+      1| export { isErrnoCode, isFsError, toFsError, FsError } from "poe-code/s…
+       | ^
+      2| export type { ErrnoCode, FsErrorOptions } from "poe-code/safe-fs/core";
+      3|
+ ❯ packages/safe-bash/src/contracts/command-requirements.ts:3:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+Error: Build or unit execution interrupted by SIGINT
+    at taskError (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:174:17)
+    at stop (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:299:34)
+    at process.<anonymous> (file:///Users/kjopek/Workspace/poe-code/scripts/build-workspaces.mjs:304:77)
+    at process.emit (node:events:519:28) {
+  exitCode: 1
+}

@@ -36,7 +36,7 @@ describe("McpClient SDK integration ping", () => {
   it("connects to the mock echo server and completes a ping round-trip", async () => {
     const server = await createMockEchoToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -56,7 +56,7 @@ describe("McpClient SDK integration listTools", () => {
   it("lists tools from the mock echo server", async () => {
     const server = await createMockEchoToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -89,7 +89,7 @@ describe("McpClient SDK integration listTools", () => {
   it("returns first tools page with nextCursor when called without cursor", async () => {
     const server = await createMockPaginatedToolsServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -116,7 +116,7 @@ describe("McpClient SDK integration listTools", () => {
   it("returns the next tools page when called with nextCursor", async () => {
     const server = await createMockPaginatedToolsServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -148,7 +148,7 @@ describe("McpClient SDK integration listTools", () => {
   it("iterates all pages and collects all tools", async () => {
     const server = await createMockPaginatedToolsServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -183,7 +183,7 @@ describe("McpClient SDK integration callTool", () => {
   it("returns text content array for the echo tool", async () => {
     const server = await createMockEchoToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -210,7 +210,7 @@ describe("McpClient SDK integration callTool", () => {
   it("returns text content with the sum for the add tool", async () => {
     const server = await createMockMultiToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -235,7 +235,7 @@ describe("McpClient SDK integration callTool", () => {
   it("returns isError=true for tool error results", async () => {
     const server = await createMockErrorServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -260,7 +260,7 @@ describe("McpClient SDK integration callTool", () => {
   it("cancels an in-flight slow tool call and surfaces abort rejection", async () => {
     const server = await createMockSlowToolServer({ delayMs: 1_000, pollIntervalMs: 5 });
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -296,7 +296,7 @@ describe("McpClient SDK integration callTool", () => {
   it("cancels an in-flight slow tool call when the request timeout elapses", async () => {
     const server = await createMockSlowToolServer({ delayMs: 1_000, pollIntervalMs: 5 });
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -328,7 +328,7 @@ describe("McpClient SDK integration callTool", () => {
   it("rejects with JSON-RPC error code and message for unknown tool names", async () => {
     const server = await createMockErrorServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -356,7 +356,7 @@ describe("McpClient integration tools with SDK multi-tool server", () => {
   it("lists add, greet, and fail tools", async () => {
     const server = await createMockMultiToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -380,7 +380,7 @@ describe("McpClient integration tools with SDK multi-tool server", () => {
   it("returns 5 when calling add with a=2 and b=3", async () => {
     const server = await createMockMultiToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -405,7 +405,7 @@ describe("McpClient integration tools with SDK multi-tool server", () => {
   it("returns greeting text when calling greet with name=world", async () => {
     const server = await createMockMultiToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -430,7 +430,7 @@ describe("McpClient integration tools with SDK multi-tool server", () => {
   it("returns isError=true when calling fail", async () => {
     const server = await createMockMultiToolServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -458,7 +458,7 @@ describe("McpClient SDK integration logging", () => {
     const receivedLogs: Array<{ level: string; logger?: string; data: unknown }> = [];
     const server = await createMockLoggingServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -506,7 +506,7 @@ describe("McpClient SDK integration logging", () => {
     const receivedLogs: Array<{ level: string; logger?: string; data: unknown }> = [];
     const server = await createMockLoggingServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -549,7 +549,7 @@ describe("McpClient SDK integration resources", () => {
   it("lists resources and reads text resource content", async () => {
     const server = await createMockResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -585,7 +585,7 @@ describe("McpClient SDK integration resources", () => {
   it("lists resources and reads binary resource blob", async () => {
     const server = await createMockResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -621,7 +621,7 @@ describe("McpClient SDK integration resources", () => {
   it("lists resource templates and exposes uriTemplate", async () => {
     const server = await createMockResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -648,7 +648,7 @@ describe("McpClient SDK integration resources", () => {
     const updatedUris: string[] = [];
     const server = await createMockSubscribableResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -675,7 +675,7 @@ describe("McpClient SDK integration resources", () => {
     const updatedUris: string[] = [];
     const server = await createMockSubscribableResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -708,7 +708,7 @@ describe("McpClient SDK integration resources", () => {
     const notifications: string[] = [];
     const server = await createMockSubscribableResourceServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -768,7 +768,7 @@ describe("McpClient SDK integration prompts", () => {
   it("lists prompts and gets code_review with arguments", async () => {
     const server = await createMockPromptServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -826,7 +826,7 @@ describe("McpClient SDK integration prompts", () => {
   it("lists prompts and gets summarize without arguments", async () => {
     const server = await createMockPromptServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -877,7 +877,7 @@ describe("McpClient SDK integration roots", () => {
     let rootsRequestCount = 0;
     const server = await createMockRootsServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -917,7 +917,7 @@ describe("McpClient SDK integration roots", () => {
     let rootsRequestCount = 0;
     const server = await createMockRootsServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -970,7 +970,7 @@ describe("McpClient SDK integration sampling", () => {
     const samplingRequests: unknown[] = [];
     const server = await createMockSamplingServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -1017,7 +1017,7 @@ describe("McpClient SDK integration sampling", () => {
     const samplingRequests: unknown[] = [];
     const server = await createMockSamplingServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -1075,7 +1075,7 @@ describe("McpClient SDK integration completions", () => {
   it("completes a prompt argument and returns matching suggestions", async () => {
     const server = await createMockCompletionServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -1115,7 +1115,7 @@ describe("McpClient SDK integration progress", () => {
     const eventOrder: string[] = [];
     const server = await createMockProgressServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -1166,7 +1166,7 @@ describe("McpClient SDK integration progress", () => {
     const observedProgressValues: number[] = [];
     const server = await createMockProgressServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",
@@ -1203,7 +1203,7 @@ describe("McpClient SDK integration full-featured lifecycle", () => {
   it("connects, exercises all full-featured capabilities, and closes cleanly", async () => {
     const server = await createMockFullFeaturedServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
-      new McpClient({
+      new McpClient({ protocolVersion: "2025-03-26",
         clientInfo: {
           name: "test-client",
           version: "1.0.0",

@@ -4,6 +4,7 @@ import type { Budget } from "./budget.js";
 export type RunResources = {
   signal: AbortSignal;
   functionSourceText?: boolean;
+  hostDataMetadata?: boolean;
   // Cancellation is catchable; suspended references survive until disposal.
   referenceReleases: Set<() => void>;
   reportError?: (reason: unknown) => void;

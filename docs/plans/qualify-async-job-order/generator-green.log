@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/async-generator-return-order.test.ts (5 tests) 211ms
+ ✓ packages/safe-js/src/interp/async-generator.test.ts (77 tests) 1471ms
+ ✓ packages/safe-js/test/async-rejection-policy-qualification.test.ts (4 tests) 107ms
+ ✓ packages/safe-js/src/interp/async-delegation-protocol.test.ts (13 tests) 68ms
+ ✓ packages/safe-js/test/async-job-order-qualification.test.ts (8 tests) 1437ms
+ ✓ packages/safe-js/src/interp/async-generator-driver.test.ts (9 tests) 14ms
+
+ Test Files  6 passed (6)
+      Tests  116 passed (116)
+   Start at  04:40:40
+   Duration  5.25s (transform 3.72s, setup 150ms, import 6.24s, tests 3.31s, environment 0ms)

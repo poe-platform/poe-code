@@ -1,0 +1,36 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts (1 test | 1 failed) 6ms
+   × bounds frozen symbol-catalog enumeration independently of the installed graph size 5ms
+FAIL packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts > bounds frozen symbol-catalog enumeration independently of the installed graph size
+AssertionError: expected 960 to be less than or equal to 1
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts:16:26
+     14|     registerBuiltinIdentities(budget, bindings);
+     15|     const catalogScans = entries.mock.calls.filter(([value]) => value …
+     16|     expect(catalogScans).toBeLessThanOrEqual(1);
+       |                          ^
+     17|     expect(listIntrinsicIdentities(budget)).toHaveLength(64 * (1 + sym…
+     18|     for (const [root, value] of Object.entries(bindings)) {
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts > bounds frozen symbol-catalog enumeration independently of the installed graph size
+AssertionError: expected 960 to be less than or equal to 1
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts:16:26
+     14|     registerBuiltinIdentities(budget, bindings);
+     15|     const catalogScans = entries.mock.calls.filter(([value]) => value …
+     16|     expect(catalogScans).toBeLessThanOrEqual(1);
+       |                          ^
+     17|     expect(listIntrinsicIdentities(budget)).toHaveLength(64 * (1 + sym…
+     18|     for (const [root, value] of Object.entries(bindings)) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  14:29:29
+   Duration  2.37s (transform 1.76s, setup 43ms, import 2.23s, tests 6ms, environment 0ms)
+

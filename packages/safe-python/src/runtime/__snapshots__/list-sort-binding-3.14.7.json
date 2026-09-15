@@ -1,0 +1,572 @@
+[
+  {
+    "name": "items.sort(revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 keyword arguments (3 given)', ('sort() takes at most 2 keyword arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (4 given)', ('sort() takes at most 2 arguments (4 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'x'\", (\"sort() got an unexpected keyword argument 'x'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'rev'\", (\"sort() got an unexpected keyword argument 'rev'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "items.sort(0,reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [3, 2, 1], [])"
+  },
+  {
+    "name": "items.sort(0,reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ValueError', 'reverse failed', ('reverse failed',)), [3, 1, 2], ['bool'])"
+  },
+  {
+    "name": "items.sort(0,reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(0,key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort(key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "items.sort(0,key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "items.sort()",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation()\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "items.sort(0,)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = items.sort\ntry:\n    result = operation(0,)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 keyword arguments (3 given)', ('sort() takes at most 2 keyword arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (4 given)', ('sort() takes at most 2 arguments (4 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'x'\", (\"sort() got an unexpected keyword argument 'x'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'rev'\", (\"sort() got an unexpected keyword argument 'rev'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [3, 2, 1], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ValueError', 'reverse failed', ('reverse failed',)), [3, 1, 2], ['bool'])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)()",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation()\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "list.sort.__get__(items)(0,)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = list.sort.__get__(items)\ntry:\n    result = operation(0,)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,revers=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,revers=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,reverse=True, ky=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,reverse=True, ky=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'ky'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,ky=None, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,ky=None, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,revers=False, reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,revers=False, reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (3 given)', ('sort() takes at most 2 arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 keyword arguments (3 given)', ('sort() takes at most 2 keyword arguments (3 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,key=None, reverse=True, revers=False)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,key=None, reverse=True, revers=False)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes at most 2 arguments (4 given)', ('sort() takes at most 2 arguments (4 given)',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'x'\", (\"sort() got an unexpected keyword argument 'x'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,x=1)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,x=1)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'rev'\", (\"sort() got an unexpected keyword argument 'rev'\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,rev=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,rev=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'Reverse'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,Reverse=True)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,Reverse=True)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'KEY'. Did you mean 'key'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,KEY=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,KEY=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'revers\\x00'. Did you mean 'reverse'?\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,**{'revers\\x00': True})",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,**{'revers\\x00': True})\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,reverse=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,reverse=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [3, 2, 1], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,reverse=1.0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,reverse=1.0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ValueError', 'reverse failed', ('reverse failed',)), [3, 1, 2], ['bool'])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,reverse=Flag())",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,reverse=Flag())\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,key=0)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,key=0)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,key=None)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,key=None)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)()",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation()\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('ok', None), [1, 2, 3], [])"
+  },
+  {
+    "name": "lambda *args, **kwargs: list.sort(items, *args, **kwargs)(0,)",
+    "source": "events = []\nclass Flag:\n    def __bool__(self):\n        events.append('bool')\n        raise ValueError('reverse failed')\nitems = [3, 1, 2]\noperation = lambda *args, **kwargs: list.sort(items, *args, **kwargs)\ntry:\n    result = operation(0,)\n    outcome = ('ok', result)\nexcept Exception as error:\n    outcome = (type(error).__name__, str(error), error.args)\nobservation = (outcome, items, events)\n",
+    "expected": "(('TypeError', 'sort() takes no positional arguments', ('sort() takes no positional arguments',)), [3, 1, 2], [])"
+  },
+  {
+    "name": "base descriptor bypasses subtype override",
+    "source": "events = []\nclass Items(list):\n    def sort(self, **kwargs):\n        events.append('override')\n        return 42\n    def __iter__(self):\n        raise AssertionError('must use list payload')\nitems = Items([3, 1, 2])\nassert items.sort() == 42\nassert list.sort(items) is None\nassert list.__getitem__(items, 0) == 1\nassert list.__getitem__(items, 1) == 2\nassert list.__getitem__(items, 2) == 3\nobservation = events\n",
+    "expected": "['override']"
+  },
+  {
+    "name": "truth then keys with temporary empty payload",
+    "source": "events = []\nitems = [3, 1, 2]\nclass Reverse:\n    def __bool__(self):\n        events.append(('reverse', items.copy()))\n        return True\n    def __index__(self):\n        raise AssertionError('no index conversion')\ndef key(value):\n    events.append(('key', value, items.copy()))\n    return value\nresult = list.sort(items, key=key, reverse=Reverse())\nobservation = (result, items, events)\n",
+    "expected": "(None, [3, 2, 1], [('reverse', [3, 1, 2]), ('key', 3, []), ('key', 1, []), ('key', 2, [])])"
+  },
+  {
+    "name": "key failure preserves identity and original payload",
+    "source": "failure = ValueError('key failure')\nitems = [3, 1, 2]\nevents = []\ndef key(value):\n    events.append(value)\n    if value == 1:\n        raise failure\n    return value\ntry:\n    list.sort(items, key=key)\nexcept ValueError as error:\n    observation = (error is failure, items, events)\nelse:\n    assert False\n",
+    "expected": "(True, [3, 1, 2], [3, 1])"
+  },
+  {
+    "name": "mutation during reverse precedes sorting",
+    "source": "items = [3, 1, 2]\nclass Reverse:\n    def __bool__(self):\n        items.append(4)\n        return True\nresult = list.sort(items, reverse=Reverse())\nobservation = (result, items)\n",
+    "expected": "(None, [4, 3, 2, 1])"
+  },
+  {
+    "name": "mutation during key raises after restoring sorted payload",
+    "source": "items = [3, 1, 2]\ndef key(value):\n    items.append(100)\n    return value\ntry:\n    list.sort(items, key=key)\nexcept ValueError as error:\n    observation = (type(error).__name__, str(error), items)\nelse:\n    assert False\n",
+    "expected": "('ValueError', 'list modified during sort', [1, 2, 3])"
+  },
+  {
+    "name": "stable reverse sorting retains member identities",
+    "source": "class Item:\n    def __init__(self, value):\n        self.value = value\na = Item(1)\nb = Item(1)\nc = Item(2)\nitems = [a,b,c]\nlist.sort(items, key=lambda item:item.value, reverse=True)\nobservation = (items[0] is c, items[1] is a, items[2] is b)\n",
+    "expected": "(True, True, True)"
+  }
+]

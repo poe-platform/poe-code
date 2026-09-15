@@ -1,0 +1,3562 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug 5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "oracle": "/opt/homebrew/bin/python3.14"
+  },
+  "runtimeChanged": false,
+  "commands": {
+    "integration": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-codec-registry utf8-incremental utf-wide-incremental session-codec-native-wide-modules session-codec-source-registry --maxWorkers=2 --reporter=json --outputFile=/tmp/codec-registry-current.json",
+    "boundaries": "npm run test:unit --workspace=@poe-code/safe-python -- base64 runtime-codec-registration-cancellation runtime-codec-preparation-cancellation codec-replacement-rejection-cancellation session-codec-stream-state session-codec-stream-eof --maxWorkers=2 --reporter=json --outputFile=/tmp/codec-registry-current-boundaries.json",
+    "oracle": "npx tsx /tmp/codec-base64-probe.mts",
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python",
+    "eslint": "npx eslint packages/safe-python/src/runtime/runtime-codec-registry.ts packages/safe-python/src/runtime/runtime-codec-errors.ts packages/safe-python/src/runtime/runtime-native-buffers.ts packages/safe-python/src/runtime/base64.ts packages/safe-python/src/runtime/utf8-incremental.ts packages/safe-python/src/runtime/utf-wide-incremental.ts"
+  },
+  "integration": {
+    "passed": 104,
+    "failed": 14,
+    "pending": 0,
+    "reportSha256": "ce0d8f50cdee90f1e898ac3163a82b548e11cee5b8228c8f5b16a2b8e5abb9fa",
+    "cases": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-16 registry and module API'",
+        "status": "failed",
+        "duration": 84.8038749999996,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-16 incremental encoder state and …'",
+        "status": "failed",
+        "duration": 28.770292000000154,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-16 every incremental split and st…'",
+        "status": "failed",
+        "duration": 27.945332999999664,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+        "status": "failed",
+        "duration": 22.031208000000333,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-16 stream adapters BOM and reset'",
+        "status": "failed",
+        "duration": 21.897500000000036,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-32 registry and module API'",
+        "status": "failed",
+        "duration": 19.987833000000137,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-32 incremental encoder state and …'",
+        "status": "failed",
+        "duration": 19.824375000000146,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-32 every incremental split and st…'",
+        "status": "failed",
+        "duration": 20.034749999999804,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+        "status": "failed",
+        "duration": 21.003582999999708,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+        "fullName": "native wide codec module: 'utf-32 stream adapters BOM and reset'",
+        "status": "failed",
+        "duration": 22.437959000000774,
+        "failureMessages": [
+          "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+        "fullName": "source registry: 'source decoder receives an ownerless …'",
+        "status": "failed",
+        "duration": 86.36408399999982,
+        "failureMessages": [
+          "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+        "fullName": "source registry: 'source callback failures retain nativ…'",
+        "status": "failed",
+        "duration": 38.24004199999945,
+        "failureMessages": [
+          "AssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:15:28\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+        "fullName": "source registry: 'source codec callbacks use the suppli…'",
+        "status": "failed",
+        "duration": 22.962666000000354,
+        "failureMessages": [
+          "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+        "fullName": "keeps cancellation in source decoder callbacks terminal",
+        "status": "failed",
+        "duration": 28.203209000000243,
+        "failureMessages": [
+          "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:76\n    at Array.map (<anonymous>)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:51)\n    at Object.inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspectProperty (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:372:19)\n    at inspectList (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:343:24)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:28)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:920:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "uses guest keyword diagnostics before encode registry lookup",
+        "status": "passed",
+        "duration": 53.44762500000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "uses guest keyword diagnostics before decode registry lookup",
+        "status": "passed",
+        "duration": 13.838792000000012,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "preserves retained normalized name identity after failed searches and unregister",
+        "status": "passed",
+        "duration": 11.448750000000018,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "canonicalizes only empty and Latin-1 decoder results without consulting guest conversion or tuple overrides",
+        "status": "passed",
+        "duration": 21.038166000000047,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "binds search registration, normalized cache identity and error-handler lifetime through guest calls",
+        "status": "passed",
+        "duration": 9.259499999999889,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "binds positional-only registry entry points before name and callable validation",
+        "status": "passed",
+        "duration": 11.889042000000018,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "binds encode keyword validation and conversion order",
+        "status": "passed",
+        "duration": 6.582625000000007,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "binds decode keyword validation and conversion order",
+        "status": "passed",
+        "duration": 5.153332999999975,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "reads native string subtype storage and keeps invalid-name source identity",
+        "status": "passed",
+        "duration": 10.879791000000068,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "cancellation escapes the registry binding even when guest code catches failures (false)",
+        "status": "passed",
+        "duration": 8.277957999999899,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "cancellation escapes the registry binding even when guest code catches failures (true)",
+        "status": "passed",
+        "duration": 6.83158299999991,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "exposes pinned lookup metadata on the actual binding",
+        "status": "passed",
+        "duration": 4.931374999999889,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "uses the same registry for binding dispatch and UTF-8 negative-position recovery",
+        "status": "passed",
+        "duration": 12.558082999999897,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "isolates search paths and custom handler names between binding owners",
+        "status": "passed",
+        "duration": 8.57962499999985,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "fullName": "validates name boundaries before invoking search or replacing a registered handler",
+        "status": "passed",
+        "duration": 4.173084000000017,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "normalizes names, caches successful identity, and isolates registries",
+        "status": "passed",
+        "duration": 3.545833000000016,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "retries failed initialization before returning an exact cached name",
+        "status": "passed",
+        "duration": 0.6225829999999632,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates original spelling before using normalized cache: cached\u0000",
+        "status": "passed",
+        "duration": 0.36941699999999855,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates original spelling before using normalized cache: cached\ud800",
+        "status": "passed",
+        "duration": 0.4293749999999932,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates original spelling before using normalized cache: cached\u0000\ud800",
+        "status": "passed",
+        "duration": 0.58137499999998,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates original spelling before using normalized cache: 💥\ud800\ud801z",
+        "status": "passed",
+        "duration": 0.28758400000003803,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "registration preserves cache; unregister removes only the first identity and clears hits only when found",
+        "status": "passed",
+        "duration": 0.4712910000000079,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "does not cache misses or guest failures",
+        "status": "passed",
+        "duration": 0.43062500000002046,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "retains normalized search-name identity across misses, failures and cache invalidation",
+        "status": "passed",
+        "duration": 1.448332999999991,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects search tuples with 0 elements",
+        "status": "passed",
+        "duration": 0.3164170000000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects search tuples with 3 elements",
+        "status": "passed",
+        "duration": 0.36812500000002046,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects search tuples with 5 elements",
+        "status": "passed",
+        "duration": 0.13870900000000574,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects lists and noncallables without invoking guest equality",
+        "status": "passed",
+        "duration": 0.511874999999975,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "uses a fixed initial search length but live entries during mutation",
+        "status": "passed",
+        "duration": 0.24145800000002282,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates NUL and surrogate encoding names before searching",
+        "status": "passed",
+        "duration": 0.19491600000003473,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "keeps error handlers case sensitive, replaceable and separate from codec cache",
+        "status": "passed",
+        "duration": 0.6257080000000315,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 0)",
+        "status": "passed",
+        "duration": 0.8023749999999836,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 1)",
+        "status": "passed",
+        "duration": 0.24666599999994787,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 2)",
+        "status": "passed",
+        "duration": 0.3274579999999787,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 3)",
+        "status": "passed",
+        "duration": 0.30633399999999256,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 4)",
+        "status": "passed",
+        "duration": 0.3832500000000323,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 5)",
+        "status": "passed",
+        "duration": 0.20558299999999008,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 6)",
+        "status": "passed",
+        "duration": 0.1790409999999838,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 7)",
+        "status": "passed",
+        "duration": 0.17250000000001364,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "cancellation dominates search return or failure (throws=false)",
+        "status": "passed",
+        "duration": 0.2892079999999737,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "cancellation dominates search return or failure (throws=true)",
+        "status": "passed",
+        "duration": 0.07708399999995663,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates error handler names at the C-string boundary: x\u0000y",
+        "status": "passed",
+        "duration": 0.22466600000001336,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "validates error handler names at the C-string boundary: \ud800",
+        "status": "passed",
+        "duration": 0.10612500000002001,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "checks adjusted negative and positive resume bounds: -4n",
+        "status": "passed",
+        "duration": 0.21075000000001864,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "checks adjusted negative and positive resume bounds: 4n",
+        "status": "passed",
+        "duration": 0.09162500000002183,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "returns validated replacement identity and resume position: -1n",
+        "status": "passed",
+        "duration": 0.5809580000000096,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "returns validated replacement identity and resume position: 1n",
+        "status": "passed",
+        "duration": 0.3165829999999801,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "permits bytes only for encoding replacements and validates tuple shape before position",
+        "status": "passed",
+        "duration": 0.4984999999999786,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "cancellation dominates custom error handlers (throws=false)",
+        "status": "passed",
+        "duration": 0.15208300000000463,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "cancellation dominates custom error handlers (throws=true)",
+        "status": "passed",
+        "duration": 0.10758399999997437,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "does not reenter a retained encode error handler after termination",
+        "status": "passed",
+        "duration": 0.4661249999999768,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "does not reenter a retained decode error handler after termination",
+        "status": "passed",
+        "duration": 0.1730840000000171,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "checks cancellation before invoking a retained encode error handler",
+        "status": "passed",
+        "duration": 0.13641599999999698,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "checks cancellation before invoking a retained decode error handler",
+        "status": "passed",
+        "duration": 0.06941699999998718,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "detects search-path shrinkage during lookup without taking a snapshot",
+        "status": "passed",
+        "duration": 0.33079100000003336,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects resume positions outside pinned Py_ssize_t: 9223372036854775808n",
+        "status": "passed",
+        "duration": 0.20612500000004275,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "rejects resume positions outside pinned Py_ssize_t: -9223372036854775809n",
+        "status": "passed",
+        "duration": 0.09362500000003138,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "fullName": "accepts boolean positions and invokes __index__ through the explicit protocol",
+        "status": "passed",
+        "duration": 0.2589590000000044,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'cancelled' (order=-1)",
+        "status": "passed",
+        "duration": 2.638417000000004,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'allocation' (order=-1)",
+        "status": "passed",
+        "duration": 0.6141669999999806,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'steps' (order=-1)",
+        "status": "passed",
+        "duration": 0.2825420000000065,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'cancelled' (order=1)",
+        "status": "passed",
+        "duration": 0.3665409999999838,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'allocation' (order=1)",
+        "status": "passed",
+        "duration": 0.2935409999999763,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-16 BOM order and buffered bytes together on 'steps' (order=1)",
+        "status": "passed",
+        "duration": 0.2260000000000275,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'cancelled' (order=-1)",
+        "status": "passed",
+        "duration": 0.23333400000001348,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'allocation' (order=-1)",
+        "status": "passed",
+        "duration": 0.17329200000000355,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'steps' (order=-1)",
+        "status": "passed",
+        "duration": 0.5869590000000073,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'cancelled' (order=1)",
+        "status": "passed",
+        "duration": 0.27233300000000327,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'allocation' (order=1)",
+        "status": "passed",
+        "duration": 0.27983299999999645,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "fullName": "commits UTF-32 BOM order and buffered bytes together on 'steps' (order=1)",
+        "status": "passed",
+        "duration": 0.16670799999999986,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves reentrant byte-order changes from UTF-16 recovery",
+        "status": "passed",
+        "duration": 3.649624999999986,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves reentrant byte-order changes from UTF-32 recovery",
+        "status": "passed",
+        "duration": 0.6519580000000076,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "finishes initial UTF-16 BOM detection after reentrant recovery",
+        "status": "passed",
+        "duration": 0.5376249999999914,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "finishes initial UTF-32 BOM detection after reentrant recovery",
+        "status": "passed",
+        "duration": 0.48329200000000583,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves reentrant UTF-16 encoder reset after initial selection",
+        "status": "passed",
+        "duration": 0.5432079999999928,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves reentrant UTF-32 encoder reset after initial selection",
+        "status": "passed",
+        "duration": 0.30520799999999326,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "retains UTF-16 callback mutations when recovery raises or cancels",
+        "status": "passed",
+        "duration": 1.1015829999999767,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "retains UTF-32 callback mutations when recovery raises or cancels",
+        "status": "passed",
+        "duration": 0.6785830000000033,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves every split, endian selection and owned state for UTF-16",
+        "status": "passed",
+        "duration": 3.839291999999972,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "preserves every split, endian selection and owned state for UTF-32",
+        "status": "passed",
+        "duration": 3.549666000000002,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "requires a BOM only for native incremental UTF-16 and leaves failures uncommitted",
+        "status": "passed",
+        "duration": 0.5572909999999922,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "requires a BOM only for native incremental UTF-32 and leaves failures uncommitted",
+        "status": "passed",
+        "duration": 0.17612499999998477,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "normalizes internal integer state and emits BOM only after successful UTF-16 encode",
+        "status": "passed",
+        "duration": 1.0363749999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "normalizes internal integer state and emits BOM only after successful UTF-32 encode",
+        "status": "passed",
+        "duration": 0.6316250000000139,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "observes cancellation before mutation and budgets output storage",
+        "status": "passed",
+        "duration": 0.264665999999977,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "detects a big-endian BOM at every split for native UTF-16",
+        "status": "passed",
+        "duration": 0.5168749999999989,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "detects a big-endian BOM at every split for native UTF-32",
+        "status": "passed",
+        "duration": 0.42349999999999,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "fullName": "supports recovery across buffered input, including a replacement longer than the original bytes",
+        "status": "passed",
+        "duration": 0.21424999999999272,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding handles every chunk boundary in 194,128",
+        "status": "passed",
+        "duration": 2.416957999999994,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding handles every chunk boundary in 226,130,172",
+        "status": "passed",
+        "duration": 0.5929590000000076,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding handles every chunk boundary in 240,144,128,128",
+        "status": "passed",
+        "duration": 0.21795900000000756,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding handles every chunk boundary in 65,239,187,191,66",
+        "status": "passed",
+        "duration": 0.24466599999999517,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding buffers one byte at a time and survives empty chunks",
+        "status": "passed",
+        "duration": 0.41166699999999423,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding defers an unfinished surrogate prefix with strict",
+        "status": "passed",
+        "duration": 0.21066600000000335,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding defers an unfinished surrogate prefix with replace",
+        "status": "passed",
+        "duration": 0.16695899999999142,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogatepass",
+        "status": "passed",
+        "duration": 0.20499999999998408,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogateescape",
+        "status": "passed",
+        "duration": 0.5775830000000042,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding rejects already-invalid partial prefixes immediately",
+        "status": "passed",
+        "duration": 0.7612089999999796,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding flushes incomplete bytes using the current error policy",
+        "status": "passed",
+        "duration": 0.4389580000000137,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding keeps old pending state on failure and reports the complete combined input",
+        "status": "passed",
+        "duration": 0.16320900000002325,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding copies input tails and state snapshots without aliasing",
+        "status": "passed",
+        "duration": 0.11304199999997877,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding allows decoder state containing ordinary bytes and ignores auxiliary state",
+        "status": "passed",
+        "duration": 0.1097910000000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding leaves state unchanged when buffer assembly exceeds its budget",
+        "status": "passed",
+        "duration": 0.16387499999999022,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "fullName": "incremental UTF-8 decoding does not commit pending-state replacement after a cancelled checkpoint",
+        "status": "passed",
+        "duration": 0.20699999999999363,
+        "failureMessages": []
+      }
+    ]
+  },
+  "boundaries": {
+    "passed": 380,
+    "failed": 0,
+    "pending": 0,
+    "reportSha256": "c06379c708e1cc54db43cdaca165e692a6a7f584582236979d9013fffa9c1901",
+    "cases": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-eof.test.ts",
+        "fullName": "'UTF-8 stream temporary EOF retains in…'",
+        "status": "passed",
+        "duration": 66.73070800000005,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-eof.test.ts",
+        "fullName": "'UTF-8 final failure preserves state f…'",
+        "status": "passed",
+        "duration": 37.644166999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-eof.test.ts",
+        "fullName": "'ascii stream retry after sink failure…'",
+        "status": "passed",
+        "duration": 20.797291999999743,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-eof.test.ts",
+        "fullName": "'latin-1 stream retry after sink failu…'",
+        "status": "passed",
+        "duration": 17.00845900000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-eof.test.ts",
+        "fullName": "'utf-8 stream retry after sink failure…'",
+        "status": "passed",
+        "duration": 19.817999999999756,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'base class state and buffer mutation'",
+        "status": "passed",
+        "duration": 55.65641700000015,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'concrete ASCII Latin-1 and UTF-8 adap…'",
+        "status": "passed",
+        "duration": 31.491665999999896,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'short reads, line buffers, positionin…'",
+        "status": "passed",
+        "duration": 25.93770799999993,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'paired reader writer and recoder prot…'",
+        "status": "passed",
+        "duration": 20.817332999999962,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'lazy iteration, final flush, kwargs, …'",
+        "status": "passed",
+        "duration": 32.83604199999991,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'reader firstline recovery, partial EO…'",
+        "status": "passed",
+        "duration": 14.67291699999987,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'writer failure order and captured get…'",
+        "status": "passed",
+        "duration": 14.625875000000178,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'buffer decode callback state replacem…'",
+        "status": "passed",
+        "duration": 13.432084000000032,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+        "fullName": "'iterator sees lazy factory mutation a…'",
+        "status": "passed",
+        "duration": 13.518416999999772,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "encodes every pinned Base64 vector with both newline policies",
+        "status": "passed",
+        "duration": 5.737207999999995,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "matches pinned permissive and strict decoding, including padding error precedence",
+        "status": "passed",
+        "duration": 93.032708,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "returns independent storage without modifying either input",
+        "status": "passed",
+        "duration": 0.1705000000000041,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "defaults to one trailing newline on encoding and permissive decoding",
+        "status": "passed",
+        "duration": 0.16570799999999508,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "meters allocation and work before producing a result",
+        "status": "passed",
+        "duration": 0.2605000000000075,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "meters allocation and work before producing a result",
+        "status": "passed",
+        "duration": 0.0832499999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "keeps cancellation fatal on empty input and during processing",
+        "status": "passed",
+        "duration": 0.2949169999999981,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.test.ts",
+        "fullName": "keeps cancellation fatal on empty input and during processing",
+        "status": "passed",
+        "duration": 0.07791699999998514,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 4.633667000000003,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 1.550374999999974,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.6474170000000186,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 1.1094999999999686,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 1.1590419999999995,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'ascii' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.8171250000000327,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 1.6190000000000282,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.8451670000000036,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 1.2202910000000315,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.5892499999999927,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.3961659999999938,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'latin-1' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.32012500000001864,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 0.42645900000002257,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.37958299999996825,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.3302919999999858,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.3822499999999991,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.27404200000000856,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-8' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.332416999999964,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 0.39883300000002464,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.3199999999999932,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.26958300000001145,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.35629100000005565,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.26862500000004275,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-text' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.3049579999999992,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 5.6682500000000005,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.552250000000015,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.4042919999999981,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.35954199999997627,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.32687500000002956,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-16-bytes' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.49512499999997317,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 0.38970800000004147,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.3883329999999887,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.34737499999999955,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.335125000000005,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.5003750000000196,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-text' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.26625000000001364,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'ordinary', cancelled=false",
+        "status": "passed",
+        "duration": 0.202541999999994,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'ordinary', cancelled=true",
+        "status": "passed",
+        "duration": 0.23341699999997445,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'guest', cancelled=false",
+        "status": "passed",
+        "duration": 0.23424999999997453,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'guest', cancelled=true",
+        "status": "passed",
+        "duration": 0.21441700000002584,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'fatal', cancelled=false",
+        "status": "passed",
+        "duration": 0.18470800000000054,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-replacement-rejection-cancellation.test.ts",
+        "fullName": "'utf-32-bytes' replacement rejection: 'fatal', cancelled=true",
+        "status": "passed",
+        "duration": 0.2248339999999871,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding +0: 'a2b_base64'",
+        "status": "passed",
+        "duration": 1.6573750000000018,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 1: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.6452919999999978,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 2: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.5801249999999953,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 3: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.3341250000000002,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 4: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.25354199999999594,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 5: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1915830000000085,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 6: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.6731249999999989,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 7: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.2719589999999954,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 8: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.5967090000000042,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 9: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.35170800000000213,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 10: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1915000000000049,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 11: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.17875000000000796,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 12: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07299999999999329,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 13: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07662500000000705,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 14: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.18829200000000412,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 15: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13325000000000387,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 16: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.12725000000000364,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 17: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07824999999999704,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 18: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.061333000000004745,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 19: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.08120800000000372,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 20: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.12649999999999295,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 21: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09141699999999275,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 22: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.19995900000000688,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 23: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09958400000000722,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 24: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07758300000000418,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 25: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09079199999999332,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 26: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.10124999999999318,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 27: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0804159999999996,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 28: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1410410000000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 29: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0656670000000048,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 30: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03245800000000543,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 31: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.05649999999999977,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 32: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.11366699999999241,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 33: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03716699999999662,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 34: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.036584000000004835,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 35: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.033292000000002986,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 36: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09087499999999693,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 37: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06083399999999983,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 38: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04141599999999812,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 39: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09129100000001245,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 40: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04045800000000099,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 41: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.058875000000000455,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 42: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.11412500000000136,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 43: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.15879200000000537,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 44: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09112500000000523,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 45: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.045040999999997666,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 46: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03712500000000318,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 47: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13208400000000609,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 48: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0762499999999875,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 49: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.041082999999986214,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 50: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1024579999999844,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 51: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.036458000000010315,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 52: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.049666000000001986,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 53: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07712499999999523,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 54: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06629200000000424,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 55: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07145900000000438,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 56: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07458400000001575,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 57: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06791599999999676,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 58: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1970839999999896,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 59: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.11775000000000091,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 60: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03912500000001273,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 61: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03412499999998886,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 62: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0749580000000094,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 63: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.028874999999999318,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 64: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.17900000000000205,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 65: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.14500000000001023,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 66: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.040832999999992126,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 67: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0363749999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 68: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.11050000000000182,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 69: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07375000000001819,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 70: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.10325000000000273,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 71: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07337499999999864,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 72: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.05979199999998741,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 73: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.12962500000000432,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 74: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13266699999999787,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 75: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.11875000000000568,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 76: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0832499999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 77: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.07062500000000682,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 78: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03362500000000068,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 79: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.042833000000001675,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 80: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06433300000000486,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 81: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13945799999999053,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 82: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.9398750000000007,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 83: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1112500000000125,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 84: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.08833400000000324,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 85: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.035666000000020404,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 86: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.026542000000006283,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 87: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.024540999999999258,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 88: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.024916000000018812,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 89: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03499999999999659,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 90: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.041500000000013415,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 91: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.029415999999997666,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 92: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.030249999999995225,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 93: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0267080000000135,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 94: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.024833000000000993,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 95: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.16987500000001887,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 96: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13683300000002419,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 97: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06425000000001546,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 98: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.05358300000000327,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 99: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06837500000000318,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 100: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.13270800000000804,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 101: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06274999999999409,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 102: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04487500000001887,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 103: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.039458999999993694,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 104: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.039500000000003865,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 105: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04429200000001288,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 106: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.05629200000001333,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 107: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0473750000000166,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 108: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.1350829999999803,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 109: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.045417000000014696,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 110: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04108400000001211,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 111: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03612499999999841,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 112: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.036291000000005624,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 113: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04691700000000765,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 114: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03958399999999074,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 115: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04141599999999812,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 116: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.036167000000006055,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 117: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.037042000000013786,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 118: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.09258400000001643,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 119: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.057332999999999856,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 120: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.042708999999973685,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 121: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04016699999999673,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 122: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03591700000001197,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 123: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03712500000000318,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 124: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03495799999998894,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 125: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03550000000001319,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 126: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.035124999999993634,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 127: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.035750000000007276,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 128: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.06049999999999045,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 129: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.030042000000008784,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 130: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.2539170000000013,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 131: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.12283400000001166,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 132: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.08441600000000449,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 133: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.08949999999998681,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 134: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0935840000000212,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 135: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.12133399999999028,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 136: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.05633399999999256,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 137: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03383299999998712,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 138: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.0347500000000025,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 139: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.032667000000003554,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 140: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.03354099999998539,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 141: 'a2b_base64'",
+        "status": "passed",
+        "duration": 0.04095799999998917,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 142: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.07433299999999576,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 143: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.030916999999988093,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 144: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026250000000004547,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 145: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.09949999999997772,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 146: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.09287499999999227,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 147: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.07491699999999923,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 148: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.08937499999998977,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 149: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04591700000000287,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 150: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.036457999999981894,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 151: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02816699999999628,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 152: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.028250000000014097,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 153: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0704589999999996,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 154: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.058625000000006366,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 155: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03104200000001356,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 156: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0246670000000222,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 157: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.024333000000012817,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 158: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.023208000000010998,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 159: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.11020899999999756,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 160: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.09229199999998627,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 161: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.07200000000000273,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 162: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.033125000000012506,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 163: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03358300000002146,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 164: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.054833999999999605,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 165: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0338339999999846,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 166: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025083999999992557,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 167: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06016699999997854,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 168: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.08337500000001796,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 169: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.08525000000000205,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 170: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04120800000001168,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 171: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03125,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 172: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02616700000001515,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 173: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026707999999985077,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 174: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02679200000000037,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 175: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02529200000000742,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 176: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06929199999999014,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 177: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.07883300000000304,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 178: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04170899999999733,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 179: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0357919999999865,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 180: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.030207999999987578,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 181: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0262079999999969,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 182: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0262079999999969,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 183: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02654199999997786,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 184: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.023540999999994483,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 185: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025249999999999773,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 186: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025374999999996817,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 187: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025000000000005684,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 188: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.07620900000000574,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 189: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.10462500000002706,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 190: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03795800000000327,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 191: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03129200000000765,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 192: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.12116700000001401,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 193: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06833299999999554,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 194: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03562500000001023,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 195: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.030292000000002872,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 196: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025833000000005768,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 197: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02791699999997377,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 198: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.038333999999991875,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 199: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0262079999999969,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 200: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02491599999999039,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 201: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0792499999999734,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 202: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03083300000000122,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 203: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.028833999999989146,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 204: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02658400000001393,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 205: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.024666999999993777,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 206: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03649999999998954,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 207: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0498749999999859,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 208: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.027167000000019925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 209: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02862500000000523,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 210: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026542000000006283,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 211: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025624999999990905,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 212: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04537499999997863,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 213: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025457999999986214,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 214: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03741599999997902,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 215: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04454100000000949,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 216: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.028083000000009406,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 217: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03520799999998303,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 218: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.024042000000008557,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 219: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026499999999998636,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 220: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.021374999999977717,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 221: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026959000000005062,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 222: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03608300000001918,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 223: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.025208000000020547,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 224: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.023915999999985615,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 225: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.024042000000008557,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 226: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04550000000000409,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 227: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03570799999999963,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 228: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0407910000000129,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 229: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03262499999999591,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 230: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0358749999999759,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 231: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03387500000002319,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 232: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.053665999999992664,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 233: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.12337499999998158,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 234: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.048583000000007814,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 235: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03891699999999787,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 236: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0363749999999925,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 237: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03795800000000327,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 238: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03466699999998468,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 239: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.038124999999979536,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 240: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0659170000000131,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 241: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04462499999999636,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 242: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06945899999999483,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 243: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.062124999999980446,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 244: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04441700000000992,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 245: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.068916999999999,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 246: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04433299999999463,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 247: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03754200000000196,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 248: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03591700000001197,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 249: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03412499999998886,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 250: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06133400000001643,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 251: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03437500000001137,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 252: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.9521670000000029,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 253: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.08625000000000682,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 254: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.08070800000001555,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 255: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0347500000000025,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 256: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0387500000000216,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 257: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06654100000000085,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 258: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.05662499999999682,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 259: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.1128750000000025,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 260: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.09100000000000819,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 261: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.06337500000000773,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 262: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.033125000000012506,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 263: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03233299999999417,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 264: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.05458300000000804,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 265: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.04312500000000341,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 266: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.034915999999981295,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 267: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.033084000000002334,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 268: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03195800000000304,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 269: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.03275000000002137,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 270: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.031959000000000515,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 271: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026250000000004547,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 272: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.0579580000000135,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 273: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.039500000000003865,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 274: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.031125000000002956,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 275: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02504200000001333,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 276: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.02949999999998454,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 277: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.029458000000005313,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 278: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.030624999999986358,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 279: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026707999999985077,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 280: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.029208000000011225,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 281: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.028750000000002274,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 282: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.030000000000001137,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "pinned Base64 binding 283: 'b2a_base64'",
+        "status": "passed",
+        "duration": 0.026916999999997415,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "a2b_base64 owns native metadata and observes mutations during truth conversion",
+        "status": "passed",
+        "duration": 0.5061669999999765,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "b2a_base64 owns native metadata and observes mutations during truth conversion",
+        "status": "passed",
+        "duration": 0.27533399999998664,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "a2b_base64 releases buffers through failures and terminal cancellation",
+        "status": "passed",
+        "duration": 1.5312910000000102,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "b2a_base64 releases buffers through failures and terminal cancellation",
+        "status": "passed",
+        "duration": 0.8592910000000131,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "a2b_base64 preserves opaque host acquisition failures",
+        "status": "passed",
+        "duration": 0.2028750000000059,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "fullName": "b2a_base64 preserves opaque host acquisition failures",
+        "status": "passed",
+        "duration": 0.046332999999975755,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "replays unchanged pinned Base64 guest program +0",
+        "status": "passed",
+        "duration": 38.132791999999995,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "replays unchanged pinned Base64 guest program 1",
+        "status": "passed",
+        "duration": 12.239125000000001,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "replays unchanged pinned Base64 guest program 2",
+        "status": "passed",
+        "duration": 9.981042000000002,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "replays unchanged pinned Base64 guest program 3",
+        "status": "passed",
+        "duration": 10.574457999999993,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "keeps Base64 guest cancellation in __bool__ terminal",
+        "status": "passed",
+        "duration": 35.672458000000006,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-guests.test.ts",
+        "fullName": "keeps Base64 guest cancellation in __len__ terminal",
+        "status": "passed",
+        "duration": 13.062749999999994,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'return', cancellation=false",
+        "status": "passed",
+        "duration": 5.601999999999975,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'return', cancellation=true",
+        "status": "passed",
+        "duration": 1.634999999999991,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'ordinary failure', cancellation=false",
+        "status": "passed",
+        "duration": 1.507791999999995,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'ordinary failure', cancellation=true",
+        "status": "passed",
+        "duration": 0.8419580000000337,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'guest failure', cancellation=false",
+        "status": "passed",
+        "duration": 0.711749999999995,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'guest failure', cancellation=true",
+        "status": "passed",
+        "duration": 0.7015419999999608,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'fatal', cancellation=false",
+        "status": "passed",
+        "duration": 0.5480000000000018,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'encode' preparation: 'fatal', cancellation=true",
+        "status": "passed",
+        "duration": 0.5216669999999795,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'return', cancellation=false",
+        "status": "passed",
+        "duration": 1.8370419999999967,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'return', cancellation=true",
+        "status": "passed",
+        "duration": 0.7751660000000129,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'ordinary failure', cancellation=false",
+        "status": "passed",
+        "duration": 0.613290999999947,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'ordinary failure', cancellation=true",
+        "status": "passed",
+        "duration": 0.350832999999966,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'guest failure', cancellation=false",
+        "status": "passed",
+        "duration": 0.3179160000000252,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'guest failure', cancellation=true",
+        "status": "passed",
+        "duration": 0.5264999999999986,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'fatal', cancellation=false",
+        "status": "passed",
+        "duration": 0.407291999999984,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "fullName": "codec 'decode' preparation: 'fatal', cancellation=true",
+        "status": "passed",
+        "duration": 0.27600000000001046,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+        "fullName": "search registration observes callability-service cancellation and preserves failures",
+        "status": "passed",
+        "duration": 1.7946249999999964,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+        "fullName": "error registration observes callability-service cancellation and preserves failures",
+        "status": "passed",
+        "duration": 0.5343750000000114,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+        "fullName": "search registration preserves a fatal callability failure by identity",
+        "status": "passed",
+        "duration": 0.12104200000001697,
+        "failureMessages": []
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+        "fullName": "error registration preserves a fatal callability failure by identity",
+        "status": "passed",
+        "duration": 0.10358299999998621,
+        "failureMessages": []
+      }
+    ]
+  },
+  "probe": {
+    "driver": "import {spawnSync} from 'node:child_process';\nimport {decodeBase64} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/base64.ts';\nlet seed=0xc0de3147;\nconst random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;};\nconst alphabet=[65,66,90,97,122,48,57,43,47,61,61,61,10,13,32,255,0];\nconst rows=Array.from({length:30000},()=>[Array.from({length:(random()>>>8)%80},()=>alphabet[(random()>>>8)%alphabet.length]),Boolean((random()>>>8)%2)] as const);\nconst script=`import json,sys,binascii\nrows=json.load(sys.stdin)\nout=[]\nfor source,strict in rows:\n try: out.append(['ok',list(binascii.a2b_base64(bytes(source),strict_mode=strict))])\n except Exception as e: out.append(['error',str(e)])\njson.dump(out,sys.stdout)`;\nconst reference=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',script],{input:JSON.stringify(rows),encoding:'utf8',maxBuffer:32000000});\nif(reference.status!==0)throw Error(reference.stderr);\nconst expected=JSON.parse(reference.stdout);\nconst mismatches=[];\nfor(let i=0;i<rows.length;i++){\n const [input,strict]=rows[i];let actual;\n try{actual=['ok',[...decodeBase64(Uint8Array.from(input),strict)]];}catch(e){actual=['error',(e as Error).message];}\n if(JSON.stringify(actual)!==JSON.stringify(expected[i]))mismatches.push({input,strict,actual,expected:expected[i]});\n}\nconsole.log(JSON.stringify({count:rows.length,strict:rows.filter(row=>row[1]).length,mismatches:mismatches.slice(0,20),total:mismatches.length}));\n",
+    "result": {
+      "count": 30000,
+      "strict": 15095,
+      "mismatches": [],
+      "total": 0
+    }
+  },
+  "exits": {
+    "integration": 1,
+    "boundaries": 0,
+    "oracle": 0,
+    "typecheck": 0,
+    "eslint": 0
+  },
+  "completion": false
+}

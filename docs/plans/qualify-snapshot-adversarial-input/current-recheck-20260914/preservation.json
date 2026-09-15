@@ -1,0 +1,7 @@
+{
+  "changedPreexistingTypeScript": [
+    "packages/safe-js/src/snapshot/replay-inputs.ts"
+  ],
+  "testedSourceStable": true,
+  "stagedContentPreserved": true
+}

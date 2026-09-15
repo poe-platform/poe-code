@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-fs/tests/real-read-budget-review.test.ts (14 tests) 30ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  20:10:49
+   Duration  787ms (transform 540ms, setup 36ms, import 644ms, tests 30ms, environment 0ms)
+

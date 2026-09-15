@@ -1,0 +1,154 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "byteorder": "little",
+  "setup": "import codecs, encodings\ncodecs.unregister(encodings.search_function)\nseen = []\ndef search(name):\n    seen.append(name)\n    return codecs.CodecInfo(lambda *a: (b'override', 0), lambda *a: ('override', 0))\ncodecs.register(search)\n",
+  "expression": "b'A'.decode(name)",
+  "rows": [
+    {
+      "encoding": "u8",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "u8"
+      ]
+    },
+    {
+      "encoding": "utf",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "utf"
+      ]
+    },
+    {
+      "encoding": "cp65001",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "cp65001"
+      ]
+    },
+    {
+      "encoding": "646",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "646"
+      ]
+    },
+    {
+      "encoding": "cp367",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "cp367"
+      ]
+    },
+    {
+      "encoding": "latin",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "latin"
+      ]
+    },
+    {
+      "encoding": "l1",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "l1"
+      ]
+    },
+    {
+      "encoding": "cp819",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "cp819"
+      ]
+    },
+    {
+      "encoding": "utf-8-sig",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "utf_8_sig"
+      ]
+    },
+    {
+      "encoding": "utf-16-le",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "utf_16_le"
+      ]
+    },
+    {
+      "encoding": "utf-32-be",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "utf_32_be"
+      ]
+    },
+    {
+      "encoding": "utf-7",
+      "input": [
+        65
+      ],
+      "result": "override",
+      "search": [
+        "utf_7"
+      ]
+    },
+    {
+      "encoding": "utf-8",
+      "input": [
+        65
+      ],
+      "result": "A",
+      "search": []
+    },
+    {
+      "encoding": "ascii",
+      "input": [
+        65
+      ],
+      "result": "A",
+      "search": []
+    },
+    {
+      "encoding": "latin-1",
+      "input": [
+        65
+      ],
+      "result": "A",
+      "search": []
+    }
+  ]
+}

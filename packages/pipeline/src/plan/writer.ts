@@ -3,7 +3,7 @@ import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { PipelineFileSystem, PipelineFinalizationStatus, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
-import { withPlanLock } from "./lock.js";
+import { serializePlan } from "./serialize.js";
 
 type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile" | "lstat" | "rename" | "unlink">;
 type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
@@ -258,8 +258,7 @@ async function updatePlanDocument(
   options: PlanWriteOptions,
   mutate: (document: ReturnType<typeof parseDocument>) => boolean
 ): Promise<boolean> {
-  return withPlanLock({
-    fs: options.fs,
+  return serializePlan({
     planPath: options.planPath,
     kind: "status",
     signal: options.signal,

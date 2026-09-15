@@ -1,0 +1,1296 @@
+{
+  "utc": "2026-09-12T08:48:11.138798+00:00",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "archive": "completed-report-checkpoint.tar.gz",
+  "archiveBytes": 3556935,
+  "archiveSha256": "70fff68d5e5314ae70dee34e599183538c2341b0cd24af077868d6a3713d55fc",
+  "members": [
+    {
+      "name": "00000-00499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/00000-00499.jsonl",
+      "bytes": 224583,
+      "sha256": "a63848567063ee0fe4d7125c8dafaae0be6482e69a707153601ffa0e2c5e69c0"
+    },
+    {
+      "name": "00500-00999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/00500-00999.jsonl",
+      "bytes": 219370,
+      "sha256": "f7defb9de894d2ec50f56cc4e8692aac23cd5c1048515de33592a43856df789e"
+    },
+    {
+      "name": "01000-01499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/01000-01499.jsonl",
+      "bytes": 199039,
+      "sha256": "812d97a00751ceb0b3786cfc9cc2377b646eff9f813df256efb58ae6b594b800"
+    },
+    {
+      "name": "01500-01999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/01500-01999.jsonl",
+      "bytes": 195064,
+      "sha256": "a62aae2ad2e086e9926b10c9b420cdf6055e57bba6c73beb13991f99c5728285"
+    },
+    {
+      "name": "02000-02499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/02000-02499.jsonl",
+      "bytes": 202269,
+      "sha256": "21ca8b14ab99c40c5b491b5db0c23c412e1e17303795b0e4d181b09841d89a6a"
+    },
+    {
+      "name": "02500-02999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/02500-02999.jsonl",
+      "bytes": 194304,
+      "sha256": "3fa49317a7d019c6b611acebd39a88ca56988682c25810e58fb24e79b08a6832"
+    },
+    {
+      "name": "03000-03499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/03000-03499.jsonl",
+      "bytes": 197116,
+      "sha256": "ae5535af90aa3d0b3e3a649439baf6ae9a9ffec4f4cc74998a797c6ec9baad6c"
+    },
+    {
+      "name": "03500-03999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/03500-03999.jsonl",
+      "bytes": 198733,
+      "sha256": "4f0d02974c5c1678519c4e63d3d9b7580e9cb899a32219876b4d9d6274620a3b"
+    },
+    {
+      "name": "04000-04499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/04000-04499.jsonl",
+      "bytes": 216798,
+      "sha256": "dee00dc034469bce73c88bd20a0f9434f5ed3ee16857d1ec37457961e780cfbc"
+    },
+    {
+      "name": "04500-04999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/04500-04999.jsonl",
+      "bytes": 217808,
+      "sha256": "5e12a326282c37515ecd1f41678bba3ad5f61312eaa1341abff52976c5019797"
+    },
+    {
+      "name": "05000-05499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/05000-05499.jsonl",
+      "bytes": 206339,
+      "sha256": "5478284b3db8399aa3ef7b0951a17b35ac29360f5e4a10403e69c59271d3ae2f"
+    },
+    {
+      "name": "05500-05999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/05500-05999.jsonl",
+      "bytes": 202168,
+      "sha256": "d5d74921ddcb1c33fa2e1866476c79ce53111dea042f853821654c553acc13d2"
+    },
+    {
+      "name": "06000-06499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/06000-06499.jsonl",
+      "bytes": 201050,
+      "sha256": "9865d5ac643f68c4c238362d9c5b908acf2ef09eddf3e01080c3768fbfb6adcc"
+    },
+    {
+      "name": "06500-06999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/06500-06999.jsonl",
+      "bytes": 202532,
+      "sha256": "fdb343ce58ce52473a6d7af6046d3fc069ffd93a7225a7772c41209d020b032d"
+    },
+    {
+      "name": "07000-07499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/07000-07499.jsonl",
+      "bytes": 240478,
+      "sha256": "bdce66ded9180dd2e3327ae18da36182e770407c2da0823f937392785657fd29"
+    },
+    {
+      "name": "07500-07999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/07500-07999.jsonl",
+      "bytes": 226163,
+      "sha256": "45bcb4225ef54542bc0e4bd63d45a3b4ca441b33722f52683527657ee8747856"
+    },
+    {
+      "name": "08000-08499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/08000-08499.jsonl",
+      "bytes": 181439,
+      "sha256": "2ecbd94f08f2264bef34145e429bb9c9176c630ba7d14d86b8e2f6017e7a312e"
+    },
+    {
+      "name": "08500-08999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/08500-08999.jsonl",
+      "bytes": 186809,
+      "sha256": "8e575521c9fc5dc4f8f84ce8316f356026d29e8823b15b9e7a660d0e460333e5"
+    },
+    {
+      "name": "09000-09499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/09000-09499.jsonl",
+      "bytes": 178198,
+      "sha256": "398927281c8caa20ca2d3d3ea25e6c57d08d8ac120103835c84004415d3cc4dd"
+    },
+    {
+      "name": "09500-09999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/09500-09999.jsonl",
+      "bytes": 193012,
+      "sha256": "3a74b37a1fdf49d262a9ccc8399d34b2c4c10b2b0b5986ac6d51739d86343e5c"
+    },
+    {
+      "name": "10000-10499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/10000-10499.jsonl",
+      "bytes": 188911,
+      "sha256": "5fedc13e7f6e84b8e7daa2717544deac86022eb74569589057243a751791e8b9"
+    },
+    {
+      "name": "10500-10999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/10500-10999.jsonl",
+      "bytes": 187635,
+      "sha256": "f6b4f7a0d1ce04efbfa14692a9d54a7f24406d87fde3f7546a2b7f644a61b29b"
+    },
+    {
+      "name": "11000-11499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/11000-11499.jsonl",
+      "bytes": 195785,
+      "sha256": "55bbdb25231d0fd35fde286c11a2fd96db85043df98184db56b433a522afb411"
+    },
+    {
+      "name": "11500-11999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/11500-11999.jsonl",
+      "bytes": 192227,
+      "sha256": "bce6c91b9273a11d1de2dec4f8fced720de2969897c812c2ebe46198d1bccbe2"
+    },
+    {
+      "name": "12000-12499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/12000-12499.jsonl",
+      "bytes": 199954,
+      "sha256": "51072f2ceeb2d8f9e563c04f4a40c8b2243c01f873c14f25a40de8a42d38c81a"
+    },
+    {
+      "name": "12500-12999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/12500-12999.jsonl",
+      "bytes": 212668,
+      "sha256": "a84907546192415653c67fac4837640576a58951ae9319fe621b03b6036c70a6"
+    },
+    {
+      "name": "13000-13499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/13000-13499.jsonl",
+      "bytes": 195915,
+      "sha256": "1a6ec9836ccbfacc4a3391d0e949f4d32eb41e66725c4aab794223c0344af2fd"
+    },
+    {
+      "name": "13500-13999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/13500-13999.jsonl",
+      "bytes": 180363,
+      "sha256": "a6f3cdebf44082484eea43a7dc74061cc4c150fc1a88e40a6f1b746fb0da6c89"
+    },
+    {
+      "name": "14000-14049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14000-14049.jsonl",
+      "bytes": 24943,
+      "sha256": "1fe3e1cd99704eb3d0a2b6e86d0cf66caeb4754daba4259384b7af936d9020e8"
+    },
+    {
+      "name": "14050-14099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14050-14099.jsonl",
+      "bytes": 25122,
+      "sha256": "1f2f0dc0833e849f297a447abb0edf36f94aa861f7954e716e6f0293fd572e2b"
+    },
+    {
+      "name": "14100-14149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14100-14149.jsonl",
+      "bytes": 27472,
+      "sha256": "550fa88b065a722cf3237bd71af7cdd8f0c7d1c5898042f2ccdad82a64c92909"
+    },
+    {
+      "name": "14150-14199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14150-14199.jsonl",
+      "bytes": 41559,
+      "sha256": "bd000417a492c00445149ef657a295f00c982281105fa18973c25ad679c88a8d"
+    },
+    {
+      "name": "14200-14249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14200-14249.jsonl",
+      "bytes": 40472,
+      "sha256": "475921cb8bc9b5138c4fb9675322b8686e2cd94e30e63be52de57aad8c6a9c29"
+    },
+    {
+      "name": "14250-14299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14250-14299.jsonl",
+      "bytes": 40425,
+      "sha256": "834c3dca8d7d764ff202fc9a9b2a9e0ba86b55506064c95f55b41fe44215085f"
+    },
+    {
+      "name": "14300-14349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14300-14349.jsonl",
+      "bytes": 40354,
+      "sha256": "ea5ba371dd7dacae9b9994f5072eca1dd6f60860b587bfcc30e1f7477b959aec"
+    },
+    {
+      "name": "14350-14399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14350-14399.jsonl",
+      "bytes": 40217,
+      "sha256": "7799948f0261296d3f507ec251eb733606d2e3d529a69221557d79a6e442ac7c"
+    },
+    {
+      "name": "14400-14449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14400-14449.jsonl",
+      "bytes": 41911,
+      "sha256": "ab77b165b105edeb705007d49540b9bb35a17dd4de349f322d23dddd62d72db5"
+    },
+    {
+      "name": "14450-14499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14450-14499.jsonl",
+      "bytes": 42010,
+      "sha256": "464836ea0c550c8790e2b1a15df11ec47e3a85520954c460db64095585719a91"
+    },
+    {
+      "name": "14500-14549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14500-14549.jsonl",
+      "bytes": 42062,
+      "sha256": "32b30d3bb326425769e6dfd0d0c08a3e27c64759e675fd3d381ac75dc3b06b68"
+    },
+    {
+      "name": "14550-14599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14550-14599.jsonl",
+      "bytes": 38460,
+      "sha256": "7e9d72543ea74be9ff5506b19f3233d933f1ea683cbd42cf6b0828f2dabb3b8c"
+    },
+    {
+      "name": "14600-14649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14600-14649.jsonl",
+      "bytes": 28718,
+      "sha256": "03c3ba26fd4d8691b35c15e539f9b23af8a2e4e6fc82e17989709594295c0414"
+    },
+    {
+      "name": "14650-14699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14650-14699.jsonl",
+      "bytes": 27946,
+      "sha256": "164224834e3997a1df6a2b0ab051b7737500af5821178b14f2a1a0b5b25b5009"
+    },
+    {
+      "name": "14700-14749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14700-14749.jsonl",
+      "bytes": 28192,
+      "sha256": "b0b21f1d2f4f25f4806edd9ff853016c9047eacd73f7bdd5a4a2cbd7686327b9"
+    },
+    {
+      "name": "14750-14799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14750-14799.jsonl",
+      "bytes": 26515,
+      "sha256": "2f1d82d9001fdda8d72659b12e09934e97cde2b2ab44134604d9562ac32ffcb9"
+    },
+    {
+      "name": "14800-14849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14800-14849.jsonl",
+      "bytes": 26729,
+      "sha256": "e4f91988e57a0c25d500ea825fd430f131cb51983c74656b2193f4b8f8c43620"
+    },
+    {
+      "name": "14850-14899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14850-14899.jsonl",
+      "bytes": 26323,
+      "sha256": "1966fe4c95efa290934f99f940708e691e8bfafc20cb3a9893ef75ea62eb5593"
+    },
+    {
+      "name": "14900-14949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14900-14949.jsonl",
+      "bytes": 26047,
+      "sha256": "23f3c48aeef628b659a2033d82add7f6f7604c37c76f46012c0b83b62c5e8ee0"
+    },
+    {
+      "name": "14950-14999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/14950-14999.jsonl",
+      "bytes": 25093,
+      "sha256": "ec95669ba4176339db4c1e23bc700c1e0d166b1c25df9cf90f27e2459f792284"
+    },
+    {
+      "name": "15000-15499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/15000-15499.jsonl",
+      "bytes": 217100,
+      "sha256": "e6162c736dc59f8874b708f799de9d6cde1b28033ea602a425243cbe87e9f845"
+    },
+    {
+      "name": "15500-15999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/15500-15999.jsonl",
+      "bytes": 221199,
+      "sha256": "a9a1b66a5953f808d4d49e6027e195bdafa0b786a9e2d31f85d4ce861f9c730d"
+    },
+    {
+      "name": "16000-16499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/16000-16499.jsonl",
+      "bytes": 199827,
+      "sha256": "9b5f1f7f56b2318bf4abfc9e3ffa4460bd09c2a90cad50effee7757e4696c0a0"
+    },
+    {
+      "name": "16500-16999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/16500-16999.jsonl",
+      "bytes": 217828,
+      "sha256": "195b2f74628e1ddaf5e4a6dcfa71a726c073f984cb1b5ce8e47b17d5d5619560"
+    },
+    {
+      "name": "17000-17499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/17000-17499.jsonl",
+      "bytes": 197254,
+      "sha256": "97808d98bcaa878713484e68523685b1a53ffb331a5194f571b75464840bb186"
+    },
+    {
+      "name": "17500-17999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/17500-17999.jsonl",
+      "bytes": 225710,
+      "sha256": "1996ae031cb701ab571fdd88d0d8003b5505b640da8a7df143a570c91467ef33"
+    },
+    {
+      "name": "18000-18499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/18000-18499.jsonl",
+      "bytes": 212446,
+      "sha256": "d42691685209e6597cfb16f97874ab1c5bccacd03f8ed58da8cc024915a2d6a5"
+    },
+    {
+      "name": "18500-18999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/18500-18999.jsonl",
+      "bytes": 225440,
+      "sha256": "33ff1e9c0d5fde40dbb5948dd0703c93be2fefb65ecf6cd392caa3dafaa24b79"
+    },
+    {
+      "name": "19000-19499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/19000-19499.jsonl",
+      "bytes": 223979,
+      "sha256": "8e5bfcd5cef26cff26507b0f5ada30ddb06ca41d4de91c6dca78e3b620df8708"
+    },
+    {
+      "name": "19500-19999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/19500-19999.jsonl",
+      "bytes": 233534,
+      "sha256": "c83bcaa011cf715e9625176d67459bd4271b26d48d3ba3d82c9549d961640743"
+    },
+    {
+      "name": "20000-20499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/20000-20499.jsonl",
+      "bytes": 219223,
+      "sha256": "46f6d64fd7decc9d6c19ccf8edaa919874661a041b687ce98d66c34bff557c8e"
+    },
+    {
+      "name": "20500-20999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/20500-20999.jsonl",
+      "bytes": 224336,
+      "sha256": "73d9813c544239d7500b278352e946f86af083630a4c5e02446ad130ec1ead67"
+    },
+    {
+      "name": "21000-21499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/21000-21499.jsonl",
+      "bytes": 226340,
+      "sha256": "0fe142725fd7bef5d82f12333d9b7b4620ec2a5d6017d7a6f7dcd0c8447d253a"
+    },
+    {
+      "name": "21500-21999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/21500-21999.jsonl",
+      "bytes": 239012,
+      "sha256": "c850373a89d3ca2f663ccf5f0ffae717897b44a8999a4606ec2b0e4616ec6cdf"
+    },
+    {
+      "name": "22000-22049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22000-22049.jsonl",
+      "bytes": 25310,
+      "sha256": "cea1791a25f4837515a0a7508665b365bd031545586dfa24bba17b1e694c7d53"
+    },
+    {
+      "name": "22050-22099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22050-22099.jsonl",
+      "bytes": 26773,
+      "sha256": "5d45026ed18e709edc7c355d357f1c667a6c82a606c124e72d4d934e248f028a"
+    },
+    {
+      "name": "22100-22149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22100-22149.jsonl",
+      "bytes": 29590,
+      "sha256": "f7e9df68882348c0f874a9780dd8a516878caca4c6f2d16f697fa7d24af5eee5"
+    },
+    {
+      "name": "22150-22199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22150-22199.jsonl",
+      "bytes": 35190,
+      "sha256": "d80669990367ed646ce41051c1cf5984389f7c87007903f5335f384b3a1ad828"
+    },
+    {
+      "name": "22200-22249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22200-22249.jsonl",
+      "bytes": 32407,
+      "sha256": "a846f35c703de1c65d7bf82ed6b49eceddbddef25335b18bdde02e91e4b98cb0"
+    },
+    {
+      "name": "22250-22299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22250-22299.jsonl",
+      "bytes": 32920,
+      "sha256": "56d8bf5564601b60f2995c0bf6472c9f48fa57f252da6a93336955089fc8a6af"
+    },
+    {
+      "name": "22300-22349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22300-22349.jsonl",
+      "bytes": 32925,
+      "sha256": "6ea0272483325e1b1414831a4d67388db2a38e1c4dfd23af651778fc19788c5e"
+    },
+    {
+      "name": "22350-22399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22350-22399.jsonl",
+      "bytes": 33451,
+      "sha256": "b2bc7b277b55aa64f7709df1d531081b2d2b359fc07c8efca8e4bb2287429d07"
+    },
+    {
+      "name": "22400-22449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22400-22449.jsonl",
+      "bytes": 34638,
+      "sha256": "9d6e73828792b1408bae0f899d1235a92518acd29d61e1a3b7052048f9f6edae"
+    },
+    {
+      "name": "22450-22499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22450-22499.jsonl",
+      "bytes": 33135,
+      "sha256": "c6d3ba275f02b89be3212c129c7f28f6fdef1b471405c7e01dd1a4078f5e962a"
+    },
+    {
+      "name": "22500-22549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22500-22549.jsonl",
+      "bytes": 32736,
+      "sha256": "be5a09e1bdfbf94ceb9749b43d97df93a2c1dacf7396f39fed11088f4b4f5b6b"
+    },
+    {
+      "name": "22550-22599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22550-22599.jsonl",
+      "bytes": 35220,
+      "sha256": "56e7d77d2099493bad5c5f66396f162249e756ded69cae96d2b517010a5eac88"
+    },
+    {
+      "name": "22600-22649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22600-22649.jsonl",
+      "bytes": 32206,
+      "sha256": "2d45276fdcb177e4db6456c56b4f3d846dd1fd969f0a11bb983241d64bc91de1"
+    },
+    {
+      "name": "22650-22699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22650-22699.jsonl",
+      "bytes": 33427,
+      "sha256": "7d9fc8acca9ea664df91c031bb90daf02616c432d3c8524ff8dae9d7179c48e0"
+    },
+    {
+      "name": "22700-22749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22700-22749.jsonl",
+      "bytes": 31147,
+      "sha256": "60f745956a1cd6eedd32140cec7a93c7c65efcea0cc24b390c54a5fabc30f446"
+    },
+    {
+      "name": "22750-22799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22750-22799.jsonl",
+      "bytes": 33427,
+      "sha256": "1d62c15fcb64c891a09f4b2ae1a5aeefa4c3b1b9e15bb98cca9bc9563f7a9b11"
+    },
+    {
+      "name": "22800-22849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22800-22849.jsonl",
+      "bytes": 29575,
+      "sha256": "ebeee595f359421c1ae1a0f60d33945b732ecc072e7401cf62da9ca22f668910"
+    },
+    {
+      "name": "22850-22899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22850-22899.jsonl",
+      "bytes": 37777,
+      "sha256": "983674517bb74a2937051998b7810de21bcc61d91cd76993ca30dbd9cab989fb"
+    },
+    {
+      "name": "22900-22949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22900-22949.jsonl",
+      "bytes": 33211,
+      "sha256": "a8d264e232ec6e79cde08941cbcfc76d40fac391b8bd8b80f51a699b64db63f1"
+    },
+    {
+      "name": "22950-22999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/22950-22999.jsonl",
+      "bytes": 33547,
+      "sha256": "0576300e14d8bd3d6adddb18e62e82547d11878faf62e3a0de07cfbd2a4a9e07"
+    },
+    {
+      "name": "23000-23049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23000-23049.jsonl",
+      "bytes": 30474,
+      "sha256": "b4210571f29259650c9687ca747ea5ef0100fa1191820d00f17fb406ae339af4"
+    },
+    {
+      "name": "23050-23099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23050-23099.jsonl",
+      "bytes": 36522,
+      "sha256": "6c5454a1bd11795c7cca67e0cdd6af1a9955dfab818f6c5c7a0e7d07ef753195"
+    },
+    {
+      "name": "23100-23149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23100-23149.jsonl",
+      "bytes": 34927,
+      "sha256": "ac11577c2407fdc866d4c03d59ccaa69ce36698d9d720b6ab47335683bfc3192"
+    },
+    {
+      "name": "23150-23199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23150-23199.jsonl",
+      "bytes": 33892,
+      "sha256": "b524785c51f324fc52967c3d3e6f6ed0221aee9245d3a05813f557eedadc2a5d"
+    },
+    {
+      "name": "23200-23249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23200-23249.jsonl",
+      "bytes": 35869,
+      "sha256": "7ffb49f93e71273e48925069a24933d63da21da2d19375e9866715d9cd06fce8"
+    },
+    {
+      "name": "23250-23299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23250-23299.jsonl",
+      "bytes": 32883,
+      "sha256": "674291c2c705d90bd05d827cd83400bc3bdf5dc29c6c617c263dc5b3c758fd10"
+    },
+    {
+      "name": "23300-23349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23300-23349.jsonl",
+      "bytes": 33393,
+      "sha256": "23513b74aa276e7fb7dbd1de0daa8eee6c3c1bf3339ad478f4c3ab744b09e3a0"
+    },
+    {
+      "name": "23350-23399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23350-23399.jsonl",
+      "bytes": 35185,
+      "sha256": "63825d03195c7c02e38ec0a33ac0a267d1686c5c61541f84844f4a263b354836"
+    },
+    {
+      "name": "23400-23449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23400-23449.jsonl",
+      "bytes": 32545,
+      "sha256": "77f97810228f767df1c13fc725e6b4c0f731fbe1c0b1a462ea7ac6ff46393719"
+    },
+    {
+      "name": "23450-23499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23450-23499.jsonl",
+      "bytes": 30742,
+      "sha256": "750d2825b899512e7abecdad9a016a520f68d83fbde910a85e58c696d8d289f4"
+    },
+    {
+      "name": "23500-23549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23500-23549.jsonl",
+      "bytes": 26377,
+      "sha256": "08a07e4cfabd0b33eec49929d7ef1c764ee4f88a87741856efc34ad0b2ef520d"
+    },
+    {
+      "name": "23550-23599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23550-23599.jsonl",
+      "bytes": 26164,
+      "sha256": "38e4032a776500b2f164274b42f21a66136c3386ee1a35ee0092a60c067074ef"
+    },
+    {
+      "name": "23600-23649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23600-23649.jsonl",
+      "bytes": 31036,
+      "sha256": "324a2eea866ae00103a48dd6195bb30193a395b8a77477edab1c6a973fda1eca"
+    },
+    {
+      "name": "23650-23699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23650-23699.jsonl",
+      "bytes": 30509,
+      "sha256": "f564180da122159dc7bcd3e349d0f751e6bb03ecdb1a6ce0334895c13c476faf"
+    },
+    {
+      "name": "23700-23749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23700-23749.jsonl",
+      "bytes": 30790,
+      "sha256": "bff48ebcf1181a78ce7eb06ad89d5e3ac6f3f76d74903a0747588ef483b965e0"
+    },
+    {
+      "name": "23750-23799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23750-23799.jsonl",
+      "bytes": 31676,
+      "sha256": "6263cb26ab63f2427091fe56baaae8a912770cf85dbdd2b7777c451aa285f76d"
+    },
+    {
+      "name": "23800-23849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23800-23849.jsonl",
+      "bytes": 32577,
+      "sha256": "1290653876716561085c5ad4557a9afbff4b1acaab559a50ad751e598d3b0474"
+    },
+    {
+      "name": "23850-23899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23850-23899.jsonl",
+      "bytes": 29360,
+      "sha256": "b2bdf5e8fd2891193fa25f75a9c2e8f9d552053e12ec83be36c042b1b1a9b594"
+    },
+    {
+      "name": "23900-23949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23900-23949.jsonl",
+      "bytes": 31836,
+      "sha256": "6c3ad2191b5a38643d8cfde91e05a08983dbe3c90a945e059809a4dc8a1a07af"
+    },
+    {
+      "name": "23950-23999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/23950-23999.jsonl",
+      "bytes": 29405,
+      "sha256": "d62c91dd323717e88bd15d87f4386ed1d7299a56672104179179cd22c93b3ce1"
+    },
+    {
+      "name": "24000-24499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/24000-24499.jsonl",
+      "bytes": 222399,
+      "sha256": "13967b12196e83b60fcfff5513fe16eea7334605471da18fa21e35e869cb83ab"
+    },
+    {
+      "name": "24500-24999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/24500-24999.jsonl",
+      "bytes": 200814,
+      "sha256": "9a5bf0405737c90be98a256368f98dd1d205f26c9045b5239d743b7dfa4af80a"
+    },
+    {
+      "name": "25000-25499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25000-25499.jsonl",
+      "bytes": 226532,
+      "sha256": "40a638c8cb9812e559d67089a8b2226b59f6939b9f0fa4d23e46b4da9856bccd"
+    },
+    {
+      "name": "25500-25549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25500-25549.jsonl",
+      "bytes": 29667,
+      "sha256": "81884a6a7106befed8d49db555d1093528a4b221b7eba954a3c234b77aeb1ff6"
+    },
+    {
+      "name": "25550-25599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25550-25599.jsonl",
+      "bytes": 30596,
+      "sha256": "5b94e149c9a23475a5836221bfea04b2bb19e1fab399ddb5e3aeb28ea1c955a0"
+    },
+    {
+      "name": "25600-25649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25600-25649.jsonl",
+      "bytes": 25705,
+      "sha256": "12f88c6a44c25d335d83cd8527e8120e0f43c1a03642ec02afc46082b6c01cc9"
+    },
+    {
+      "name": "25650-25699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25650-25699.jsonl",
+      "bytes": 25069,
+      "sha256": "0cba4d65f6e809820ae7cb13ca7f9860f04022a1a7dc2caa7aefdcf49fade977"
+    },
+    {
+      "name": "25700-25749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25700-25749.jsonl",
+      "bytes": 23517,
+      "sha256": "12279b6827ddeb7828b9b3376388118e1c8d588081db645949e63f3b9484691b"
+    },
+    {
+      "name": "25750-25799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25750-25799.jsonl",
+      "bytes": 25896,
+      "sha256": "ff0362ad9492e81dc697adcb55458d73d2922ae086dac0bd88db368cc8be5b1a"
+    },
+    {
+      "name": "25800-25849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25800-25849.jsonl",
+      "bytes": 25162,
+      "sha256": "9e84ff91ce576d3160452740660045e88ffefbf9dd6f06f15d0b7cf969cbd156"
+    },
+    {
+      "name": "25850-25899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25850-25899.jsonl",
+      "bytes": 26613,
+      "sha256": "03de20dc2d512ed0a4a2f52ee38d21d10386d1f37cb9f0e6e3024482e3d90942"
+    },
+    {
+      "name": "25900-25949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25900-25949.jsonl",
+      "bytes": 35707,
+      "sha256": "37939f743326b1dd386889439f6bb04d3a12ba7db8119b14b52a9c77f2398451"
+    },
+    {
+      "name": "25950-25999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/25950-25999.jsonl",
+      "bytes": 26883,
+      "sha256": "cddae0d4c208462ae98c3c343b683b841205cac6a5bdf3b800840e98ccd08407"
+    },
+    {
+      "name": "26000-26049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26000-26049.jsonl",
+      "bytes": 28852,
+      "sha256": "2334a176fbd7117321c97b289511bc2ff83bab4068161b293f6b8ee35476e9a7"
+    },
+    {
+      "name": "26050-26099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26050-26099.jsonl",
+      "bytes": 29255,
+      "sha256": "42204272bc43c7c386df9f36b077fe8411e3bd82349b37bd48e7586010ae9d7a"
+    },
+    {
+      "name": "26100-26149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26100-26149.jsonl",
+      "bytes": 26594,
+      "sha256": "32077722c060c2ddd587e05e04de8ade6e68202179b9ace224e883c4b3ea701d"
+    },
+    {
+      "name": "26150-26199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26150-26199.jsonl",
+      "bytes": 27556,
+      "sha256": "440f25e045cc0fd0c8a90c140c8cbb1a7794ddeb1c081487cbc049c333fa3c52"
+    },
+    {
+      "name": "26200-26249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26200-26249.jsonl",
+      "bytes": 29008,
+      "sha256": "04fa993e1e035f5d7d645137624b768239aeeb823c4db4febc67cc9dd0a250d9"
+    },
+    {
+      "name": "26250-26299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26250-26299.jsonl",
+      "bytes": 26703,
+      "sha256": "8ab78efdb59e01cf6b16ae261e6995c45e135cc26773ad70ade796478194221c"
+    },
+    {
+      "name": "26300-26349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26300-26349.jsonl",
+      "bytes": 27980,
+      "sha256": "8d09c9f6751558bb1c384124d2c4056d8060037c3530351f9e93a244faf9e97b"
+    },
+    {
+      "name": "26350-26399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26350-26399.jsonl",
+      "bytes": 27186,
+      "sha256": "c71777baa57ee4aff77b1ca4bdb1da7b8eba384841b8f03dca030c900230f099"
+    },
+    {
+      "name": "26400-26449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26400-26449.jsonl",
+      "bytes": 35878,
+      "sha256": "bbbb9bcbdd6bc8fc2da75a546142d0a25a6dcd8765e251715bb3beb7d0364b15"
+    },
+    {
+      "name": "26450-26499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26450-26499.jsonl",
+      "bytes": 29013,
+      "sha256": "1316da1b26370ec8f34b3d81f8e9d861dbd6500b85deb8a5966f9c9278d631af"
+    },
+    {
+      "name": "26500-26549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26500-26549.jsonl",
+      "bytes": 27692,
+      "sha256": "c5a085ba35216d162a49c37ae540a8af79b5328e7342b0000e35e2fdeb9ccc1f"
+    },
+    {
+      "name": "26550-26599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26550-26599.jsonl",
+      "bytes": 34477,
+      "sha256": "0bc6bad4260a8132c6180f1c163b98af730c1c9318c7e24d9a51e82a0912a3df"
+    },
+    {
+      "name": "26600-26649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26600-26649.jsonl",
+      "bytes": 37309,
+      "sha256": "e2044ed3f12fe9333d7ec5444d0180ee376b24d391e96d252261650d346c7b6d"
+    },
+    {
+      "name": "26650-26699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26650-26699.jsonl",
+      "bytes": 30148,
+      "sha256": "853ff6f8792430ae9dd5f01041e10679ab7e810c2013a3808c306b2d9844295c"
+    },
+    {
+      "name": "26700-26749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26700-26749.jsonl",
+      "bytes": 34201,
+      "sha256": "7f5a8bbad3688f8ca5fee827af3514f81dddd4065a43e4f090d6dcae74e6679b"
+    },
+    {
+      "name": "26750-26799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26750-26799.jsonl",
+      "bytes": 31102,
+      "sha256": "1a94fda89a408a8a542701af17c14bce6aece5a64f9aeaaa1f9106d52cf95980"
+    },
+    {
+      "name": "26800-26849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26800-26849.jsonl",
+      "bytes": 29941,
+      "sha256": "06819cdbfd1cdbbc70f3d7684f8d5bab5da148d63d375a59e524620632a6e00d"
+    },
+    {
+      "name": "26850-26899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26850-26899.jsonl",
+      "bytes": 30745,
+      "sha256": "2c72821ef77e03a6355367ed2a87b33b21ed1a5b0dfbc1913023532d0f36b23c"
+    },
+    {
+      "name": "26900-26949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26900-26949.jsonl",
+      "bytes": 34867,
+      "sha256": "3508fa37be71efe7dcd2ea73f234bf1f4f71cf3c3e302921864f6d5568b417e8"
+    },
+    {
+      "name": "26950-26999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/26950-26999.jsonl",
+      "bytes": 27791,
+      "sha256": "ca5f234b5d079eb884d623c77db83e702afbcff59edb28138bdb68b3306d5643"
+    },
+    {
+      "name": "27000-27049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27000-27049.jsonl",
+      "bytes": 30319,
+      "sha256": "adf2dd37500fd18ca6babdbf2252013b9620c13f3f7ddda4e6d4ccfa22bfe459"
+    },
+    {
+      "name": "27050-27099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27050-27099.jsonl",
+      "bytes": 35563,
+      "sha256": "3c64987d63653aa3eded571fc8907c1c622efc6e95f5464e2a71cdbefd3060b6"
+    },
+    {
+      "name": "27100-27149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27100-27149.jsonl",
+      "bytes": 36526,
+      "sha256": "afefbb295e1180658aa0da6097bba0761a8ae01ea98b9e5e046e87195d6ea8fc"
+    },
+    {
+      "name": "27150-27199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27150-27199.jsonl",
+      "bytes": 29533,
+      "sha256": "7252146f2b0be6bb8c825b134854e35e6a057de9e7348df767163e03ab448e91"
+    },
+    {
+      "name": "27200-27249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27200-27249.jsonl",
+      "bytes": 36652,
+      "sha256": "6eadc72859dac987a6093af4c7b20f8fa6e2de31af97ab0bacfe8b733278bf5c"
+    },
+    {
+      "name": "27250-27299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27250-27299.jsonl",
+      "bytes": 31570,
+      "sha256": "92b34f7ae62ffead4ccc9e6953b0bcec4d7cc2144da61e6178099ab1522df1b1"
+    },
+    {
+      "name": "27300-27349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27300-27349.jsonl",
+      "bytes": 28329,
+      "sha256": "45a8a72d75e0de5a9ec0ca840d5638271945eca23915654595b35025d2da2da5"
+    },
+    {
+      "name": "27350-27399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27350-27399.jsonl",
+      "bytes": 26916,
+      "sha256": "647e15bbc4d6c9ec9335a9beb88aa42c6e22d1d5016cb0f353379b5b8c3d29f5"
+    },
+    {
+      "name": "27400-27449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27400-27449.jsonl",
+      "bytes": 28126,
+      "sha256": "4b57ec43d69cd14895c170d62f07232215b514153596f2f566019f97e27e7bcc"
+    },
+    {
+      "name": "27450-27499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27450-27499.jsonl",
+      "bytes": 28249,
+      "sha256": "fa3cf5fa7d6e1cf0b00adce06a496ee5a4d18790f1f12f840ee2cec10875a22f"
+    },
+    {
+      "name": "27500-27549.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27500-27549.jsonl",
+      "bytes": 28424,
+      "sha256": "3a415945bcd800c3e0538df834e31b2a37b838d269ed5970a48a205945753e92"
+    },
+    {
+      "name": "27550-27599.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27550-27599.jsonl",
+      "bytes": 28572,
+      "sha256": "f321d5ea24630f86d9694762196d9e0be28e3b758e93f5d99727a9305113f3b2"
+    },
+    {
+      "name": "27600-27649.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27600-27649.jsonl",
+      "bytes": 34090,
+      "sha256": "6340c3bd099524b2fb2a9c5bd0d47e963c9b48495d5d02e791f2343e5a2be80c"
+    },
+    {
+      "name": "27650-27699.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27650-27699.jsonl",
+      "bytes": 30436,
+      "sha256": "c6fdd8d62257a0272af23a41ceb6e4e53e5d21a99ccb414d6f46e86a73dda634"
+    },
+    {
+      "name": "27700-27749.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27700-27749.jsonl",
+      "bytes": 31051,
+      "sha256": "f572c05f4a4faa111a81b16d809d9509b888ded91ae88a09117ee884187d1634"
+    },
+    {
+      "name": "27750-27799.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27750-27799.jsonl",
+      "bytes": 28203,
+      "sha256": "71d5b9130af770dd8b6decb823085cce5a27413c22fa10f9d9e45a862299845d"
+    },
+    {
+      "name": "27800-27849.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27800-27849.jsonl",
+      "bytes": 32112,
+      "sha256": "a74e52c2018441e269942dd06431713249855fef0a474287eabf0f4c07c4e46a"
+    },
+    {
+      "name": "27850-27899.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27850-27899.jsonl",
+      "bytes": 33004,
+      "sha256": "ef328519158fd9cc39864f1ffa0118a9010344dcbe9da192a93adfa5aaa36de7"
+    },
+    {
+      "name": "27900-27949.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27900-27949.jsonl",
+      "bytes": 28202,
+      "sha256": "8dcb746975fd1e8ed0128e5522c75809baa13747e5e5e6111ee6e28dd570c712"
+    },
+    {
+      "name": "27950-27999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/27950-27999.jsonl",
+      "bytes": 29644,
+      "sha256": "ccdf8d24e7bc197925867a1690211c86f07175c8de7561dcf991632db0775716"
+    },
+    {
+      "name": "28000-28049.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28000-28049.jsonl",
+      "bytes": 33328,
+      "sha256": "fdac034cee24850a062f66b6ef388381aba53bbec75c2b848b406624bce2e3a7"
+    },
+    {
+      "name": "28050-28099.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28050-28099.jsonl",
+      "bytes": 34438,
+      "sha256": "b2b3f2c288b4e2897024084e5f7ac48e930dac3aa7a5395525382f90b179dc2e"
+    },
+    {
+      "name": "28100-28149.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28100-28149.jsonl",
+      "bytes": 35029,
+      "sha256": "246df910574c6c2035e7b4d0a4207faa0aa8a9e83482faa4d5928d9d8d006f99"
+    },
+    {
+      "name": "28150-28199.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28150-28199.jsonl",
+      "bytes": 29461,
+      "sha256": "d23a14813d303619bf64add83069abca5981b77830e783f9ada3020b2f013560"
+    },
+    {
+      "name": "28200-28249.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28200-28249.jsonl",
+      "bytes": 35212,
+      "sha256": "23987d7bd81861cf01786e7b73590eb342cc13d3125c44cf7f84cb035aec898c"
+    },
+    {
+      "name": "28250-28299.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28250-28299.jsonl",
+      "bytes": 31786,
+      "sha256": "ea26a1590f8e9e90cee1d824f815f35c9faa1d3bec794d3d4fd4227b6c7e2373"
+    },
+    {
+      "name": "28300-28349.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28300-28349.jsonl",
+      "bytes": 28392,
+      "sha256": "3a4b9b30ea55102ec40e95c83c67c40261d58cf232b101ef1fc68a638ee35095"
+    },
+    {
+      "name": "28350-28399.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28350-28399.jsonl",
+      "bytes": 26012,
+      "sha256": "16c7467d150fe13403ba49fa8a0d0c9140c60aff9cd976917edd467d35631c0e"
+    },
+    {
+      "name": "28400-28449.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28400-28449.jsonl",
+      "bytes": 26531,
+      "sha256": "6289bd3766f1ace063c18463700905e61a7959015b91f9b32583ac3a40e7c2db"
+    },
+    {
+      "name": "28450-28499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28450-28499.jsonl",
+      "bytes": 29359,
+      "sha256": "475dace78da621105e912a4d1068f76e11f33bc02c4ad83660bae7f8a102c23b"
+    },
+    {
+      "name": "28500-28999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/28500-28999.jsonl",
+      "bytes": 213375,
+      "sha256": "5a8941c8534fbebad3178e397d05e5fd4c5011693061b911ba5d2a066a1627ae"
+    },
+    {
+      "name": "29000-29499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/29000-29499.jsonl",
+      "bytes": 212549,
+      "sha256": "956fd5655dea2b0c0fce8778391c94e7b50f8cfc73ae4c03f98a232f68c908c5"
+    },
+    {
+      "name": "29500-29999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/29500-29999.jsonl",
+      "bytes": 224101,
+      "sha256": "02f8ddd2cdaee720f6c4b7e96fecdb103f8b76c7c7ccc551e3e470445bd34f17"
+    },
+    {
+      "name": "30000-30499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/30000-30499.jsonl",
+      "bytes": 229573,
+      "sha256": "ead333cc3fc8fedc1792849d489544e5916e12f070f32d3f2251d042acb68715"
+    },
+    {
+      "name": "30500-30999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/30500-30999.jsonl",
+      "bytes": 240951,
+      "sha256": "95e8fa1afd35b9e81fedec6f6ff5cb6cc69fc21e4ba25d55e62c872f5814cb7f"
+    },
+    {
+      "name": "31000-31499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/31000-31499.jsonl",
+      "bytes": 229686,
+      "sha256": "5607eeef52d0ecb293088fa85f6b81d8108e72c3fb5916b1a56218515839adc3"
+    },
+    {
+      "name": "31500-31999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/31500-31999.jsonl",
+      "bytes": 225956,
+      "sha256": "1e00026c1a8ef2d5011bc6350cbe60864cb5ac5d1c575f8af698badd92c54a79"
+    },
+    {
+      "name": "32000-32499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/32000-32499.jsonl",
+      "bytes": 245664,
+      "sha256": "5b80ab1562e32fded05e0bf02a823ffa72115a0d6072d8e3832515752857e96f"
+    },
+    {
+      "name": "32500-32999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/32500-32999.jsonl",
+      "bytes": 236786,
+      "sha256": "3994433952195be83a29ecb975edbed22e9b0846d7a0ccca2174eedc695be8d6"
+    },
+    {
+      "name": "33000-33499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/33000-33499.jsonl",
+      "bytes": 224975,
+      "sha256": "8a03a0e71f93c982ffa3593231d4fe6e57309590b23724b2f8f7be4f04a5d745"
+    },
+    {
+      "name": "33500-33999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/33500-33999.jsonl",
+      "bytes": 236311,
+      "sha256": "5c0294dbdf993bdde7d0be0f73e0fc44d04edceb675935d0bf8906a7313e1c17"
+    },
+    {
+      "name": "34000-34499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/34000-34499.jsonl",
+      "bytes": 263489,
+      "sha256": "c681771a8c3bd1322d9f782ac2028a755c64ef6cce307bd6a6c02c5e74477119"
+    },
+    {
+      "name": "34500-34999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/34500-34999.jsonl",
+      "bytes": 246327,
+      "sha256": "5291f995244ad867137da13a2311cdc349db1facbc9fdcb95e710f5d1de8ab31"
+    },
+    {
+      "name": "35000-35499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/35000-35499.jsonl",
+      "bytes": 264267,
+      "sha256": "b73119e6b3ada7db8f52e26090d7c56ffc6ee1fca1049d6c2e17733279f68bb0"
+    },
+    {
+      "name": "35500-35999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/35500-35999.jsonl",
+      "bytes": 211236,
+      "sha256": "7d7decc28b16e740fe37c6341e691893bcdfcdb7ae6bde5b0e8f0a82ec31d0a5"
+    },
+    {
+      "name": "36000-36499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/36000-36499.jsonl",
+      "bytes": 217104,
+      "sha256": "3f5f32e4101dae338c618b03161da77e06ed9b68c90dc5a27451eb3f1018a7c9"
+    },
+    {
+      "name": "36500-36999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/36500-36999.jsonl",
+      "bytes": 265890,
+      "sha256": "b546c27e6f49b6f69f2aee4ddba98f93e5bad6c38d188b575deb4863134a95aa"
+    },
+    {
+      "name": "37000-37499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/37000-37499.jsonl",
+      "bytes": 269092,
+      "sha256": "29e8281efbf4f08adb05c12d9b10a8cd75ce05104706daf09063298d0d172ed4"
+    },
+    {
+      "name": "37500-37999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/37500-37999.jsonl",
+      "bytes": 212763,
+      "sha256": "4ec841e7c36d6c32ed1a4d47945930080547c85301f9323bf64d7927f8caf690"
+    },
+    {
+      "name": "38000-38499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/38000-38499.jsonl",
+      "bytes": 202398,
+      "sha256": "4597518bff08452e29f26c16a585fd789343122abe4c65363c6bbc9a496d950a"
+    },
+    {
+      "name": "38500-38999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/38500-38999.jsonl",
+      "bytes": 214984,
+      "sha256": "a22a20b6c39b3d758e342eebc06ff5265dbe6ea954730a4e00b38795a07bb8eb"
+    },
+    {
+      "name": "39000-39499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/39000-39499.jsonl",
+      "bytes": 220572,
+      "sha256": "98fd6c405a5de6d10a244fb566db0286f3dc4c33d479a748046720c7ab5fe148"
+    },
+    {
+      "name": "39500-39999-enospc-retry-1.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/39500-39999-enospc-retry-1.jsonl",
+      "bytes": 230554,
+      "sha256": "bb2dc61541ab192f1b4038ce070c28f7c61ae464332398f4fb67280263217988"
+    },
+    {
+      "name": "40000-40499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/40000-40499.jsonl",
+      "bytes": 200232,
+      "sha256": "2e778513642e078c0abaefabd9e48d9444f9f8a7d1e4ff7ba7be69238879f5bc"
+    },
+    {
+      "name": "40500-40999-enospc-retry-1.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/40500-40999-enospc-retry-1.jsonl",
+      "bytes": 175859,
+      "sha256": "5e5ac50181c71e7e6779cdd34ca5b29bff509af289f0f0006009e93aa9c6f4ba"
+    },
+    {
+      "name": "41000-41499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/41000-41499.jsonl",
+      "bytes": 205584,
+      "sha256": "91e604ee578353ec10790c32206acf3da8a6650bd202159e2784d1c1fac5c212"
+    },
+    {
+      "name": "41500-41999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/41500-41999.jsonl",
+      "bytes": 221230,
+      "sha256": "e70fa4303b95b0c5a76a1b7f8d83f65af8c0f09a7b2c5bed7432b18bca89f856"
+    },
+    {
+      "name": "42000-42499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/42000-42499.jsonl",
+      "bytes": 189021,
+      "sha256": "4090ee2d6edefafe6368618583ad770c2757e6f4189f453b16beb117b24ca5c3"
+    },
+    {
+      "name": "42500-42999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/42500-42999.jsonl",
+      "bytes": 219150,
+      "sha256": "060a9110f7808fa7c25ca02de0ce976b9151eb5b4ef938311331304ec168971d"
+    },
+    {
+      "name": "43000-43499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/43000-43499.jsonl",
+      "bytes": 232027,
+      "sha256": "0280198def18261859f3b522a763b2ce8319ba07b16c4886125c28a8c0bde35d"
+    },
+    {
+      "name": "43500-43999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/43500-43999.jsonl",
+      "bytes": 245691,
+      "sha256": "ae19cd66fb5ddcf05febcd2a6c0ec9c444918a27c04d8365f6d870215d3631aa"
+    },
+    {
+      "name": "44000-44499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/44000-44499.jsonl",
+      "bytes": 241391,
+      "sha256": "f7ed9cfe7763f9a59d39f46c678fdd2247fd5913e37b5bf82794c00219be3819"
+    },
+    {
+      "name": "44500-44999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/44500-44999.jsonl",
+      "bytes": 225935,
+      "sha256": "246d7dda4da3c9333da2b5df95108b6111ca1175c3f9ace9df64fee9d74fccbf"
+    },
+    {
+      "name": "45000-45499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/45000-45499.jsonl",
+      "bytes": 228419,
+      "sha256": "440b12df16ee3c9694850ec542ef61ac3e7746b27e082335a720d6b71c58ae47"
+    },
+    {
+      "name": "45500-45999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/45500-45999.jsonl",
+      "bytes": 243314,
+      "sha256": "b86a16d1212dfc645e987e68332acea01af2a169af74c90055788181eaf4cb90"
+    },
+    {
+      "name": "46000-46499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/46000-46499.jsonl",
+      "bytes": 257049,
+      "sha256": "6ed6ee3cda4f0610c8dec641cf54090642c339ad2e3f03b934508cb907b5f396"
+    },
+    {
+      "name": "46500-46999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/46500-46999.jsonl",
+      "bytes": 242503,
+      "sha256": "a027101c21bf781789e1507bba4dcbd195fc6989e5a22041698a518fb7832bc1"
+    },
+    {
+      "name": "47000-47499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/47000-47499.jsonl",
+      "bytes": 255678,
+      "sha256": "1f1049639103d0420f78afbfbb8e19b8ac3d6690045b58ece9258e9f59a70f17"
+    },
+    {
+      "name": "47500-47999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/47500-47999.jsonl",
+      "bytes": 217964,
+      "sha256": "56d82cda15f4c1b25871f465d20502277a45a62aa27fbf3d2f28b3c4f54bfde9"
+    },
+    {
+      "name": "48000-48499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/48000-48499.jsonl",
+      "bytes": 242683,
+      "sha256": "a2cf8e13178d496b5ded667800681643447993788143ee40c7f7092753d76b38"
+    },
+    {
+      "name": "48500-48999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/48500-48999.jsonl",
+      "bytes": 241480,
+      "sha256": "3315dde55d91becae46722b8d353b6191a3d0a39d5204d943eeda627dd2675a3"
+    },
+    {
+      "name": "49000-49499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/49000-49499.jsonl",
+      "bytes": 212870,
+      "sha256": "8803cba2ca62e6fac69a4a15be085af62e524c35961f072f7fc6583410604590"
+    },
+    {
+      "name": "49500-49999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/49500-49999.jsonl",
+      "bytes": 207310,
+      "sha256": "06a82fca4372d56b71f3cd8826f5afab8daf08742e0cf42bfc0a253488163c35"
+    },
+    {
+      "name": "50000-50499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/50000-50499.jsonl",
+      "bytes": 196356,
+      "sha256": "74f045598835d3f92b7b5146a9705468dd4473cd7ff9b1d014529b997600d295"
+    },
+    {
+      "name": "50500-50999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/50500-50999.jsonl",
+      "bytes": 201329,
+      "sha256": "109097eeb2b58064373913833586fa2b52d38224024dca9b4c68e807c41948ed"
+    },
+    {
+      "name": "51000-51499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/51000-51499.jsonl",
+      "bytes": 208919,
+      "sha256": "ee63841ea7a6e2e1f553d8689dee668292bf8b365e028d086a1e9d743a4582f9"
+    },
+    {
+      "name": "51500-51999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/51500-51999.jsonl",
+      "bytes": 201042,
+      "sha256": "eb318625692aec9a5c6e5fb06aa3005f17c0364e7971502d84c6b122fecd61d4"
+    },
+    {
+      "name": "52000-52499.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/52000-52499.jsonl",
+      "bytes": 183451,
+      "sha256": "82c10843270af4b4eca0c1e4b4270d9786cbf986bb8cff6c024f58a8defaa724"
+    },
+    {
+      "name": "52500-52999.jsonl",
+      "originalPath": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v3/batches/52500-52999.jsonl",
+      "bytes": 195972,
+      "sha256": "a8dffd093cfccbc4bf998df41a7bc8c191946ec63ad949a86b2a34920e893025"
+    }
+  ],
+  "rawBytes": 24152291,
+  "restorationRequiredBeforeMaintainedAggregation": true,
+  "disposition": "Temporary task-only storage checkpoint of terminal complete reports; exact bytes verified before removing raw copies. Receipts/logs/current source and active reports retained."
+}

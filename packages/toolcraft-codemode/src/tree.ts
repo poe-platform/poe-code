@@ -1,4 +1,4 @@
-import type { Command, Group } from "toolcraft";
+import { UserError, type Command, type Group } from "toolcraft";
 import { resolveMcpProxies, type ResolveMcpProxyOptions } from "toolcraft/mcp-proxy";
 
 export type CommandEntry = {
@@ -19,7 +19,15 @@ export type CommandEntryList = CommandEntry[] | Promise<CommandEntry[]>;
 export type ResolveCommandTreeOptions = ResolveMcpProxyOptions;
 
 export async function resolveCommandEntries(entries: CommandEntryList): Promise<CommandEntry[]> {
-  return entries;
+  const resolved = await entries;
+  for (const entry of resolved) {
+    if (entry.command.stream !== undefined) {
+      throw new UserError(
+        `Codemode does not support streaming command "${entry.path}". Expose a bounded ordinary command instead.`
+      );
+    }
+  }
+  return resolved;
 }
 
 type Separator = "-" | "_" | " " | ".";
@@ -159,7 +167,7 @@ export async function resolveCommandTree(
   visit(root, []);
 
   return {
-    entries,
+    entries: await resolveCommandEntries(entries),
     exportsByGroupPath
   };
 }

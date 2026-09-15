@@ -1,0 +1,9 @@
+{
+  "command": [
+    "npm",
+    "audit",
+    "signatures"
+  ],
+  "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-oracle-recovery-cd_fjvzl",
+  "exitCode": 0
+}

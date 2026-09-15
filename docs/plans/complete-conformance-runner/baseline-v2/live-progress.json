@@ -1,0 +1,64 @@
+{
+  "observedUtc": "2026-09-12T06:30:30.207041+00:00",
+  "coordinatorAlive": false,
+  "schedule": "refined-batch-schedule.json",
+  "historicalPartialsExcluded": [
+    "14000-14499",
+    "14500-14999"
+  ],
+  "elapsedSeconds": 6735.120422,
+  "completeSelections": 107,
+  "incompleteSelections": 5,
+  "streamedFiles": 46721,
+  "streamedVariants": 89429,
+  "statuses": {
+    "unsupported": 2096,
+    "passed": 80454,
+    "failed": 6879
+  },
+  "reasons": {
+    "IsHTMLDDA": 70,
+    "passed": 80454,
+    "worker-wall-timeout": 4210,
+    "unexpected-throw": 1501,
+    "module": 822,
+    "async-failure": 745,
+    "unhandled-rejection": 170,
+    "shared-memory": 962,
+    "agent": 224,
+    "blocking-mode": 18,
+    "budgetExceeded": 174,
+    "reentry": 6,
+    "wrong-phase": 71,
+    "wrong-error-type": 2
+  },
+  "active": [
+    {
+      "label": "44500-44999.jsonl",
+      "files": 500,
+      "lastFile": "language/statements/class/dstr/meth-dflt-ary-ptrn-elem-obj-prop-id-init.js"
+    },
+    {
+      "label": "45000-45499.jsonl",
+      "files": 500,
+      "lastFile": "language/statements/class/dstr/private-gen-meth-static-dflt-ary-ptrn-rest-init-id.js"
+    },
+    {
+      "label": "45500-45999.jsonl",
+      "files": 449,
+      "lastFile": "language/statements/class/elements/after-same-line-static-async-method-rs-private-method-alt.js"
+    },
+    {
+      "label": "46000-46499.jsonl",
+      "files": 377,
+      "lastFile": "language/statements/class/elements/multiple-definitions-rs-static-generator-method-privatename-identifier-alt.js"
+    },
+    {
+      "label": "46500-46999.jsonl",
+      "files": 395,
+      "lastFile": "language/statements/class/elements/same-line-async-method-private-names.js"
+    }
+  ],
+  "filesPerSecond": 6.936921253462334,
+  "linearRemainingMinutes": 17.19062328125468
+}

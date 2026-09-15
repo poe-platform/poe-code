@@ -1,0 +1,249 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "service": "Real synchronous file descriptors: bytewise input, partial-write loop, fsync; all temporary resources removed in finally. Host Python used only as external oracle.",
+  "rows": [
+    {
+      "name": "a dynamic package member prevents loading an encoding module",
+      "source": "\nimport encodings\nevents = []\nsentinel = object()\ndef missing(name):\n    events.append(name)\n    return sentinel\nencodings.__getattr__ = missing\nassert __import__('encodings', fromlist=['cp037']) is encodings\nassert events == ['cp037'], events\nassert 'cp037' not in encodings.__dict__\nfrom encodings import cp037\nassert cp037 is sentinel\nassert events == ['cp037', 'cp037', 'cp037'], events\nprint('verified')\n",
+      "sha256": "9384d8c17146edcd7dd313716b745afc4e5c5c40e21adba22b959e5e81188f28",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "executions": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 130329,
+            "allocatedBytes": 1743124
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 130329,
+            "allocatedBytes": 1743124
+          }
+        }
+      ]
+    },
+    {
+      "name": "AttributeError permits loading while another guest exception propagates",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('package attribute failed')\ndef missing(name):\n    events.append(name)\n    if name == 'cp037':\n        raise AttributeError(name)\n    raise failure\nencodings.__getattr__ = missing\nfrom encodings import cp037\nassert cp037 is encodings.__dict__['cp037']\nassert events == ['cp037'], events\ntry:\n    __import__('encodings', fromlist=['cp500'])\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('package attribute failure suppressed')\nassert events == ['cp037', 'cp500'], events\nassert 'cp500' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "36d09b5d3aca4426361027a554c4f928cdd72e439d4060e4335ffc7255254083",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "executions": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 147760,
+            "allocatedBytes": 1953632
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 147760,
+            "allocatedBytes": 1953632
+          }
+        }
+      ]
+    },
+    {
+      "name": "package subclasses control lookup of existing dictionary members",
+      "source": "\nimport encodings\nevents = []\nfailure = ValueError('existing member failed')\nModule = type(encodings)\nclass Package(Module):\n    def __getattribute__(self, name):\n        if name == 'aliases':\n            events.append(name)\n            raise failure\n        return Module.__getattribute__(self, name)\nencodings.__class__ = Package\ntry:\n    __import__('encodings', fromlist=['aliases'])\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('package override bypassed')\nassert events == ['aliases'], events\nprint('verified')\n",
+      "sha256": "9c18c472dd1c74aee67e2c9a5d82e6c01885de4b1437807188707514969d5a7b",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "executions": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 134454,
+            "allocatedBytes": 1792686
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 134454,
+            "allocatedBytes": 1792686
+          }
+        }
+      ]
+    },
+    {
+      "name": "module class reassignment preserves namespaces and rejects incompatible layouts",
+      "source": "\nimport encodings\nModule = type(encodings)\nmodule = Module('probe')\nnamespace = module.__dict__\nnamespace['retained'] = object()\nclass Package(Module):\n    pass\nmodule.__class__ = Package\nassert type(module) is Package and module.__dict__ is namespace\nmodule.__class__ = Module\nassert type(module) is Module and module.__dict__ is namespace\nclass Slotted(Module):\n    __slots__ = ('extra',)\nfor cls, message in [\n    (Slotted, \"__class__ assignment: 'Slotted' object layout differs from 'module'\"),\n    (object, '__class__ assignment only supported for mutable types or ModuleType subclasses'),\n]:\n    try:\n        module.__class__ = cls\n    except TypeError as error:\n        assert error.args == (message,), error.args\n    else:\n        raise AssertionError('incompatible assignment accepted')\n    assert type(module) is Module and module.__dict__ is namespace\nprint('verified')\n",
+      "sha256": "e48f154a64ea147641dd36fcc49a9d07928f694e362dececb06e7b0c8ea5abf9",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "executions": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 144807,
+            "allocatedBytes": 1926720
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 0,
+          "writes": 2,
+          "usage": {
+            "steps": 144807,
+            "allocatedBytes": 1926720
+          }
+        }
+      ]
+    },
+    {
+      "name": "package lookup invokes the explicit input service before loading",
+      "source": "\nimport encodings\nevents = []\nsentinel = object()\ndef missing(name):\n    events.append(name)\n    assert input() == 'service'\n    return sentinel\nencodings.__getattr__ = missing\ntry:\n    assert __import__('encodings', fromlist=['cp037']) is encodings\nexcept BaseException:\n    print('caught')\n    raise\nassert events == ['cp037'], events\nassert 'cp037' not in encodings.__dict__\nprint('verified')\n",
+      "sha256": "b0f36a0703f482b2c60caacc566063f7d3d6feba61b2fa9f5e1c72e414248b9b",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "executions": [
+        {
+          "seed": [
+            "1",
+            "2"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 1,
+          "writes": 2,
+          "usage": {
+            "steps": 128917,
+            "allocatedBytes": 1720198
+          }
+        },
+        {
+          "seed": [
+            "3",
+            "4"
+          ],
+          "status": "ok",
+          "stdout": "verified\n",
+          "reads": 1,
+          "writes": 2,
+          "usage": {
+            "steps": 128917,
+            "allocatedBytes": 1720198
+          }
+        }
+      ]
+    }
+  ],
+  "cancellation": [
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "usage": {
+        "steps": 128403,
+        "allocatedBytes": 1712726
+      },
+      "nextStatus": "terminated"
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "usage": {
+        "steps": 128403,
+        "allocatedBytes": 1712726
+      },
+      "nextStatus": "terminated"
+    }
+  ]
+}

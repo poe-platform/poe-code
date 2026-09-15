@@ -1389,8 +1389,10 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 }
 
 const mapfileCallbackStates = new WeakSet<State>();
+const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
 
 export class Runtime {
+  private readonly sourceFs: FileSystem;
   constructor(
     readonly fs: FileSystem,
     readonly commands: CommandRegistry,
@@ -1408,7 +1410,9 @@ export class Runtime {
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
     private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
   ) {
+    this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal, () => budget.fileSystemCleanupOperation());
+    runtimeFileSystems.set(this.fs, this.sourceFs);
     const checkpoint = () => budget.cpuCheckpoint();
     registerYieldCheckpoint(signal, checkpoint);
     registerYieldCheckpoint(commandSignal, checkpoint);
@@ -2797,9 +2801,11 @@ export class Runtime {
       descriptors.acquire(childIO.descriptors!);
       Object.assign(childIO, { terminal: list.pipelines.length === 1 ? { target: list.pipelines[0]!, frame: descriptors } : undefined });
       if (options.stdin === "async-default") {
-        Object.assign(childIO, { asyncDefaultInput: (async function* () {})() });
+        const input = new ShellInput((async function* () {})(), this.budget, signal);
+        scope.register(() => input.close());
+        Object.assign(childIO, { asyncDefaultInput: input });
       }
-      runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
+      runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
         signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
       const processId = (childIdentities.get(this.budget) ?? 1000) + 1;
       if (!Number.isSafeInteger(processId)) throw new RangeError("Shell child identity exhausted");
@@ -2811,6 +2817,7 @@ export class Runtime {
           signal.throwIfAborted();
           try { return await runtime!.run(childScript, child!, childIO); }
           catch (reason) {
+            if (reason instanceof Flow && reason.kind === "return") return runtime!.finishShell(child!, childIO, reason.status);
             if (reason instanceof NounsetDiagnosticFailure) throw reason.reason;
             throw reason;
           }
@@ -3552,6 +3559,7 @@ export class Runtime {
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+    const resourceFs = scopeFileSystem(this.sourceFs, () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation());
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -3620,7 +3628,7 @@ export class Runtime {
           value = concatShellValues([value, "\n"], io[valueScope]);
         }
         const prepared = prepareBytesInput(typeof value === "string" ? value : shellValueBytes(value, io[valueScope]), this.budget);
-        const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
+        const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
         const lifetime = new DescriptorLifetime(async () => { try { await input.close(); } finally { await prepared.close(); } });
         inputs.add({ close: () => lifetime.release() });
         io[invocationScope].register(() => lifetime.release());
@@ -3650,7 +3658,7 @@ export class Runtime {
         }
       } else {
         const path = pathOf(state, target);
-        const options = { signal: this.signal };
+        const options = { signal: this.commandSignal };
         if (redirect.operator === "<") {
           await interruptible(this.fs.access(path, 4, options), this.signal);
           const stat = await interruptible(this.fs.stat(path, options), this.signal);
@@ -3672,12 +3680,12 @@ export class Runtime {
           inputs.add({ close: () => lifetime.release() });
           io[invocationScope].register(() => lifetime.release());
           const prepared = stat.type === "directory" ? prepareBytesInput("", this.budget)
-            : await prepareFileInput({ fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
+            : await prepareFileInput({ fs: resourceFs, signal: this.commandSignal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
               cleanups.push(close);
             } }, path, this.budget, this.inputProfile, stat);
           if (!cleanups.includes(prepared.close)) cleanups.push(prepared.close);
           io[invocationScope].assertOpen();
-          const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
+          const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
           inputOwner.input = input;
           await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
         } else {
@@ -3744,12 +3752,12 @@ export class Runtime {
           let outputScope: InvocationScope | undefined;
           const retireOutputCleanups: (() => void)[] = [];
           try {
-            if (!canonical) outputScope = io[invocationScope].child();
-            const context = { fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => {
+            outputScope = new InvocationScope(this.commandSignal, io[invocationScope].failures);
+            const context = { fs: resourceFs, signal: this.commandSignal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => {
               const retire = (outputScope ?? io[invocationScope]).register(cleanup);
               if (canonical) retireOutputCleanups.push(retire);
             } };
-            if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
+            if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.commandSignal), (chunk, write) => this.budget.writeCounted(chunk, write, this.commandSignal));
             target = await openFileOutput(context, path, canonical ? { flag: append ? "a" : "w", descriptor: true } : append ? "a" : "w", !canonical && random ? incremental : undefined);
           } catch (error) {
             try { await outputScope?.close(); }
@@ -3758,7 +3766,7 @@ export class Runtime {
           }
           const finalize: OutputFinalizer = async completion => {
             try {
-              if (this.signal.aborted) await target.abort(this.signal.reason);
+              if (this.commandSignal.aborted) await target.abort(this.commandSignal.reason);
               else if ("reason" in completion) await target.abort(completion.reason);
               else {
                 try {
@@ -3779,7 +3787,7 @@ export class Runtime {
           const lifetime = new DescriptorLifetime(() => finalize(completion ?? { status: 0 }));
           const ownerFinalize: OutputFinalizer = value => { completion ??= value; return lifetime.release(); };
           outputs.add(Object.assign(ownerFinalize, target.descriptor ? { descriptor: target.descriptor } : {}));
-          const output = canonical ? target.sink : this.budget.sink(target.sink, this.signal);
+          const output = canonical ? target.sink : this.budget.sink(target.sink, this.commandSignal);
           if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
           budgetedSinks.get(output)!.file = Object.freeze({ path });
           const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };

@@ -1510,3 +1510,79 @@ test("zip copy accepts empty output basename as native .zip filename", async () 
   const archive = await readZipArchive(await fs.readFile("/work/.zip"), settings({}), new AbortController().signal);
   assert.equal(archive.entries.length, members.length);
 });
+
+for (const option of ["-MM", "--must-match"]) {
+  test(`zip ${option} missing operand prevents archive publication`, async () => {
+    const fs = await fixture();
+    const original = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q", option, "sample.zip", "binary", "missing"]);
+    assert.equal(result.exitCode, 18);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+  });
+}
+test("zip must-match recognizes archive-only names and pattern matches", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "archive-only.txt", body: binary }]));
+  for (const operand of ["archive-only.txt", "*.txt"]) {
+    const result = await execute("zip", fs, ["-qMM", "sample.zip", operand]);
+    assert.equal(result.exitCode, 12);
+  }
+});
+test("zip must-match deletion refuses absent names without modifying archive", async () => {
+  const fs = await fixture();
+  const original = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-qMMd", "sample.zip", "binary", "missing"]);
+  assert.equal(result.exitCode, 18);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+});
+test("zip must-match filters do not require every filter pattern to match", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qMM", "empty.zip", "binary", "-iabsent"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/empty.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.length, 0);
+  assert.equal((await execute("zip", fs, ["-qMMd", "sample.zip", "binary", "-t2030-01-01"])).exitCode, 12);
+});
+for (const option of ["-MM-", "--must-match-"]) {
+  test(`zip must-match is nonnegatable ${option}`, async () => {
+    assert.equal((await execute("zip", await fixture(), ["-q", option, "new.zip", "binary"])).exitCode, 16);
+  });
+}
+test("zip must-match stdout failure emits no partial binary archive", async () => {
+  const result = await execute("zip", await fixture(), ["-qMM", "-", "binary", "missing"]);
+  assert.equal(result.exitCode, 18);
+  assert.equal(result.stdout.length, 0);
+  assert.match(result.stderr, /File not found/);
+});
+test("zip must-match copy misses retain native Nothing-to-do status", async () => {
+  assert.equal((await execute("zip", await fixture(), ["-qMMU", "sample.zip", "absent", "-Ocopy.zip"])).exitCode, 12);
+});
+
+for (const failure of ["inspect", "read"]) {
+  test(`zip must-match unreadable source during ${failure} leaves input archive unchanged`, async () => {
+    const fs = await fixture();
+    const original = await fs.readFile("/work/sample.zip");
+    const denied = Object.assign(new Error("denied"), { code: "EACCES" });
+    const view = new Proxy(fs, { get(target, property) {
+      const value = Reflect.get(target, property);
+      if (failure === "inspect" && property === "realpath") return (path: string, options: unknown) => {
+        if (path === "/work/binary") throw denied;
+        return value.call(target, path, options);
+      };
+      if (failure === "read" && property === "readStream") return (path: string, options: unknown) => {
+        if (path === "/work/binary") return (async function* () { yield await Promise.reject<Uint8Array>(denied); })();
+        return value.call(target, path, options);
+      };
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const result = await execute("zip", view, ["-qMM", "sample.zip", "folder/data", "binary"]);
+    assert.equal(result.exitCode, 18);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+  });
+}
+
+test("zip must-match archive fallback uses junk-path names", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "archive-only.txt", body: binary }]));
+  for (const operand of ["folder/archive-only.txt", "folder/*.txt"]) {
+    assert.equal((await execute("zip", fs, ["-qMMj", "sample.zip", operand])).exitCode, 12);
+  }
+});

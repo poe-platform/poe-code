@@ -337,3 +337,18 @@ boundaries. Independent native/actual virtual copied archives agree on names,
 payloads and CRC/method/compressed/uncompressed sizes; source bytes stay unchanged.
 Earlier date release 35014094327 failed on stale shared version 0.1.620 collision.
 Remaining format, metadata, streaming and grammar work stays active.
+
+## Must-match failures and archive fallback
+
+Native captures establish MM/must-match is nonnegatable, missing add/delete
+operands fail 18, existing archive names/patterns satisfy missing filesystem
+names, junk paths apply to that fallback, and copy pattern misses retain 12.
+Include/date exclusions are not unmatched names. Public Info-ZIP zip.c read
+failure paths validate fatal unreadable-source behavior. Added lazy bounded
+archive matching and fatal inspect/read errors before publication.
+553 focused ZIP/unzip tests and scoped lint pass, covering aliases, unchanged
+existing archives, partial stdout prevention, delete/copy distinctions, filters,
+unreadable inspection/iteration, archive-only patterns and junk-path fallback.
+Independent native/actual virtual commands agree on status 18 and unchanged
+input bytes after a missing-name failure. Release 35014811868 remains live;
+remaining grammar, metadata, streaming and format work stays active.

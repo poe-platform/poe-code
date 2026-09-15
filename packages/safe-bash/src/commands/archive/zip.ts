@@ -27,6 +27,7 @@ interface ZipOptions {
   readonly omitDirectories: boolean;
   readonly storeLinks: boolean;
   readonly test: boolean;
+  readonly mustMatch: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
@@ -75,6 +76,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let omitDirectories = false;
   let storeLinks = false;
   let test = false;
+  let mustMatch = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
   let descriptors = false;
@@ -122,6 +124,11 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "wildcard control is not negatable");
           if (flag === "n") noWild = true;
           else stopAtDirectories = true;
+          offset++;
+        }
+        else if (flag === "M" && argument[offset + 1] === "M") {
+          if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option MM is not negatable");
+          mustMatch = true;
           offset++;
         }
         else if (flag === "q") quiet = true;
@@ -245,7 +252,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -344,6 +351,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const deleted = new Set<string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
+  let archiveOperandMatches: Set<string> | undefined;
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
@@ -389,7 +397,22 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       ({ canonical, stat } = await inspectSource(scope, path, parsed.storeLinks));
     } catch (error) {
       context.signal.throwIfAborted();
-      if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
+      if (typeof error !== "object" || error === null || !("code" in error)) throw error;
+      if (parsed.mustMatch && error.code === "EACCES") throw new ZipFailure(18, "File not found or no read permission", source);
+      if (error.code !== "ENOENT") throw error;
+      if (parsed.mustMatch && !old.has(name)) {
+        if (!archiveOperandMatches) {
+          const fallback = new Selection(parsed.operands.map(operand => {
+            const pattern = memberName(operand, limits);
+            return parsed.junkPaths ? pattern.slice(pattern.lastIndexOf("/") + 1) : pattern;
+          }), limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+          for (const entry of archive.entries) await fallback.matches(entry.name);
+          archiveOperandMatches = new Set([...fallback.matched].map(index => parsed.operands[index]!));
+        }
+        if (archiveOperandMatches.has(source)) return;
+        if (!parsed.quiet) await budget.output(`\tzip warning: name not matched: ${source}\n`);
+        throw new ZipFailure(18, "File not found or no read permission", source);
+      }
       if (!parsed.quiet && !old.has(name)) await budget.output(`\tzip warning: name not matched: ${source}\n`);
       return;
     }
@@ -425,7 +448,14 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
           const target = await scope.operation(() => context.fs.readlink!(path, { signal: context.signal }));
           if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
           bytes = Buffer.from(target);
-        } else bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal });
+        } else {
+          try { bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal }); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${source}`);
+            throw error;
+          }
+        }
         if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
         const current = await inspectSource(scope, path, parsed.storeLinks);
         if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
@@ -461,6 +491,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (parsed.operands.length && !parsed.recursivePatterns) {
       for (const entry of archive.entries) {
         if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) deleted.add(entry.name);
+      }
+    }
+    if (parsed.mustMatch && !parsed.recursivePatterns) {
+      for (const [index, operand] of parsed.operands.entries()) {
+        if (!operands.matched.has(index)) throw new ZipFailure(18, "File not found or no read permission", operand);
       }
     }
     if (!parsed.quiet) {

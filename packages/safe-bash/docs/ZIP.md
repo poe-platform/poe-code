@@ -263,6 +263,13 @@ require an existing input archive and leave its bytes unchanged. Output and
 input must differ, including backing identity; publication uses owned staging.
 An archive argument of `-` continues to use stdout and ignores `--out`.
 
+`-MM` / `--must-match` fails with status 18 when a requested filesystem name
+cannot be found or read, preventing archive publication. Existing archive
+members can satisfy missing filesystem names or patterns, including junk-path
+matching under `-j`. Unmatched deletion operands are fatal; copy-mode pattern
+misses retain status 12. Include/exclude/date filters do not require every
+pattern to match. The option is not negatable.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

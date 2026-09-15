@@ -46,7 +46,12 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.editDocumentControlRepeats).toBeTypeOf("function");
   expect.soft(runtime.editDocumentControlBindings).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentPackageResources).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentProperties).toBeTypeOf("function");
+  expect.soft(runtime.editDocumentProperties).toBeTypeOf("function");
   const original = await textFixture('<w:p/>');
+  expect(await runtime.inspectDocumentProperties(original, {}, textContext)).toEqual({ items: [], warnings: [] });
+  await expect(runtime.inspectDocumentProperties(original, { name: "core:title" }, textContext)).rejects.toMatchObject({ code: "missing-selection" });
+  await expect(runtime.inspectDocumentProperties(original, { scope: "body" }, textContext)).rejects.toMatchObject({ code: "usage" });
   for (const operation of ["custom-xml.list", "glossary.list"]) {
     expect(await runtime.inspectDocumentPackageResources(original, operation, {}, textContext)).toEqual({ items: [] });
     await expect(runtime.inspectDocumentPackageResources(original, operation, { scope: "body" }, textContext)).rejects.toMatchObject({ code: "usage" });

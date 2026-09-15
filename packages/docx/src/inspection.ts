@@ -1,3 +1,4 @@
+import { readPropertyParts } from "./property-values.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
@@ -55,58 +56,6 @@ const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement, name: string, namespace = ""): string | undefined {
   return node.attributes.find(a => a.localName === name && a.namespace === namespace)?.value;
 }
-function textContent(node: XmlElement): string {
-  return node.content.map(n => n.kind === "element" ? textContent(n) : n.kind === "text" || n.kind === "cdata" ? n.text : "").join("");
-}
-function numberValue(value: string, integer: boolean): number | null {
-  const digits = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
-  if (!digits || [...digits].some(c => !(integer ? "0123456789" : "0123456789.eE+-").includes(c))) return null;
-  const n = Number(value);
-  return Number.isFinite(n) && (!integer || Number.isSafeInteger(n)) ? n : null;
-}
-function propertiesOf(root: XmlElement, part: string, dialect: DocumentDialect): InspectionProperty[] {
-  const { ep, cus, vt } = documentDialects[dialect];
-  const core = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
-  const group = root.namespace === core && root.localName === "coreProperties" ? "core" :
-    root.namespace === ep && root.localName === "Properties" ? "extended" :
-    root.namespace === cus && root.localName === "Properties" ? "custom" : undefined;
-  if (!group) return [];
-  const names: Record<string, string> = { creator: "author", lastModifiedBy: "lastModifiedBy", description: "comments", lastPrinted: "lastPrinted", Pages: "pages", Words: "words", Characters: "characters", CharactersWithSpaces: "charactersWithSpaces", TotalTime: "totalTime", Application: "application", AppVersion: "appVersion", Company: "company", Manager: "manager", Template: "template", Lines: "lines", Paragraphs: "paragraphs" };
-  const integers = new Set(["revision", "Pages", "Words", "Characters", "CharactersWithSpaces", "TotalTime", "Paragraphs", "Lines"]);
-  return root.children.flatMap(node => {
-    if (group === "core" && ![core, "http://purl.org/dc/elements/1.1/", "http://purl.org/dc/terms/"].includes(node.namespace) ||
-      group === "extended" && node.namespace !== ep || group === "custom" && (node.namespace !== cus || node.localName !== "property")) return [];
-    const valueNode = group === "custom" ? node.children.find(n => n.namespace === vt) : node;
-    if (!valueNode) return [];
-    const name = group === "custom" ? attribute(node, "name") : names[node.localName] ?? node.localName;
-    if (name === undefined) return [];
-    const raw = textContent(valueNode);
-    const valueType = valueNode.localName;
-    let type: InspectionProperty["type"] = "string";
-    if (group === "custom") {
-      if (["i1", "i2", "i4", "i8", "int", "ui1", "ui2", "ui4", "ui8", "uint"].includes(valueType)) type = "integer";
-      else if (["r4", "r8", "decimal"].includes(valueType)) type = "number";
-      else if (valueType === "bool") type = "boolean";
-      else if (["filetime", "date"].includes(valueType)) type = "date";
-    } else if (integers.has(node.localName)) type = "integer";
-    else if (["created", "modified", "lastPrinted"].includes(node.localName)) type = "date";
-    else if (["DocSecurity", "ScaleCrop", "LinksUpToDate", "SharedDoc", "HyperlinksChanged"].includes(node.localName)) type = node.localName === "DocSecurity" ? "integer" : "boolean";
-    let value: InspectionProperty["value"] = raw;
-    if (type === "integer" || type === "number") value = numberValue(raw, type === "integer");
-    if (type === "boolean") value = ["true", "1"].includes(raw) ? true : ["false", "0"].includes(raw) ? false : null;
-    if (type === "date") {
-      const utc = raw.endsWith("Z") || raw.slice(10).includes("+") || raw.slice(10).includes("-");
-      const day = raw.slice(0, 10);
-      const dayDate = new Date(day + "T00:00:00Z");
-      const validDay = Number.isFinite(dayDate.getTime()) && dayDate.toISOString().slice(0, 10) === day;
-      const millis = utc && validDay ? Date.parse(raw) : NaN;
-      value = Number.isFinite(millis) ? new Date(millis).toISOString() : null;
-    }
-    if (valueNode.children.length || group === "custom" && type === "string" && !["lpstr", "lpwstr", "bstr"].includes(valueType)) value = null;
-    return [{ name, type, value, writable: false, cached: group === "extended" && (integers.has(node.localName) || ["Application", "AppVersion"].includes(node.localName)), part, group }];
-  });
-}
-
 /** Package data only: no layout, installed-font discovery or linked-resource acquisition. */
 export async function inspectDocument(input: Uint8Array, context: ArchiveContext): Promise<InspectionData> {
   const { limits, signal, budget } = archiveSettings(context);
@@ -152,7 +101,6 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     if (!(type.endsWith("+xml") || type === "application/xml" || type === "text/xml")) continue;
     const root = parseDocumentXml(part.bytes, {}, budget).root;
     roots.set(part.partname, root);
-    properties.push(...propertiesOf(root, part.partname, archive.dialect));
     const role = documentPartRole(type, root), owners = new Map<XmlElement, XmlElement>();
     const raw = [root];
     while (raw.length) {
@@ -199,6 +147,8 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
       if (node.namespace === m && node.localName === "oMath") counts.equations++;
     }
   }
+  const propertyParts = readPropertyParts(archive, budget, roots);
+  for (const part of propertyParts) for (const property of part.properties) if (property.value) properties.push({ ...property.value, writable: property.value.writable && part.owned && !part.ambiguous && part.safeCustom, part: part.name, group: part.group });
   properties.sort((a, b) => compare(a.part, b.part) || compare(a.name, b.name));
   const pages = properties.filter(p => p.group === "extended" && p.name === "pages");
   counts.cachedPages = pages.length === 1 && typeof pages[0]!.value === "number" && pages[0]!.value >= 0 ? pages[0]!.value : null;
@@ -220,7 +170,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     { code: "cached-layout", message: "Page metadata and stored page breaks are cached; rendered pages are not measured." },
     { code: "font-availability", message: "Font names are document references; installed fonts are not queried." }
   ];
-  if (properties.some(p => p.value === null)) warnings.push({ code: "invalid-property", message: "One or more stored property values are invalid or unsupported; unknown values are reported as null." });
+  if (propertyParts.some(p => !p.owned || p.ambiguous || !p.safeCustom || p.properties.some(property => !property.value || property.value.value === null))) warnings.push({ code: "invalid-property", message: "One or more stored property values are invalid or unsupported; opaque values remain preserved outside scalar snapshots." });
   if (signatureParts.length) warnings.push({ code: "unverified-signatures", message: "Signature parts are present; cryptographic signatures are not verified." });
   if (protection.length) warnings.push({ code: "unvalidated-protection", message: "Protection metadata is present; passwords and enforcement are not verified." });
   if (unknownNamespaces.size) warnings.push({ code: "unvalidated-extensions", message: "Opaque extension content is inventoried without semantic validation." });
@@ -229,7 +179,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F19", counts.tables > 0, "read"], ["F21", relationships.some(r => r.type.endsWith("/hyperlink")), "read"], ["F22", counts.fields > 0, "read"],
     ["F24", counts.footnotes + counts.endnotes > 0, "read"], ["F25", counts.comments > 0, "read"], ["F26", annotations.some(a => a.kind !== "comment"), "read"],
     ["F27", annotations.some(a => ["moveFrom", "moveTo", "tblPrChange", "tcPrChange", "sectPrChange"].includes(a.kind)), "read"],
-    ["F28", counts.controls > 0, "read"], ["F30", properties.length > 0, "read"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
+    ["F28", counts.controls > 0, "read"], ["F30", propertyParts.length > 0, properties.length > 0 ? "read" : "preserve"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
     ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signed, "preserve"]
   ];
   const fontResources = readFontResources(archive, roots, budget);

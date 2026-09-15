@@ -29,6 +29,25 @@ describe("closed operation schema", () => {
     expect(validateDocxValue("UTC date", "2024-02-29")).toBe(true);
     expect(validateDocxValue("UTC date", "2023-02-29")).toBe(false);
   });
+  it("admits finite numeric scalars independently of integer identity precision", () => {
+    for (const value of [1e16, -1e16, Number.MAX_SAFE_INTEGER + 1, Number.MAX_VALUE]) {
+      for (const type of ["number", "finite number", "typed scalar"]) expect(validateDocxValue(type, value)).toBe(true);
+      expect(() => assertDocxFields({ value: { type: "number", required: true } }, { value })).not.toThrow();
+      expect(validateDocxValue("ReadonlyArray<number>", [value])).toBe(true);
+      for (const type of ["integer", "safe integer", "positive integer", "nonnegative safe integer"]) expect(validateDocxValue(type, value)).toBe(false);
+    }
+    for (const value of [NaN, Infinity, -Infinity]) {
+      for (const type of ["number", "finite number", "typed scalar"]) expect(validateDocxValue(type, value)).toBe(false);
+      expect(validateDocxValue("ReadonlyArray<number>", [value])).toBe(false);
+    }
+    expect(validateDocxValue("Length", { value: 1e16, unit: "invented" })).toBe(false);
+    expect(validateDocxValue("fraction 0..1", 1e16)).toBe(false);
+    expect(validateDocxValue("finite degrees", 1e16)).toBe(false);
+  });
+  it("admits finite numeric values in declared binding records", () => {
+    for (const value of [1e16, -1e16, Number.MAX_VALUE]) expect(validateDocxValue("DeclaredControlRecord", { values: [{ binding: "measurement", value }] })).toBe(true);
+    for (const value of [NaN, Infinity, -Infinity]) expect(validateDocxValue("DeclaredControlRecord", { values: [{ binding: "measurement", value }] })).toBe(false);
+  });
   it("validates closed content and nested binary inputs", () => {
     expect(validateDocxValue("OriginalDocumentContentV1", { version: 1, blocks: [{ kind: "paragraph", text: "Café 文書" }] })).toBe(true);
     expect(validateDocxValue("OriginalDocumentContentV1", { version: 1, blocks: [{ kind: "paragraph", text: "", runs: [] }] })).toBe(false);

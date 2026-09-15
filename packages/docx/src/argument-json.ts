@@ -35,8 +35,40 @@ function validText(value: string): boolean {
 }
 
 const forbidden = new Set(["__proto__", "constructor", "prototype"]);
-const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) &&
-  (!Number.isInteger(value) || Number.isSafeInteger(value));
+const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+
+function integralTokenUnchanged(token: string, value: number): boolean {
+  const lowerExponent = token.indexOf("e"), upperExponent = token.indexOf("E");
+  const exponentAt = lowerExponent < 0 ? upperExponent : lowerExponent;
+  const end = exponentAt < 0 ? token.length : exponentAt;
+  const dot = token.indexOf(".");
+  const exponent = exponentAt < 0 ? 0 : Number(token.slice(exponentAt + 1));
+  const scale = exponent - (dot < 0 ? 0 : end - dot - 1);
+  let digits = 0, leading = 0, trailing = 0, nonzero = false;
+  for (let index = token[0] === "-" ? 1 : 0; index < end; index++) {
+    const digit = token[index]!;
+    if (digit === ".") continue;
+    digits++;
+    if (digit === "0") { if (!nonzero) leading++; trailing++; }
+    else { nonzero = true; trailing = 0; }
+  }
+  if (!nonzero) return value === 0;
+  // A nonintegral decimal keeps ordinary finite floating-point semantics.
+  if (scale < 0 && -scale > trailing) return true;
+  const length = digits - leading + scale;
+  // A finite binary64 integer has at most 309 decimal digits. Never expand an exponent beyond this bound.
+  if (!Number.isInteger(value) || length < 1 || length > 309) return false;
+  const retainedDigits = digits + Math.min(scale, 0);
+  let canonical = "", position = 0;
+  for (let index = token[0] === "-" ? 1 : 0; index < end; index++) {
+    const digit = token[index]!;
+    if (digit === ".") continue;
+    if (position >= leading && position < retainedDigits) canonical += digit;
+    position++;
+  }
+  if (scale > 0) canonical += "0".repeat(scale);
+  return canonical === BigInt(Math.abs(value)).toString();
+}
 
 export function parseDocxJson(input: string | Uint8Array, budget = new DocumentBudget()): unknown {
   budget.check("xmlPartBytes", typeof input === "string" ? new TextEncoder().encode(input).length : docxByteLength(input));
@@ -97,9 +129,13 @@ export function parseDocxJson(input: string | Uint8Array, budget = new DocumentB
     const start = cursor;
     while (cursor < source.length && !" \t\r\n,]}".includes(source[cursor]!)) cursor++;
     if (cursor === start) return fail();
+    // Reserve token slices, bounded integer conversion and at most 309-digit expansion before allocation.
+    budget.charge("work", (cursor - start) * 2 + 1024);
+    budget.charge("retainedBytes", (cursor - start) * 2 + 2048);
+    const token = source.slice(start, cursor);
     let result: unknown;
-    try { result = JSON.parse(source.slice(start, cursor)); } catch { return fail(); }
-    if (result === null || typeof result === "boolean" || finite(result)) return result;
+    try { result = JSON.parse(token); } catch { return fail(); }
+    if (result === null || typeof result === "boolean" || finite(result) && integralTokenUnchanged(token, result)) return result;
     return fail();
   };
   const result = value(1);
@@ -132,7 +168,7 @@ function optional(value: RecordValue, key: string, check: (value: unknown) => bo
   return value[key] === undefined || check(value[key]);
 }
 function length(value: unknown): boolean {
-  return record(value, ["value", "unit"], ["value", "unit"]) && finite(value.value) &&
+  return record(value, ["value", "unit"], ["value", "unit"]) && finite(value.value) && Math.abs(value.value) <= Number.MAX_SAFE_INTEGER &&
     ["emu", "in", "cm", "mm", "pt", "twip"].includes(value.unit as string);
 }
 

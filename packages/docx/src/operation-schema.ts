@@ -55,7 +55,7 @@ function nonempty(value: unknown): value is string { return text(value) && value
 function safeGraph(value: unknown, visiting = new Set<object>(), depth = 0, budget = { values: 0 }): boolean {
   if (++budget.values > 2000000 || depth > 256) return false;
   if (typeof value === "string") return text(value);
-  if (typeof value === "number") return Number.isFinite(value) && (!Number.isInteger(value) || Number.isSafeInteger(value));
+  if (typeof value === "number") return Number.isFinite(value);
   if (value === undefined || value === null || typeof value === "boolean") return true;
   if (typeof value !== "object" || visiting.has(value)) return false;
   if (value instanceof Uint8Array) return ArrayBuffer.isView(value);

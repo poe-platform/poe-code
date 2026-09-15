@@ -1157,6 +1157,54 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   existing type conflicts fail. Empty string is a value, null is invalid; remove
   is the only deletion route. Core strings use the 255-scalar limit. No inferred
   custom types or implicit modified timestamp updates.
+  Metadata admission uses exact internal package-root OPC relationships, standard
+  content types and matching expanded roots for the original dialect. Multiple
+  declarations of a group, even duplicate edges to the same part, are ambiguous:
+  inventory each part once with bounded warnings and preserve support; named get
+  and affected mutations reject ambiguity. Matching declared orphan metadata roots
+  are inventoried preserve-only; external edges remain inert. Namespace-shaped
+  data in unrelated parts never becomes document metadata. Wrong-namespace key
+  lookalikes remain opaque and do not shadow genuine native keys by local spelling.
+  Unknown local names in the genuine native group vocabulary retain their
+  qualified group:localName inventory names and preserve-only support. A known
+  native key in the wrong expanded namespace remains nameless, even when that
+  namespace is otherwise a genuine group vocabulary.
+  Native core keys require their exact DC/core expanded names. Unqualified name
+  resolution uses admitted stored names before predefined creation keys, and
+  ambiguous cross-group names reject. Names are case-sensitive and not trimmed.
+  Property records have kind property, a qualified group:key name when the stored
+  name is nonempty, current part-root Location and exact package-root references.
+  They contain one known PropertyValue, or an empty properties array for opaque
+  stored data. Details identify group, the exact stored value expanded name (null
+  when missing/ambiguous) and stored custom ID (null for other groups), without a
+  content dump or guessed scalar type. Missing/empty custom names omit record name.
+  Admitted writable known values have edit support; cached known values have read
+  support; opaque, invalid or ambiguously owned values have preserve support.
+  Invalid known lexical values read null with bounded diagnostics and cannot be
+  mutated through the typed route. Inspection properties includes only known
+  scalar snapshots; opaque metadata remains visible through part references and
+  diagnostics. Reads never create missing parts or invent absent defaults.
+  Utility date inputs/snapshots are explicit UTC instant strings, normalized to
+  UTC whole seconds by dropping fractional seconds, including before the epoch.
+  Invalid calendar values/timezone guesses reject. The separate live model retains
+  its documented Date ownership/mapping; utility snapshots do not implement it.
+  Cached extended and unsupported opaque properties reject both set and remove.
+  Existing supported custom XML width variants retain their stored variant and
+  numeric range; mutation cannot silently widen or change types. New custom types
+  use lpwstr, bool, i8, r8 and filetime for string, boolean, integer, number and date.
+  Custom IDs are positive safe integers at least 2; new IDs take the smallest
+  unused admitted value. Standard custom fmtid is
+  {D5CDD505-2E9C-101B-9397-08002B2CF9AE}, with GUID case-insensitive admission and
+  original spelling preserved. Invalid fmtid/ID or duplicate IDs/names makes that
+  custom part unsafe for typed mutation or new-property creation; never renumber
+  or repair unrelated data. Unknown unselected values and all unrelated XML bytes
+  remain unchanged. Missing parts use collision-safe maintained part-name and
+  owner-local relationship ID allocation, standard root/content-type declarations
+  and the original dialect. No orphan resource is adopted or overwritten.
+  Removal deletes only the selected supported property node, retaining the empty
+  part and its package relationship. Missing get/remove is missing-selection;
+  remove with explicit allowEmpty may return an unchanged zero-target result.
+  Unchanged typed edits retain exact package bytes and do not update clocks/counts.
 - **Graphics.** Image add defaults inline, empty alt and native size. Floating add
   anchors at x=0/y=0 relative to paragraph, wrap square, zOrder=0, no crop/rotation/
   flips, decorative false. Width/height are positive shared-unit lengths. With no
@@ -1301,7 +1349,11 @@ cannot express undefined; optional SDK undefined behaves as absent, required
 undefined fails. Empty strings are valid text, invalid for identifiers/paths/search
 patterns. Empty arrays are valid only for explicitly zero-item content/data/read
 results; operations requiring targets/levels/cells reject empty arrays. Reject
-unsafe integer values, nonfinite values, prototype keys and cyclic SDK objects.
+unsafe values in integer-typed positions, nonfinite values, prototype keys and
+cyclic SDK objects. Finite number/double positions accept exactly representable
+values beyond the safe-integer range; integer/ID and shared-unit range constraints
+remain independently enforced. JSON integral numeric tokens MUST NOT silently
+round to a different integer during parsing.
 JSON source bytes ≤ xmlPartBytes, total values ≤ xmlNodes, depth ≤ xmlDepth;
 strings and decoded bytes also count toward retainedBytes. Limits are section 7's
 exact camelCase register names via `--limit NAME=VALUE`, not new environment knobs.
@@ -1871,6 +1923,12 @@ type ResourceDetails =
         | "signatures"
         | "fonts";
       parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+    }
+  | {
+      kind: "property";
+      group: "core" | "extended" | "custom";
+      storedType: { namespace: string; localName: string } | null;
+      id: string | null;
     }
   | {
       kind: "custom-xml";

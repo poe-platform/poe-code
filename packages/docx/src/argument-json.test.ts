@@ -22,6 +22,21 @@ it("rejects malformed and ambiguous JSON before dispatch", () => {
     expect(() => parseDocxJson(input), input).toThrow(DocxUsageError);
   expect(new DocxUsageError("bad input")).toMatchObject({ code: "usage", exitCode: 2 });
 });
+it("admits exactly represented large finite JSON numbers without rounding integral tokens", () => {
+  for (const input of ["10000000000000000", "1e16", "1.000e16", "9007199254740992", "-9007199254740992", "0e999999999999999999999", "-0e-999999999999999999999"]) expect(parseDocxJson(input)).toBe(Number(input));
+  for (const input of ["9007199254740993", "9007199254740993.0", "9007199254740993e0", "9.007199254740993e15", "-9007199254740993", "1e23", "1.00000000000000000000001e23"]) expect(() => parseDocxJson(input), input).toThrow(DocxUsageError);
+  expect(parseDocxJson("0.1")).toBe(0.1);
+  expect(parseDocxJson("1e-999999999999999999999")).toBe(0);
+});
+it("admits finite binding scalars while retaining shared length range guards", () => {
+  for (const value of [1e16, -1e16, Number.MAX_VALUE]) expect(validateTemplateData({ values: [{ binding: "measurement", value }] })).toBe(true);
+  for (const value of [NaN, Infinity, -Infinity]) expect(validateTemplateData({ values: [{ binding: "measurement", value }] })).toBe(false);
+  expect(validateOriginalDocumentContent({ version: 1, blocks: [], page: { width: { value: 1e16, unit: "cm" } } })).toBe(false);
+});
+it("admits numeric-token resources before precision conversion or expansion", () => {
+  expect(() => parseDocxJson("1e16", new DocumentBudget({ work: 1 }))).toThrow(ResourceLimitError);
+  expect(() => parseDocxJson("1e16", new DocumentBudget({ retainedBytes: 1 }))).toThrow(ResourceLimitError);
+});
 
 it("bounds JSON bytes, values, nesting and retained strings", () => {
   for (const [input, limits] of [

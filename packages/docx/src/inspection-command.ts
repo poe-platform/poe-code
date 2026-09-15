@@ -38,6 +38,7 @@ import { executeStyleModelCommand } from "./style-model-command.js";
 import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
 import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
+import { executePropertiesCommand } from "./properties-command.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -78,7 +79,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const tableOperation = ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"].includes(invocation.operation);
       const listOperation = ["lists.add", "lists.set"].includes(invocation.operation);
       const storyOperation = ["headers.list", "headers.get", "headers.set", "headers.remove", "footers.list", "footers.get", "footers.set", "footers.remove"].includes(invocation.operation);
-      const packageResourceOperation = ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const propertyOperation = ["properties.list", "properties.get", "properties.set", "properties.remove"].includes(invocation.operation);
+      const packageResourceOperation = propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -93,7 +95,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
+        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -105,7 +107,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = packageResourceOperation ? await executePackageResourcesCommand(invocation, bytes, request, context)
+          output = packageResourceOperation ? propertyOperation
+            ? await executePropertiesCommand(invocation, bytes, inputIdentity, request, context)
+            : await executePackageResourcesCommand(invocation, bytes, request, context)
             : controlOperation ? controlTemplateOperation
             ? await executeControlTemplateCommand(invocation, bytes, inputIdentity, request, context)
             : await executeControlsCommand(invocation, bytes, inputIdentity, request, context)

@@ -7,6 +7,8 @@ import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { documentDialects } from "./dialect.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { writeDocumentArchive } from "./document-write.js";
+import { readDocumentArchive } from "./admission.js";
+import { SemanticValidationError, validateDocumentArchive } from "./validation.js";
 
 export interface PublicationInput { readonly path: string; readonly stat: FileStat }
 export interface PublicationOptions {
@@ -179,11 +181,34 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
   }
 }
 
-export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext, controlSource?: DocumentArchive): Promise<PublicationResult> {
+export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext, controlSource?: DocumentArchive, originalInput?: Uint8Array): Promise<PublicationResult> {
   options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
   context = { ...context, encoding: { ...context.encoding } };
   const settings = archiveSettings(context);
   const { signal, budget, limits } = settings;
+  let original: Uint8Array<ArrayBuffer> | undefined;
+  if (originalInput !== undefined) {
+    if (!(originalInput instanceof Uint8Array)) throw new InputTypeError("Expected original document bytes.");
+    budget.check("compressedInput", originalInput.length);
+    if (!options.dryRun) budget.check("serializedOutput", originalInput.length);
+    if (originalInput.length > limits.maxArchiveBytes) throw new ResourceLimitError("Document output byte limit exceeded.");
+    if (!archive || !Array.isArray(archive.members) || !(archive.comment instanceof Uint8Array)) throw new InputTypeError("Expected an owned document archive.");
+    budget.check("zipEntries", archive.members.length);
+    if (archive.members.length > limits.maxMembers || archive.comment.length > limits.maxCommentBytes) throw new ResourceLimitError("Document snapshot metadata limit exceeded.");
+    budget.charge("retainedBytes", archive.members.length * 128); budget.charge("work", archive.members.length);
+    let payload = 0, names = 0;
+    for (const member of archive.members) {
+      if (!member || !(member.bytes instanceof Uint8Array) || !(member.modified instanceof Date) || typeof member.name !== "string" || typeof member.directory !== "boolean") throw new InputTypeError("Expected typed document members.");
+      if (member.bytes.length > limits.maxEntryBytes || member.name.length > limits.maxPathBytes) throw new ResourceLimitError("Document snapshot member limit exceeded.");
+      payload += member.bytes.length; names += member.name.length;
+      if (payload > limits.maxTotalBytes) throw new ResourceLimitError("Document snapshot expanded byte limit exceeded.");
+    }
+    budget.check("expandedPackage", payload);
+    const copied = originalInput.length + archive.comment.length + payload + names * 2;
+    budget.charge("retainedBytes", copied); budget.charge("work", copied);
+    original = new Uint8Array(originalInput);
+    archive = { comment: new Uint8Array(archive.comment), members: archive.members.map(member => ({ name: member.name, directory: member.directory, bytes: new Uint8Array(member.bytes), modified: new Date(member.modified.getTime()) })) };
+  }
   const { output, inPlace, force, dryRun, creation, json } = options;
   if ((output !== undefined && (typeof output !== "string" || !output)) || (output !== undefined && inPlace)
     || (!dryRun && output === undefined && !inPlace) || (creation && (inPlace || (!dryRun && output === undefined)))
@@ -193,17 +218,35 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   let target: Destination | undefined;
   const path = inPlace ? options.input!.path : output;
   assertDocumentEditable(archive, settings, controlSource);
+  if (original) {
+    const authenticated = await readDocumentArchive(original, settings);
+    const sameBytes = (left: Uint8Array, right: Uint8Array): boolean => left.length === right.length && left.every((value, index) => value === right[index]);
+    if (!sameBytes(archive.comment, authenticated.comment) || archive.members.length !== authenticated.members.length || archive.members.some((member, index) => {
+      const source = authenticated.members[index]!;
+      return member.name !== source.name || member.directory !== source.directory || member.modified.getTime() !== source.modified.getTime() || !sameBytes(member.bytes, source.bytes);
+    })) throw new PublicationError("unsupported-publication", "Original document bytes do not match the admitted publication archive.");
+    assertDocumentEditable(authenticated, settings, controlSource);
+  }
   const chunks: Uint8Array[] = [];
   let size = 0;
   let stagingFailure: unknown;
-  try { await writeDocumentArchive(archive, { async write(bytes) {
+  try {
+    if (original) {
+      cancelled(signal);
+      const total = archive.members.reduce((sum, member) => sum + member.bytes.length, 0);
+      if (total * 32 + 65536 > limits.maxRetainedBytes) throw new ResourceLimitError("Document validation retained byte limit exceeded.");
+      const report = validateDocumentArchive(archive, { maxBytes: Math.min(limits.maxTotalBytes, 32 * 1024 * 1024), maxParts: Math.min(limits.maxMembers, 4096) }, budget);
+      if (!report.valid) throw new SemanticValidationError(report.diagnostics);
+      if (!dryRun) budget.charge("serializedOutput", original.length);
+    } else await writeDocumentArchive(archive, { async write(bytes) {
     try {
       if (bytes.length > limits.maxArchiveBytes - size) throw new ResourceLimitError("Document output byte limit exceeded.");
-      budget.charge("retainedBytes", bytes.length * 2 + 64);
-      chunks.push(new Uint8Array(bytes)); size += bytes.length;
+      budget.charge("retainedBytes", bytes.length * 2 + 64); chunks.push(new Uint8Array(bytes));
+      size += bytes.length;
     } catch (error) { stagingFailure = error; throw error; }
   } }, context.encoding, { ...context, budget });
   } catch (error) { throw stagingFailure ?? error; }
+  if (original) size = original.length;
   cancelled(signal);
   if (path !== undefined && path !== "-") {
     if (!context.filesystem) throw new InputTypeError("Publication requires an explicit filesystem.");
@@ -212,7 +255,8 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   }
   if (output === "-" && !dryRun && !context.stdout) throw new InputTypeError("Binary output requires an explicit stdout sink.");
   if (dryRun) return { published };
-  const bytes = new Uint8Array(size);
+  if (!original) budget.charge("retainedBytes", size);
+  const bytes = original ?? new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   budget.charge("work", bytes.length);

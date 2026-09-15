@@ -17,17 +17,15 @@ export function normalizeDocxPropertyOptions(options: Record<string, unknown>, c
 
   let declared: string | undefined;
   let core = false;
-  if (namespace === undefined || namespace === "core") {
+  if (namespace === "core") {
     if (coreStrings.has(key)) declared = "string";
     else if (coreDates.has(key)) declared = "date";
     else if (key === "revision") declared = "integer";
     core = declared !== undefined;
-    if (!declared && namespace === "core") throw new DocxUsageError("This core property is not writable.");
   }
-  if (!declared && (namespace === undefined || namespace === "extended")) {
+  if (!declared && namespace === "extended") {
     if (cachedExtended.has(key)) throw new DocxUsageError("Cached extended properties are read-only.");
     if (extendedStrings.has(key)) declared = "string";
-    if (!declared && namespace === "extended") throw new DocxUsageError("This extended property is not writable.");
   }
   if (options.type !== undefined && (typeof options.type !== "string" || !propertyTypes.has(options.type))) throw new DocxUsageError("Unknown property type.");
   if (declared && options.type !== undefined && options.type !== declared) throw new DocxUsageError("Property type conflicts with its declaration.");
@@ -46,8 +44,7 @@ export function normalizeDocxPropertyOptions(options: Record<string, unknown>, c
   }
   // An omitted custom type requires admitted metadata before conversion or creation.
   const valueType = type === "date" ? "UTC instant" : typeof type === "string" ? type : "typed scalar";
-  if (!validateDocxValue(valueType, value) ||
-      (typeof value === "number" && Number.isInteger(value) && !Number.isSafeInteger(value))) throw new DocxUsageError("Property value does not match its declared type.");
+  if (!validateDocxValue(valueType, value)) throw new DocxUsageError("Property value does not match its declared type.");
   if (core && key === "revision" && (value as number) <= 0) throw new DocxUsageError("Core revision must be a positive safe integer.");
   if (core && type === "string" && [...(value as string)].length > 255) throw new DocxUsageError("Core property text exceeds 255 Unicode scalars.");
   return { ...options, value };

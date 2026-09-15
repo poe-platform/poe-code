@@ -153,7 +153,8 @@ it("inventories ignored extensions and does not flatten unsupported typed proper
     fs.writeFileSync("/docProps/custom.xml", custom.replace("<vt:bool>true</vt:bool>", '<vt:vector size="2" baseType="lpstr"><vt:lpstr>ab</vt:lpstr><vt:lpstr>cd</vt:lpstr></vt:vector>'));
   });
   const result = await inspectDocument(bytes, context());
-  expect(result.properties.find(p => p.name === "Reviewed")).toMatchObject({ value: null });
+  expect(result.properties.find(p => p.name === "Reviewed")).toBeUndefined();
+  expect(result.warnings).toContainEqual(expect.objectContaining({ code: "invalid-property" }));
   expect(result.features.find(f => f.id === "F41")).toMatchObject({ detected: false });
   expect(result.warnings).toContainEqual(expect.objectContaining({ code: "unvalidated-extensions" }));
 });
@@ -216,4 +217,11 @@ it.each(["unofficial-type", "folder", "official-origin"])("classifies signature 
   const members = [...source.members.map(member => member.name === "[Content_Types].xml" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', `<Override PartName="/${name}" ContentType="${type}"/></Types>`)) } : member.name === "_rels/.rels" && scenario === "official-origin" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Relationships>', `<Relationship Id="origin" Type="http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/origin" Target="${name}"/></Relationships>`)) } : member), { name, bytes: encode('<data/>'), directory: false, modified: new Date("2025-01-01") }];
   const fs = Volume.fromJSON({ "/input": "" }); await writeArchive({ ...source, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, ctx);
   const data = await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), ctx); expect(data.signed).toBe(scenario === "official-origin"); expect(data.features.find(feature => feature.id === "F43")!.detected).toBe(scenario === "official-origin"); expect(data.signatures.parts).toEqual(scenario === "official-origin" ? ['/'+name] : []);
+});
+it("does not invent typed property values from unrelated namespace-shaped XML", async () => {
+  const source = await createDocumentFixture("garden", "empty"), archive = await readArchive(source.bytes, context()), bytes = new TextEncoder().encode('<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Inert payload</dc:title></cp:coreProperties>');
+  const members = [...archive.members.map(member => member.name !== "[Content_Types].xml" ? member : { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace("</Types>", '<Override PartName="/payload/data.xml" ContentType="application/xml"/></Types>')) }), { name: "payload/data.xml", bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") }], fs = Volume.fromJSON({ "/input": "" });
+  await writeArchive({ ...archive, members }, { async write(chunk) { fs.appendFileSync("/input", chunk); } }, { order: "input", compression: "store" }, context());
+  const data = await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), context());
+  expect(data.properties.find(p => p.part === "/payload/data.xml")).toBeUndefined();
 });

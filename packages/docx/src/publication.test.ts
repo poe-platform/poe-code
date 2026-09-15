@@ -288,3 +288,55 @@ it("preserves unrelated inert content types that contain signature-like words", 
   const source = await createDocumentArchive({}, context()), encode = (value: string) => new TextEncoder().encode(value), members = [...source.members.map(member => member.name !== "[Content_Types].xml" ? member : { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Override PartName="/payload/records.xml" ContentType="application/vnd.original.digital-signature-records+xml"/></Types>')) }), { name: "payload/records.xml", bytes: encode('<data/>'), directory: false, modified: new Date("2025-01-01") }];
   expect(() => assertDocumentEditable({ ...source, members }, archiveSettings(context()))).not.toThrow();
 });
+
+it("publishes authenticated compressed original bytes exactly for an unchanged archive", async () => {
+  const { writeArchive } = await import("./archive-write.js"), fs = Volume.fromJSON({ "/compressed": "", "/output": "" });
+  const archive = await readArchive(await textFixture('<w:p><w:r><w:t>Original compressed ledger</w:t></w:r></w:p>'), textContext);
+  await writeArchive(archive, { async write(bytes) { fs.appendFileSync("/compressed", bytes); } }, { order: "input", compression: "deflate" }, textContext);
+  const input = new Uint8Array(fs.readFileSync("/compressed") as Buffer), admitted = await readArchive(input, textContext);
+  await publishDocumentArchive(admitted, { output: "-" }, { ...textContext, encoding, stdout: { async write(bytes) { fs.appendFileSync("/output", bytes); } } }, undefined, input);
+  expect(new Uint8Array(fs.readFileSync("/output") as Buffer)).toEqual(input);
+});
+it.each(["bytes", "order", "comment", "directory", "date"])("refuses mismatched original-byte publication %s before any sink write", async field => {
+  const input = await textFixture('<w:p/>'), archive = await readArchive(input, textContext), write = vi.fn();
+  const candidate = { ...archive, comment: field === "comment" ? new Uint8Array([1]) : archive.comment, members: field === "order" ? [...archive.members].reverse() : archive.members.map((member, index) => index ? member : { ...member, bytes: field === "bytes" ? new Uint8Array([1]) : member.bytes, directory: field === "directory" ? !member.directory : member.directory, modified: field === "date" ? new Date("2000-01-01T00:00:00Z") : member.modified }) };
+  await expect(publishDocumentArchive(candidate, { output: "-" }, { ...textContext, encoding, stdout: { write } }, undefined, input)).rejects.toBeDefined(); expect(write).not.toHaveBeenCalled();
+});
+it("admits compressed exact output by emitted bytes rather than discarded store size", async () => {
+  const { writeArchive } = await import("./archive-write.js"), fs = Volume.fromJSON({ "/compressed": "" }), archive = await readArchive(await textFixture(`<w:p><w:r><w:t>${"Ledger ".repeat(1000)}</w:t></w:r></w:p>`), textContext);
+  await writeArchive(archive, { async write(bytes) { fs.appendFileSync("/compressed", bytes); } }, { order: "input", compression: "deflate" }, textContext);
+  const input = new Uint8Array(fs.readFileSync("/compressed") as Buffer), admitted = await readArchive(input, textContext), write = vi.fn();
+  const budget = new DocumentBudget({ serializedOutput: input.length + 1 });
+  await publishDocumentArchive(admitted, { output: "-" }, { ...textContext, budget, encoding, stdout: { write } }, undefined, input);
+  expect(write).toHaveBeenCalledWith(expect.any(Uint8Array), expect.any(AbortSignal)); expect(write.mock.calls[0]![0]).toEqual(input);
+});
+it("owns original bytes and candidate members before asynchronous authentication", async () => {
+  const input = await textFixture('<w:p/>'), expected = new Uint8Array(input), archive = await readArchive(input, textContext), write = vi.fn();
+  const pending = publishDocumentArchive(archive, { output: "-" }, { ...textContext, encoding, stdout: { write } }, undefined, input);
+  input.fill(0); archive.members[0]!.bytes.fill(0); archive.members[0]!.modified.setTime(0);
+  await pending; expect(write.mock.calls[0]![0]).toEqual(expected);
+});
+it("keeps original-byte publication bounded and cancellable before sink writes", async () => {
+  const input = await textFixture('<w:p/>'), archive = await readArchive(input, textContext), write = vi.fn();
+  await expect(publishDocumentArchive(archive, { output: "-" }, { ...textContext, budget: new DocumentBudget({ serializedOutput: input.length - 1 }), encoding, stdout: { write } }, undefined, input)).rejects.toMatchObject({ code: "limit-exceeded" });
+  const controller = new AbortController(); controller.abort();
+  await expect(publishDocumentArchive(archive, { output: "-" }, { ...textContext, signal: controller.signal, encoding, stdout: { write } }, undefined, input)).rejects.toMatchObject({ code: "cancelled" }); expect(write).not.toHaveBeenCalled();
+});
+it("refuses authenticated original-byte packages with enforced protection", async () => {
+  const input = await textFixture('<w:p><w:sdt><w:sdtPr><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Keep</w:t></w:r></w:sdtContent></w:sdt></w:p>'), archive = await readArchive(input, textContext), write = vi.fn();
+  await expect(publishDocumentArchive(archive, { output: "-" }, { ...textContext, encoding, stdout: { write } }, undefined, input)).rejects.toMatchObject({ code: "unsupported-edit" }); expect(write).not.toHaveBeenCalled();
+});
+it("admits candidate member counts before allocating an original-byte snapshot", async () => {
+  const input = await textFixture('<w:p/>'), source = await readArchive(input, textContext), members = Array.from({ length: 1000 }, (_, index) => ({ ...source.members[0]!, name: `original/${index}.xml`, bytes: new Uint8Array() })), map = vi.spyOn(members, "map"), write = vi.fn();
+  await expect(publishDocumentArchive({ ...source, members }, { output: "-" }, { ...textContext, limits: { ...textContext.limits, maxMembers: 32 }, encoding, stdout: { write } }, undefined, input)).rejects.toMatchObject({ code: "limit-exceeded" }); expect(map).not.toHaveBeenCalled(); expect(write).not.toHaveBeenCalled();
+});
+it.each(["entry", "total"])("admits candidate %s byte bounds before allocating an original-byte snapshot", async field => {
+  const input = await textFixture('<w:p/>'), source = await readArchive(input, textContext), members = source.members.map(member => ({ ...member, bytes: new Uint8Array(4096) })), map = vi.spyOn(members, "map"), write = vi.fn();
+  await expect(publishDocumentArchive({ ...source, members }, { output: "-" }, { ...textContext, limits: { ...textContext.limits, maxEntryBytes: field === "entry" ? 2048 : 8192, maxTotalBytes: 8192 }, encoding, stdout: { write } }, undefined, input)).rejects.toMatchObject({ code: "limit-exceeded" }); expect(map).not.toHaveBeenCalled(); expect(write).not.toHaveBeenCalled();
+});
+it("owns modeled member fields without evaluating arbitrary extra properties", async () => {
+  const input = await textFixture('<w:p/>'), archive = await readArchive(input, textContext), access = vi.fn(() => { throw new Error("Unmodeled field evaluated"); }), write = vi.fn();
+  Object.defineProperty(archive.members[0]!, "extra", { enumerable: true, get: access });
+  await publishDocumentArchive(archive, { output: "-" }, { ...textContext, encoding, stdout: { write } }, undefined, input);
+  expect(access).not.toHaveBeenCalled(); expect(write.mock.calls[0]![0]).toEqual(input);
+});

@@ -1,7 +1,9 @@
 # DOCX paired Office QA contract review
 
-Status: Documentation reviewed on 2026-09-13; all DOCX recipes remain proposed
-and unexecuted. Existing partial PPTX execution is recorded separately in its
+Status: Bounded DOCX execution on 2026-09-15 is recorded in the
+[execution receipt](office-cli-execution-20260915.md). The documentation-only
+review below is historical (2026-09-13); its hashes and unrun claims describe
+that checkpoint. Existing partial PPTX execution is recorded separately in its
 [receipt](../pptx/office-cli-execution-20260913.md). No product behavior is
 implemented or verified by this review.
 
@@ -105,3 +107,24 @@ document or binary was acquired, opened or deleted. Future product changes must
 first reproduce failures in original small memfs tests. Meaningful publisher or
 clone cases must be reduced before cleanup; provenance and independent expected
 results survive, downloaded content does not become a canonical fixture.
+
+## Current execution and documentary reconciliation
+
+See the execution receipt for observed DOCX cases and the owned procedure for
+original failing tests and usability fixes. Earlier undefined-binding statements
+above describe the documentary register at review time: built schema now defines
+`{"values":[{"binding":"heading","value":"Coastal café"}]}`. Basic tagged-control
+filling ran; expansion/ambiguity variants remain pending. Explicit DOCX diff scope
+is required; corrected recipes use `--scope package`. Admitted DOTX kind is
+retained independent of output suffix. Shared `allowEmpty` remains authoritative
+over the older format prose spelling. Existing dirty specifications and audits
+are preserved; these resolutions record drift without revising unrelated work.
+
+Exact mapping decisions above remain the QA contract, not whole-API acceptance.
+The inventories include 410 planned, 378 security-mapped, 124 language-mapped
+and eight documentation-error research records. None of the 920 research records,
+262 enum values, 11 aliases, 23 drift resolutions, 1,337 target-map rows or APIs
+without source tests is hidden by this task. Public underscore-prefixed types
+include Header/Footer, TableStyle/NumberingStyle/LatentStyle, Cell/Row/Column,
+Rows/Columns, Text and Relationship. Unsupported public members remain visible;
+no spelling-based privacy or blanket neutral-model aliases were introduced.

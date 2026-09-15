@@ -1,6 +1,8 @@
 # Paired Office CLI agent QA
 
-Status: Partially executed for PPTX on 2026-09-13; DOCX not run. See the
+Status: Bounded DOCX execution on 2026-09-15 is recorded in its
+[receipt](../docx/office-cli-execution-20260915.md). PPTX was partially executed
+on 2026-09-13; no PPTX counterpart ran in the DOCX task. See the historical
 [execution receipt](../pptx/office-cli-execution-20260913.md) for exact scope,
 failures and unrun cases. The historical documentation-only checkpoint below is
 retained; it is not the current execution status.
@@ -14,8 +16,9 @@ PPTX arguments; it is not a released schema. See
 The [DOCX command register](../docx/command-coverage.json) supplies the counterpart
 proposals; [DOCX review evidence](../docx/office-cli-qa-review.md) records the
 current inventory, exact JS/security mappings and unresolved schema boundaries.
-Neither register is implementation evidence. This DOCX documentation task does
-not execute the recipes or advance later implementation tasks.
+Neither register is implementation evidence. The bounded DOCX execution permits
+validated usability fixes with original failing tests; later implementation tasks
+remain pending. Historical documentation-only ownership below is retained.
 
 ## Execution boundary and preparation
 
@@ -87,8 +90,8 @@ Repeat reads with `--json`; compare direct CLI results with the same SDK operati
 | Q16 property removal       | `docx properties remove property.docx --name Review --in-place`                                       | `pptx properties remove property.pptx --name Review --in-place`                                               | Only requested custom property removed                                                                    |
 | Q17 template binding       | `docx template apply Letter.dotx --data-file 'docx bindings.json' -o bound.docx`                      | `pptx template apply Briefing.potx --data-file 'pptx bindings.json' -o bound.pptx`                            | Declared bindings filled, unsupported/missing bindings fail before publication                            |
 | Q18 batch file             | `docx batch 'Coastal café.docx' --ops-file 'office edits.json' -o batch.docx`                         | `pptx batch 'Coastal café.pptx' --ops-file 'office edits.json' -o batch.pptx`                                 | Ordered effects with one final publication; same domain result as direct operations                       |
-| Q19 equal diff             | `docx diff 'Coastal café.docx' 'Coastal café.docx' --json`                                            | `pptx diff 'Coastal café.pptx' 'Coastal café.pptx' --json`                                                    | Exit 0, `ok: true`, `data.equal: true`                                                                    |
-| Q20 different diff         | `docx diff 'Coastal café.docx' final.docx --json`                                                     | `pptx diff 'Coastal café.pptx' final.pptx --json`                                                             | Exit 1, `ok: true`, `data.equal: false`; expected text changes only                                       |
+| Q19 equal diff             | `docx diff 'Coastal café.docx' 'Coastal café.docx' --scope package --json`                            | `pptx diff 'Coastal café.pptx' 'Coastal café.pptx' --json`                                                    | Exit 0, `ok: true`, `data.equal: true`                                                                    |
+| Q20 different diff         | `docx diff 'Coastal café.docx' final.docx --scope package --json`                                     | `pptx diff 'Coastal café.pptx' final.pptx --json`                                                             | Exit 1, `ok: true`, `data.equal: false`; expected text changes only                                       |
 | Q21 global capabilities    | `docx capabilities --json`                                                                            | `pptx capabilities --json`                                                                                    | Actual edit/read/preserve/reject support, subsets, reasons and host capabilities                          |
 | Q22 input capabilities     | `docx capabilities 'Coastal café.docx' --json`                                                        | `pptx capabilities 'Coastal café.pptx' --json`                                                                | Detected requirements and affected unsupported operations; unknown content explicit                       |
 
@@ -118,9 +121,14 @@ For PPTX Q17, the register's proposed binding payload is
 `--data-json` with that exact payload, subject to the authored template binding.
 DOCX uses its own declared binding schema; do not infer identical payloads from
 the shared command path. Both reject simultaneous file/inline data sources.
-The current DOCX register names `DeclaredTemplateRecord` but does not define its
-record fields. Q17 setup and its ambiguity/expansion variants remain blocked on
-a concrete binding schema; no fabricated DOCX JSON example is supplied here.
+The built DOCX schema now defines its payload:
+`{"values":[{"binding":"heading","value":"Coastal café"}]}`. Q17/Q44 basic
+fill ran with an original tagged plain-text control. Repeated/ambiguous and
+expansion variants remain unrun. Q02/Q17/Q44 retain admitted DOTX kind and content
+types even when the destination suffix is `.docx`; they do not convert templates.
+For Q10, precreate the output directory in the explicit VFS. Require an adapter
+transaction, or explicitly supply `--allow-partial-output` for an incapable
+adapter; absence of consent must reject without publication.
 
 ## Shell, streams, selectors and publication
 
@@ -188,14 +196,14 @@ pptx create --output - | pptx text -
 
 ## Help, errors and shared SDK acceptance
 
-| ID                          | DOCX recipe                           | PPTX recipe                           | Required result                                                                                         |
-| --------------------------- | ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Q36 help                    | `docx --help`                         | `pptx --help`                         | Compare with `-h` and `help`; common naming and usable examples                                         |
-| Q37 nested help             | `docx help images replace`            | `pptx help images replace`            | Required file/selection, shared-resource effects and applicable flags explained                         |
-| Q38 schema                  | `docx schema text replace`            | `pptx schema text replace`            | Versioned input/result schema, literal operation ID `text.replace`, cardinality and supported selectors |
-| Q39 version                 | `docx --version`                      | `pptx --version`                      | Same discovery convention as `version`; no input needed                                                 |
-| Q40 failed diff             | `docx diff INPUT missing.docx --json` | `pptx diff INPUT missing.pptx --json` | Exit 2 and `ok: false`; cancellation is 130                                                             |
-| Q41 legacy grammar rejected | `docx image list INPUT`               | `pptx image list INPUT`               | Usage 2 with helpful plural spelling; also reject `table`, `metadata` and top-level `replace`           |
+| ID                          | DOCX recipe                                           | PPTX recipe                           | Required result                                                                                         |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Q36 help                    | `docx --help`                                         | `pptx --help`                         | Compare with `-h` and `help`; common naming and usable examples                                         |
+| Q37 nested help             | `docx help images replace`                            | `pptx help images replace`            | Required file/selection, shared-resource effects and applicable flags explained                         |
+| Q38 schema                  | `docx schema text replace`                            | `pptx schema text replace`            | Versioned input/result schema, literal operation ID `text.replace`, cardinality and supported selectors |
+| Q39 version                 | `docx --version`                                      | `pptx --version`                      | Same discovery convention as `version`; no input needed                                                 |
+| Q40 failed diff             | `docx diff INPUT missing.docx --scope package --json` | `pptx diff INPUT missing.pptx --json` | Exit 2 and `ok: false`; cancellation is 130                                                             |
+| Q41 legacy grammar rejected | `docx image list INPUT`                               | `pptx image list INPUT`               | Usage 2 with helpful plural spelling; also reject `table`, `metadata` and top-level `replace`           |
 
 Inspect terminal screenshots of root/nested help, a successful ordinary edit,
 ambiguous/stale selection errors and a schema error using the maintained
@@ -237,7 +245,9 @@ reference test pass establishes whole-public-API coverage.
 
 ## Additional paired recovery recipes
 
-These Q42–Q49 cases are `proposed_not_run` for both tools. `INPUT` denotes the
+Q42–Q49 DOCX probes are accounted for in the 2026-09-15 receipt; their
+additional recovery variants remain pending. PPTX counterparts remain
+`proposed_not_run`. `INPUT` denotes the
 fresh corresponding admitted fixture; `TOKEN` is a returned location. Use the
 Q18 file's exact JSON for inline operations, and declared format-specific binding
 JSON for templates. Do not run these on the ambient host shell.
@@ -341,7 +351,7 @@ Scoped Prettier, local-link checks, complete inventory destination checks,
 recorded JSON envelope checks and `git diff --check` passed. No product unit
 suite, counterpart run, native rendering or release verification is claimed.
 
-## DOCX documentation review procedure and result
+## Historical DOCX documentation review procedure and result
 
 This task owns only this plan and `docs/docx/office-cli-qa-review.md`. Preserve
 the existing PPTX receipts and unrelated plan edits/moves. No product code,
@@ -368,3 +378,14 @@ evidence/register links and routes all receipts to PPTX`. This is documentary
 
 Review/check results are recorded in the linked DOCX evidence. All DOCX recipes
 remain proposed and unexecuted, including the newly added recovery cases.
+
+## 2026-09-15 bounded DOCX execution
+
+The [DOCX receipt](../docx/office-cli-execution-20260915.md) records built-command
+Q01–Q49 probes, original rich inputs, corrections, original failures and unrun
+variants. The [owned procedure](docx-office-cli-usability-qa.md) records five
+atomic failing-test-before-code usability improvements and maintained checks.
+Screenshots use maintained `npm run screenshot` and its `terminal-png` renderer;
+DOCX is a virtual command, not a root poe-code subcommand. No saved runner or
+screenshot test suite was introduced. No counterpart, native/corpus or later
+whole-model implementation task is completed by these probes.

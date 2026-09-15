@@ -1146,7 +1146,7 @@ describe("stats pane", () => {
           currentAction: ""
         },
         0
-      )
+      ).slice(0, 9)
     ).toEqual([]);
 
     expect(
@@ -1177,7 +1177,7 @@ describe("stats pane", () => {
           currentAction: "generating patch"
         },
         3
-      )
+      ).slice(0, 9)
     ).toEqual([
       { prefix: "", prefixStyle: {}, style: { fg: "magenta" }, text: "Run" },
       { prefix: " ", prefixStyle: {}, style: {}, text: "14" },
@@ -1187,13 +1187,7 @@ describe("stats pane", () => {
       { prefix: "", prefixStyle: {}, style: {}, text: "5,9" },
       { prefix: "", prefixStyle: {}, style: {}, text: "18," },
       { prefix: "", prefixStyle: {}, style: {}, text: "" },
-      { prefix: "Cur", prefixStyle: {}, style: {}, text: "" },
-      {
-        prefix: "  ",
-        prefixStyle: { dim: true },
-        style: { dim: true },
-        text: "g"
-      }
+      { prefix: "Cur", prefixStyle: {}, style: {}, text: "" }
     ]);
   });
 

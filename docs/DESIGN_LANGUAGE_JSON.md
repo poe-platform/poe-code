@@ -622,10 +622,10 @@ reference[1].
  active completed task
  inactive pending task
 
- Feature   Alignment  Status
+ Feature   Alignment  Status 
 ├──────────┼───────────┼────────┤
- Headings   center     Ready
- Tables     aligned     100%
+ Headings   center     Ready 
+ Tables     aligned     100% 
 
  Note
  Alerts are rendered as styled notes.

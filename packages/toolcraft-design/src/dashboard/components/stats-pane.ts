@@ -1,7 +1,8 @@
 import { getTheme } from "../../internal/theme-detect.js";
 import { ScreenBuffer } from "../buffer.js";
+import { displayWidth, graphemes, graphemeWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
-import type { VisualLine } from "./output-pane.js";
+import { computeVisualLines, type VisualLine } from "./output-pane.js";
 
 type StatusTone = "error" | "info" | "muted" | "success" | "warning";
 
@@ -28,7 +29,7 @@ export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: Dashboa
       continue;
     }
 
-    const textStart = Math.min(line.prefix.length, rect.width);
+    const textStart = Math.min(displayWidth(line.prefix), rect.width);
     buffer.putInRect(
       { x: rect.x + textStart, y: rect.y + row, width: rect.width - textStart, height: 1 },
       0,
@@ -79,12 +80,14 @@ export function statsToLines(stats: DashboardStats, width: number): VisualLine[]
         style: {},
         text: ""
       },
-      {
-        prefix: width > 0 ? clipText("  ", width) : "",
-        prefixStyle: mutedStyle,
-        style: mutedStyle,
-        text: clipText(stats.currentAction, Math.max(width - 2, 0))
-      }
+      ...computeVisualLines([{ kind: "status", text: stats.currentAction, ts: 0 }], width + 1).map(
+        (line) => ({
+          prefix: clipText("  ", width),
+          prefixStyle: mutedStyle,
+          style: mutedStyle,
+          text: line.text
+        })
+      )
     );
   }
 
@@ -107,11 +110,12 @@ function createKeyValueLine(
   valueStyle: CellStyle = {}
 ): VisualLine {
   const clippedValue = clipText(value, width);
-  const availableBeforeValue = Math.max(width - clippedValue.length, 0);
+  const availableBeforeValue = Math.max(width - displayWidth(clippedValue), 0);
   const clippedLabel = clipText(label, Math.max(availableBeforeValue - 1, 0));
 
   return {
-    prefix: clippedLabel + " ".repeat(Math.max(availableBeforeValue - clippedLabel.length, 0)),
+    prefix:
+      clippedLabel + " ".repeat(Math.max(availableBeforeValue - displayWidth(clippedLabel), 0)),
     prefixStyle: {},
     style: valueStyle,
     text: clippedValue
@@ -119,7 +123,15 @@ function createKeyValueLine(
 }
 
 function clipText(value: string, width: number): string {
-  return width <= 0 ? "" : value.slice(0, width);
+  let result = "";
+  let cells = 0;
+  for (const grapheme of graphemes(value)) {
+    const size = graphemeWidth(grapheme);
+    if (cells + size > width) break;
+    result += grapheme;
+    cells += size;
+  }
+  return result;
 }
 
 function formatStatus(status: DashboardStats["status"]): string {

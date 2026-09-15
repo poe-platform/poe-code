@@ -250,3 +250,11 @@ All 552 maintained agent-spawn tests, touched-file ESLint and selected agent-spa
 ## Fragmented Unicode preview coverage
 
 Added five bounded-preview cases splitting valid emoji/CJK/combining text into 1/2/7/257/16,383-code-unit deltas. All preserve the latest result and the preview cap without unmatched UTF-16 surrogates after truncation. No production change was needed. Eight preview tests passed in 375ms; the current design worktree's full maintained suite passed 1,750 tests, including the separate cursor-control fix pending its own commit.
+
+## Unicode cursor cells and adversarial control fixture
+
+Six failing ANSI regressions showed code-unit cursor accounting corrupted emoji/backspace output and misplaced CJK, combining-accent and tab overwrites. ANSI parsing now writes graphemes at terminal cell widths, reserves wide continuation cells, clears both halves of overwritten wide glyphs, applies combining marks to the preceding cell and expands tabs at terminal stops. The prior literal-tab parser expectation now reflects its actual expanded visible cells.
+
+Added a maintained cursor-controls fake scenario after its selector regression failed. It includes CJK carriage-return overwrite, emoji/ZWJ/combining backspaces, tab overwrite, OSC/DCS hidden strings and unsupported clear/cursor sequences. Fixture regression confirms settled output rather than streaming fallback. Its intentional keepalive interval preserves the screen until q.
+
+All 1,750 maintained design tests, design lint/typecheck and selected design build closure passed. Real terminal-pilot scenario at 100x24 -> 50x16 -> 30x10 -> 100x24 verified corrected text, no HIDDEN_ payload and q exit zero. Wide/short screenshots inspected; complete frames remained intact. Independent raw PTY controls produced A 界, blank-plus-X for emoji/ZWJ, X for combining accent and X       B for tab overwrite, matching the corrected parser. This is shared-dashboard/control-render evidence, not new root SDK/external-agent cancellation evidence. Existing unsupported-font placeholders remain separate from verified cell geometry. Broader control-byte and memory-retention audit remains active.

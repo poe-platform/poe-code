@@ -75,6 +75,12 @@ if (scenario === "empty") {
     "\u001b[31merror\u001b[0m normal \u001b[1;32msuccess\u001b[0m\nindented\tcolumn\nprogress 10%\rprogress 100%"
   );
   append("success", "Unicode and ANSI fixture ready");
+} else if (scenario === "cursor-controls") {
+  append("tool", "\u001b[32m界界\rA\u001b[0m\n😀\bX\n👩‍💻\bX\né\bX\na\tB\rX");
+  append("tool", "\u001b]52;c;HIDDEN_OSC_PAYLOAD\u0007Visible OSC result");
+  append("tool", "\u001bP HIDDEN_DCS_PAYLOAD\u001b\\Visible DCS result");
+  append("tool", "\u001b[2J\u001b[1;1HFrame preserved");
+  append("success", "Cursor control fixture ready");
 } else {
   for (let index = 0; index < 200; index += 1) {
     append("tool", `[implement] Inspecting source file ${index} and running focused checks`);

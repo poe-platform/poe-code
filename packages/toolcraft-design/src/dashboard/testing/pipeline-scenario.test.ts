@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const dashboard = vi.hoisted(() => ({
   start: vi.fn(),
@@ -8,6 +8,11 @@ const dashboard = vi.hoisted(() => ({
   appendOutput: vi.fn()
 }));
 vi.mock("../dashboard.js", () => ({ createDashboard: () => dashboard }));
+
+beforeEach(() => {
+  vi.resetModules();
+  vi.clearAllMocks();
+});
 
 afterEach(() => {
   vi.useRealTimers();
@@ -30,4 +35,20 @@ it("shows no task execution or usage for an empty fake run", async () => {
   });
   expect(dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n"))
     .not.toContain("Task 2/8");
+});
+
+it("provides a settled Unicode cursor and control-sequence scenario", async () => {
+  vi.useFakeTimers();
+  vi.spyOn(process, "once").mockReturnValue(process);
+  vi.spyOn(process, "argv", "get").mockReturnValue(["node", "fixture", "cursor-controls"]);
+  await import("./pipeline-scenario.js");
+  const output = dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n");
+  expect(output).toContain("Cursor control fixture ready");
+  expect(output).toContain("界界\rA");
+  expect(output).toContain("👩‍💻\bX");
+  expect(output).toContain("a\tB\rX");
+  expect(output).not.toContain("Inspecting source file");
+  const count = dashboard.appendOutput.mock.calls.length;
+  await vi.advanceTimersByTimeAsync(2_000);
+  expect(dashboard.appendOutput).toHaveBeenCalledTimes(count);
 });

@@ -2,6 +2,29 @@ import { describe, expect, it } from "vitest";
 import { hasAnsi, parseAnsi } from "./ansi.js";
 
 describe("parseAnsi", () => {
+  it.each([
+    ["界", " X"],
+    ["😀", " X"],
+    ["👩‍💻", " X"],
+    ["é", "X"]
+  ])("overwrites terminal cells rather than code units after %s backspace", (input, expected) => {
+    expect(parseAnsi(`${input}\bX`)).toEqual([
+      { segments: [{ text: expected, style: {} }] }
+    ]);
+  });
+
+  it("clears both cells of a wide glyph overwritten after carriage return", () => {
+    expect(parseAnsi("界界\rA")).toEqual([
+      { segments: [{ text: "A 界", style: {} }] }
+    ]);
+  });
+
+  it("uses terminal tab stops when text is overwritten after a carriage return", () => {
+    expect(parseAnsi("a\tB\rX")).toEqual([
+      { segments: [{ text: "X       B", style: {} }] }
+    ]);
+  });
+
   it("returns a single empty line for an empty string", () => {
     expect(parseAnsi("")).toEqual([{ segments: [] }]);
   });
@@ -182,7 +205,7 @@ describe("parseAnsi", () => {
   it("discards non-rendering controls while applying backspace", () => {
     const result = parseAnsi("a\u0000b\u0008c\td");
     expect(result).toEqual([
-      { segments: [{ text: "ac\td", style: {} }] }
+      { segments: [{ text: "ac      d", style: {} }] }
     ]);
   });
 

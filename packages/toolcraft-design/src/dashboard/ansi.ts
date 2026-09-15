@@ -1,4 +1,5 @@
 import type { CellStyle } from "./types.js";
+import { graphemes, graphemeWidth } from "./terminal-width.js";
 
 export interface StyledSegment {
   text: string;
@@ -30,6 +31,30 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   const lines: StyledLine[] = [];
   let cells: Array<{ ch: string; style: CellStyle } | undefined> = [];
   let column = 0;
+
+  const clearCell = (position: number): void => {
+    if (cells[position]?.ch === "" && position > 0) {
+      cells[position - 1] = { ch: " ", style: { ...style } };
+    }
+    if (cells[position + 1]?.ch === "") {
+      cells[position + 1] = { ch: " ", style: { ...style } };
+    }
+    cells[position] = undefined;
+  };
+
+  const writeGrapheme = (ch: string): void => {
+    const width = graphemeWidth(ch);
+    if (width === 0) {
+      const previous = cells[column - 1]?.ch === "" ? column - 2 : column - 1;
+      if (!concealed && cells[previous]) cells[previous]!.ch += ch;
+      return;
+    }
+    clearCell(column);
+    if (width === 2) clearCell(column + 1);
+    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
+    if (width === 2) cells[column + 1] = { ch: concealed ? " " : "", style: { ...style } };
+    column += width;
+  };
 
   const finishLine = (): void => {
     lines.push({ segments: cellsToSegments(cells) });
@@ -98,15 +123,23 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
-    const code = ch.charCodeAt(0);
-    if (code < 0x20 && ch !== "\t") {
+    if (ch === "\t") {
+      const spaces = 8 - (column % 8);
+      for (let offset = 0; offset < spaces; offset++) writeGrapheme(" ");
       index += 1;
       continue;
     }
 
-    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
-    column += 1;
-    index += 1;
+    const code = ch.charCodeAt(0);
+    if (code < 0x20) {
+      index += 1;
+      continue;
+    }
+
+    let end = index + 1;
+    while (end < text.length && text.charCodeAt(end) >= 0x20) end += 1;
+    for (const grapheme of graphemes(text.slice(index, end))) writeGrapheme(grapheme);
+    index = end;
   }
 
   finishLine();

@@ -657,7 +657,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `images extract`        | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F31, F34                                                                                           |
 | `shapes list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F36                                                                                                |
 | `charts list` | read | none | ResourceListData | F37 |
-| `diagrams list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F38                                                                                                |
+| `diagrams list`         | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F38                                                                                                |
 | `equations list`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F39                                                                                                |
 | `objects list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F40                                                                                                |
 | `signatures list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F43                                                                                                |
@@ -1998,6 +1998,175 @@ results. Original tests MUST prove unrelated edit preservation independently of
 downloaded corpus or native tooling. Corpus/resource failures and unavailable
 rendering/consistency profiles MUST remain separately qualified.
 
+### 6.5.3 Bounded diagram and opaque graphics inventory
+
+`diagrams list` is a package-global physical inventory of inert diagram resources
+and eligible stored graphics observations. Only `json` and `limit` apply. Every
+selector/scope flag, including a Location, MUST reject as usage before input
+acquisition. List position is not a diagram ordinal, rendering count or active
+document-model occurrence. This profile adds no semantic diagram mutation command,
+live shape enum/collection, layout generation, text editing, refresh or rendering.
+
+Each record identifies one canonical physical part: either a diagram-role candidate
+or an owner of an eligible graphics observation. A part meeting both conditions
+has one record. Distinct parts MUST remain distinct even with equal hashes; include
+declared or relationship-recognized orphan/unreachable resources. Filename, suffix,
+local spelling, body traversal and apparent nonuse confer no diagram authority.
+All records have preserve support and a current source-bound part-root Location.
+
+The exact native content types use prefix
+`application/vnd.openxmlformats-officedocument.drawingml.` with role suffixes
+`diagramData+xml`, `diagramLayout+xml`, `diagramStyle+xml`, `diagramColors+xml`
+for data/layout/style/color. Native relationship types use the package's matching
+officeDocument relationship namespace and suffixes `diagramData`, `diagramLayout`,
+`diagramQuickStyle`, `diagramColors`. Matching native diagram namespace roots are
+`dataModel`, `layoutDef`, `styleDef`, `colorsDef`. Header/list roots are opaque
+resources, not additional generated diagram definitions. A recognized content type
+or internal incoming role relationship establishes candidacy; record both evidence
+forms when present. Wrong/missing roots or conflicting role evidence retain opaque
+descriptors with located issues rather than guessed semantic contents. Existing
+OPC/XML/dialect admission failures remain failures, not opaque success.
+When a part has evidence for distinct roles, every role entry is opaque with a
+conflict issue, even if its expanded root matches one role. A nonconflicting entry
+is matching only when its XML expanded root matches that role's declared root.
+Relationship-only candidacy with a matching root can therefore have matching role
+evidence even with wrong declared MIME; it still cannot yield an internal native
+binding, which requires both the exact role MIME and nonconflicting matching root.
+
+The separate inert drawing role has exact content type
+`application/vnd.ms-office.drawingml.diagramDrawing+xml`, relationship type
+`http://schemas.microsoft.com/office/2007/relationships/diagramDrawing`, and root
+`{http://schemas.microsoft.com/office/drawing/2008/diagram}drawing`. This extension
+is observed preserve-only; recognizing it MUST NOT expand MCE understanding.
+
+Eligible observations use raw namespace-qualified element-child paths in admitted
+XML, including inactive/opaque branches. The native carrier chain is
+`w:drawing/wp:inline|wp:anchor/a:graphic/a:graphicData/dgm:relIds`, with matching
+package namespaces and only existing transparent MCE wrappers permitted between
+elements. Foreign wrappers confer no carrier authority. Native binding authority
+also requires graphicData's URI to equal the matching diagram namespace; a
+different/missing URI is an unknown-graphic observation without inferred native
+bindings. Preserve exact
+stored URI and resolve `r:dm`, `r:lo`, `r:qs`, `r:cs` against that physical owner
+only, respectively data/layout/style/color. Missing/empty IDs, absent relationships,
+wrong relationship roles, external targets and wrong resource roles remain explicit
+unresolved evidence. Precedence is missing-id, missing-relationship, wrong
+relationship type, external, wrong resource MIME, opaque root/role, internal.
+Wrong resource MIME is wrong-resource-type; matching role MIME with a wrong or
+conflicting root is opaque. Retain the descriptor and graph traversal of every
+resolved internal target even when its binding has a wrong/opaque status. Never fetch
+external targets or infer relationship authority from arbitrary payload attributes.
+
+Observe exact `dataModelExt` in the drawing-extension namespace under native
+`dgm:dataModel/dgm:extLst/a:ext` with that exact namespace URI. Its drawing binding
+uses unqualified `relId`, not `r:id`; missing/empty values remain unresolved.
+Other stored extension attributes remain inert. Observe unknown native graphicData
+envelopes, including missing URI, outside the existing recognized picture/chart/
+shape profiles, and unsupported extensions under native diagram/drawing extension
+lists. An extension observation identifies each unsupported direct element child
+of a:ext in an eligible list; a:ext with no element child is itself an opaque
+observation. Its `uri` is the unqualified a:ext envelope attribute, never an
+attribute inferred from the unknown child. RelIds and unknown-graphic observations
+use the enclosing graphicData's unqualified URI attribute.
+Native diagram lists are direct dgm:extLst children of matching diagram-role
+roots. Native drawing lists occur in either the exact
+`w:drawing/wp:inline|wp:anchor/wp:docPr/a:extLst` chain or below the exact native
+graphicData carrier chain. Below graphicData, intermediate descendants may use
+only matching DrawingML main/picture namespaces and the already supported exact
+wordprocessingShape/wordprocessingGroup namespaces from §6.5.1; their stored
+content is observed, not semantically admitted by that namespace test. Only
+existing transparent MCE wrappers are permitted. A list behind a foreign wrapper or elsewhere in XML
+confers no graphics authority. Require native graphics ancestry; an arbitrary unknown namespace elsewhere
+is not a graphic. Retain expanded names, stored envelope/extension URI, owner/path
+and bounded issues without source text/payload dumps. Existing supported SVG,
+decorative, chart and shape profiles MUST NOT be reclassified as unknown solely
+because they use an extension namespace. Observation `active` means reachable in
+the existing admitted compatibility projection; it never means rendered, safe to
+edit or newly activated. Raw observations MUST survive independently of that flag.
+An observation is active exactly when that raw node itself is exposed by the
+existing MarkupCompatibility content projection, including an exposed opaque
+source node; traversal MUST NOT descend into such a node to manufacture active
+descendants. Selected-branch ancestry alone is insufficient for active status.
+
+For a role record, graph closure starts at that candidate part. For an observation
+owner, it starts at distinct resolved internal binding targets; the owner descriptor
+is also included. A record meeting both conditions uses the union of these seeds.
+The descriptor-only observation owner is not itself a traversal seed; do not
+implicitly traverse all unrelated story relationships. Visit all outgoing internal edges transitively with a visited set,
+including cycles and opaque resources. Retain descriptors only, never activate,
+unpack or interpret nested resources. Record original incoming references to the
+record's physical owner and all outgoing closure references, including external
+edges, in canonical owner/ID/type/target order without duplicate physical edges.
+Parts/roles/records sort by canonical part name and then declared role order;
+observations sort by owner and lexicographic numeric child path. Bindings retain
+the fixed native dm/lo/qs/cs order; extension drawing bindings follow their observed
+physical path. Issues use bounded static descriptions without document passages.
+
+The following exact closed utility types replace the generic diagrams detail arm.
+`DiagramRole` order is data/layout/style/color/drawing. Root metadata is an expanded
+name or null for non-XML/unavailable content; opaque resources are never decoded
+into generated layout or semantic points.
+
+```typescript
+type DiagramRole = "data" | "layout" | "style" | "color" | "drawing";
+type DiagramPart = { name: string; contentType: string; bytes: number; sha256: string };
+type DiagramIssue = { code: string; part: string; path: number[]; message: string };
+type DiagramRoleEvidence = { role: DiagramRole; part: string;
+  evidence: "content-type" | "relationship" | "both";
+  root: { namespace: string; localName: string } | null;
+  status: "matching" | "opaque" };
+type DiagramBinding = { role: DiagramRole; attribute: string;
+  relationshipId: string | null; reference: Reference | null;
+  status: "internal" | "external" | "missing-id" | "missing-relationship" |
+    "wrong-relationship-type" | "wrong-resource-type" | "opaque";
+  target: DiagramPart | null; issues: DiagramIssue[] };
+type DiagramObservation = { kind: "relIds" | "unknown-graphic" | "extension";
+  part: string; path: number[]; namespace: string; localName: string;
+  uri: string | null; active: boolean; bindings: DiagramBinding[];
+  issues: DiagramIssue[] };
+type DiagramDetails = { kind: "diagrams"; parts: DiagramPart[];
+  roles: DiagramRoleEvidence[]; observations: DiagramObservation[];
+  issues: DiagramIssue[] };
+type DiagramRecord = { kind: "diagrams"; location: Location; name: string;
+  properties: []; references: Reference[]; support: "preserve";
+  details: DiagramDetails };
+type DiagramInspectionData = { items: DiagramRecord[];
+  warnings: { code: string; message: string }[] };
+```
+
+The SDK returns `DiagramInspectionData`; the CLI moves warnings to the standard
+envelope with data `{items}`, affected zero and physical record locations. Empty
+inventory succeeds. Generated schemas MUST expose every closed nested field. Help
+and standards coverage MUST identify inventory/preserve-only support explicitly.
+Inspection MUST expose F38 detection from recognized diagram-role candidates or
+native relIds observations. Unknown-only observations use a separately qualified
+opaque-graphics subset; their presence MUST NOT be presented as a known SmartArt
+diagram or complete semantic diagram recognition.
+
+Unrelated admitted text/metadata/image edits MUST retain every diagram/resource
+payload, relationship/content-type declaration, member order and inactive/opaque/
+unreferenced bytes exactly. Raw XML replacement that changes unsupported diagram
+resources or containing opaque graphics MUST reject unsupported-edit before any
+publication; an unchanged byte replacement retains no-op behavior. Destructive
+containing paragraph/subtree mutation MUST reject rather than remove the graphics.
+Rejection MUST carry an existing source-bound Location token: a part Location with
+path `[]` for a whole diagram resource, the raw element-child path of offending
+inline opaque graphics in their physical owner, or the applicable containing
+paragraph Location for destructive paragraph edits. Diagnostic part Locations have
+empty readable positions, generation zero and no range; no diagram ordinal or new
+location kind is introduced. Public SDK error, JSON diagnostic `location` token and
+failure-envelope `locations` objects MUST agree. The failure remains affected zero
+with no published output.
+An unrelated selected writable leaf remains admissible under its existing profile.
+
+Original small tests MUST cover both matching dialects, all role/binding forms,
+orphan/reused/cyclic resources, unknown inline graphics without resource parts,
+inactive/opaque observations, precise unsupported mutation locations, no-op and
+unrelated text/metadata/image preservation, snapshot ownership, bounded output/
+cancellation and paired SDK/actual Shell behavior. Corpus absence, limit failures
+and unavailable real SmartArt/rendering profiles remain separately qualified;
+preparation or reference recognition tests do not establish live model parity.
+
 ### 6.6 Closed JSON input types
 
 These are documentary type declarations for schema generation, not product code.
@@ -2590,6 +2759,7 @@ type ResourceDetails =
       update: boolean;
     }
   | ChartDetails
+  | DiagramDetails
   | {
       kind: "headers" | "footers";
       section: number;
@@ -2600,7 +2770,6 @@ type ResourceDetails =
   | {
       kind:
         | "shapes"
-        | "diagrams"
         | "equations"
         | "objects"
         | "signatures"

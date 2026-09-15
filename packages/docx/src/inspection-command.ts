@@ -27,7 +27,7 @@ import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
-import { DocumentBudget } from "./budget.js";
+import { DocumentBudget, documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { createDocxCommandEngine, commandDiagnostic, docxInvocationBudgets, type DocxCommandRequest } from "./command.js";
 import { DocumentIo } from "./io.js";
 import { inspectDocument, validateDocument } from "./inspection.js";
@@ -71,7 +71,7 @@ export interface DocxInspectionCommandResult {
 }
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
-export function createDocxInspectionCommandEngine(options: { readonly limits: ArchiveLimits }) {
+export function createDocxInspectionCommandEngine(options: { readonly limits: ArchiveLimits; readonly documentLimits?: Partial<DocumentLimits> }) {
   const limits = Object.freeze({ ...options.limits });
   return createDocxCommandEngine<DocxInspectionCommandRequest, DocxInspectionCommandResult>({
     async readSource(source, request, budget) {
@@ -330,5 +330,5 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       catch (cause) { return sinkFailure(cause); }
       return { exitCode, ...(archiveReceipt ? { extraction: archiveReceipt } : {}) };
     }
-  }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: limits.maxEntryBytes, xmlDepth: limits.maxDepth });
+  }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: Math.min(limits.maxEntryBytes, documentLimitDefaults.xmlPartBytes), xmlDepth: Math.min(limits.maxDepth, documentLimitDefaults.xmlDepth), ...options.documentLimits });
 }

@@ -265,7 +265,7 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
       cancelled(signal);
       const total = archive.members.reduce((sum, member) => sum + member.bytes.length, 0);
       if (total * 32 + 65536 > limits.maxRetainedBytes) throw new ResourceLimitError("Document validation retained byte limit exceeded.");
-      const report = validateDocumentArchive(archive, { maxBytes: Math.min(limits.maxTotalBytes, 32 * 1024 * 1024), maxParts: Math.min(limits.maxMembers, 4096), maxNodes: budget.limits.xmlNodes }, budget);
+      const report = validateDocumentArchive(archive, { maxBytes: limits.maxTotalBytes, maxParts: limits.maxMembers, maxNodes: budget.limits.xmlNodes }, budget);
       if (!report.valid) throw new SemanticValidationError(report.diagnostics);
       if (!dryRun) budget.charge("serializedOutput", original.length);
     } else await writeDocumentArchive(archive, { async write(bytes) {

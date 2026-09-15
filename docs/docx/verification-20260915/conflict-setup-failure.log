@@ -1,0 +1,68 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts (2 tests | 2 failed) 171ms
+   × explains publication conflict recovery without changing files (input alias: false) 93ms
+   × explains publication conflict recovery without changing files (input alias: true) 76ms
+FAIL packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: false)
+AssertionError: expected 3 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:29:27
+     27|     stderr: { async write(chunk) { stderr += new TextDecoder().decode(…
+     28|   });
+     29|   expect(result.exitCode).toBe(1);
+       |                           ^
+     30|   const envelope = JSON.parse(stdout);
+     31|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+
+FAIL packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: true)
+AssertionError: expected 3 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:29:27
+     27|     stderr: { async write(chunk) { stderr += new TextDecoder().decode(…
+     28|   });
+     29|   expect(result.exitCode).toBe(1);
+       |                           ^
+     30|   const envelope = JSON.parse(stdout);
+     31|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: false)
+ FAIL  packages/docx/src/publication-conflict-guidance.test.ts > explains publication conflict recovery without changing files (input alias: true)
+AssertionError: expected 3 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ packages/docx/src/publication-conflict-guidance.test.ts:29:27
+     27|     stderr: { async write(chunk) { stderr += new TextDecoder().decode(…
+     28|   });
+     29|   expect(result.exitCode).toBe(1);
+       |                           ^
+     30|   const envelope = JSON.parse(stdout);
+     31|   expect(envelope).toMatchObject({ ok: false, data: null, affected: 0,…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  18:34:47
+   Duration  1.55s (transform 1.06s, setup 43ms, import 1.24s, tests 171ms, environment 0ms)

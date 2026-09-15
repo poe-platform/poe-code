@@ -1,0 +1,30 @@
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=docx
+
+
+> @poe-code/frontmatter@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/office-package@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build:portable
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs --portable
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-setup-scripts/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> toolcraft-design@0.0.2 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 postbuild
+> node scripts/smoke-built-exports.mjs
+
+
+> docx@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"workspaces":77,"builds":5,"edges":223,"layers":11,"noBuild":[],"manifestless":["packages/safejs"]}

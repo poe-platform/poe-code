@@ -1,0 +1,622 @@
+{
+  "hashes": {
+    "docs/docx/upstream-api-audit.md": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/upstream-test-audit.md": "d2ff2eee9bc2ff1bffde3973773891b63ce7db243083b022d5159106c7619a77",
+    "docs/docx/upstream-test-inventory.json": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+  },
+  "records": 920,
+  "uniqueIds": 920,
+  "counts": {
+    "records": 920,
+    "enum_values_including_value_aliases": 262,
+    "enum_type_aliases": 11,
+    "rst_directives": 59,
+    "documentation_files": 39,
+    "coverage_roles": {
+      "documented-or-inherited-model": 572,
+      "returned-package-view-or-owner-protocol": 335,
+      "constructor-support-explicitly-internal-in-source": 5,
+      "documentation-error": 8
+    }
+  },
+  "statuses": {
+    "planned": 410,
+    "security-mapped": 378,
+    "language-mapped": 124,
+    "documentation-error": 8
+  },
+  "unit": 1609,
+  "bdd": 650,
+  "unitStatuses": {
+    "unmapped_not_implemented": 1609
+  },
+  "bddStatuses": {
+    "unmapped_not_implemented": 650
+  },
+  "publicMapRows": 1337,
+  "mappingRules": {
+    "M-VALUES": {
+      "contract": "Omitted/undefined optional arguments apply only the listed default; required undefined rejects. null is explicit absence only in the union; never coalesce false, 0 or empty string. Model getters/mutations are sync. Strings/booleans are strict; numbers finite and integer where counts/IDs require. No coercion.",
+      "cases": [
+        "Unset, null, false, zero, empty, undefined, wrong type; invalid assignment leaves bytes/model unchanged.",
+        "Font flags boolean|null; underline true/false/typed enum/null. Defined-style flags read false when reset, latent overrides read null. Core strings max 255 Unicode code points; astral characters count once."
+      ]
+    },
+    "M-KEYWORDS": {
+      "contract": "Source positional order and names retained; omit earlier optional parameter with undefined. Every source keyword-only group maps to one trailing typed options object with source-spelled keys; no source keyword-only parameters were found in this pin. No blanket named overload. Context/operation options are camelCase. Reserved TS binding package maps to owner_package, an argument binding change only.",
+      "example": "model_method(positional: string, options?: { source_flag?: boolean }): void; illustrative rule, not an invented API.",
+      "cases": [
+        "Compile retained spelling; reject camelCase model aliases, unknown option fields and ambiguous argument guessing."
+      ]
+    },
+    "M-SEQUENCE": {
+      "contract": "Zero-based readonly numeric lookup and at(index); negative at adds length; out of range throws BoundsError. Only Sections, _Rows and RGBColor expose source slicing: normalize/clamp endpoints, exclusive end, negatives from length, no mutation. Collections iterate in source order and length is live. Snapshot list/tuple returns are readonly arrays of live handles. SDK ordinal differs from one-based CLI.",
+      "cases": [
+        "Three items: [0], at(-1), at(-4), at(3); empty collection; fractional/NaN index rejects.",
+        "slice(-2,3), slice(2,1), oversized bounds; Columns/InlineShapes/TabStops must not acquire slice by accident.",
+        "Merged cells alias; omitted cells absent; mutations invalidate removed handles; no wrapper allocation identity requirement."
+      ]
+    },
+    "M-KEYS": {
+      "contract": "Styles/LatentStyles at(string) retains source keyed lookup; no numeric index. Styles ID fallback remains deprecated and warns, get_by_id/default preserve documented fallback. Comments.get(comment_id) is nullable ID lookup. Relationships at(rId) throws, get(rId, default_value?) returns null/default; retain items spelling. Owner-scoped rIds never resolve globally.",
+      "cases": [
+        "Missing style throws MissingKeyError; dangling style reference uses default; misspelled assignment fails.",
+        "Comment IDs [2,8] lookup 8 succeeds, ordinal 1 does not select 8.",
+        "Relationship null/default/throw distinctions, insertion order, pop last entry, duplicate owner conflict, atomic update."
+      ]
+    },
+    "M-UNITS": {
+      "contract": "Immutable Length/Emu/Inches/Cm/Mm/Pt/Twips; integer EMU storage <= Number.MAX_SAFE_INTEGER in magnitude. Factors per unit: 914400/in, 360000/cm, 36000/mm, 12700/pt, 635/twip. Finite conversion rounded once nearest, halfway away from zero; check safe range before/after. Twips accessor uses same rounding. Negative allowed only where property permits. No DOCX centipoint helper. Line spacing number means multiple, Length means exact distance.",
+      "cases": [
+        "Inches(1).emu=914400, Pt(1).emu=12700, Twips(1).emu=635; +/- half ties; unsafe, fractional integer constructor, NaN and Infinity reject.",
+        "Negative indent accepted, negative image dimension rejected; explicit zero never becomes omitted default."
+      ]
+    },
+    "M-ENUM": {
+      "contract": "Immutable nominal enum symbols with stable number/name and optional xml_value; aliases share canonical identity. fromValue validates, members includes aliases, iterator emits canonical declaration order. from_xml/to_xml retain spellings; UNMAPPED fails. No dynamic enum construction or unvalidated bare-number substitution.",
+      "cases": [
+        "Assert every row numeric/XML value and alias identity; unknown names/numbers reject; setter-specific allowed subset is separate from enum membership."
+      ]
+    },
+    "M-COLOR": {
+      "contract": "RGBColor immutable three integer channels 0..255; from_string exactly six ASCII hex digits, case-insensitive; toString six uppercase hex digits; reject whitespace/sign/prefix/nonhex/wrong length. RGB assignment clears theme; theme assignment may preserve compatibility RGB; type reports active color category.",
+      "cases": [
+        "RGBColor(10,32,255) -> 0A20FF; reject -1/256/0.5; parse lowercase and reject seven digits; null differs from AUTO/theme."
+      ]
+    },
+    "M-BYTES": {
+      "contract": "Input Uint8Array copied before first asynchronous suspension; every yielded source chunk copied before next pull; reject SharedArrayBuffer-backed/racy or detached inputs. Output byte getters return fresh copies; no retained caller mutation races. Byte budgets include retained copies.",
+      "cases": [
+        "Mutate caller bytes immediately after factory call; reuse source chunk; mutate blob getter result; none changes admitted state.",
+        "Over-limit copied bytes reject, cancelled source settles cleanup."
+      ]
+    },
+    "M-DATES": {
+      "contract": "Date denotes UTC instant; clone on get/set/context admission, reject Invalid Date. Serialize whole seconds by dropping fractional second after UTC normalization, including pre-epoch timestamps. Missing/invalid source dates read null with validation diagnostics. No timezone guess, ambient Date.now or local-clock formatting.",
+      "cases": [
+        "Explicit offset instant normalizes to Z, .999 discarded, pre-epoch fractional value handled; invalid assigned Date rejects before mutation; returned Date mutation inert."
+      ]
+    },
+    "M-IO": {
+      "contract": "Input = Uint8Array | ByteSource | VfsPath; Document(input?: Input | null, context?: DocumentContext): Promise<DocumentModel>. Null/omission uses original template. save(output: ByteSink | VfsPath): Promise<void>. All input admission always async including image/part byte loads; model getters and admitted metadata stay sync. ByteSource.open(signal?) supplies AsyncIterable<Uint8Array>; ByteSink stages/commits/aborts owned output. Path requires explicit scoped VFS; no ambient host I/O/native runtime/network. Standalone Image.from_blob(blob: Uint8Array, context?: DocumentContext): Promise<Image> and Image.from_file(image_descriptor: Input, context?: DocumentContext): Promise<Image> use explicit context; package open also takes context. Omitted context uses intrinsic documented limits and grants no ambient capabilities.",
+      "cases": [
+        "For bytes/stream/path verify actual Promise; property access returns value. Reject raw path strings and text streams.",
+        "Injected VFS permission/alias/force/in-place conflict, malformed package, source/sink failure, cancellation, atomic publication and input preservation."
+      ]
+    },
+    "M-CONTEXT": {
+      "contract": "DocumentContext = { vfs?: VfsCapability; limits?: Readonly<LimitOptions>; signal?: AbortSignal; timestamp?: Date; author?: string; fonts?: FontMetricsCapability; template?: Uint8Array }. No environment, implicit host clock/author/fonts. Creation/comments requiring timestamp reject if absent; context supplied author used only for operations explicitly choosing context author, source author default remains empty string. Font metrics capability returns admitted deterministic metrics, never discovers/loads host fonts. Template is original admitted bytes; empty context grants no I/O.",
+      "cases": [
+        "Supply fixed timestamp/author/template/metrics; repeat produces same semantic package; missing required capability rejects.",
+        "Document() stays syntactically valid async factory; creation requiring timestamp fails without supplied context rather than reading clock."
+      ]
+    },
+    "M-OWNERSHIP": {
+      "contract": "Live models share document owner/revision, not wrapper identity. Snapshot sequences contain live handles. Deleted/replaced subtrees invalidate handles deterministically. Cross-owner assignment rejects without explicit import. TabStop.position preserves tab handle, refreshes element, invalidates detached old node. Read-only CLI queries must not call creating getters.",
+      "cases": [
+        "Unlink/relink header, delete style, clear runs, merge cells, replace tab node; assert exactly which handles remain valid.",
+        "Read CLI inspect before/after yields unchanged package hash even if equivalent model getter creates a part."
+      ]
+    },
+    "M-VIEWS": {
+      "contract": "Bounded XmlElementView/PartView/PackageView/RelationshipView carry owner and capability; namespace/tag, text/tail, attributes, ordered typed nodes, bytes and scoped relationships only. Validated mutations reject required-node/reference/namespace/security violations and publication validates graph. No arbitrary XPath/eval/prototype lookup, raw dependency XML object, host paths, user marshal callbacks or external target dereference. Source load/new/constructors use admitted bytes/views and fixed validation. Unsupported native/private behavior is not silently offered.",
+      "cases": [
+        "External URI stays data with zero reads; reject DTD/entities/traversal, stale/foreign handle and malformed relationship graph.",
+        "Create/remove relationship preserves shared targets; lifecycle preparation occurs at admission/save with no callback execution."
+      ]
+    },
+    "M-IMAGES": {
+      "contract": "PNG, JPEG JFIF/Exif, GIF87a/89a, BMP, little/big endian TIFF characterized with bounded pure JS parsing; original tiny fixtures. Native width uses horizontal DPI, height vertical DPI; missing axis DPI falls back 72. One specified dimension preserves aspect, two set both. Numeric raw dimensions are integer EMUs. No host decoding/fonts/network. sha1 is compatibility metadata, not identity/security hash; SHA-256 is evidence identity.",
+      "cases": [
+        "Different horizontal/vertical DPI, absent DPI, one/two/no dimensions, malformed/truncated metadata, unsupported format, oversized pixel dimensions and limits.",
+        "Embedded predicate requires admitted embedded relation; linked-only image rejects .image without fetching."
+      ]
+    },
+    "M-ERRORS": {
+      "contract": "Neutral classes with stable code, bounded sanitized message and structured context. Direct source raises are local evidence, not exhaustive error set; model validation, callees and admission add the referenced categories. Missing nullable lookup remains null. Do not swallow errors or leak source/project identity.",
+      "cases": [
+        "Wrong type -> InputTypeError extends TypeError; bad value -> InvalidValueError extends RangeError; bounds -> BoundsError extends RangeError; missing key -> MissingKeyError extends Error; semantic validation -> SemanticValidationError.",
+        "Check read/write failure atomicity and shared CLI exit translation; diff differences are successful data."
+      ]
+    },
+    "M-CLI": {
+      "contract": "C-CLI governs all rows; direct common commands plus closed typed batch entries for advanced behavior. Source-spelled model fields retained; batch operation arguments use mechanical camelCase. Type/value discovery through schema/capabilities; never arbitrary method invocation.",
+      "cases": [
+        "Reject singular image/table/metadata and top-level replace. Same versioned schema validates CLI JSON and SDK operation options."
+      ]
+    }
+  },
+  "errors": {
+    "E-TYPE": {
+      "class": "InputTypeError",
+      "base": "TypeError",
+      "code": "usage",
+      "cli_exit": 2
+    },
+    "E-VALUE": {
+      "class": "InvalidValueError",
+      "base": "RangeError",
+      "code": "usage",
+      "cli_exit": 2
+    },
+    "E-INDEX": {
+      "class": "BoundsError",
+      "base": "RangeError",
+      "code": "missing-selection",
+      "cli_exit": 1
+    },
+    "E-KEY": {
+      "class": "MissingKeyError",
+      "base": "Error",
+      "code": "missing-selection",
+      "cli_exit": 1
+    },
+    "E-OWNER": {
+      "class": "OwnershipError",
+      "base": "Error",
+      "code": "conflict",
+      "cli_exit": 1
+    },
+    "E-STALE": {
+      "class": "StaleHandleError",
+      "base": "Error",
+      "code": "stale-selection",
+      "cli_exit": 1
+    },
+    "E-LIMIT": {
+      "class": "ResourceLimitError",
+      "base": "Error",
+      "code": "limit-exceeded",
+      "cli_exit": 4
+    },
+    "E-SEMANTIC": {
+      "class": "SemanticValidationError",
+      "base": "Error",
+      "code": "invalid-package",
+      "cli_exit": 1
+    },
+    "E-IO": {
+      "class": "SourceError | SinkError | PermissionError",
+      "base": "Error",
+      "code": "source-failure | sink-failure | permission",
+      "cli_exit": 3
+    },
+    "E-CANCEL": {
+      "class": "CancellationError",
+      "base": "Error",
+      "code": "cancelled",
+      "cli_exit": 130
+    },
+    "E-PUBLICATION": {
+      "class": "PublicationError",
+      "base": "Error",
+      "code": "unsupported-publication",
+      "cli_exit": 3
+    }
+  },
+  "documentationDrift": {
+    "authority": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+    "resolutions": [
+      {
+        "id": "D01",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/comments.py",
+            "sha256": "32668fed4f6664e505b1185a64d21b5dab6a38e03cfa9382e9496a580b931ec7"
+          },
+          {
+            "path": "docs/user/comments.rst",
+            "sha256": "cbb5f8dd15e67d97a4b01743e1cca7c29a76a8e7f50c7897b8b993c8e0c93012"
+          }
+        ]
+      },
+      {
+        "id": "D02",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/comments.py",
+            "sha256": "32668fed4f6664e505b1185a64d21b5dab6a38e03cfa9382e9496a580b931ec7"
+          },
+          {
+            "path": "src/docx/document.py",
+            "sha256": "b54354a7f068191e37dc9b4256480f0222665b60d22951f365402b0a7b46d9ce"
+          },
+          {
+            "path": "src/docx/text/paragraph.py",
+            "sha256": "37717adbf25141961aba6ba86895ca0839d14b0d832223b0cf230f57625dec62"
+          }
+        ]
+      },
+      {
+        "id": "D03",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/table.py",
+            "sha256": "105c5b543dda11b2cea9d7ace5ca46b77c576cfcdb64b146d1297938f1d2ae16"
+          },
+          {
+            "path": "docs/api/enum/WdTableDirection.rst",
+            "sha256": "87fd5b10f0dfa1d561233c0a6a75fc642ad05a719e75adf303342862a92c03c5"
+          }
+        ]
+      },
+      {
+        "id": "D04",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/enum/dml.py",
+            "sha256": "0eaaa4631974f625d0803359c7197fc22fe7f6b03b993a2475ed53a4edf28265"
+          },
+          {
+            "path": "src/docx/enum/text.py",
+            "sha256": "a3a6dda49a2dda2638d149e7050d6e19f744f281c59b776d5d4ae6b7d78c96f1"
+          },
+          {
+            "path": "docs/api/enum/MsoThemeColorIndex.rst",
+            "sha256": "33fa19de3e55901dbfb3b0a35cf841ba41c5c953122ca072957253929dc0edd3"
+          },
+          {
+            "path": "docs/api/enum/WdUnderline.rst",
+            "sha256": "ce347a01ad37d6b444cd9f6d4e09adee5823bff6d814ff1aa6058f5215738ed3"
+          }
+        ]
+      },
+      {
+        "id": "D05",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/styles/style.py",
+            "sha256": "0681974114b238398f237f1b00458f8135c43f0857c9561967d9d26314521cf3"
+          },
+          {
+            "path": "src/docx/styles/latent.py",
+            "sha256": "10305c81dfb58ca996fb01b3eb81af7064a8a673ae3d01b58a7534a671d1b100"
+          },
+          {
+            "path": "docs/user/styles-using.rst",
+            "sha256": "7874eb18a45e9fc1e137b1a554abae05e2a69b3e16e4a231d19e5471ef064914"
+          }
+        ]
+      },
+      {
+        "id": "D06",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/styles/styles.py",
+            "sha256": "8eaebf1f3827dd7885f8da35d24c2abc31d3607a1b5f7f34f77f6c416aa4c062"
+          },
+          {
+            "path": "docs/api/enum/WdBuiltinStyle.rst",
+            "sha256": "4a60e019514afd6fed64fb48cc75bf78f55a28b4b7a4a9b3bc95272320827339"
+          },
+          {
+            "path": "docs/api/enum/WdStyleType.rst",
+            "sha256": "807de00652c5a786ea7a7c338cb8d7f4be65b5076407c0370af1a447a5c3c371"
+          }
+        ]
+      },
+      {
+        "id": "D07",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/styles/styles.py",
+            "sha256": "8eaebf1f3827dd7885f8da35d24c2abc31d3607a1b5f7f34f77f6c416aa4c062"
+          },
+          {
+            "path": "src/docx/table.py",
+            "sha256": "105c5b543dda11b2cea9d7ace5ca46b77c576cfcdb64b146d1297938f1d2ae16"
+          },
+          {
+            "path": "docs/user/quickstart.rst",
+            "sha256": "6b1637398b70f1fc31780149245b5a6876afc674a217dd07a49286398c396fcc"
+          }
+        ]
+      },
+      {
+        "id": "D08",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/styles/styles.py",
+            "sha256": "8eaebf1f3827dd7885f8da35d24c2abc31d3607a1b5f7f34f77f6c416aa4c062"
+          },
+          {
+            "path": "src/docx/styles/style.py",
+            "sha256": "0681974114b238398f237f1b00458f8135c43f0857c9561967d9d26314521cf3"
+          },
+          {
+            "path": "docs/user/styles-understanding.rst",
+            "sha256": "d74800325f86f83738f51f5358d584050ab2204143fc02114f9c504d612e7f25"
+          }
+        ]
+      },
+      {
+        "id": "D09",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/section.py",
+            "sha256": "af648b3fa1170ad1cf9aff0fb5a4ee6198355b2f25f4ca151e503d2474f74a20"
+          },
+          {
+            "path": "src/docx/api.py",
+            "sha256": "d77539ea23d2336b4c44311bd373a64994240c03e6c068dfc68b189164b6b5c7"
+          },
+          {
+            "path": "docs/user/documents.rst",
+            "sha256": "7f613d28378dde15b4d69add59162dacbcc56eb03a6cd698b8ec69f314181a92"
+          }
+        ]
+      },
+      {
+        "id": "D10",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/oxml/coreprops.py",
+            "sha256": "1a40d1c68c5f3aeb20368689d44c343442e1518856385ac9b3ad7fbcf537d7d5"
+          },
+          {
+            "path": "docs/api/document.rst",
+            "sha256": "4ffcdebea57ec1998e14897838ab18f94e88086dfa53abe77fbacb6d76265992"
+          }
+        ]
+      },
+      {
+        "id": "D11",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/text/run.py",
+            "sha256": "caeafcc5ee50be34282da55827feac16e29c5740534e43090bb8fb7a15a04efe"
+          },
+          {
+            "path": "src/docx/drawing/__init__.py",
+            "sha256": "84c6fe615dd015df236b77973f059c327b6959046ff0e91e6ace3b457354df37"
+          },
+          {
+            "path": "src/docx/image/image.py",
+            "sha256": "c2599628b6da9e90e1273646dca7ee051957c370c50ae5171c8fc271e7185f21"
+          }
+        ]
+      },
+      {
+        "id": "D12",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/drawing/__init__.py",
+            "sha256": "84c6fe615dd015df236b77973f059c327b6959046ff0e91e6ace3b457354df37"
+          }
+        ]
+      },
+      {
+        "id": "D13",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/parts/image.py",
+            "sha256": "73e0c5e5816fa75a954f1ed9a27fb1397c34a8f73fdcba1e5fda8c4853ecea6a"
+          },
+          {
+            "path": "src/docx/image/image.py",
+            "sha256": "c2599628b6da9e90e1273646dca7ee051957c370c50ae5171c8fc271e7185f21"
+          }
+        ]
+      },
+      {
+        "id": "D14",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/text/run.py",
+            "sha256": "caeafcc5ee50be34282da55827feac16e29c5740534e43090bb8fb7a15a04efe"
+          },
+          {
+            "path": "src/docx/oxml/text/run.py",
+            "sha256": "be98349fe24fc012de6a4caeb4f790e301d11a92f63e3a9628cceb8162a26e15"
+          }
+        ]
+      },
+      {
+        "id": "D15",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/shared.py",
+            "sha256": "37a60824a8907affb45c80b4343f5f260d5e56dd661bf3042e74dac1ffdefbd8"
+          },
+          {
+            "path": "src/docx/image/image.py",
+            "sha256": "c2599628b6da9e90e1273646dca7ee051957c370c50ae5171c8fc271e7185f21"
+          }
+        ]
+      },
+      {
+        "id": "D16",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "pyproject.toml",
+            "sha256": "e112290ddc85add6834c9cc5299c86e837b7b2e2e8b69e49784b4bfe6ea33625"
+          },
+          {
+            "path": "docs/user/install.rst",
+            "sha256": "fb617c4a38dae95bca0dc7dcfac72c0f863ea1f4b39cad4605fecb123f61dac1"
+          }
+        ]
+      },
+      {
+        "id": "D17",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/section.py",
+            "sha256": "af648b3fa1170ad1cf9aff0fb5a4ee6198355b2f25f4ca151e503d2474f74a20"
+          },
+          {
+            "path": "docs/user/sections.rst",
+            "sha256": "e07ff6080c237c0edeecd5f6b284d82177a8d7d0a5712b5b1d9e77571acb298e"
+          }
+        ]
+      },
+      {
+        "id": "D18",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/dml/color.py",
+            "sha256": "3bbc5e570b426ce3d6d5a34a487101a9cc6962739414c8ca2afdaf736ae2246a"
+          },
+          {
+            "path": "docs/api/dml.rst",
+            "sha256": "2aa6c07e2e43f96ec6e52c8e53133d37a42469cf36e06ec71684d569b11df4b3"
+          }
+        ]
+      },
+      {
+        "id": "D19",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/document.py",
+            "sha256": "b54354a7f068191e37dc9b4256480f0222665b60d22951f365402b0a7b46d9ce"
+          },
+          {
+            "path": "src/docx/text/run.py",
+            "sha256": "caeafcc5ee50be34282da55827feac16e29c5740534e43090bb8fb7a15a04efe"
+          },
+          {
+            "path": "docs/user/shapes.rst",
+            "sha256": "0940b9a3035cc0b49b3e69df07ad38c7dfacaa9dc01bd4aab0cf3310e22dee92"
+          }
+        ]
+      },
+      {
+        "id": "D20",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/shared.py",
+            "sha256": "37a60824a8907affb45c80b4343f5f260d5e56dd661bf3042e74dac1ffdefbd8"
+          },
+          {
+            "path": "docs/api/shared.rst",
+            "sha256": "1a83f09850e7c357e5f1ee120879dc1cfba5551fb394056e1f82fd9dabb30509"
+          }
+        ]
+      },
+      {
+        "id": "D21",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/oxml/coreprops.py",
+            "sha256": "1a40d1c68c5f3aeb20368689d44c343442e1518856385ac9b3ad7fbcf537d7d5"
+          },
+          {
+            "path": "src/docx/opc/coreprops.py",
+            "sha256": "21f41ea82e68e24f4e6e3fe443864a7c597a20bede226edd7080b5019915bda7"
+          },
+          {
+            "path": "docs/api/document.rst",
+            "sha256": "4ffcdebea57ec1998e14897838ab18f94e88086dfa53abe77fbacb6d76265992"
+          }
+        ]
+      },
+      {
+        "id": "D22",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "docs/user/styles-using.rst",
+            "sha256": "7874eb18a45e9fc1e137b1a554abae05e2a69b3e16e4a231d19e5471ef064914"
+          },
+          {
+            "path": "src/docx/styles/style.py",
+            "sha256": "0681974114b238398f237f1b00458f8135c43f0857c9561967d9d26314521cf3"
+          },
+          {
+            "path": "src/docx/styles/latent.py",
+            "sha256": "10305c81dfb58ca996fb01b3eb81af7064a8a673ae3d01b58a7534a671d1b100"
+          },
+          {
+            "path": "src/docx/oxml/styles.py",
+            "sha256": "d54db891c0bd861ccc3f335c835f51542509975fea59ab970892071bf2a9d08a"
+          }
+        ]
+      },
+      {
+        "id": "D23",
+        "status": "resolved-research-decision-not-implemented",
+        "resolution": "upstream-api-reconciliation.md#source-and-documentation-discrepancies",
+        "evidence": [
+          {
+            "path": "src/docx/text/tabstops.py",
+            "sha256": "6c937df06596db67f84aa8347506f251c9ee3a7eb97c7b0d66e086b30234dff7"
+          },
+          {
+            "path": "src/docx/shared.py",
+            "sha256": "37a60824a8907affb45c80b4343f5f260d5e56dd661bf3042e74dac1ffdefbd8"
+          }
+        ]
+      }
+    ],
+    "additional_decisions": [
+      "Relationships.get retains source spelling and nullable/default semantics; keyed at replaces throwing __getitem__, items retains source spelling. Earlier getOrNull/entries aliases are superseded.",
+      "No source keyword-only group exists in this pin; trailing typed source-spelled options rule remains mandatory for later discovered members.",
+      "LatentStyles.default_priority/load_count permit null reads/reset; next_paragraph_style setter permits null while getter returns self fallback.",
+      "docx.md §9 allowMissing wording conflicts with common allowEmpty; office-cli.md is authoritative: use allowEmpty, do not expose alias."
+    ]
+  }
+}

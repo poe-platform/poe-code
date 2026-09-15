@@ -562,6 +562,8 @@ export function commandDiagnostic(source: string, code: string, limit: number): 
     source += ". Inspect the input again and select a fresh location.";
   if (code === "ambiguous-selection" && source === "Document operation failed: " + code)
     source += ". Inspect the input and choose an unambiguous owner or location.";
+  if (code === "conflict" && source === "Document operation failed: " + code)
+    source += ". Review the input and destination before retrying. Choose a new output path, or use --in-place only for intentional input replacement.";
   const encoder = new TextEncoder();
   const prefix = limit >= 8 ? "docx: " : "";
   const suffix = limit >= 2 ? "\n" : "";

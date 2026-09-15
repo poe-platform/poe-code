@@ -1,0 +1,168 @@
+{
+  "limits": {
+    "maxArchiveBytes": 1048576,
+    "maxEntryBytes": 262144,
+    "maxTotalBytes": 1048576,
+    "maxMembers": 128,
+    "maxPathBytes": 512,
+    "maxDepth": 32,
+    "maxExtraBytes": 1024,
+    "maxCommentBytes": 1024,
+    "maxRetainedBytes": 32000000,
+    "chunkSize": 1024
+  },
+  "inputHash": "d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09",
+  "checks": {
+    "stalePreserved": true,
+    "mergedPreserved": true,
+    "sourcePreserved": true,
+    "sentinelPreserved": true,
+    "tokensDiffer": true
+  },
+  "observations": [
+    {
+      "id": "setup",
+      "command": "docx create --content-json '{\"version\":1,\"blocks\":[{\"kind\":\"paragraph\",\"text\":\"Draft café 🌊\"},{\"kind\":\"table\",\"rows\":[[{\"blocks\":[{\"kind\":\"paragraph\",\"text\":\"A1\"}]},{\"blocks\":[{\"kind\":\"paragraph\",\"text\":\"B1\"}]}],[{\"blocks\":[{\"kind\":\"paragraph\",\"text\":\"A2\"}]},{\"blocks\":[{\"kind\":\"paragraph\",\"text\":\"B2\"}]}]]}]}' -o source.docx",
+      "exit": 0,
+      "stdout": "docx create: 1 document created\n",
+      "stderr": "",
+      "bytes": 32
+    },
+    {
+      "id": "Q28-after",
+      "command": "docx text replace source.docx --find Draft --with Final --all --dry-run -o sentinel.docx --json",
+      "exit": 1,
+      "stdout": "{\"version\":1,\"operation\":\"text.replace\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"conflict\",\"message\":\"Document operation failed: conflict. Review the input and destination before retrying. Choose a new output path, or use --in-place only for intentional input replacement.\"}],\"affected\":0,\"locations\":[]}\n",
+      "stderr": "docx: Document operation failed: conflict. Review the input and destination before retrying. Choose a new output path, or use --in-place only for intentional input replacement.\n",
+      "bytes": 320
+    },
+    {
+      "id": "Q28-alias-after",
+      "command": "docx text replace source.docx --find Draft --with Final --all --dry-run -o source.docx --force --json",
+      "exit": 1,
+      "stdout": "{\"version\":1,\"operation\":\"text.replace\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"conflict\",\"message\":\"Document operation failed: conflict. Review the input and destination before retrying. Choose a new output path, or use --in-place only for intentional input replacement.\"}],\"affected\":0,\"locations\":[]}\n",
+      "stderr": "docx: Document operation failed: conflict. Review the input and destination before retrying. Choose a new output path, or use --in-place only for intentional input replacement.\n",
+      "bytes": 320
+    },
+    {
+      "id": "Q28-retry",
+      "command": "docx text replace source.docx --find Draft --with Final --all --dry-run -o fresh.docx --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"text.replace\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"replace\",\"before\":{\"kind\":\"paragraph\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1}},\"after\":{\"kind\":\"paragraph\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1}}}],\"dryRun\":true,\"output\":null},\"warnings\":[],\"errors\":[],\"affected\":1,\"locations\":[{\"kind\":\"paragraph\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1}}]}\n",
+      "stderr": "",
+      "bytes": 1869
+    },
+    {
+      "id": "setup-image",
+      "command": "docx images add source.docx --paragraph 1 --file \"new emblem.png\" -o image.docx --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"images.add\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"add\",\"before\":{\"kind\":\"paragraph\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwXSwicmFuZ2UiOm51bGx9\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1}},\"after\":{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}}],\"dryRun\":false,\"output\":{\"path\":\"/work/image.docx\",\"bytes\":4818,\"sha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\"}},\"affected\":1,\"locations\":[{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"warnings\":[],\"errors\":[]}\n",
+      "stderr": "",
+      "bytes": 2080
+    },
+    {
+      "id": "Q31-list",
+      "command": "docx images list image.docx --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"images.list\",\"ok\":true,\"data\":{\"items\":[{\"kind\":\"images\",\"location\":{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}},\"name\":\"/word/media/image-1.png\",\"properties\":[],\"references\":[{\"owner\":\"/word/document.xml\",\"id\":\"rId2\",\"type\":\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\",\"target\":\"media/image-1.png\",\"external\":false}],\"support\":\"read\",\"details\":{\"kind\":\"images\",\"part\":\"/word/media/image-1.png\",\"mime\":\"image/png\",\"declaredMime\":\"image/png\",\"bytes\":73,\"sha256\":\"e422cbb1641b612ac93270f4b1d8ca1e7999d1d1bae2be412cedc9ba4c5084fc\",\"pixelWidth\":null,\"pixelHeight\":null,\"widthEmu\":12700,\"heightEmu\":12700,\"placement\":\"inline\",\"crop\":null,\"rotation\":null,\"flipHorizontal\":null,\"flipVertical\":null,\"wrapText\":null,\"wrapPolygon\":null,\"distances\":null,\"allowOverlap\":null,\"behindText\":null,\"lockAspect\":null,\"wrap\":null,\"zOrder\":null,\"horizontalPosition\":null,\"verticalPosition\":null,\"alt\":\"\",\"decorative\":null,\"owners\":[{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"fallbackPart\":null,\"alternateParts\":[],\"linked\":false}}]},\"affected\":0,\"locations\":[{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"warnings\":[{\"code\":\"unrecognized-image-metadata\",\"message\":\"Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.\"}],\"errors\":[]}\n",
+      "stderr": "docx: unrecognized-image-metadata: Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.\n",
+      "bytes": 3005
+    },
+    {
+      "id": "Q43-missing",
+      "command": "docx images replace image.docx --file \"new emblem.png\" --dry-run --json",
+      "exit": 2,
+      "stdout": "{\"version\":1,\"operation\":\"images.replace\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"usage\",\"message\":\"A resource selection is required.\"}],\"affected\":0,\"locations\":[]}\n",
+      "stderr": "docx: A resource selection is required.\n",
+      "bytes": 182
+    },
+    {
+      "id": "Q43-retry",
+      "command": "docx images replace image.docx --select docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ --file 'new emblem.png' --dry-run --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"images.replace\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"replace\",\"before\":{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}},\"after\":{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}}],\"dryRun\":true,\"output\":null},\"affected\":1,\"locations\":[{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"warnings\":[],\"errors\":[]}\n",
+      "stderr": "",
+      "bytes": 2027
+    },
+    {
+      "id": "intervene",
+      "command": "docx properties set image.docx --name title --value \"Intervening edit\" --in-place --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"properties.set\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"add\",\"before\":null,\"after\":{\"kind\":\"part\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":1,\"part\":\"/docProps/core1.xml\",\"story\":\"/docProps/core1.xml\",\"path\":[],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii9kb2NQcm9wcy9jb3JlMS54bWwiLCJzdG9yeSI6Ii9kb2NQcm9wcy9jb3JlMS54bWwiLCJwYXRoIjpbXSwicmFuZ2UiOm51bGx9\",\"positions\":{}}}],\"dryRun\":false,\"output\":{\"path\":\"/work/image.docx\",\"bytes\":5526,\"sha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\"}},\"warnings\":[],\"errors\":[],\"affected\":1,\"locations\":[{\"kind\":\"part\",\"value\":{\"version\":1,\"sourceSha256\":\"cff09afac99713a672b90a6b1efb736282d0bc6e981e63f6b44afdc081205e30\",\"generation\":1,\"part\":\"/docProps/core1.xml\",\"story\":\"/docProps/core1.xml\",\"path\":[],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii9kb2NQcm9wcy9jb3JlMS54bWwiLCJzdG9yeSI6Ii9kb2NQcm9wcy9jb3JlMS54bWwiLCJwYXRoIjpbXSwicmFuZ2UiOm51bGx9\",\"positions\":{}}]}\n",
+      "stderr": "",
+      "bytes": 1342
+    },
+    {
+      "id": "Q32-stale",
+      "command": "docx images replace image.docx --select docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJjZmYwOWFmYWM5OTcxM2E2NzJiOTBhNmIxZWZiNzM2MjgyZDBiYzZlOTgxZTYzZjZiNDRhZmRjMDgxMjA1ZTMwIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ --file 'new emblem.png' --in-place --json",
+      "exit": 1,
+      "stdout": "{\"version\":1,\"operation\":\"images.replace\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"stale-selection\",\"message\":\"Document operation failed: stale-selection. Inspect the input again and select a fresh location.\"}],\"affected\":0,\"locations\":[]}\n",
+      "stderr": "docx: Document operation failed: stale-selection. Inspect the input again and select a fresh location.\n",
+      "bytes": 255
+    },
+    {
+      "id": "Q32-relist",
+      "command": "docx images list image.docx --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"images.list\",\"ok\":true,\"data\":{\"items\":[{\"kind\":\"images\",\"location\":{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}},\"name\":\"/word/media/image-1.png\",\"properties\":[],\"references\":[{\"owner\":\"/word/document.xml\",\"id\":\"rId2\",\"type\":\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\",\"target\":\"media/image-1.png\",\"external\":false}],\"support\":\"read\",\"details\":{\"kind\":\"images\",\"part\":\"/word/media/image-1.png\",\"mime\":\"image/png\",\"declaredMime\":\"image/png\",\"bytes\":73,\"sha256\":\"e422cbb1641b612ac93270f4b1d8ca1e7999d1d1bae2be412cedc9ba4c5084fc\",\"pixelWidth\":null,\"pixelHeight\":null,\"widthEmu\":12700,\"heightEmu\":12700,\"placement\":\"inline\",\"crop\":null,\"rotation\":null,\"flipHorizontal\":null,\"flipVertical\":null,\"wrapText\":null,\"wrapPolygon\":null,\"distances\":null,\"allowOverlap\":null,\"behindText\":null,\"lockAspect\":null,\"wrap\":null,\"zOrder\":null,\"horizontalPosition\":null,\"verticalPosition\":null,\"alt\":\"\",\"decorative\":null,\"owners\":[{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"fallbackPart\":null,\"alternateParts\":[],\"linked\":false}}]},\"affected\":0,\"locations\":[{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"warnings\":[{\"code\":\"unrecognized-image-metadata\",\"message\":\"Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.\"}],\"errors\":[]}\n",
+      "stderr": "docx: unrecognized-image-metadata: Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.\n",
+      "bytes": 3005
+    },
+    {
+      "id": "Q32-retry",
+      "command": "docx images replace image.docx --select docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ --file 'new emblem.png' --in-place --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"images.replace\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"replace\",\"before\":{\"kind\":\"image\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}},\"after\":{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}}],\"dryRun\":false,\"output\":{\"path\":\"/work/image.docx\",\"bytes\":5526,\"sha256\":\"db918b7e9ff0ad1d2da391bb98ed31c54ab9042b76ea7f271826eaa3ac0efa5d\"}},\"affected\":1,\"locations\":[{\"kind\":\"image\",\"value\":{\"version\":1,\"sourceSha256\":\"5643bb8224a69d52f0d86bbf8910ab65f8838f7eb3721a512c41fc600a4f1fde\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,0,1,0,0,3,0,0,1,0],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiI1NjQzYmI4MjI0YTY5ZDUyZjBkODZiYmY4OTEwYWI2NWY4ODM4ZjdlYjM3MjFhNTEyYzQxZmM2MDBhNGYxZmRlIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwwLDEsMCwwLDMsMCwwLDEsMF0sInJhbmdlIjpudWxsfQ\",\"positions\":{\"section\":1,\"paragraph\":1,\"run\":2,\"image\":1}}],\"warnings\":[],\"errors\":[]}\n",
+      "stderr": "",
+      "bytes": 2140
+    },
+    {
+      "id": "setup-merge",
+      "command": "docx tables merge source.docx --table 1 --from A1 --to B2 --join paragraphs -o merged.docx --json",
+      "exit": 0,
+      "stdout": "{\"version\":1,\"operation\":\"tables.merge\",\"ok\":true,\"data\":{\"changed\":true,\"changes\":[{\"kind\":\"replace\",\"before\":{\"kind\":\"table\",\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxXSwicmFuZ2UiOm51bGx9\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":0,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,1],\"range\":null},\"positions\":{\"section\":1,\"table\":1}},\"after\":{\"kind\":\"table\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,1],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxXSwicmFuZ2UiOm51bGx9\",\"positions\":{\"section\":1,\"table\":1}}}],\"dryRun\":false,\"output\":{\"path\":\"/work/merged.docx\",\"bytes\":3955,\"sha256\":\"d7911b4989a4907a96a62aaff1ab8e71372ca0a4353070b9ec7aff8aec88d68c\"}},\"affected\":1,\"locations\":[{\"kind\":\"table\",\"value\":{\"version\":1,\"sourceSha256\":\"d684e64873ac5d75afaaf9bfcd0517bc6d03c3d5e636c543ac54cf13e5c25d09\",\"generation\":1,\"part\":\"/word/document.xml\",\"story\":\"/word/document.xml#body\",\"path\":[0,1],\"range\":null},\"token\":\"docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJkNjg0ZTY0ODczYWM1ZDc1YWZhYWY5YmZjZDA1MTdiYzZkMDNjM2Q1ZTYzNmM1NDNhYzU0Y2YxM2U1YzI1ZDA5IiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwxXSwicmFuZ2UiOm51bGx9\",\"positions\":{\"section\":1,\"table\":1}}],\"warnings\":[],\"errors\":[]}\n",
+      "stderr": "",
+      "bytes": 1959
+    },
+    {
+      "id": "Q35",
+      "command": "docx tables set merged.docx --table 1 --cell B2 --text Final --dry-run --json",
+      "exit": 1,
+      "stdout": "{\"version\":1,\"operation\":\"tables.set\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"ambiguous-selection\",\"message\":\"Document operation failed: ambiguous-selection. Inspect the input and choose an unambiguous owner or location.\"}],\"affected\":0,\"locations\":[]}\n",
+      "stderr": "docx: Document operation failed: ambiguous-selection. Inspect the input and choose an unambiguous owner or location.\n",
+      "bytes": 269
+    },
+    {
+      "id": "Q10",
+      "command": "docx images extract image.docx --output-dir /work/out --json",
+      "exit": 3,
+      "stdout": "{\"version\":1,\"operation\":\"images.extract\",\"ok\":false,\"data\":null,\"affected\":0,\"locations\":[],\"warnings\":[{\"code\":\"unrecognized-image-metadata\",\"message\":\"Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.\"}],\"errors\":[{\"code\":\"unsupported-publication\",\"message\":\"Document operation failed: unsupported-publication\"}]}\n",
+      "stderr": "docx: Document operation failed: unsupported-publication\n",
+      "bytes": 363
+    },
+    {
+      "id": "Q27-create",
+      "command": "docx create -o - > binary.docx",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "bytes": 0
+    },
+    {
+      "id": "Q27-read",
+      "command": "docx text - < binary.docx",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "bytes": 0
+    },
+    {
+      "id": "Q27-pipe",
+      "command": "docx create --output - | docx text -",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "bytes": 0
+    }
+  ]
+}

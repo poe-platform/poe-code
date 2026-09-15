@@ -99,3 +99,25 @@ selected maintained build closure passed. A fresh built engine with the original
 merged input through explicit stdin retained exit 1, null data and zero effects,
 and emitted recovery guidance; its maintained renderer screenshot was inspected.
 Maintained DOCX suite passed 177 files, 3,436 tests with four skips.
+
+## Scoped verification and publication conflict recovery
+
+Re-inspect the existing acceptance outputs and red/green accounting before any
+new correction. Execute bounded remaining destination and ordered selector
+recovery cases through fresh built commands, using original in-memory inputs.
+Retain actual results and gaps in `docs/docx`; do not repeat implementation or
+claim whole-model/counterpart acceptance.
+
+Fresh destination refusals lacked a retry action. Two original memfs cases
+failed on missing recovery guidance after exit/envelope/preservation assertions
+passed. Only then add bounded generic conflict guidance: review input and
+destination, choose a new output or use explicit intentional in-place replacement.
+Keep status, validation and publication unchanged. Inspect before/after terminal
+screenshots and rerun maintained scoped tests, lint and the selected build closure.
+
+The [verification receipt](../docx/verification-20260915/review.md) records exact
+red/green logs, current checks, fresh built retries and unrun cases. Maintained
+DOCX tests passed 178 files/3,438 tests with four skips; focused usability tests,
+scoped lint and five-build closure passed. Independent schemas lack the explicit
+schema-root prerequisite and are not passes. No push, release, README edits,
+downloaded fixtures or unrelated ownership changes are authorized.

@@ -1,0 +1,383 @@
+
+> docx@0.0.1 test
+> cd ../.. && vitest run packages/docx
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/publication-conflict-guidance.test.ts (2 tests) 263ms
+ ✓ packages/docx/src/dialect.test.ts (30 tests) 13214ms
+   ✓ rejects strict main relationship/namespace disagreement  384ms
+   ✓ rejects transitional main relationship/namespace disagreement  383ms
+   ✓ rejects mixed strict related-part namespaces and relationships  639ms
+   ✓ rejects mixed transitional related-part namespaces and relationships  720ms
+   ✓ rejects strict active mixed elements and attributes  792ms
+   ✓ rejects transitional active mixed elements and attributes  795ms
+   ✓ rejects invalid strict document roots and body cardinality  772ms
+   ✓ rejects invalid transitional document roots and body cardinality  765ms
+   ✓ preserves strict inactive alternate content and opaque payloads  530ms
+   ✓ preserves transitional inactive alternate content and opaque payloads  550ms
+   ✓ maps every XML editing primitive in strict without prefix rewriting  455ms
+   ✓ maps every XML editing primitive in transitional without prefix rewriting  492ms
+   ✓ rejects active Strict VML while retaining Transitional VML opaquely  510ms
+   ✓ creates explicit strict packages with neutral deterministic defaults  364ms
+   ✓ creates explicit transitional packages with neutral deterministic defaults  470ms
+   ✓ detects strict despite misleading extensions and unused opposite declarations  310ms
+   ✓ detects transitional despite misleading extensions and unused opposite declarations  521ms
+   ✓ rejects strict related Word parts with incompatible content types  411ms
+   ✓ rejects transitional related Word parts with incompatible content types  343ms
+   ✓ checks strict active drawing namespaces and graphic-data identifiers  811ms
+   ✓ checks transitional active drawing namespaces and graphic-data identifiers  764ms
+ ✓ packages/docx/src/image-replacement.test.ts (33 tests) 13144ms
+   ✓ rebinds only the chosen occurrence unless shared intent is explicit (false)  602ms
+   ✓ rebinds only the chosen occurrence unless shared intent is explicit (true)  425ms
+   ✓ rejects replacement inside an admitted tracked insertion before source acquisition  366ms
+   ✓ retires a sole source relationship and part while preserving exact replacement bytes  371ms
+   ✓ preserves dormant package incoming references during replacement (false)  492ms
+   ✓ preserves dormant package incoming references during replacement (true)  457ms
+   ✓ updates shared image owners across body and header stories  498ms
+   ✓ refuses opaque extension carriers before replacement acquisition  372ms
+   ✓ retains fragments on dormant shared incoming relationships  558ms
+   ✓ writes coherent exact replacement bytes and canonical format declarations for png  347ms
+   ✓ writes coherent exact replacement bytes and canonical format declarations for jpeg  337ms
+   ✓ writes coherent exact replacement bytes and canonical format declarations for gif  368ms
+   ✓ writes coherent exact replacement bytes and canonical format declarations for bmp  333ms
+   ✓ writes coherent exact replacement bytes and canonical format declarations for tiff  331ms
+   ✓ changes only declared extents and fit crop for contain  341ms
+   ✓ changes only declared extents and fit crop for cover  462ms
+   ✓ changes only declared extents and fit crop for stretch  620ms
+   ✓ targets owner relationships when different resource types have equal basenames  677ms
+   ✓ preserves exact existing anchor, crop, wrap and alternative text on default replacement  519ms
+   ✓ refuses linked carrier before replacement source acquisition  360ms
+   ✓ refuses alternate carrier before replacement source acquisition  329ms
+   ✓ uses independent physical DPI ratio for one declared dimension  353ms
+   ✓ owns producer reused stream chunks and registers cleanup before source open  350ms
+   ✓ retains inactive raw XML uses of the old owner relationship  468ms
+   ✓ retains zero-incoming media whose outgoing relationship metadata must remain coherent  478ms
+   ✓ escapes admitted package folder characters in new content type declarations  389ms
+   ✓ does not assert media type from a no-dot filename that matches an extension word  365ms
+   ✓ treats a leading-dot filename as a recognized final suffix assertion  358ms
+ ✓ packages/docx/src/control-bindings.test.ts (34 tests) 9548ms
+   ✓ keeps QName validation within the invocation parser budget  313ms
+   ✓ synchronizes singleton store and differently tagged aliases for "New"  420ms
+   ✓ synchronizes singleton store and differently tagged aliases for ""  359ms
+   ✓ synchronizes singleton store and differently tagged aliases for "<&\r\n"  343ms
+   ✓ reuses an empty scalar leaf for a subsequent binding  451ms
+   ✓ fills a scalar root CDATA store without changing its root declarations  316ms
+   ✓ binds an unprefixed empty-namespace child path without mappings  349ms
+   ✓ preserves unrelated external custom XML properties beside an internal binding store  409ms
+   ✓ rejects nonsingleton scalar leaves and numeric type mismatch  410ms
+   ✓ refuses same-target or unresolvable same-store unsupported glossary declarations  315ms
+   ✓ retains a different-store unsupported glossary declaration byte-identically during binding  446ms
+ ✓ packages/docx/src/comment-extensions.test.ts (32 tests) 10974ms
+   ✓ inventories extension identifiers, unknown attributes and nested entity metadata through CLI and SDK  319ms
+   ✓ preserves every extension byte on unrelated text replacement  417ms
+   ✓ edits a resolved parent or reply while retaining paragraph IDs and metadata (1)  505ms
+   ✓ edits a resolved parent or reply while retaining paragraph IDs and metadata (2)  564ms
+   ✓ removes a leaf reply and its ID records without changing parent resolution or shared people  523ms
+   ✓ removes the whole selected thread and retains people only when a revision still owns them (false)  435ms
+   ✓ removes the whole selected thread and retains people only when a revision still owns them (true)  476ms
+   ✓ refuses parent with surviving reply deterministically before publication  306ms
+   ✓ refuses unknown affected attribute deterministically before publication  325ms
+   ✓ refuses unknown affected payload deterministically before publication  317ms
+   ✓ refuses multiple paragraphs deterministically before publication  313ms
+   ✓ refuses follow-up placeholder deterministically before publication  312ms
+   ✓ preserves unknown metadata owned by an unselected comment  406ms
+   ✓ preserves an anchored thread in the Strict dialect through SDK and CLI edits  1091ms
+   ✓ accepts the maximum paragraph identity without rewriting its representation  442ms
+   ✓ retains people owned by an extension revision (conflictIns)  531ms
+   ✓ retains people owned by an extension revision (conflictDel)  545ms
+   ✓ refuses people cleanup when an unknown extension carries an annotation author  418ms
+ ✓ packages/docx/src/sanitize.test.ts (17 tests) 6539ms
+   ✓ enumerates fixed-order effects and retains local links and unrelated text  1121ms
+   ✓ cleans the owned empty relationship part of a removed embedded leaf  517ms
+   ✓ removes only supported metadata and reports invalid retained values  390ms
+   ✓ removes the last embedded target and its explicit content type together  496ms
+   ✓ validates empty selection and combinations before mutation  320ms
+   ✓ retains embedded targets that still have another incoming binding  402ms
+   ✓ removes classic comment identities and all owned markers preserving labels  362ms
+   ✓ rejects asynchronous effect admission before publication  301ms
+   ✓ preserves original and destination on final mixed publication failure  831ms
+   ✓ refuses compound object carriers after earlier staged actions without publication  403ms
+ ✓ packages/docx/src/table-merge-variants.test.ts (63 tests) 9009ms
+ ✓ packages/docx/src/text-replace.test.ts (38 tests) 6112ms
+   ✓ selects nonoverlapping matches left to right from original text only  407ms
+   ✓ requires cardinality and rejects missing occurrences unless allowEmpty is explicit  327ms
+ ✓ packages/docx/src/xml-parts.test.ts (40 tests) 6103ms
+ ✓ packages/docx/src/paragraph-edit.test.ts (47 tests) 6461ms
+   ✓ appends blocks before final section properties and inside a nested table cell  335ms
+   ✓ adds heading level 0 through paragraph edits with a materialized reusable style  385ms
+   ✓ adds heading level 1 through paragraph edits with a materialized reusable style  361ms
+   ✓ adds heading level 9 through paragraph edits with a materialized reusable style  327ms
+ ✓ packages/docx/src/image-insertion.test.ts (39 tests) 6658ms
+   ✓ preserves an existing native pair and noncanonical retained writer URI during unrelated insertion  513ms
+   ✓ uses unique body and selected cell containers without choosing an existing paragraph  540ms
+   ✓ allocates fresh media, relationship and numeric drawing identifiers without orphan adoption  321ms
+ ✓ packages/docx/src/image-layout.test.ts (37 tests) 5636ms
+   ✓ edits native axes, distances and stacking with exact media/relationship preservation  315ms
+   ✓ adopts an explicit native polygon and retains it across tight/through wrap modes  331ms
+   ✓ rejects retained invalid crop, crop quantization exhaustion, simple positioning and wrap metadata loss  334ms
+ ✓ packages/docx/src/lists.test.ts (27 tests) 5266ms
+   ✓ creates nine bounded levels and continues a compatible list in its dialect (false)  393ms
+   ✓ reuses only a complete matching definition, allocates separate instances for explicit starts  376ms
+   ✓ rejects style cycles, level mismatches and stale locations  466ms
+   ✓ creates a mixed ordered and bullet list without changing a level already used by existing items  616ms
+   ✓ isolates mixed-level authoring from other instances sharing the original abstract  393ms
+ ✓ packages/docx/src/removal.test.ts (31 tests) 3517ms
+   ✓ retains every shared media byte and relationship during unrelated run removal  737ms
+ ✓ packages/docx/src/stories.test.ts (17 tests) 5355ms
+   ✓ creates all headers variants and deletes an initial definition without removing later owners  856ms
+   ✓ creates all footers variants and deletes an initial definition without removing later owners  847ms
+   ✓ copies story-relative image and external relationships while retaining media used elsewhere  582ms
+   ✓ relinks a local definition and removes only its unreferenced part  395ms
+   ✓ reuses scoped paragraph and text operations after localizing a rich story  394ms
+ ✓ packages/docx/src/comments.test.ts (19 tests) 5467ms
+   ✓ creates multi-run comments in table cells with explicit identity (false)  414ms
+   ✓ creates multi-run comments in table cells with explicit identity (true)  358ms
+   ✓ edits and deletes one of multiple comments while preserving unrelated annotations exactly  773ms
+   ✓ rejects partial runs, nested comments and stale anchors without publishing  313ms
+   ✓ removes a deleted-anchor body without altering visible content  303ms
+   ✓ declares comment schema, capabilities, metadata defaults and errors  463ms
+   ✓ preserves explicit null initials, returns fresh staged locations and supports all removal  441ms
+   ✓ adds disjoint comments in the same paragraph and preserves both references  378ms
+   ✓ counts preceding hyperlink text before choosing comment endpoints  411ms
+ ✓ packages/docx/src/publication.test.ts (56 tests) 4849ms
+     ✓ creates through the SDK with conflict preservation, force and owned output intent  460ms
+ ✓ packages/docx/src/font-resources.test.ts (15 tests) 4670ms
+   ✓ preserves font bytes, theme extensions and multilingual references through typed edits and text replacement  649ms
+   ✓ does not use orphaned or external themes to satisfy package references  489ms
+   ✓ retains inherited theme absence in live formatting views and preserves resources on save  465ms
+   ✓ rejects rebinding embedded font relationships but allows unchanged font-table XML  400ms
+   ✓ uses the document text-color mapping when checking theme slots  416ms
+   ✓ rejects a relationship to missing font bytes during package admission  302ms
+   ✓ honors case-insensitive content types when resolving and protecting fonts  360ms
+ ✓ packages/docx/src/inspection.test.ts (31 tests) 4857ms
+     ✓ counts preserve-only native VML carriers in admitted active stories  351ms
+   ✓ does not acquire external resources or turn invalid cached values into measurements  334ms
+   ✓ distinguishes control and complex review feature families: true/false  305ms
+   ✓ distinguishes control and complex review feature families: false/true  307ms
+ ✓ packages/docx/src/images.test.ts (26 tests) 4654ms
+   ✓ preserves original inert emf bytes during unrelated image insertion  473ms
+   ✓ preserves original inert wdp bytes during unrelated image insertion  382ms
+   ✓ groups original repeated image owners with linear location copying  461ms
+ ✓ packages/docx/src/template.test.ts (30 tests) 4751ms
+   ✓ expands explicit row template arrays and retains empty refillable items  439ms
+   ✓ expands explicit block template arrays and retains empty refillable items  391ms
+   ✓ expands nested declared sections and remaps contained bookmark references per item  396ms
+   ✓ supports nested row templates in sections, empty children and varied prior item counts  741ms
+   ✓ validates post-expansion nested comment bodies and exact bookmark destinations  315ms
+   ✓ preserves nested inline PNG media while remapping drawing IDs and owner-local relationships  411ms
+ ✓ packages/docx/src/styles-model-boundaries.test.ts (257 tests) 4128ms
+   ✓ reads and sets latent default default_to_hidden with strict boolean semantics  381ms
+   ✓ reads and sets latent default default_to_locked with strict boolean semantics  373ms
+   ✓ reads and sets latent default default_to_quick_style with strict boolean semantics  359ms
+   ✓ reads and sets latent default default_to_unhide_when_used with strict boolean semantics  346ms
+ ✓ packages/docx/src/sections.test.ts (28 tests) 4421ms
+   ✓ preserves all header/footer variants through global policy enable and disable (false)  793ms
+   ✓ preserves all header/footer variants through global policy enable and disable (true)  763ms
+ ✓ packages/docx/src/diff.test.ts (15 tests) 4371ms
+   ✓ compares payloads independently of compression, order, dates and ZIP comments  431ms
+   ✓ ignores XML prefix and attribute spelling order but retains whitespace, order and IDs  504ms
+   ✓ selects annotation stories and preserves logical table structure  619ms
+   ✓ returns equality, difference and trouble through explicit memfs inputs without writes  419ms
+   ✓ preserves semantic XML order, adjacent character data and meaningful attribute values  458ms
+   ✓ compares logical run splits and detects selected image and annotation identity changes  726ms
+ ✓ packages/docx/src/document-properties.test.ts (27 tests) 3865ms
+ ✓ packages/docx/src/controls.test.ts (38 tests) 2914ms
+ ✓ packages/docx/src/package.test.ts (66 tests) 3813ms
+ ✓ packages/docx/src/notes.test.ts (25 tests) 4045ms
+   ✓ inserts footnotes and endnotes with independent reserved IDs (false)  374ms
+   ✓ inserts footnotes and endnotes with independent reserved IDs (true)  302ms
+   ✓ removes one shared reference without deleting its body then removes the last  344ms
+   ✓ keeps note images and relationships through scoped edits and deletion  362ms
+ ✓ packages/docx/src/links.test.ts (36 tests) 3774ms
+ ✓ packages/docx/src/table-merge.test.ts (30 tests) 4160ms
+   ✓ joins a rectangular span in row order and aliases all covered coordinates  395ms
+   ✓ combines existing horizontal and vertical spans without dropping nested blocks  557ms
+   ✓ rejects partial overlaps, unsupported subdivisions and nonempty continuation loss  347ms
+   ✓ splits into equal rectangular subspans without changing the stored grid  411ms
+ ✓ packages/docx/src/styles.test.ts (16 tests) 3224ms
+   ✓ creates and edits a paragraph style without changing unedited metadata  491ms
+   ✓ creates and edits a character style without changing unedited metadata  435ms
+   ✓ creates and edits a table style without changing unedited metadata  445ms
+   ✓ sets document defaults, reciprocal linked styles, next style and a unique type default  317ms
+ ✓ packages/docx/src/revision-decisions.test.ts (29 tests) 3192ms
+ ✓ packages/docx/src/fields.test.ts (32 tests) 2869ms
+ ✓ packages/docx/src/pack.test.ts (28 tests) 3135ms
+ ✓ packages/docx/src/extract.test.ts (29 tests) 2941ms
+ ✓ packages/docx/src/bookmarks.test.ts (22 tests) 2864ms
+ ✓ packages/docx/src/table-edit.test.ts (28 tests) 2708ms
+ ✓ packages/docx/src/create.test.ts (15 tests) 2624ms
+   ✓ creates deterministic independently reopened docx packages in both dialects  430ms
+   ✓ creates deterministic independently reopened dotx packages in both dialects  383ms
+   ✓ keeps an original conflicting title and outline style and reuses generated heading identities  383ms
+ ✓ packages/docx/src/signatures.test.ts (15 tests) 2554ms
+ ✓ packages/docx/src/dummy-text.test.ts (10 tests) 2608ms
+   ✓ repeats seeded output byte for byte and restarts the sequence per paragraph  507ms
+   ✓ treats zero computed words as no change and supports explicit counts  341ms
+   ✓ retains every unselected package member including hidden metadata and image bytes  613ms
+ ✓ packages/docx/src/simple-selection.test.ts (30 tests) 2218ms
+ ✓ packages/docx/src/field-structures.test.ts (9 tests) 2305ms
+   ✓ creates bounded fields with separate inert instructions and caches (false)  540ms
+   ✓ creates bounded fields with separate inert instructions and caches (true)  455ms
+   ✓ creates TOCs and caption labels while preserving an existing TOC verbatim  310ms
+   ✓ creates referenced bookmarks and renames generated REF/PAGEREF operands without touching caches  357ms
+ ✓ packages/docx/src/locations.test.ts (35 tests) 2112ms
+ ✓ packages/docx/src/run-format.test.ts (22 tests) 2170ms
+ ✓ packages/docx/src/table-active-grid.test.ts (34 tests) 2271ms
+ ✓ packages/docx/src/equations.test.ts (30 tests) 2340ms
+ ✓ packages/docx/src/revisions.test.ts (30 tests) 2605ms
+ ✓ packages/docx/src/media-graph-regression.test.ts (9 tests) 2727ms
+   ✓ keeps occurrence ownership through replacement and later crop edits (false)  628ms
+   ✓ keeps occurrence ownership through replacement and later crop edits (true)  494ms
+   ✓ preserves inert wdp resources through inline insertion and refuses their replacement before acquisition  379ms
+   ✓ preserves inert svg-pair resources through inline insertion and refuses their replacement before acquisition  453ms
+ ✓ packages/docx/src/admission.test.ts (21 tests) 2045ms
+ ✓ packages/docx/src/charts.test.ts (20 tests) 2197ms
+   ✓ preserves chart resources, relationships and inactive bytes through unrelated public text edit  301ms
+ ✓ packages/docx/src/diagrams.test.ts (23 tests) 1747ms
+ ✓ packages/docx/src/objects.test.ts (21 tests) 1919ms
+ ✓ packages/docx/src/control-repeat.test.ts (17 tests) 1812ms
+   ✓ clears choice/date values and resets declared checkbox glyph in a reusable empty item  380ms
+ ✓ packages/docx/src/tracked-text.test.ts (13 tests) 1818ms
+ ✓ packages/docx/src/diff-input-ownership.test.ts (12 tests) 1777ms
+ ✓ packages/docx/tests/public-shell.test.ts (1 test) 2137ms
+   ✓ runs built public SDK and shell consumers outside source aliases  2136ms
+ ✓ packages/docx/src/shape-edit.test.ts (21 tests) 1546ms
+ ✓ packages/docx/src/text.test.ts (18 tests) 1503ms
+   ✓ orders all story scopes and deduplicates shared parts  498ms
+(node:72422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/docx/tests/assertions.test.ts (23 tests) 1367ms
+     ✓ rejects dangling styles, numbering, note IDs and unmatched bookmark ranges  383ms
+ ✓ packages/docx/tests/fixtures/documents.test.ts (23 tests) 1429ms
+ ✓ packages/docx/src/style-formatting.test.ts (11 tests) 1280ms
+ ✓ packages/docx/src/image-replacement-command.test.ts (8 tests) 1361ms
+ ✓ packages/docx/src/table-construction.test.ts (25 tests) 1297ms
+ ✓ packages/docx/src/batch.test.ts (18 tests) 1319ms
+ ✓ packages/docx/src/ancillary-resources.test.ts (6 tests) 1102ms
+ ✓ packages/docx/src/control-clone.test.ts (11 tests) 1190ms
+   ✓ remaps drawing occurrence IDs and relationships while retaining shared original media bytes  424ms
+ ✓ packages/docx/src/io.test.ts (19 tests) 1069ms
+ ✓ packages/docx/src/images-command.test.ts (13 tests) 1167ms
+ ✓ packages/docx/src/settings.test.ts (14 tests) 1067ms
+ ✓ packages/docx/src/discovery-completeness.test.ts (11 tests) 1056ms
+   ✓ links every declaration to format requirements and usable detailed help  415ms
+ ✓ packages/docx/src/inspection-command.test.ts (11 tests) 895ms
+ ✓ packages/docx/src/control-picture.test.ts (10 tests) 822ms
+ ✓ packages/docx/src/diagram-observations.test.ts (18 tests) 797ms
+   ✓ public physical inventory recognizes exact shape expanded pairs in dialect false  405ms
+   ✓ public physical inventory recognizes exact shape expanded pairs in dialect true  373ms
+ ✓ packages/docx/src/xml-write.test.ts (42 tests) 806ms
+ ✓ packages/docx/tests/cross-format-cli.test.ts (52 tests | 4 skipped) 1420ms
+     ✓ uses common paths and read envelopes  355ms
+ ✓ packages/docx/src/properties-command.test.ts (10 tests) 738ms
+ ✓ packages/docx/src/xml-command.test.ts (9 tests) 751ms
+ ✓ packages/docx/src/styles-model.test.ts (9 tests) 688ms
+ ✓ packages/docx/src/styles-command.test.ts (13 tests) 610ms
+ ✓ packages/docx/src/large-profile.test.ts (6 tests) 632ms
+ ✓ packages/docx/src/adversarial-input.test.ts (49 tests) 576ms
+ ✓ packages/docx/src/pack-uri-batch.test.ts (13 tests) 590ms
+ ✓ packages/docx/src/ancillary-resources-command.test.ts (8 tests) 571ms
+ ✓ packages/docx/src/stories-command.test.ts (5 tests) 557ms
+ ✓ packages/docx/src/budget.test.ts (19 tests) 529ms
+ ✓ packages/docx/src/fields-command.test.ts (15 tests) 603ms
+ ✓ packages/docx/src/image-insertion-command.test.ts (8 tests) 555ms
+ ✓ packages/docx/src/corpus-structure-regression.test.ts (4 tests) 522ms
+ ✓ packages/docx/src/bookmarks-command.test.ts (4 tests) 544ms
+   ✓ creates, lists, renames and removes a table-contained multi-run bookmark through the CLI  446ms
+ ✓ packages/docx/src/style-model-batch.test.ts (9 tests) 516ms
+ ✓ packages/docx/src/sanitize-command.test.ts (3 tests) 553ms
+ ✓ packages/docx/src/archive.test.ts (16 tests) 496ms
+ ✓ packages/docx/src/text-command.test.ts (5 tests) 460ms
+ ✓ packages/docx/src/style-formatting-command.test.ts (4 tests) 418ms
+ ✓ packages/docx/src/create-command.test.ts (3 tests) 437ms
+ ✓ packages/docx/src/guide-style-identification.test.ts (3 tests) 430ms
+ ✓ packages/docx/src/text-box-locations.test.ts (7 tests) 398ms
+ ✓ packages/docx/src/equations-command.test.ts (6 tests) 398ms
+ ✓ packages/docx/src/review-style-model.test.ts (6 tests) 348ms
+ ✓ packages/docx/src/diagrams-command.test.ts (5 tests) 366ms
+ ✓ packages/docx/src/archive-write.test.ts (11 tests) 353ms
+ ✓ packages/docx/src/table-read.test.ts (6 tests) 364ms
+ ✓ packages/docx/src/links-command.test.ts (7 tests) 343ms
+   ✓ uses the same link SDK through direct CLI creation, listing, edit and explicit content deletion  331ms
+ ✓ packages/docx/src/objects-command.test.ts (3 tests) 320ms
+ ✓ packages/docx/src/validation.test.ts (54 tests) 295ms
+ ✓ packages/docx/src/image-extraction-failure-envelope.test.ts (1 test) 275ms
+ ✓ packages/docx/src/style-model-command.test.ts (4 tests) 278ms
+ ✓ packages/docx/src/highlight-xml-contract.test.ts (19 tests) 247ms
+ ✓ packages/docx/src/signatures-command.test.ts (3 tests) 243ms
+ ✓ packages/docx/src/document-session.test.ts (6 tests) 254ms
+ ✓ packages/docx/src/image-layout-command.test.ts (1 test) 209ms
+ ✓ packages/docx/src/notes-boundaries.test.ts (2 tests) 206ms
+ ✓ packages/docx/src/discovery.test.ts (20 tests) 228ms
+ ✓ packages/docx/src/charts-command.test.ts (3 tests) 173ms
+ ✓ packages/docx/src/image-batch-operations.test.ts (5 tests) 201ms
+ ✓ packages/docx/src/run-format-command.test.ts (5 tests) 165ms
+ ✓ packages/docx/src/formatting-model-boundaries.test.ts (36 tests) 177ms
+ ✓ packages/docx/src/control-template-command.test.ts (1 test) 145ms
+ ✓ packages/docx/src/document-write-budget.test.ts (3 tests) 141ms
+ ✓ packages/docx/src/shapes-command.test.ts (1 test) 130ms
+ ✓ packages/docx/src/font-tabs.test.ts (37 tests) 152ms
+ ✓ packages/docx/src/root-help-usability.test.ts (2 tests) 123ms
+ ✓ packages/docx/src/package-write-budget.test.ts (3 tests) 107ms
+ ✓ packages/docx/src/raster-operation-contract.test.ts (7 tests) 86ms
+ ✓ packages/docx/src/tracked-text-command.test.ts (8 tests) 90ms
+ ✓ packages/docx/src/image-operation-contract.test.ts (6 tests) 88ms
+ ✓ packages/docx/src/command.test.ts (58 tests) 105ms
+ ✓ packages/docx/src/style-formatting-schema.test.ts (24 tests) 89ms
+ ✓ packages/docx/src/operation-json-schema.test.ts (7 tests) 86ms
+ ✓ packages/docx/src/formatting-model.test.ts (33 tests) 60ms
+ ✓ packages/docx/src/binding-ownership.test.ts (1 test) 47ms
+ ✓ packages/docx/src/property-values.test.ts (1 test) 45ms
+ ✓ packages/docx/src/batch-discovery.test.ts (2 tests) 44ms
+ ✓ packages/docx/src/batch-admission.test.ts (7 tests) 41ms
+ ✓ packages/docx/src/compatibility.test.ts (53 tests) 40ms
+ ✓ packages/docx/src/adversarial-fields.test.ts (8 tests) 26ms
+ ✓ packages/docx/src/xml-sequence-cases.test.ts (22 tests) 28ms
+ ✓ packages/docx/src/svg-image.test.ts (62 tests) 18ms
+ ✓ packages/docx/src/bookmark-references.test.ts (26 tests) 20ms
+ ✓ packages/docx/src/chart-values.test.ts (32 tests) 24ms
+ ✓ packages/docx/src/package-xml.test.ts (48 tests) 19ms
+ ✓ packages/docx/src/run-properties.test.ts (3 tests) 16ms
+ ✓ packages/docx/src/revision-decisions-command.test.ts (6 tests) 18ms
+ ✓ packages/docx/src/image-model.test.ts (40 tests) 20ms
+ ✓ packages/docx/src/property-operation-contract.test.ts (7 tests) 16ms
+ ✓ packages/docx/src/package-resources-command.test.ts (9 tests) 14ms
+ ✓ packages/docx/src/raster-characterization-cases.test.ts (45 tests) 11ms
+ ✓ packages/docx/src/svg-fallback-operation-contract.test.ts (3 tests) 13ms
+ ✓ packages/docx/src/control-values-command.test.ts (7 tests) 13ms
+ ✓ packages/docx/src/capability-failure-contract.test.ts (2 tests) 13ms
+ ✓ packages/docx/src/notes-discovery.test.ts (2 tests) 13ms
+ ✓ packages/docx/src/equation-operation-contract.test.ts (3 tests) 13ms
+ ✓ packages/docx/src/formatting-values.test.ts (7 tests) 15ms
+ ✓ packages/docx/src/image-model-input.test.ts (14 tests) 13ms
+ ✓ packages/docx/src/control-records-command.test.ts (5 tests) 11ms
+ ✓ packages/docx/src/image-replacement-operation-contract.test.ts (3 tests) 13ms
+ ✓ packages/docx/src/shape-operation-contract.test.ts (2 tests) 10ms
+ ✓ packages/docx/src/command-edge.test.ts (22 tests) 12ms
+ ✓ packages/docx/src/image-layout-operation-contract.test.ts (3 tests) 11ms
+ ✓ packages/docx/src/equation-fragments.test.ts (15 tests) 10ms
+ ✓ packages/docx/src/shape-carriers.test.ts (10 tests) 10ms
+ ✓ packages/docx/src/diagram-operation-contract.test.ts (3 tests) 10ms
+ ✓ packages/docx/src/raster-header.test.ts (13 tests) 10ms
+ ✓ packages/docx/src/pack-uri.test.ts (36 tests) 12ms
+ ✓ packages/docx/src/command-properties.test.ts (51 tests) 11ms
+ ✓ packages/docx/src/equation-properties.test.ts (12 tests) 10ms
+ ✓ packages/docx/src/object-operation-contract.test.ts (2 tests) 10ms
+ ✓ packages/docx/tests/schema-consumer.test.ts (7 tests) 10ms
+ ✓ packages/docx/src/command-option-rules.test.ts (76 tests) 10ms
+ ✓ packages/docx/src/chart-operation-contract.test.ts (2 tests) 9ms
+ ✓ packages/docx/src/argument-json.test.ts (13 tests) 8ms
+ ✓ packages/docx/src/operation-schema.test.ts (19 tests) 9ms
+ ✓ packages/docx/src/packing-vfs-admission.test.ts (7 tests) 9ms
+ ✓ packages/docx/src/document-part-roles.test.ts (1 test) 6ms
+ ✓ packages/docx/src/command-recovery-guidance.test.ts (3 tests) 5ms
+ ✓ packages/docx/src/legacy-command-guidance.test.ts (4 tests) 5ms
+ ✓ packages/docx/src/pack-inventory-negative-index.test.ts (3 tests) 3ms
+ ✓ packages/docx/src/operation-types.test.ts (14 tests) 3ms
+
+ Test Files  178 passed (178)
+      Tests  3438 passed | 4 skipped (3442)
+   Start at  18:35:31
+   Duration  174.32s (transform 10.20s, setup 2.18s, import 52.24s, tests 277.73s, environment 10ms)

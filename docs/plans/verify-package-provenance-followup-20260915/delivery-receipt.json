@@ -1,0 +1,21 @@
+{
+  "localEvidenceCommit": "d6ad645f1d5f4d334d22e41909398e8f709cbc88",
+  "remoteMain": "a03cf4f986dcbb7de309cbe4c1f5587551d81d04",
+  "localOnRemoteMain": false,
+  "remoteMainAncestorOfLocal": false,
+  "push": "not performed: candidate rejected; uncommitted tested source/lock and runtime contract failure",
+  "candidateRelease": "not performed",
+  "publishedPredecessors": {
+    "poe-code": "15.0.41",
+    "@poe-platform/safe-js": "0.1.606",
+    "@poe-platform/safe-fs": "0.1.606",
+    "@poe-platform/safe-bash": "0.1.606"
+  },
+  "acceptance": "OPEN",
+  "receiptStatus": "Records preceding evidence commit; committed separately as corrected ancestry receipt",
+  "divergenceAtEvidenceCommit": {
+    "localUnique": 63,
+    "remoteUnique": 1028,
+    "mergeBase": "60a6f594ec0f40467b61880a856a626d3b14de35"
+  }
+}

@@ -1502,6 +1502,26 @@ describe("createDashboard", () => {
     });
   });
 
+  it("redraws only within the new terminal bounds after shrinking", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(100, 24);
+      const dashboard = createDashboard({ stdin, stdout });
+      dashboard.appendOutput({ kind: "info", text: "resize fixture", ts: 0 });
+      dashboard.start();
+      stdout.output = "";
+      stdout.columns = 50;
+      stdout.rows = 16;
+      stdout.emit("resize");
+      const screen = renderTerminalOutput("\u001b[?7l" + stdout.output, 50, 16);
+      expect(screen[0]!.endsWith("┐")).toBe(true);
+      expect(screen[15]!.startsWith("└")).toBe(true);
+      expect(screen[15]!.endsWith("┘")).toBe(true);
+      expect(screen[1]!.endsWith("│")).toBe(true);
+      dashboard.destroy();
+    });
+  });
+
   it("re-renders the right pane when stats change after start", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();

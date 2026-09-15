@@ -139,6 +139,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       emitCommand(command);
     });
     unsubscribeResize = driver.onResize(() => {
+      previousBuffer = new ScreenBuffer(0, 0);
+      driver?.write("\u001b[2J");
       render();
     });
   }

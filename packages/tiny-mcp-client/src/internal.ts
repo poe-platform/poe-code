@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import { PassThrough } from "node:stream";
 import type { Readable, Writable } from "node:stream";
+import { readBoundedResponseText } from "./http-response.js";
 import type { JSONRPCMessage as SdkJsonRpcMessage } from "@modelcontextprotocol/sdk/types.js";
 import {
   createOAuthClientProvider,
@@ -2351,6 +2352,7 @@ export interface HttpTransportOptions {
   oauth?: OAuthClientProviderOptions;
   oauthDiscoveryCache?: OAuthDiscoveryCache;
   onWarning?: (message: string) => void;
+  maxResponseBytes?: number;
 }
 
 function defaultStdioSpawn(
@@ -2500,7 +2502,8 @@ export class HttpTransport implements McpTransport {
   private readonly oauthProvider: OAuthClientProvider | undefined;
   private readonly oauthMetadataDiscovery: OAuthMetadataDiscovery | undefined;
   private readonly inFlightFetchAbortControllers = new Set<AbortController>();
-  private readonly openSseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
+  private readonly openResponseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
+  private readonly maxResponseBytes: number;
   private readonly toolParameterHeaders = new Map<string, ParameterHeader[]>();
   private readonly onWarning: ((message: string) => void) | undefined;
 
@@ -2511,7 +2514,11 @@ export class HttpTransport implements McpTransport {
     oauth,
     oauthDiscoveryCache,
     onWarning,
+    maxResponseBytes = 16 * 1024 * 1024,
   }: HttpTransportOptions) {
+    if (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1)
+      throw new Error("HTTP response byte limit must be a positive safe integer");
+    this.maxResponseBytes = maxResponseBytes;
     this.url = url;
     this.headers = headers;
     this.fetchImpl = fetchImpl;
@@ -2568,7 +2575,7 @@ export class HttpTransport implements McpTransport {
     this.disposed = true;
     this.toolParameterHeaders.clear();
     this.abortInFlightFetches();
-    this.cancelOpenSseReaders();
+    this.cancelOpenResponseReaders();
 
     if (!this.writeStream.destroyed && !this.writeStream.writableEnded) {
       this.writeStream.end();
@@ -2606,12 +2613,12 @@ export class HttpTransport implements McpTransport {
     this.inFlightFetchAbortControllers.clear();
   }
 
-  private cancelOpenSseReaders(): void {
-    for (const reader of this.openSseReaders) {
+  private cancelOpenResponseReaders(): void {
+    for (const reader of this.openResponseReaders) {
       void reader.cancel().catch(() => undefined);
     }
 
-    this.openSseReaders.clear();
+    this.openResponseReaders.clear();
   }
 
   private async fetchWithAbort(input: string | URL, init: RequestInit): Promise<Response> {
@@ -2812,7 +2819,7 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
-    const responseBody = (await response.text()).trim();
+    const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders)).trim();
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     const message = responseBody.length === 0
       ? `HTTP transport DELETE failed (${statusDescriptor})`
@@ -2836,7 +2843,7 @@ export class HttpTransport implements McpTransport {
     }
 
     if (!response.ok) {
-      const responseBody = (await response.text()).trim();
+      const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders)).trim();
       const statusDescriptor = `${response.status} ${response.statusText}`.trim();
       const message = responseBody.length === 0
         ? `HTTP transport GET failed (${statusDescriptor})`
@@ -2869,7 +2876,7 @@ export class HttpTransport implements McpTransport {
       return false;
     }
 
-    const responseBody = (await response.text()).trim();
+    const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders)).trim();
     if (request !== undefined && responseBody.length > 0) {
       const parsed = parseJsonRpcMessage(responseBody);
       if (
@@ -2952,10 +2959,10 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
-    const parser = new SseParser();
+    const parser = new SseParser(this.maxResponseBytes);
     const decoder = new TextDecoder();
     const reader = response.body.getReader();
-    this.openSseReaders.add(reader);
+    this.openResponseReaders.add(reader);
 
     try {
       while (true) {
@@ -2981,14 +2988,17 @@ export class HttpTransport implements McpTransport {
 
       this.writeSseMessages(parser.flush());
       this.lastEventId = parser.lastEventId;
+    } catch (error) {
+      await reader.cancel().catch(() => undefined);
+      throw error;
     } finally {
-      this.openSseReaders.delete(reader);
+      this.openResponseReaders.delete(reader);
       reader.releaseLock();
     }
   }
 
   private async forwardJsonResponseMessage(response: Response): Promise<void> {
-    const payload = await response.text();
+    const payload = await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders);
     if (payload.length === 0) {
       return;
     }
@@ -3182,6 +3192,12 @@ export class SseParser {
   private eventId = "";
   private hasEventId = false;
   private _lastEventId: string | undefined;
+  private dataBytes = 0;
+
+  constructor(private readonly maxEventBytes = 16 * 1024 * 1024) {
+    if (!Number.isSafeInteger(maxEventBytes) || maxEventBytes < 1)
+      throw new Error("SSE event byte limit must be a positive safe integer");
+  }
 
   get lastEventId(): string | undefined {
     return this._lastEventId;
@@ -3203,8 +3219,13 @@ export class SseParser {
 
       const line = normalizeLine(this.buffer.slice(0, newlineIndex));
       this.buffer = this.buffer.slice(newlineIndex + 1);
+      if (Buffer.byteLength(line, "utf8") > this.maxEventBytes)
+        throw new Error(`SSE event exceeds ${this.maxEventBytes} bytes`);
       this.consumeLine(line, messages);
+      this.assertEventSize("");
     }
+
+    this.assertEventSize(this.buffer);
 
     return messages;
   }
@@ -3242,6 +3263,7 @@ export class SseParser {
     }
 
     if (field === "data") {
+      this.dataBytes += Buffer.byteLength(value, "utf8") + (this.dataLines.length > 0 ? 1 : 0);
       this.dataLines.push(value);
       return;
     }
@@ -3285,6 +3307,13 @@ export class SseParser {
     this.dataLines = [];
     this.eventId = "";
     this.hasEventId = false;
+    this.dataBytes = 0;
+  }
+
+  private assertEventSize(partialLine: string): void {
+    if (this.dataBytes + Buffer.byteLength(this.eventType ?? "", "utf8") +
+        Buffer.byteLength(this.eventId, "utf8") + Buffer.byteLength(partialLine, "utf8") > this.maxEventBytes)
+      throw new Error(`SSE event exceeds ${this.maxEventBytes} bytes`);
   }
 }
 

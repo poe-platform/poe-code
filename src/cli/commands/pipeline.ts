@@ -651,10 +651,8 @@ async function runPipelineWithDashboard(
   const intervalId = global.setInterval(() => {
     syncStats();
   }, 1_000);
-  const sigintHandler = () => {
-    requestCancellation();
-  };
-  process.on("SIGINT", sigintHandler);
+  process.on("SIGINT", requestCancellation);
+  process.on("SIGTERM", requestCancellation);
 
   try {
     const runOptions: PipelineRunOptions = {
@@ -718,7 +716,8 @@ async function runPipelineWithDashboard(
     throw error;
   } finally {
     global.clearInterval(intervalId);
-    process.off("SIGINT", sigintHandler);
+    process.off("SIGINT", requestCancellation);
+    process.off("SIGTERM", requestCancellation);
     dashboard.stop();
     dashboard.destroy();
   }

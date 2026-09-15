@@ -1738,17 +1738,18 @@ describe("pipeline run command", () => {
     expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
   });
 
-  it("cancels the pipeline when SIGINT is received in dashboard mode", async () => {
+  it.each(["SIGINT", "SIGTERM"] as const)("cancels and cleans up the dashboard on %s", async (signal) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
     const dashboardMock = createDashboardMock();
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+    const listeners = process.listeners(signal);
 
     try {
       vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-        process.emit("SIGINT");
+        process.emit(signal);
 
         expect(options.signal?.aborted).toBe(true);
 
@@ -1803,6 +1804,9 @@ describe("pipeline run command", () => {
       });
       expect(process.exitCode).toBe(130);
       expect(logs.some((message) => message.includes("Pipeline run cancelled."))).toBe(true);
+      expect(process.listeners(signal)).toEqual(listeners);
+      expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+      expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
     } finally {
       exitSpy.mockRestore();
     }

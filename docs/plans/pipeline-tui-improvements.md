@@ -100,3 +100,11 @@ Added newline-free fake terminal scenario using the actual package line buffer. 
 ## Honest empty fake scenario
 
 A failing fixture regression proved an empty run displayed 24,000 input tokens, 7,000 output tokens, 65 seconds, and an illustrative active task log. Empty now initializes only done/zero-usage/no-work state and emits no task execution log. The fixture regression, fixture ESLint, and package typecheck passed. Five PTY scenarios repeated at 100x24 and 50x16, all q exits 0; streaming held history/follow passed. Empty screenshots inspected. The wide capture occurred before deferred output repaint, so the settled narrow capture establishes the no-work log text; both establish zero displayed usage.
+
+## Actual CLI/external agent signal evidence
+
+Temporary fake Codex executable and terminal-pilot driver now exercise source CLI -> root SDK -> real pipeline -> agent-spawn -> external child, with isolated homes and plans. Completed reported 120 input / 45 output / 10 cached tokens and persisted done; failed exited 1 and persisted failed; q and Ctrl+C exited 130 with open task and no live fake child. Force quit leaves the run lock; each subsequent experiment must use a fresh plan identity. The initial apparent SIGTERM hang was this stale-lock wait, not signal evidence.
+
+A fresh SIGTERM experiment validated an actual defect: exit 143 left the alternate dashboard on screen. The parameterized CLI cancellation regression failed for SIGTERM before the fix. Pipeline dashboard now registers the same cancellation callback for SIGINT and SIGTERM and removes both listeners on cleanup. 93 focused command/shared tests and focused ESLint passed. Real CLI SIGTERM repeated twice: exit 130, task open, child gone, restored primary summary. Restored screenshot inspected at /tmp/pipeline-cli-restored.png.
+
+Actual live captures also expose raw JSON protocol rows duplicated beside rendered events, and agent-message text is buffered until another event/end. These are now validated follow-ups, not established successes from synthetic output fixtures.

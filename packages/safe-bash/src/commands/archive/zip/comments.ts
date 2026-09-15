@@ -22,7 +22,8 @@ export class ZipCommentInput {
         if (++this.pulls > this.limits.maxPatternSteps) fail("ZIP comment input work limit exceeded");
         const next = await this.iterator.next();
         if (next.done) { this.ended = true; break; }
-        this.chunk = next.value;
+        if (next.value.length > this.limits.maxFilesFromBytes - this.bytes) fail("ZIP comment input byte limit exceeded");
+        this.chunk = new Uint8Array(next.value);
         this.offset = 0;
         if (this.pulls % 64 === 0) await yieldTurn(this.signal);
         if (!this.chunk.length) continue;

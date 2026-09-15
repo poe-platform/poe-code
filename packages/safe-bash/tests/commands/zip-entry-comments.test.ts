@@ -4,6 +4,7 @@ import { toByteSource } from "../../src/contracts/index.js";
 import { readZipArchive, makeZipEntry, setZipEntryComment, crc32 } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 import { archiveBytes, execute, fixture, modified } from "./zip-standard-flags.helpers.js";
+import { ZipCommentInput } from "../../src/commands/archive/zip/comments.js";
 
 async function comments(fs: Awaited<ReturnType<typeof fixture>>, path = "/work/out.zip") {
   const archive = await readZipArchive(await fs.readFile(path), settings({}), new AbortController().signal);
@@ -112,4 +113,15 @@ test("zip entry comment maximum length splits input like native fgets", async ()
   const archive = await readZipArchive(await fs.readFile("/work/out.zip"), settings({}), new AbortController().signal);
   assert.equal(archive.entries[0]!.comment!.length, 65535);
   assert.equal(Buffer.from(archive.entries[1]!.comment!).toString(), "tail");
+});
+
+test("zip comment cursor owns unread bytes when host reuses an input chunk", async () => {
+  const chunk = Buffer.from("one\ntwo\n");
+  const source = { async *[Symbol.asyncIterator]() { yield chunk; } };
+  const cursor = new ZipCommentInput(source, settings({}), new AbortController().signal);
+  try {
+    assert.deepEqual(Buffer.from((await cursor.readLine())!), Buffer.from("one\n"));
+    chunk.fill(0);
+    assert.deepEqual(Buffer.from((await cursor.readLine())!), Buffer.from("two\n"));
+  } finally { await cursor.iterator.return?.(); }
 });

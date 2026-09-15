@@ -295,9 +295,23 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
     const data: DocxHelpData = { name: "docx", paths: declarations.map(([id, declaration]) => ({
       path: commandPath(id, declaration), usage: usage(id, declaration), description: description(declaration), operationIds: [id]
     })) };
-    return bounded({ data, human: selected ? details(selected, declarations[0]![1]) :
-      "docx — document utility\n\nImplemented commands and declared unsupported contracts:\n" + data.paths.filter(item => item.operationIds.every(id => docxOperationSchemas[id]!.transport !== "typed-batch")).map(item => `  ${item.usage}\n    ${item.description}`).join("\n") +
-      "\n\nUse docx help COMMAND PATH for a declared contract. Use docx help batch --operation ID for every typed model declaration; schema enumerates them all.\nInspection, validation and text extraction are read-only. Text replace preserves run formatting; XML set replaces one validated part. Later document operations remain pending.\nAliases: --help, -h; --version.\n" });
+    return bounded({ data, human: selected ? details(selected, declarations[0]![1]) : formatDiscoveryLines([
+      "docx — document utility", "", "Common tasks:",
+      "  docx create -o empty.docx",
+      "  docx text INPUT",
+      "  docx text replace INPUT --find Draft --with Final --all -o final.docx",
+      "  docx images list INPUT",
+      "  docx images replace INPUT --image 1 --file emblem.png --in-place",
+      "  docx tables set INPUT --table 1 --cell B2 --text Harbor --in-place",
+      "  docx properties set INPUT --name title --value 'Coastal café' --in-place", "",
+      "Use docx help COMMAND PATH for options, selectors and supported subsets; for example docx help images replace.",
+      "Mutations require --output or --in-place unless --dry-run. Positions are one-based; --select uses a fresh fingerprinted location.", "",
+      "Implemented commands and declared unsupported contracts (read/edit/reject):",
+      ...declarations.filter(([, declaration]) => declaration.transport !== "typed-batch").map(([id, declaration]) => `  ${usage(id, declaration)} [${operationSupport(id, declaration)}]`), "",
+      "Use docx help batch --operation ID for every typed model declaration; schema enumerates all declarations.",
+      "Edit/read labels cover only admitted subsets. Reject labels are declared contracts without execution support.",
+      "Aliases: --help, -h; --version."
+    ]) });
   }
   const data: DocxSchemaData = { schemaVersion: 1, validationProfiles: [documentValidationProfile], operations: declarations.map(([id, declaration]) => ({
     id, path: commandPath(id, declaration), input: getDocxOperationSchema(id, declaration.transport === "typed-batch" ? "batch" : "sdk"),

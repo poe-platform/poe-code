@@ -51,3 +51,18 @@ build closure passed. Inspected maintained screenshots of the flag error and
 stale diagnostic formatter. The formatter screenshot uses its internal built
 module, not a promised public export; the initial wrong-import capture is a QA
 setup error, not a product API defect.
+
+## Root help usability
+
+Two original root-help tests failed before code: common flag-based examples were
+absent from the introduction and the longest line was 538 characters. Root help
+now starts with ordinary workflows, lists every direct path with its actual
+read/edit/reject label, and routes detail to nested help. It uses the maintained
+140-character wrapper. Structured help still covers all 1,517 declarations;
+no unsupported public model member is removed.
+
+Verification: focused discovery checks passed 33 tests; maintained DOCX tests
+passed 176 files, 3,434 tests with four skips. Scoped lint and the selected build
+closure passed. Inspected the maintained built root-help screenshot. Only the
+owned root-help hunk is staged from discovery.ts; its unrelated packing and
+capability edits remain uncommitted.

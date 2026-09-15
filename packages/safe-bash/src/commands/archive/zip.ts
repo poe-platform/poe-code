@@ -6,7 +6,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
-import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
+import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
@@ -21,6 +21,7 @@ interface ZipOptions {
   readonly storeLinks: boolean;
   readonly test: boolean;
   readonly zip64: boolean | undefined;
+  readonly metadata: "default" | "strip" | "all";
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
@@ -60,6 +61,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let storeLinks = false;
   let test = false;
   let zip64: boolean | undefined;
+  let metadata: ZipOptions["metadata"] = "default";
   let level = 6;
   let method: ZipOptions["method"] = "deflate";
   let suffixes: readonly string[] = defaultStoreSuffixes;
@@ -91,6 +93,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         }
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
+        else if (flag === "X") {
+          metadata = argument[offset + 1] === "-" ? "all" : "strip";
+          if (metadata === "all") offset++;
+        }
         else if (flag === "D") omitDirectories = true;
         else if (flag === "y") storeLinks = true;
         else if (flag === "T") test = true;
@@ -180,7 +186,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, zip64, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -271,6 +277,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = old.get(name);
     if (prior?.comment) entry = { ...entry, comment: prior.comment };
+    if (parsed.metadata !== "default") entry = updateZipExtras(entry, prior, parsed.metadata, limits);
     if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
     compressedBytes += entry.data.length;
     selected.set(name, { entry, source });

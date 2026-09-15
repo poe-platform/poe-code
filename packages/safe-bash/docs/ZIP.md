@@ -211,6 +211,13 @@ No new environment variables are introduced. DOS timestamps follow the runtime's
 local timezone; extended Unix timestamps preserve absolute seconds. No host
 process is invoked to implement shell-local timezone changes.
 
+`-X` / `--strip-extra` omits optional metadata from newly added or rewritten
+members. Untouched archive members retain their extras. Required ZIP64 size and
+offset fields are still emitted. `-X-` / `--strip-extra-` preserves unknown extras
+from rewritten members and regenerates their timestamps. Repeated switches use
+the last value. Without extended timestamps, modification time is represented
+at DOS two-second resolution.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

@@ -7,7 +7,7 @@ import { collectBytes, isPathWithin, resolvePath } from "../../src/contracts/ind
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { DEFAULT_ARCHIVE_LIMITS as limits } from "../../src/commands/archive/internal.js";
 import { zip64Fields, stripZip64 } from "../../src/commands/archive/zip/zip64.js";
-import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive } from "../../src/commands/archive/zip-format.js";
+import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras } from "../../src/commands/archive/zip-format.js";
 
 const signal = new AbortController().signal;
 const text = new TextEncoder();
@@ -652,4 +652,34 @@ test("ZIP stream bounds large metadata and comment chunks without corrupting ext
   const archive = await readZipArchive(Buffer.concat(chunks), limits, signal);
   assert.deepEqual(archive.comment, comment);
   assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), text.encode("data"));
+});
+
+
+for (const position of [0, 1, 2]) {
+  test(`ZIP all-extra update preserves opaque order and rebuilds timestamp at position ${position}`, async () => {
+    const previous = await makeZipEntry("old", text.encode("old"), attributes, limits, signal);
+    const fields = [extra(0xcafe, new Uint8Array([1])), extra(0xbeef, new Uint8Array([2]))];
+    const stamp = new Uint8Array(5);
+    stamp[0] = 1;
+    new DataView(stamp.buffer).setInt32(1, Math.floor(modified.getTime() / 1000), true);
+    fields.splice(position, 0, extra(0x5455, stamp));
+    previous.localExtra = Buffer.concat(fields);
+    previous.centralExtra = previous.localExtra;
+    const entry = await makeZipEntry("old", text.encode("new"), { ...attributes, modified: new Date("2024-01-02T03:04:06Z") }, limits, signal);
+    const updated = updateZipExtras(entry, previous, "all", limits);
+    const bytes = await writeZipArchive({ entries: [updated], comment: new Uint8Array() }, limits, signal);
+    const restored = await readZipArchive(bytes, limits, signal);
+    assert.equal(restored.entries[0]!.modified.getTime(), entry.modified.getTime());
+    assert.deepEqual(Array.from(updated.localExtra!.subarray(0, 10)), [0xfe, 0xca, 1, 0, 1, 0xef, 0xbe, 1, 0, 2]);
+    assert.equal(updated.localExtra!.length, 19);
+    await assert.rejects(Promise.resolve().then(() => updateZipExtras(entry, previous, "all", { ...limits, maxPaxBytes: 18 })), /extra field/);
+  });
+}
+test("ZIP stripped-extra update rounds DOS time without retaining a stale UT timestamp", async () => {
+  const entry = await makeZipEntry("file", text.encode("body"), { ...attributes, modified: new Date("2024-01-02T03:04:05.123Z") }, limits, signal);
+  const stripped = updateZipExtras(entry, undefined, "strip", limits);
+  const bytes = await writeZipArchive({ entries: [stripped], comment: new Uint8Array() }, limits, signal);
+  const restored = await readZipArchive(bytes, limits, signal);
+  assert.equal(restored.entries[0]!.modified.getTime(), new Date("2024-01-02T03:04:06Z").getTime());
+  assert.equal(restored.entries[0]!.localExtra!.length, 0);
 });

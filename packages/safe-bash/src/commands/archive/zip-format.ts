@@ -383,6 +383,36 @@ function timestampExtra(modified: Date): Uint8Array {
   return bytes;
 }
 
+export function updateZipExtras(entry: ZipEntry, previous: ZipEntry | undefined, mode: "strip" | "all", limits: ArchiveLimits): ZipEntry {
+  const fresh = mode === "strip" ? new Uint8Array() : timestampExtra(entry.modified);
+  const retained: Uint8Array[] = [];
+  for (const [original, central] of [[previous?.localExtra, false], [previous?.centralExtra, true]] as const) {
+    const fields: Uint8Array[] = [];
+    let length = fresh.length;
+    if (mode === "all" && original) {
+      extras(original, previous!.rawName ?? pathBytes(previous!.name, limits), previous!.comment ?? new Uint8Array(), central, limits);
+      const view = new DataView(original.buffer, original.byteOffset, original.byteLength);
+      for (let offset = 0; offset < original.length;) {
+        const identifier = view.getUint16(offset, true);
+        const next = offset + 4 + view.getUint16(offset + 2, true);
+        // Sizes, timestamps and Unicode names/comments are rebuilt for the new entry.
+        if (identifier !== 1 && identifier !== 0x5455 && identifier !== 0x7075 && identifier !== 0x6375) {
+          fields.push(original.subarray(offset, next));
+          length += next - offset;
+        }
+        offset = next;
+      }
+    }
+    number(length, Math.min(limits.maxPaxBytes, 65535), "extra field");
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const field of fields) { bytes.set(field, offset); offset += field.length; }
+    bytes.set(fresh, offset);
+    retained.push(bytes);
+  }
+  return { ...entry, localExtra: retained[0]!, centralExtra: retained[1]! };
+}
+
 interface EncodedEntry {
   entry: ZipEntry; rawName: Uint8Array; localExtra: Uint8Array; centralExtra: Uint8Array;
   comment: Uint8Array; wide: boolean; flags: number; date: number; time: number; offset: number;

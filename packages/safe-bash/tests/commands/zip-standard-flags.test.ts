@@ -1054,3 +1054,38 @@ test("zip stdout sink rejection stops subsequent stream writes", async () => {
   assert.equal(writes, 1);
   assert.equal(result.stderr, "zip: internal error\n");
 });
+
+for (const options of [["-X"], ["--strip-extra"], ["-X-"], ["--strip-extra-"], ["-X", "-X-"], ["-X-", "-X"]]) {
+  test(`zip metadata switch ${options.join(" ")} rewrites only selected members`, async () => {
+    const opaque = Buffer.from([0xfe, 0xca, 2, 0, 104, 105]);
+    const initial = await archiveBytes(members, entries => {
+      for (const entry of entries) { entry.localExtra = opaque; entry.centralExtra = opaque; }
+    });
+    const fs = await fixture(initial);
+    const result = await execute("zip", fs, ["-q", ...options, "sample.zip", "binary"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+    const rewritten = archive.entries.find(entry => entry.name === "binary")!;
+    const untouched = archive.entries.find(entry => entry.name === "folder/data")!;
+    const retain = options.at(-1)!.endsWith("-");
+    assert.equal(Buffer.from(rewritten.localExtra!).includes(opaque), retain);
+    assert.equal(Buffer.from(rewritten.centralExtra!).includes(opaque), retain);
+    if (!retain) { assert.equal(rewritten.localExtra!.length, 0); assert.equal(rewritten.centralExtra!.length, 0); }
+    assert.deepEqual(Buffer.from(untouched.localExtra!), opaque);
+    assert.deepEqual(Buffer.from(untouched.centralExtra!), opaque);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "binary"])).stdout, binary);
+  });
+}
+for (const destination of ["new.zip", "-"]) {
+  test(`zip -X keeps forced ZIP64 essentials on ${destination}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-qXfz", destination, "binary"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const bytes = destination === "-" ? result.stdout : await fs.readFile("/work/new.zip");
+    const archive = await readZipArchive(bytes, settings({}), new AbortController().signal);
+    const entry = archive.entries[0]!;
+    assert.equal(new DataView(entry.localExtra!.buffer, entry.localExtra!.byteOffset).getUint16(0, true), 1);
+    assert.equal(entry.localExtra!.length, 20);
+    assert.equal(entry.centralExtra!.length, 28);
+  });
+}

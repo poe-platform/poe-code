@@ -233,3 +233,16 @@ Built-package type checking was not executed because required dist prerequisites
 are missing. Source collection/compression still buffers member payloads; true
 end-to-end input streaming, large-archive escalation and remaining format/options
 remain open.
+
+## Metadata stripping and all-extra updates
+
+Native Zip confirms -X/--strip-extra strips optional fields on rewritten members,
+-X-/--strip-extra- preserves unknown fields and regenerates metadata, and
+untouched members keep original extras. Forced ZIP64 retains required fields.
+Added native-compatible negation and last-switch precedence. Rebuilt size,
+timestamp and Unicode metadata cannot retain stale values from old members.
+430 focused ZIP/unzip tests pass, including selected/untouched members, opaque
+ordering, regenerated timestamp uniqueness, extra budgets, odd-second DOS time,
+file/stdout ZIP64 essentials and switch ordering. Scoped ESLint passed. Native
+UnZip and Python verify exact payload and only the essential ZIP64 central tag
+in actual stripped stdout output. Remaining option and format areas stay open.

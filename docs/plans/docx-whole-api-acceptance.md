@@ -97,3 +97,11 @@ No substantive safe-bash changes are authorized by this ownership assignment.
 
 Whole-row and complete-guide acceptance remains blocked. The pipeline and later
 task states remain unchanged; no previous task is promoted by these checks.
+
+## Local delivery
+
+`52c822838` locally commits the validated getter correction, three original
+memfs cases and this task record. A separate owned documentation improvement
+records the full row review and reconciled signatures. Neither local commit is
+remote delivery or release. This task remains open; missing public owners and
+complete-guide evidence are blocking acceptance requirements.

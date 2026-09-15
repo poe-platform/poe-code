@@ -1,6 +1,7 @@
 # DOCX public API map review
 
-The [map](public-api-map.json) is a proposed TypeScript/CLI contract, not an
+The [map](public-api-map.json) is a TypeScript/CLI contract with
+[partial acceptance evidence](whole-api-acceptance.md), not a complete
 implemented SDK. It references the source revision
 `e45454602b53e8e572b179ccf1c91093ec9f4ed7` and the hashed
 [API inventory](upstream-api-inventory.json). It retains all 920 reconciled IDs,
@@ -27,8 +28,11 @@ schema/help and a capabilities disposition before it is advertised.
 `original_tests` describes independent original acceptance cases and references
 the shared case requirements. No test file or passing result is implied. All
 1,609 unit variants and 650 BDD cases in the [test inventory](upstream-test-inventory.json)
-remain unadapted. These source passes do not close target behavior. There are
-zero `implemented` rows and zero passing target evidence records.
+remain historical. These source passes do not close target behavior. The original
+map milestone recorded zero `implemented` rows and zero passing target evidence
+records. The later whole-API review links partial read evidence for three style
+members and one finite workflow. Zero complete rows are accepted; partial evidence
+does not qualify setters, all owners or complete guide headings.
 
 ## Boundary decisions
 

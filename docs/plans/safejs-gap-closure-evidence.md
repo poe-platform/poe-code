@@ -3368,3 +3368,12 @@ Final scoped source c33305ee9 passes the full maintained SafeJS task: 30,257 pas
 Scoped delivery verified at ad827a462f97faabcdee0ecf7e0d38c8bfd3327f on remote main. Scoped workflow 34907786200 succeeded; all three scoped safe packages 0.1.604 independently pass installed-artifact/signature checks with matching tarball integrity and provenance source/subject. Root publication and overall acceptance remain pending/incomplete; detailed receipts and recovery are in the continuation record.
 
 Root workflow 34907786467 fails fresh unit validation (317 failures, all 42 failed files SafePython; remaining task closure blocked), and skips release-stable. No poe-code task publication: registry15.0.40 is older source. Scoped604 releases remain verified. Overall acceptance is incomplete; full workflow receipts and concrete recovery are recorded in the continuation.
+
+
+## qualify-generated-interactions — reconciled main delivery audit (2026-09-14 CDT)
+
+[Fresh GI-1 evidence](qualify-generated-interactions/delivery-20260914/audit.md) records the unchanged edition pins, deterministic seeds, bounded grammar/budgets, exact probe fixtures and terminal JSON results. Node 22.23.2 / ICU 78.2: preserved dirty local source **124 passed / 2 failed / 0 skipped**, 8.84 seconds; isolated fetched main `eff793d5dfda1b4e6d1008b04f5da4033237f742` **99 passed / 27 failed / 0 skipped**, 8.63 seconds. Both finish within the unchanged 30-second watchdog. Counts are finite template evidence, not conformance percentages.
+
+GI-PENDING-DISPOSAL remains two minimized product snapshot-contract counterexamples; original execution and no-resource/unnested neighbors pass. GI-REMOTE-MODULE remains 25 missing integration nonpasses, reduced to export admission with a passing legacy neighbor; it is not an ECMAScript defect. No repair, runtime/assertion/budget relaxation, README change or ambient authority grant was made. The original checkout and staged work are preserved. Campaign completion and failure disposition are evidenced; semantic recovery remains blocked.
+
+Local delivery commit: pending creation in isolated fetched-main checkout. Verified remote-main delivery: pending normal push. Workflow/publication: pending, no task release claimed. No associated issue supplied. Docs-only delivery does not publish scoped packages; root workflow outcome must be recorded separately.

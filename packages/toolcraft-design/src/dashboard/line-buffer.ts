@@ -4,6 +4,7 @@ import {
   OUTPUT_TRUNCATION_NOTICE,
   retainOutputTail
 } from "./output-preview.js";
+import { createTerminalStringFilter } from "./terminal-strings.js";
 
 export function createDashboardLineBuffer(emit: (line: string) => void): {
   push(chunk: string): void;
@@ -11,9 +12,10 @@ export function createDashboardLineBuffer(emit: (line: string) => void): {
 } {
   let pending = "";
   let omitted = false;
+  const strings = createTerminalStringFilter();
   return {
     push(chunk): void {
-      const text = pending + chunk;
+      const text = pending + strings.push(chunk);
       let start = 0;
       let newline = text.indexOf("\n");
       while (newline !== -1) {

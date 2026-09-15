@@ -1,3 +1,5 @@
+import { createTerminalStringFilter } from "./terminal-strings.js";
+
 export const MAX_OUTPUT_PREVIEW_CHARS = 16_384;
 export const OUTPUT_TRUNCATION_NOTICE = "[Output truncated: showing latest text]\n";
 
@@ -14,6 +16,7 @@ export function retainOutputTail(text: string, maxChars: number): string {
 }
 
 export function limitOutputPreview(text: string): string {
+  text = createTerminalStringFilter().push(text);
   if (text.length <= MAX_OUTPUT_PREVIEW_CHARS) return text;
   return (
     OUTPUT_TRUNCATION_NOTICE +
@@ -23,12 +26,14 @@ export function limitOutputPreview(text: string): string {
 
 /** Keep live deltas bounded without rebuilding the complete preview for every delta. */
 export function createOutputPreviewBuffer(): { push(text: string): void; text(): string } {
+  const strings = createTerminalStringFilter();
   const chunks: string[] = [];
   let chars = 0;
   let omitted = false;
   const tailBudget = MAX_OUTPUT_PREVIEW_CHARS - OUTPUT_TRUNCATION_NOTICE.length + 1;
   return {
     push(text) {
+      text = strings.push(text);
       if (text.length === 0) return;
       if (text.length > MAX_OUTPUT_PREVIEW_CHARS) {
         chunks.length = 0;

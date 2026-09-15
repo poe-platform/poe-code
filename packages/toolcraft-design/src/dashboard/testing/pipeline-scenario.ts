@@ -83,6 +83,11 @@ if (scenario === "empty") {
   append("tool", "left\u007fright · \u009b2JC1 frame preserved");
   append("tool", "\u009dHIDDEN_C1_OSC\u009cVisible C1 OSC result");
   append("tool", "\u0090HIDDEN_FIRST\u0007HIDDEN_SECOND\u009cVisible C1 DCS result");
+  append("tool", "\u001bP" + "HIDDEN_LONG_".repeat(4_000) + "\u001b\\Visible long DCS result");
+  const output = createDashboardLineBuffer((line) => append("tool", line));
+  output.push("\u001b]HIDDEN_FIRST\n");
+  output.push("HIDDEN_SECOND\nHIDDEN_THIRD\u001b");
+  output.push("\\Visible multiline OSC result\n");
   append("success", "Cursor control fixture ready");
 } else {
   for (let index = 0; index < 200; index += 1) {

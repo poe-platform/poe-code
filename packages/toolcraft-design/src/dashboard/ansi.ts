@@ -1,5 +1,6 @@
 import type { CellStyle } from "./types.js";
 import { graphemes, graphemeWidth } from "./terminal-width.js";
+import { createTerminalStringFilter } from "./terminal-strings.js";
 
 export interface StyledSegment {
   text: string;
@@ -25,6 +26,7 @@ export function hasAnsi(text: string): boolean {
  * `baseStyle` is used as the initial style and as the restore target for SGR reset / default color.
  */
 export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
+  text = createTerminalStringFilter().push(text);
   const base = normalizeStyle(baseStyle);
   let style: CellStyle = { ...base };
   let concealed = false;
@@ -95,11 +97,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
-    if (ch === "\u009d" || ch === "\u0090" || ch === "\u0098" || ch === "\u009e" || ch === "\u009f") {
-      index = skipStringTerminated(text, index + 1, ch === "\u009d");
-      continue;
-    }
-
     if (ch === "\u0085") {
       finishLine();
       index += 1;
@@ -107,11 +104,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     if (ch === ESC) {
-      const next = text[index + 1];
-      if (next === "]" || next === "P" || next === "X" || next === "^" || next === "_") {
-        index = skipStringTerminated(text, index + 2, next === "]");
-        continue;
-      }
       index += 2;
       continue;
     }
@@ -181,21 +173,6 @@ function cellsToSegments(cells: Array<{ ch: string; style: CellStyle } | undefin
 function isCsiFinalByte(ch: string): boolean {
   const code = ch.charCodeAt(0);
   return code >= 0x40 && code <= 0x7e;
-}
-
-function skipStringTerminated(text: string, start: number, allowBell: boolean): number {
-  let index = start;
-  while (index < text.length) {
-    const ch = text[index]!;
-    if ((allowBell && ch === "\u0007") || ch === "\u009c") {
-      return index + 1;
-    }
-    if (ch === ESC && text[index + 1] === "\\") {
-      return index + 2;
-    }
-    index += 1;
-  }
-  return index;
 }
 
 function parseParams(params: string): number[] {

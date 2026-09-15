@@ -118,6 +118,7 @@ export { applyStyleModelBatch } from "./style-model-batch.js";
 export { Length, Emu, Inches, Cm, Mm, Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, WD_COLOR, WD_PARAGRAPH_ALIGNMENT, WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, WD_BUILTIN_STYLE, WD_STYLE, MSO_THEME_COLOR, MSO_THEME_COLOR_INDEX, MSO_COLOR_TYPE, enumValue, enumFromValue, enumMembers, enumXml, enumFromXml, enumString } from "./formatting-values.js";
 
 export type { FontResourceData, ThemeResource, FontTableResource, ThemeReference } from "./font-resources.js";
+export { inspectDocumentSettings, type SettingEntry, type SettingsDetails, type SettingsRecord, type SettingsListData } from "./settings.js";
 export { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 
 export { editDocumentSections, inspectDocumentSections, type SectionInfo, type SectionListData, type SectionEditRequest, type SectionEditData, type SectionBinding } from "./sections.js";

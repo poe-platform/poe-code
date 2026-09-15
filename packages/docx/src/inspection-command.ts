@@ -40,6 +40,7 @@ import { executeStyleModelCommand } from "./style-model-command.js";
 import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
 import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
+import { executeSettingsCommand } from "./settings-command.js";
 import { executePropertiesCommand } from "./properties-command.js";
 import { executeImagesCommand, ImageCommandPublicationError } from "./images-command.js";
 import { ImageExtractionCancellationError, type ImageExtractionData } from "./images.js";
@@ -118,7 +119,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const diagramOperation = invocation.operation === "diagrams.list";
       const equationOperation = ["equations.list", "equations.add", "equations.replace"].includes(invocation.operation);
       const equationEditOperation = equationOperation && invocation.operation !== "equations.list";
-      const packageResourceOperation = objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const packageResourceOperation = invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -149,7 +150,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = objectOperation ? await executeObjectsCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
+          output = invocation.operation === "settings.list" ? await executeSettingsCommand(invocation, bytes, context)
+            : objectOperation ? await executeObjectsCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
             : equationOperation ? await executeEquationsCommand(invocation, bytes, inputIdentity, request, context, io)
             : diagramOperation ? await executeDiagramsCommand(invocation, bytes, request, context)
             : chartOperation ? await executeChartsCommand(invocation, bytes, request, context)

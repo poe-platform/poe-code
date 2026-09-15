@@ -64,6 +64,15 @@ collection and public underscore-prefixed obligations as separately pending.
 
 ## Sources and baseline
 
+The [bounded settings/protection record](../plans/docx-settings-protection.md)
+adds noncreating package settings inventory and original protection/locked-owner
+regressions. It records exact utility JS/security mappings and the shared global
+selection rule, while keeping Document/Settings/SettingsPart creating getters,
+inherited package/XML members, lifecycle APIs, collections/helpers/enums and
+public underscore-prefixed owners at their existing historical dispositions.
+Utility execution does not promote whole model or format coverage; later tasks
+remain pending.
+
 The later [theme/font resource milestone](font-resources.md) adds utility
 inventory and embedded-font mutation rejection. Its [exact mapping record](../plans/docx-theme-font-resources.md)
 retains the existing Font/ColorFormat/null/enum distinctions and separates

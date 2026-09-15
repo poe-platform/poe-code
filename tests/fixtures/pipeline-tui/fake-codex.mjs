@@ -53,7 +53,10 @@ if (scenario === "activity-timeout") {
       : `Fake external response ${count}\n`;
   emit({ type: "item.completed", item: { id: `message-${count}`, type: "agent_message", text } });
   count += 1;
-  if (scenario === "cancelled" || scenario === "burst" || count < 15) return;
+  if (scenario === "usage-before-cancellation" && count === 1) {
+    emit({ type: "turn.completed", usage: { input_tokens: 120, output_tokens: 45, cached_input_tokens: 10 } });
+  }
+  if (scenario === "cancelled" || scenario === "usage-before-cancellation" || scenario === "burst" || count < 15) return;
   clearInterval(timer);
   if (scenario === "failed") {
     emit({ type: "turn.failed", error: { message: "Fake external execution failed" } });

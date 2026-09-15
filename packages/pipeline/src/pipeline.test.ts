@@ -4187,7 +4187,7 @@ describe("createPipelineSimulation", () => {
     );
   });
 
-  it("returns cancelled without persisting a final task that aborts while succeeding", async () => {
+  it.each([false, true])("retains known task usage on cancellation with throwOnAbort=%s", async (throwOnAbort) => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
@@ -4216,6 +4216,7 @@ describe("createPipelineSimulation", () => {
       onTaskComplete,
       runAgent: async () => {
         controller.abort();
+        if (throwOnAbort) throw Object.assign(new Error("cancelled"), { name: "AbortError", usage });
         return { stdout: "", stderr: "", exitCode: 0, usage };
       }
     });
@@ -4331,7 +4332,7 @@ describe("createPipelineSimulation", () => {
     await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it.each((["setup", "teardown"] as const).flatMap(phase => [false, true].map(throwOnAbort => ({ phase, throwOnAbort }))))("reports $phase cancellation with throwOnAbort=$throwOnAbort", async ({ phase, throwOnAbort }) => {
+  it.each((["setup", "teardown"] as const).flatMap(phase => [{ throwOnAbort: false, carryUsage: false }, { throwOnAbort: true, carryUsage: false }, { throwOnAbort: true, carryUsage: true }].map(flags => ({ phase, ...flags }))))("reports $phase cancellation with throwOnAbort=$throwOnAbort carryUsage=$carryUsage", async ({ phase, throwOnAbort, carryUsage }) => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
@@ -4354,7 +4355,7 @@ describe("createPipelineSimulation", () => {
     const runAgent = vi.fn(async (input) => {
       if (input.prompt === "Clean up") {
         controller.abort();
-        if (throwOnAbort) throw Object.assign(new Error("cancelled"), { name: "AbortError" });
+        if (throwOnAbort) throw Object.assign(new Error("cancelled"), { name: "AbortError", ...(carryUsage ? { usage } : {}) });
         return { stdout: "", stderr: "", exitCode: 0, usage };
       }
       return { stdout: "", stderr: "", exitCode: 0, usage: { inputTokens: 7, outputTokens: 3, cachedTokens: 2 } };
@@ -4374,14 +4375,14 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("cancelled");
     const completedTasks = phase === "teardown" ? 1 : 0;
     expect(result.metrics).toMatchObject({
-      totalInputTokens: (throwOnAbort ? 0 : 120) + completedTasks * 7,
-      totalOutputTokens: (throwOnAbort ? 0 : 45) + completedTasks * 3,
-      totalCachedTokens: (throwOnAbort ? 0 : 10) + completedTasks * 2,
+      totalInputTokens: (throwOnAbort && !carryUsage ? 0 : 120) + completedTasks * 7,
+      totalOutputTokens: (throwOnAbort && !carryUsage ? 0 : 45) + completedTasks * 3,
+      totalCachedTokens: (throwOnAbort && !carryUsage ? 0 : 10) + completedTasks * 2,
       tasksCompleted: completedTasks,
       tasksFailed: 0,
       stepsCompleted: completedTasks
     });
-    expect(onTaskComplete).toHaveBeenCalledWith(expect.objectContaining({ phase, success: false, cancelled: true, ...(throwOnAbort ? {} : { usage }) }));
+    expect(onTaskComplete).toHaveBeenCalledWith(expect.objectContaining({ phase, success: false, cancelled: true, ...(throwOnAbort && !carryUsage ? {} : { usage }) }));
     expect(onTaskComplete).not.toHaveBeenCalledWith(expect.objectContaining({ phase, success: true }));
   });
 

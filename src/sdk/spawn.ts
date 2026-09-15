@@ -19,6 +19,8 @@ import {
   sessionCapture,
   sessionMetadataCapture,
   usageCapture,
+  getCapturedUsage,
+  captureAbortUsage,
   spawnLog,
   runCommand,
   type AcpSpawnContext as InternalAcpSpawnContext
@@ -31,8 +33,7 @@ import type {
   AcpEvent,
   SpawnOptions,
   SpawnResult,
-  SpawnRetryOptions,
-  SpawnUsage
+  SpawnRetryOptions
 } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 import { runInWorktree } from "./worktree.js";
@@ -302,7 +303,9 @@ export function spawn(
         await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
-        const final = await done;
+        const final = await done.catch((error) => {
+          throw captureAbortUsage(error, middlewareContext.usage);
+        });
         return {
           stdout: final.stdout,
           stderr: final.stderr,
@@ -372,7 +375,9 @@ export function spawn(
         await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
-        const final = await done;
+        const final = await done.catch((error) => {
+          throw captureAbortUsage(error, middlewareContext.usage);
+        });
 
         return {
           stdout: final.stdout,
@@ -475,22 +480,6 @@ async function forwardEvents<T>(
 
 function isWorktreeEnabled(worktree: SpawnOptions["worktree"]): boolean {
   return worktree === true;
-}
-
-function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined {
-  if (!usage) {
-    return undefined;
-  }
-
-  if (usage.inputTokens > 0 || usage.outputTokens > 0) {
-    return usage;
-  }
-
-  if (usage.cachedTokens !== undefined || usage.costUsd !== undefined) {
-    return usage;
-  }
-
-  return undefined;
 }
 
 function pickRuntimeOverrides(

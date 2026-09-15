@@ -1,6 +1,21 @@
 import type { AcpEvent } from "../types.js";
 import type { AcpMiddleware, SpawnContext } from "../middleware.js";
 
+export function getCapturedUsage(usage: SpawnContext["usage"] | undefined): SpawnContext["usage"] | undefined {
+  if (!usage) return undefined;
+  return usage.inputTokens > 0 || usage.outputTokens > 0
+    || usage.cachedTokens !== undefined || usage.costUsd !== undefined ? usage : undefined;
+}
+
+/** Preserve observed billing on the original cancellation error. */
+export function captureAbortUsage(error: unknown, usage: SpawnContext["usage"] | undefined): unknown {
+  const captured = getCapturedUsage(usage);
+  if (error instanceof Error && error.name === "AbortError" && captured) {
+    Object.assign(error, { usage: { ...captured } });
+  }
+  return error;
+}
+
 function readUsageNumber(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     return undefined;
@@ -61,18 +76,22 @@ export const usageCapture: AcpMiddleware = async (ctx, next) => {
   }
 
   ctx.eventStream = (async function* () {
-    for await (const event of source) {
-      const preloadedCount = preloadedCounts.get(event) ?? 0;
-      if (preloadedCount > 0) {
-        if (preloadedCount === 1) {
-          preloadedCounts.delete(event);
+    try {
+      for await (const event of source) {
+        const preloadedCount = preloadedCounts.get(event) ?? 0;
+        if (preloadedCount > 0) {
+          if (preloadedCount === 1) {
+            preloadedCounts.delete(event);
+          } else {
+            preloadedCounts.set(event, preloadedCount - 1);
+          }
         } else {
-          preloadedCounts.set(event, preloadedCount - 1);
+          accumulateUsage(ctx, event);
         }
-      } else {
-        accumulateUsage(ctx, event);
+        yield event;
       }
-      yield event;
+    } catch (error) {
+      throw captureAbortUsage(error, ctx.usage);
     }
   })();
 };

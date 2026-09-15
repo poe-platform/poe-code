@@ -30,6 +30,7 @@ import type {
   StepMode
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
+import { getAbortUsage } from "./abort-usage.js";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
@@ -81,7 +82,7 @@ function completesTaskOnSuccess(task: PipelineTask, stepName?: string): boolean 
   );
 }
 
-function isAbortError(error: unknown): boolean {
+function isAbortError(error: unknown): error is Error {
   return error instanceof Error && error.name === "AbortError";
 }
 
@@ -278,12 +279,19 @@ async function runResolvedPipeline(
       });
     } catch (error) {
       if (isAbortError(error)) {
+        const usage = getAbortUsage(error);
+        if (usage) {
+          metrics.totalInputTokens += usage.inputTokens;
+          metrics.totalOutputTokens += usage.outputTokens;
+          metrics.totalCachedTokens += usage.cachedTokens ?? 0;
+        }
         options.onTaskComplete?.({
           ...phaseProgress,
           durationMs: Date.now() - startTime,
           success: false,
           taskCompleted: false,
-          cancelled: true
+          cancelled: true,
+          ...(usage ? { usage } : {})
         });
         return { success: false, cancelled: true };
       }
@@ -550,12 +558,19 @@ async function runResolvedPipeline(
         });
       } catch (error) {
         if (isAbortError(error)) {
+          const usage = getAbortUsage(error);
+          if (usage) {
+            metrics.totalInputTokens += usage.inputTokens;
+            metrics.totalOutputTokens += usage.outputTokens;
+            metrics.totalCachedTokens += usage.cachedTokens ?? 0;
+          }
           options.onTaskComplete?.({
             ...taskProgress,
             durationMs: Date.now() - taskStartTime,
             success: false,
             taskCompleted: false,
-            cancelled: true
+            cancelled: true,
+            ...(usage ? { usage } : {})
           });
           return {
             stopReason: "cancelled",

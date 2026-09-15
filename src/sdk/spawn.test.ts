@@ -649,6 +649,43 @@ describe("SDK spawn()", () => {
     expect(applyMiddlewares).toHaveBeenCalledWith([retainSession === false ? sessionMetadataCapture : sessionCapture, usageCapture, spawnLog], expect.objectContaining({ events: retainSession === false ? [] : source }));
   });
 
+  it.each(["cli", "acp"].flatMap(transport => [undefined, false].flatMap(captureSession => [false, true].map(streamThrows => ({ transport, captureSession, streamThrows })))))(
+    "preserves known $transport abort usage with captureSession=$captureSession streamThrows=$streamThrows",
+    async ({ transport, captureSession: retainSession, streamThrows }) => {
+      const { sessionMetadataCapture } = await import("@poe-code/agent-spawn");
+      const { sessionMetadataCapture: captureMetadata } = await import("../../packages/agent-spawn/src/acp/middlewares/session-capture.js");
+      if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+      else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+      const resultError = Object.assign(new Error("cancelled"), { name: "AbortError" });
+      const streamError = Object.assign(new Error("stream cancelled"), { name: "AbortError" });
+      const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+      let rejectDone!: (error: Error) => void;
+      const done = new Promise((_, reject) => { rejectDone = reject; });
+      const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+      vi.mocked(nativeSpawn).mockReturnValue({ events: (async function* () {
+        yield { event: "usage", ...usage };
+        rejectDone(resultError);
+        if (streamThrows) throw streamError;
+      })(), done } as any);
+      vi.mocked(applyMiddlewares).mockImplementation(async (middlewares, ctx) => {
+        for (const middleware of middlewares) {
+          if (middleware === sessionCapture) await captureSession(ctx, async () => {});
+          if (middleware === sessionMetadataCapture) await captureMetadata(ctx, async () => {});
+          if (middleware === usageCapture) await captureUsage(ctx, async () => {});
+        }
+      });
+      const { events, result } = spawn("codex", "test prompt", { ...(retainSession === false ? { captureSession: false } : {}) });
+      const settled = result.catch(error => error);
+      const consumed = await collectEvents(events).catch(error => error);
+      if (streamThrows) {
+        expect(consumed).toBe(streamError);
+        expect(consumed).toMatchObject({ usage });
+      } else expect(consumed).toEqual([{ event: "usage", ...usage }]);
+      expect(await settled).toBe(resultError);
+      expect(resultError).toMatchObject({ usage });
+    }
+  );
+
   it("exposes middleware-captured sessionResult on the spawn result", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

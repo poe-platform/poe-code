@@ -37,7 +37,7 @@ export { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./p
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 export { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./run/runner.js";
 export { runPipeline } from "./run/pipeline.js";
-export { includePipelineInitialization } from "./run/initialization-result.js";
+export { includePipelineInitialization, cancelPipelineInitialization } from "./run/initialization-result.js";
 export { interpolatePipelineVars } from "./vars/interpolate.js";
 export { resolvePipelineVars } from "./vars/resolve.js";
 export { validateResolvedPromptVars } from "./vars/validate.js";

@@ -3,6 +3,7 @@ import { parse as parseYaml } from "yaml";
 import {
   resolveAbsolutePlanPath,
   includePipelineInitialization,
+  cancelPipelineInitialization,
   runPipeline as runWorkspacePipeline,
   type AgentRunUsage,
   type PipelineFileSystem,
@@ -188,19 +189,27 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
         sourceDocContent,
         skillContent: pipelineSkillPlan
       });
-      const initResult = await runWithRetry(
-        () =>
-          userRunAgent({
-            agent: options.agent,
-            prompt,
-            cwd: options.cwd,
-            ...(options.model ? { model: options.model } : {}),
-            ...(options.signal ? { signal: options.signal } : {})
-          }),
-        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
-        options.signal
-      );
-      assertNotAborted(options.signal);
+      let initResult;
+      try {
+        initResult = await runWithRetry(
+          () =>
+            userRunAgent({
+              agent: options.agent,
+              prompt,
+              cwd: options.cwd,
+              ...(options.model ? { model: options.model } : {}),
+              ...(options.signal ? { signal: options.signal } : {})
+            }),
+          PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
+          options.signal
+        );
+      } catch (error) {
+        if (!(error instanceof Error) || error.name !== "AbortError") throw error;
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: error });
+      }
+      if (options.signal?.aborted) {
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: initResult });
+      }
       if (initResult.exitCode !== 0) {
         throw new Error(`Pipeline initialization failed with exit code ${initResult.exitCode}.`);
       }

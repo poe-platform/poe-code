@@ -319,6 +319,33 @@ describe("SDK pipeline", () => {
     }
   });
 
+  it.each(["returned", "thrown", "unknown"] as const)("reports interrupted initialization with %s usage", async (mode) => {
+    seedFs({ "/repo/feature.md": "---\ntasks: []\n---\n# Feature\n" });
+    let now = 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const controller = new AbortController();
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const runAgent = vi.fn(async () => {
+      now += 2_500;
+      controller.abort();
+      if (mode !== "returned") throw Object.assign(new Error("cancelled"), { name: "AbortError", ...(mode === "thrown" ? { usage } : {}) });
+      return { stdout: "", stderr: "", exitCode: 0, usage };
+    });
+    const result = await runPipeline({ agent: "codex", cwd, homeDir, plan: "feature.md", signal: controller.signal, runAgent });
+    expect(result.stopReason).toBe("cancelled");
+    expect(result.totalDurationMs).toBe(2_500);
+    expect(result.runsCompleted).toBe(0);
+    expect(result.metrics).toMatchObject({
+      tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0,
+      totalInputTokens: mode === "unknown" ? 0 : 120,
+      totalOutputTokens: mode === "unknown" ? 0 : 45,
+      totalCachedTokens: mode === "unknown" ? 0 : 10
+    });
+    expect(runAgent).toHaveBeenCalledTimes(1);
+    expect(workspaceRunPipelineMock).not.toHaveBeenCalled();
+    expect(await fs.promises.readFile("/repo/feature.md", "utf8")).toContain("tasks: []");
+  });
+
   it("does not run automatic initialization when already aborted", async () => {
     seedFs({
       "/repo/feature.md": "# Feature\nShip it.\n"

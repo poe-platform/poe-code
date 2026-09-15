@@ -1,6 +1,11 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("omits never-applicable selectors from direct and batch image replacement", () => {
+  type Invalid = "all" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.replace">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["images.replace"], Invalid>>().toEqualTypeOf<never>();
+});
 it("keeps image factory typed transports byte-only and capability-context-only", () => {
   // @ts-expect-error Blob factories cannot acquire VFS paths.
   const directBlob: DocxOperationArguments<"model.image.image.Image.from_blob.call"> = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };

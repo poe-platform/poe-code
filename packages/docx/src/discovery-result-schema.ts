@@ -97,6 +97,16 @@ const imageRecord: DocxJsonSchema = { ...object({ kind: { const: "images" }, loc
 const imageExtractionData = object({ complete: boolean, inventory: { type: "null" },
   manifest: { oneOf: [object({ path: string, bytes: number, sha256: string, published: boolean }), { type: "null" }] },
   entries: array(object({ path: string, part: string, bytes: number, sha256: string, locations: array(location), published: boolean })) });
+export const rasterReplacementOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
+  "images.replace": {
+    description: "Replace one embedded raster image; explicit shared intent replaces its shared media resource and preserves drawing properties.",
+    featureIds: ["F32", "F35"],
+    result: { oneOf: [object({ version: { const: 1 }, operation: { const: "images.replace" }, ok: { const: true },
+      data: object({ ...mutationData.properties, changes: array(object({ kind: { const: "replace" }, before: location, after: location })) }),
+      warnings: empty, errors: empty, affected: number, locations: array(location) }), object({ version: { const: 1 }, operation: { const: "images.replace" }, ok: { const: false },
+      data: { type: "null" }, warnings: empty, errors: array(diagnostic), affected: { const: 0 }, locations: empty })] }
+  }
+};
 export const rasterInsertionOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
   "images.add": {
     description: "Insert admitted PNG or JPEG bytes inline into one paragraph or a new trailing container paragraph.",

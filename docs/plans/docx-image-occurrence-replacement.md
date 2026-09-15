@@ -51,9 +51,76 @@ edits. Embedded carriers with competing external links also reject before input
 acquisition. Approval qualifies wording only; domain and adapter TDD now begin.
 
 Domain leaf owns new packages/docx/src/image-replacement.ts/.test.ts and optional
-original image-replacement-test-fixtures.ts; images.ts only for a meaningful
+original tests/fixtures/image-replacement.ts; images.ts only for a meaningful
 shared graph helper. Adapter leaf owns new image-replacement-command.ts/.test.ts,
 image-replacement-operation-contract.test.ts; operation-schema-data.ts,
 operation-types.ts/.test.ts, discovery.ts/.test.ts, discovery-result-schema.ts,
 raster-operation-contract.test.ts; new safe-bash
 tests/commands/docx/image-replacement.test.ts. Independent reviewer owns no code.
+
+## Complete-input independent qualification
+
+After the candidate is frozen, assign a literal current-source/test inventory
+to the independent worker. Capture before/after path and content identity, including
+new entries within that approved scope. Do not traverse dist, historical fixtures,
+held paths or ancestors for liveness clearance. Retained task68/69 complete original
+technical pixel files are admissible only after their recorded hashes are checked;
+header-only fixtures do not establish pixel validity. No artwork is authored here.
+
+Use an original small package with two body drawings sharing one owner-local
+relationship and a separate header drawing targeting the same media part, plus
+an unrelated resource with the same basename in another directory. Include an
+inactive XML carrier and an unreachable owner relationship as cleanup controls.
+Record bytes before execution. Execute public SDK and actual Shell replacements
+through supplied memfs/stream capabilities: occurrence default, explicit shared,
+same format, cross-format, unchanged geometry, one-dimension resize, cover fit,
+dry-run and each pre-acquisition refusal. Complete original PNG/JPEG and retained
+complete GIF/BMP/TIFF inputs exercise the admitted formats; unknown vectors and
+linked/fallback carriers must never trigger external target acquisition.
+
+Use a QA-only independent ZIP/XML reader to compare exact primary bytes, package
+members, content-type declarations, owner-local relationship targets and r:embed
+attributes. Confirm selected-only rebind, unselected byte preservation, every
+shared incoming edge, dormant-reference retention, safe old-resource retirement
+and drawing properties outside explicit resizing. Independent Fraction arithmetic
+checks physical-ratio sizing and half-away EMU rounding. Record actual output,
+tool versions, denominators and unsupported/unrun cases in docs/docx. QA tools
+must not enter any product manifest or dependency closure. Inspect screenshots
+of command result, dry-run/refusal, help/schema and capabilities. No automated
+screenshot tests and no renderer/pixel-fidelity claim from structural graph checks.
+
+Root public export red: /tmp/docx70-root-public-red.log, one expected failure
+at missing replaceDocumentImage, while portable bundle closure and the other
+manifest test passed. This red preceded root product integration.
+
+Root integration now wires the replacement utility and SDK-backed command after
+the domain/adapter red tests. Public portable round trip passes 2/2 in
+/tmp/docx70-root-public-current-v2.log; the first trial's omitted explicit writer
+encoding is a fixture-preparation error, preserved separately. Independent final
+verification owns new docs/docx/image-occurrence-replacement-qa.json and only
+the approved ignored tmp/docx70-image-replacement-qa output directory. All eight
+retained complete inputs authenticated before product execution; no final QA
+has run yet. Current-source cohort is explicitly docx src/tests plus the root
+public test, exact literal registration test and new Shell replacement test.
+
+## Frozen maintained checks
+
+Domain31 and adapter/schema56 focused tests pass; maintained DOCX package lint
+and source/test types pass. Root maintained workspace passes111files/2443tests
+in /tmp/docx70-root-workspace-final-test.log. Maintained selected build derives
+five successful stages in /tmp/docx70-root-selected-final-build.log; guarded
+safe-bash typecheck passes26 current groups in
+/tmp/docx70-root-safe-bash-final-typecheck.log. No dependency closure change or
+test-helper production inclusion remains. Root inspected all8 authoritative v2
+screenshots. Independent final approval passes409 focused/public,118 actual
+Shell and108 literal registration tests; approved current248-file append-aware
+proof has zero content/membership drift. Complete-input independent byte/graph/
+Fraction QA passes51/51 observations; reduced receipt is
+docs/docx/image-occurrence-replacement-qa.json. Exact46 owned cache outputs remain
+inventoried for the active image campaign. No downloaded corpus traversal,
+rendering/pixel fidelity, live model/batch/nativeSVG or full parity claim. All
+entries settled before final root guarded lint. That gate passes exit0, complete
+12628/12628 subjects,0 errors/12 existing warnings,25 receipts/0 gaps in
+/tmp/docx70-root-final-guarded-lint.log. No guarded policy or historical seal
+changed. Atomic product commits and only task70 implement/test completion remain
+pending local delivery.

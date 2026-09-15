@@ -42,6 +42,7 @@ import { executePropertiesCommand } from "./properties-command.js";
 import { executeImagesCommand, ImageCommandPublicationError } from "./images-command.js";
 import { ImageExtractionCancellationError, type ImageExtractionData } from "./images.js";
 import { executeImageInsertionCommand } from "./image-insertion-command.js";
+import { executeImageReplacementCommand } from "./image-replacement-command.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -99,7 +100,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const propertyOperation = ["properties.list", "properties.get", "properties.set", "properties.remove"].includes(invocation.operation);
       const imageOperation = ["images.list", "images.get", "images.extract"].includes(invocation.operation);
       const imageInsertionOperation = invocation.operation === "images.add";
-      const packageResourceOperation = imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const imageReplacementOperation = invocation.operation === "images.replace";
+      const packageResourceOperation = imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -114,7 +116,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if ((invocation.operation === "images.extract" || imageInsertionOperation) && input !== "-" && request.filesystem.lstat) {
+        if ((invocation.operation === "images.extract" || imageInsertionOperation || imageReplacementOperation) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -130,7 +132,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = imageInsertionOperation ? await executeImageInsertionCommand(invocation, bytes, inputIdentity, request, context)
+          output = imageReplacementOperation ? await executeImageReplacementCommand(invocation, bytes, inputIdentity, request, context)
+            : imageInsertionOperation ? await executeImageInsertionCommand(invocation, bytes, inputIdentity, request, context)
             : imageOperation ? await executeImagesCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
             : packageResourceOperation ? propertyOperation
             ? await executePropertiesCommand(invocation, bytes, inputIdentity, request, context)

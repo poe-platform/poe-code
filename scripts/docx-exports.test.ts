@@ -52,6 +52,25 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.inspectDocumentImages).toBeTypeOf("function");
   expect.soft(runtime.extractDocumentImages).toBeTypeOf("function");
   expect.soft(runtime.insertDocumentImage).toBeTypeOf("function");
+  expect.soft(runtime.replaceDocumentImage).toBeTypeOf("function");
+  if (runtime.insertDocumentImage && runtime.replaceDocumentImage) {
+    const chunks: Uint8Array[] = [];
+    const source = rasterPng(3, 5), replacement = rasterPng(7, 2);
+    const context = { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes: Uint8Array) { chunks.push(new Uint8Array(bytes)); } } };
+    await runtime.insertDocumentImage(await textFixture('<w:p/>'), {
+      operation: "images.add", options: { paragraph: 1, file: { kind: "bytes", base64: Buffer.from(source).toString("base64") }, output: "-" }
+    }, context);
+    const inserted = new Uint8Array(Buffer.concat(chunks)); chunks.length = 0;
+    const result = await runtime.replaceDocumentImage(inserted, {
+      operation: "images.replace", options: { image: 1, file: { kind: "bytes", base64: Buffer.from(replacement).toString("base64") }, output: "-" }
+    }, context);
+    expect(result.changed).toBe(true);
+    expect(result.changes).toHaveLength(1);
+    expect(result.changes[0].kind).toBe("replace");
+    const replaced = await runtime.readDocumentArchive(new Uint8Array(Buffer.concat(chunks)), textContext);
+    expect(replaced.members.filter((member: { name: string }) => member.name.endsWith(".png"))).toHaveLength(1);
+    expect(replaced.members.find((member: { name: string }) => member.name.endsWith(".png")).bytes).toEqual(replacement);
+  }
   expect.soft(runtime.characterizeRasterHeader).toBeTypeOf("function");
   expect.soft(runtime.Image?.from_blob).toBeTypeOf("function");
   expect.soft(runtime.Image?.from_file).toBeTypeOf("function");

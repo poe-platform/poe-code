@@ -158,6 +158,17 @@ sources are dereferenced. Link reads require the filesystem's `readlink` operati
 and are checked for source replacement before publication. Storing an escaping
 target does not authorize its extraction; extraction path checks remain enabled.
 
+`-m` / `--move` removes selected filesystem sources after successful archive
+publication or stdout stream completion. Unchanged update/freshen also removes
+selected archived sources while retaining status 12; current `-FS` retains status
+0. Stored and dereferenced symlinks remove the link pathname, preserving targets.
+Selected empty directories are removed after files; excluded/nonempty directories
+and directories omitted by `-D` remain. Stdin has no pathname to remove. Copy and
+delete actions ignore move. Removal requires atomic conditional entry removal and
+known scoped source/parent identities and revisions. Replaced sources survive;
+nonquiet failed file removals warn without changing successful ZIP status.
+Publication, integrity or stream failure prevents source deletion.
+
 `-l` / `--to-crlf` expands LF bytes to CRLF in newly selected regular-file and
 stdin payloads. Existing CRLF becomes CRCRLF; stored symlink targets and retained
 members remain unchanged. The Unix first-buffer binary check uses 8 KiB for

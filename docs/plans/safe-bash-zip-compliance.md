@@ -594,3 +594,24 @@ paths, capability denial and restricted views. Sixty-two focused filesystem test
 workspace typecheck and scoped lint pass. Full maintained unit verification is
 required before pushing this shared-contract change. ZIP m integration remains
 open alongside the other major requirements. Scoped release 35022183021 succeeded.
+
+## Move source lifecycle integration
+
+Native Zip 3.0 finish/trash and zipfile.c validate m/move, unchanged update/freshen
+source deletion with status 12, current FS deletion, stdout completion and symlink
+pathname removal. Stored directory removal follows file deletion; Unix D capture
+retains the omitted source directory. Fourteen initial unsupported-option failures
+validate missing support. Record scoped parent/final-entry snapshots before reads,
+require atomic conditional removal, and remove only after successful publication
+or stream completion. Native unsuccessful unlink warnings retain successful status;
+replaced sources survive. Advance related directory/hardlink snapshots only when
+identity and exact next revision match owned deletions, using an identity index.
+Sixteen memory cases cover aliases, source types, filters, native unchanged status,
+publication/integrity/stdout failures, replacements, hardlinks and missing capability.
+750 focused ZIP/unzip tests and scoped lint pass. These tests use current source
+MemoryFileSystem because the root's bundled SafeFS export has not yet been rebuilt.
+Full shared-contract verification 41257 remains live; clean npm test reports missing
+poe-code/safe-fs/core because packages/safe-js/dist/safe-fs-core.js is absent. After
+that process terminates, use maintained npm run build before rerunning full tests
+and lint; do not push until the required checks pass. No release is claimed for
+local contract 2a3f1823d or the pending move integration. Broader scope stays open.

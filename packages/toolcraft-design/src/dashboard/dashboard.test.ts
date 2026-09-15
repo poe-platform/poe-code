@@ -1278,12 +1278,30 @@ describe("footer", () => {
     expect(readRow(buffer, 2)).toBe("                    ");
   });
 
-  it("truncates overflowing hints with an ellipsis", () => {
+  it("keeps only complete hints when the footer overflows", () => {
     const buffer = new ScreenBuffer(12, 1);
 
     renderFooter(buffer, { x: 0, y: 0, width: 12, height: 1 }, defaultHints());
 
-    expect(readRow(buffer, 0)).toBe("q Quit  e...");
+    expect(readRow(buffer, 0)).toBe("   q Quit   ");
+  });
+
+
+  it("preserves the quit label at eight cells and the key at three cells", () => {
+    for (const [width, expected] of [[8, " q Quit "], [3, " q "]] as const) {
+      const buffer = new ScreenBuffer(width, 1);
+      renderFooter(buffer, { x: 0, y: 0, width, height: 1 }, defaultHints());
+      expect(readRow(buffer, 0)).toBe(expected);
+    }
+  });
+
+  it("centers wide grapheme hints without overwriting their continuation cells", () => {
+    const buffer = new ScreenBuffer(10, 1);
+    renderFooter(buffer, { x: 0, y: 0, width: 10, height: 1 }, [{ key: "👩‍💻", label: "Go" }]);
+    expect(buffer.get(2, 0).ch).toBe("👩‍💻");
+    expect(buffer.get(3, 0).ch).toBe("");
+    expect(buffer.get(5, 0).ch).toBe("G");
+    expect(buffer.get(6, 0).ch).toBe("o");
   });
 
   it("styles keys with the accent color in bold", () => {

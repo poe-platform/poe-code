@@ -101,3 +101,7 @@ Use the same canonical isolated plan path for two actual CLI sessions. Keep the 
 ### Redundant protocol capture measurement
 
 Exercise runPoeCommand with an in-memory fake execution environment yielding 1,024 distinct 65,536-byte stdout buffers and retained stderr diagnostics. Count stdout callback bytes without retaining them. Compare separate GC-enabled Node processes using default capture and captureStdout=false; materialize the returned stdout before GC, then record retained bytes, heap delta, RSS delta, and elapsed time. Verify 67,108,864 bytes delivered in both and stderr preserved; selective capture returns empty stdout. Observed retained heap: 67,310,864 versus 202,616 bytes. Treat RSS as allocator-dependent and do not infer a process-wide bound. Repeat actual external-agent completed/failed CLI scenarios to confirm event delivery and diagnostics.
+
+### Tiny terminal recovery
+
+Launch the maintained Unicode/ANSI fixture at 100x24, then resize successively to 40x10, 20x6, 10x5, 5x3, 2x2, and 1x1. Capture and inspect each terminal screen. Expect whole q Quit at ten columns, q at five, intact borders wherever geometry permits, and no crash at one cell. Resize back to 100x24 and verify the full Unicode/ANSI frame recovers, including normalized carriage-return progress and tab columns. Press q and verify exit 0/restored primary screen. Verified locally after footer fix; unsupported font glyphs still use placeholders in raster screenshots.

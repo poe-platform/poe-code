@@ -576,3 +576,21 @@ Move requires conditional deletion of source entries after publication; current
 removeFileConditional only supports regular files, so symlink/directory ownership
 needs contract work before full move support. No unchecked destructive fallback
 was introduced. Live scoped/root releases remain monitored separately.
+
+## Conditional source removal prerequisite for move
+
+Move must remove only successfully archived source entries after publication,
+without following a replacement symlink or adopting a replacement directory.
+Added an independent atomicEntryRemoval capability and removeEntryConditional
+operation checking parent identity and final-entry identity/type/revision. Memory
+supports regular files, symlinks and empty directories without recursive deletion;
+scope, mount and device views enforce capability, lifetime and mutation admission.
+Read-only and quota views hide the new operation. Existing conditional file APIs
+and retained cleanup remain unchanged. Initial failing memory/scope/device cases
+validate absent support; corrected the mount fixture constructor before checking
+that view. Thirty-seven memory cases cover exact types, replacements, stale/unknown
+snapshots, nonempty directories, cancellation/budget refusal, hardlinks, protected
+paths, capability denial and restricted views. Sixty-two focused filesystem tests,
+workspace typecheck and scoped lint pass. Full maintained unit verification is
+required before pushing this shared-contract change. ZIP m integration remains
+open alongside the other major requirements. Scoped release 35022183021 succeeded.

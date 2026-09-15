@@ -3,7 +3,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -21,14 +21,14 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+  atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
-    atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
+    atomicEntryRemoval: ["removeEntryConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
     streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
     symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"],
@@ -339,6 +339,13 @@ export class DeviceFileSystem implements FileSystem {
     await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options, options.expected === null);
     if (!this.#filesystem.writeFileConditional) throw new FsError("ENOTSUP", { path });
     return this.#filesystem.writeFileConditional(path, data, options);
+  }
+
+  async removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicEntryRemoval", options);
+    if (!this.#filesystem.removeEntryConditional) throw new FsError("ENOTSUP", { path });
+    await this.#filesystem.removeEntryConditional(path, options);
   }
 
   async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {

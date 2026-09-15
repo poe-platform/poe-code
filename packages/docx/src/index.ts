@@ -152,3 +152,4 @@ export { inspectDocumentProperties, editDocumentProperties, type PropertyInspect
 export { inspectDocumentImages, extractDocumentImages, ImageExtractionPublicationError, ImageExtractionCancellationError, type ImageDetails, type ImageRecord, type ImageInspectionData, type ImageInspectionOptions, type ImageExtractionManifestV1, type ImageExtractionData, type ImageExtractionContext } from "./images.js";
 export { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
 export { insertDocumentImage, type ImageInsertionRequest, type ImageInsertionData, type ImageInsertionContext, type ImageBinaryResolver } from "./image-insertion.js";
+export { Image, type ImageModelContext, type ImageModelInput } from "./image-model.js";

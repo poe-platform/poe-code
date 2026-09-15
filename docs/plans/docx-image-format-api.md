@@ -78,6 +78,10 @@ guarded lint retry. The final v3 retry passed exit 0, complete 12621/12621 subje
 /tmp/docx69-root-final-guarded-lint-v3.log. Implementation/test statuses remain
 open pending atomic local commits. No push or release, no later task started.
 
+Local atomic delivery begins with 3b6dd8003 (sole/shared reconciliation and
+preparation mapping) and 6117a1e99 (original bounded characterization fixtures
+and cases). The matching standalone value API follows as a separate improvement.
+
 Initial ownership is read-only investigation, not implementation authorization.
 Root additionally owns docs/specs/office-sdk.md solely to qualify the shared
 live-owner rule for document/presentation-owned objects and immutable values.

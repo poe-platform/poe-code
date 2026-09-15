@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
+import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
 
 it("ships the optional document API and command with matching portable runtime and type routes", async () => {
   const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
@@ -52,6 +53,23 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.extractDocumentImages).toBeTypeOf("function");
   expect.soft(runtime.insertDocumentImage).toBeTypeOf("function");
   expect.soft(runtime.characterizeRasterHeader).toBeTypeOf("function");
+  expect.soft(runtime.Image?.from_blob).toBeTypeOf("function");
+  expect.soft(runtime.Image?.from_file).toBeTypeOf("function");
+  if (runtime.Image?.from_blob) {
+    const bytes = rasterPng(3, 5);
+    const pending = runtime.Image.from_blob(bytes);
+    expect(pending).toBeInstanceOf(Promise);
+    const image = await pending;
+    expect(image.content_type).toBe("image/png");
+    expect(image.filename).toBe("image.png");
+    expect(image.width.emu).toBe(38100);
+    expect(image.height.emu).toBe(63500);
+    expect(image.scaled_dimensions(76200).map((length: { emu: number }) => length.emu)).toEqual([76200, 127000]);
+    const returned = image.blob; returned.fill(0);
+    expect(image.blob).toEqual(bytes);
+    expect(image.sha1).toMatch(/^[0-9a-f]{40}$/u);
+    expect(await runtime.Image.from_file({ open: async function* () { yield bytes; } })).toMatchObject({ content_type: "image/png", filename: "image.png" });
+  }
   const original = await textFixture('<w:p/>');
   if (typeof runtime.inspectDocumentImages === "function") {
     expect(await runtime.inspectDocumentImages(original, { operation: "images.list" }, textContext)).toEqual({ items: [], warnings: [] });

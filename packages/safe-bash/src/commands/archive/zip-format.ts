@@ -339,10 +339,20 @@ export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: 
   const chunkSize = admit(limits, signal);
   const entry: ZipEntry = { name, data: bytes, size: bytes.length, method: 0, crc32: 0, ...attributes, modified: new Date(attributes.modified.getTime()) };
   entryBounds(entry, limits);
+  let textual = false;
+  let binary = false;
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    if (level !== 0 && !entry.directory && !entry.symlink) {
+      for (let index = offset; index < Math.min(bytes.length, offset + chunkSize); index++) {
+        const byte = bytes[index]!;
+        if (byte <= 6 || byte >= 14 && byte <= 25 || byte >= 28 && byte <= 31) binary = true;
+        else if (byte === 9 || byte === 10 || byte === 13 || byte >= 32) textual = true;
+      }
+    }
     entry.crc32 = crc32(bytes.subarray(offset, offset + chunkSize), entry.crc32);
     await yieldTurn(signal);
   }
+  if (level !== 0 && !entry.directory && !entry.symlink) entry.internalAttributes = !binary && textual ? 1 : 0;
   const reader = new CodecReader((async function* () { yield bytes; })(), signal);
   try {
     if (level !== 0 && (bytes.length || forceCompression) && !entry.directory && !entry.symlink) {

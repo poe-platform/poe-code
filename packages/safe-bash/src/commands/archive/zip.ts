@@ -1,4 +1,4 @@
-import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
+import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
@@ -25,7 +25,8 @@ class ZipFailure extends Error {
   constructor(readonly status: number, readonly label: string, detail: string) { super(detail); }
 }
 
-function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
+async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions> {
+  const context = scope.context;
   if (context.args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
   let bytes = 0;
   for (const argument of context.args) {
@@ -48,6 +49,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   let quiet = false;
   let junkPaths = false;
   let level = 6;
+  let stdinNames = false;
   let literal = false;
   let firstOperand = -1;
   const operands: string[] = [];
@@ -65,6 +67,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
         if (flag === "r") recursive = true;
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
+        else if (flag === "@") stdinNames = true;
         else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
         else if (flag === "i" || flag === "x") {
           const patterns = flag === "i" ? includes : excludes;
@@ -94,11 +97,32 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       operands.push(argument);
     }
   }
-  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]");
+  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]");
   if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
-  return { archive, recursive, quiet, junkPaths, includes, excludes, level, operands, firstOperand };
+  const names: string[] = [];
+  if (stdinNames) {
+    const input = await collectBytes(scope.source(context.stdin), { maxBytes: limits.maxFilesFromBytes, signal: context.signal });
+    let start = 0;
+    let lines = 0;
+    for (let end = 0; end <= input.length; end++) {
+      if (end !== input.length && input[end] !== 10) continue;
+      if (++lines > limits.maxPatternSteps) fail("stdin filename work limit exceeded");
+      if (lines % 128 === 0) await yieldTurn(context.signal);
+      let last = end;
+      while (last > start && input[last - 1] === 13) last--;
+      if (last > start) {
+        if (names.length + operands.length >= limits.maxMembers) fail("operand limit exceeded");
+        if (last - start > limits.maxPathBytes) fail("path byte limit exceeded");
+        const name = text(input.subarray(start, last));
+        checkPath(name, limits);
+        names.push(name);
+      }
+      start = end + 1;
+    }
+  }
+  return { archive, recursive, quiet, junkPaths, includes, excludes, level, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -259,7 +283,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     const context = scope.context;
     const budget = new Budget(context, limits);
     try {
-      const parsed = parse(context, limits);
+      const parsed = await parse(scope, limits);
       const prepared = await prepare(scope, parsed, budget);
       await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, prepared)));
       for (const message of prepared.progress) await budget.output(message);

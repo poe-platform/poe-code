@@ -10,6 +10,84 @@ import { archiveBytes, binary, compressed, execute, fixture, members, readOnlyAr
 import { readZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
+import { toByteSource } from "../../src/contracts/index.js";
+
+test("zip -@ reads stdin names before operands and preserves whitespace", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/ spaced ", binary);
+  await fs.writeFile("/work/tab\t", binary);
+  await fs.writeFile("/work/-q", binary);
+  const result = await execute("zip", fs, ["-q", "output.zip", "binary", "-@", "folder/data"], {}, {
+    stdin: toByteSource(" spaced \r\n\ntab\t\n-q\r\r\n"),
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), [" spaced ", "tab\t", "-q", "binary", "folder/data"]);
+});
+
+test("zip -@ supports fragmented UTF-8, a final unterminated line and repeated flags", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/tigér", binary);
+  const bytes = Buffer.from("tigér\nfolder/data");
+  let pulls = 0;
+  const result = await execute("zip", fs, ["-q@@", "output.zip"], {}, {
+    stdin: { async *[Symbol.asyncIterator]() { for (const byte of bytes) { pulls++; yield Uint8Array.of(byte); } } },
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  assert.equal(pulls, bytes.length);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["tigér", "folder/data"]);
+});
+
+for (const { input, limits, diagnostic } of [
+  { input: Buffer.from("binary\n"), limits: { maxFilesFromBytes: 2 }, diagnostic: "maxBytes" },
+  { input: Buffer.from("binary\nfolder/data\n"), limits: { maxMembers: 1 }, diagnostic: "operand limit" },
+  { input: Buffer.from("12345678901234567890\n"), limits: { maxPathBytes: 16 }, diagnostic: "path byte limit" },
+  { input: Uint8Array.of(255, 10), limits: {}, diagnostic: "invalid UTF-8" },
+  { input: Uint8Array.of(98, 0, 10), limits: {}, diagnostic: "NUL" },
+]) {
+  test(`zip -@ rejects ${diagnostic} before publication`, async () => {
+    const fs = await fixture();
+    const before = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q@", "sample.zip"], { limits }, { stdin: toByteSource(input) });
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes(diagnostic), result.stderr);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  });
+}
+
+test("zip -@ with no names returns Nothing to do", async () => {
+  const result = await execute("zip", await fixture(), ["-q@", "output.zip"], {}, { stdin: toByteSource("\n\r\n") });
+  assert.equal(result.exitCode, 12);
+  assert.match(result.stdout.toString(), /Nothing to do/u);
+});
+
+test("zip -@ drains an admitted stdin read before cancellation settles", async () => {
+  const fs = await fixture();
+  let entered!: () => void;
+  let release!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const controller = new AbortController();
+  let closed = false;
+  let settled = false;
+  const pending = execute("zip", fs, ["-q@", "output.zip"], {}, {
+    signal: controller.signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      try { entered(); await held; yield Buffer.from("binary\n"); }
+      finally { closed = true; }
+    } },
+  }).then(value => { settled = true; return value; }, reason => { settled = true; return reason; });
+  try {
+    await started;
+    controller.abort(false);
+    await setImmediate();
+    assert.equal(settled, false);
+  } finally { release(); }
+  assert.equal(await pending, false);
+  assert.equal(closed, true);
+  await assert.rejects(fs.stat("/work/output.zip"), { code: "ENOENT" });
+});
 
 for (let level = 0; level <= 9; level++) {
   test(`zip -q${level} applies the requested compression level`, async () => {

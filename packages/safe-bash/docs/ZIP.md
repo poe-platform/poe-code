@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+`zip [-r] [-q] [-j] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
 creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
@@ -29,6 +29,15 @@ from fastest to maximum compression. The default is `-6`. The last level wins,
 including flags after operands and grouped flags such as `-q9r`. Files that do
 not compress smaller remain stored. Compression levels do not promise identical
 archive bytes to Info-ZIP.
+
+`-@` reads one source filename per stdin line before processing command-line
+operands. Empty lines are ignored; trailing carriage returns are removed, while
+spaces, tabs and leading dashes are preserved. An unterminated final line is
+accepted. Repeated `-@` flags consume stdin once. Filename input is bounded by
+`maxFilesFromBytes`, with the usual combined operand, path and work limits.
+The input stream is owned and drained before cancellation settlement. This option
+reads filename lists; stdin file payloads and stdout archives remain separate
+streaming work.
 
 `zip -j` stores files by basename, discarding their directory paths and omitting
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
@@ -100,7 +109,7 @@ the archive plugin; registration otherwise checks collisions before mutation.
 | `maxPathBytes` | 4096 | Member, filesystem and symlink-target names |
 | `maxDepth` | 128 | Member/traversal depth |
 | `maxPaxBytes` | 1048576 | Shared archive metadata bound; ZIP extra fields also have their format bound |
-| `maxFilesFromBytes` | 1048576 | Overwrite-response input bytes |
+| `maxFilesFromBytes` | 1048576 | Stdin filename lists and overwrite-response input bytes |
 | `maxArgumentBytes` | 65536 | Argument bytes |
 | `maxTextBytes` | 1048576 | Progress, listing and comment bytes; not raw `-p` payload |
 | `maxDiagnosticBytes` | 4096 | Error diagnostic bytes |

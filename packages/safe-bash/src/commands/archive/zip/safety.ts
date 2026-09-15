@@ -46,7 +46,7 @@ export class ZipScope {
       throw error;
     }
   }
-  private source(source: ByteSource): ByteSource {
+  source(source: ByteSource): ByteSource {
     const iterator = source[Symbol.asyncIterator]();
     let closing: Promise<void> | undefined;
     const close = (): Promise<void> => closing ??= (async () => {

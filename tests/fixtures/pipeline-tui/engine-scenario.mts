@@ -94,7 +94,8 @@ const result = await runPipeline({
       const abort = (): void => {
         clearInterval(timer);
         input.signal?.removeEventListener("abort", abort);
-        reject(Object.assign(new Error("fake agent aborted"), { name: "AbortError" }));
+        if (scenario === "cancelled-with-usage") resolve();
+        else reject(Object.assign(new Error("fake agent aborted"), { name: "AbortError" }));
       };
       const timer = setInterval(() => {
         dashboard.appendOutput({
@@ -102,7 +103,7 @@ const result = await runPipeline({
           text: `Fake agent streaming ${++events} · ${scenario}`,
           ts: Date.now()
         });
-        if (scenario !== "cancelled" && events === 10) {
+        if (scenario !== "cancelled" && scenario !== "cancelled-with-usage" && events === 10) {
           clearInterval(timer);
           input.signal?.removeEventListener("abort", abort);
           resolve();
@@ -125,6 +126,8 @@ const report = (): void => {
   console.log(`ENGINE_RESULT ${result.stopReason}`);
   for (const task of persistedTasks) console.log(`TASK_STATUS ${task.id} ${task.status}`);
   console.log(`ENGINE_RUNS ${result.runsCompleted}`);
+  console.log(`ENGINE_TOKENS ${result.metrics.totalInputTokens} ${result.metrics.totalOutputTokens} ${result.metrics.totalCachedTokens}`);
+  console.log(`ENGINE_COUNTS ${result.metrics.tasksCompleted} ${result.metrics.tasksFailed} ${result.metrics.stepsCompleted}`);
 };
 process.exitCode = result.stopReason === "failed" ? 1 : result.stopReason === "cancelled" ? 130 : 0;
 dashboard.updateStats({

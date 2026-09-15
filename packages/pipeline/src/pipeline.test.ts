@@ -4203,6 +4203,8 @@ describe("createPipelineSimulation", () => {
       ].join("\n")
     });
     const controller = new AbortController();
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const onTaskComplete = vi.fn();
 
     const result = await runPipeline({
       agent: "codex",
@@ -4211,13 +4213,16 @@ describe("createPipelineSimulation", () => {
       plan: "docs/plans/plan.md",
       fs,
       signal: controller.signal,
+      onTaskComplete,
       runAgent: async () => {
         controller.abort();
-        return { stdout: "", stderr: "", exitCode: 0 };
+        return { stdout: "", stderr: "", exitCode: 0, usage };
       }
     });
 
     expect(result.stopReason).toBe("cancelled");
+    expect(result.metrics).toMatchObject({ totalInputTokens: 120, totalOutputTokens: 45, totalCachedTokens: 10, tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0 });
+    expect(onTaskComplete).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ success: false, taskCompleted: false, usage }));
     expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toContain("status: open");
   });
 
@@ -4326,13 +4331,13 @@ describe("createPipelineSimulation", () => {
     await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("returns cancelled when teardown aborts while resolving successfully", async () => {
+  it.each(["setup", "teardown"] as const)("keeps known usage when %s aborts while resolving successfully", async (phase) => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
         "kind: pipeline",
         "version: 1",
-        "teardown:",
+        `${phase}:`,
         "  prompt: Clean up",
         "tasks:",
         "  - id: task-1",
@@ -4344,13 +4349,15 @@ describe("createPipelineSimulation", () => {
       ].join("\n")
     });
     const controller = new AbortController();
-    const runAgent = vi
-      .fn()
-      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
-      .mockImplementationOnce(async () => {
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const onTaskComplete = vi.fn();
+    const runAgent = vi.fn(async (input) => {
+      if (input.prompt === "Clean up") {
         controller.abort();
-        return { stdout: "", stderr: "", exitCode: 0 };
-      });
+        return { stdout: "", stderr: "", exitCode: 0, usage };
+      }
+      return { stdout: "", stderr: "", exitCode: 0, usage: { inputTokens: 7, outputTokens: 3, cachedTokens: 2 } };
+    });
 
     const result = await runPipeline({
       agent: "codex",
@@ -4359,10 +4366,22 @@ describe("createPipelineSimulation", () => {
       plan: "docs/plans/plan.md",
       fs,
       signal: controller.signal,
+      onTaskComplete,
       runAgent
     });
 
     expect(result.stopReason).toBe("cancelled");
+    const completedTasks = phase === "teardown" ? 1 : 0;
+    expect(result.metrics).toMatchObject({
+      totalInputTokens: 120 + completedTasks * 7,
+      totalOutputTokens: 45 + completedTasks * 3,
+      totalCachedTokens: 10 + completedTasks * 2,
+      tasksCompleted: completedTasks,
+      tasksFailed: 0,
+      stepsCompleted: completedTasks
+    });
+    expect(onTaskComplete).toHaveBeenCalledWith(expect.objectContaining({ phase, success: false, usage }));
+    expect(onTaskComplete).not.toHaveBeenCalledWith(expect.objectContaining({ phase, success: true }));
   });
 
   it("expands {{file '...'}} in task prompts", async () => {

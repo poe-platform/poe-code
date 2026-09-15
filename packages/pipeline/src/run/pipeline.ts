@@ -282,16 +282,23 @@ async function runResolvedPipeline(
       }
       throw error;
     }
-    if (options.signal?.aborted) {
-      return { success: false, cancelled: true };
-    }
     const durationMs = Date.now() - startTime;
-    const success = result.exitCode === 0;
     if (result.usage) {
       metrics.totalInputTokens += result.usage.inputTokens;
       metrics.totalOutputTokens += result.usage.outputTokens;
       metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
     }
+    if (options.signal?.aborted) {
+      options.onTaskComplete?.({
+        ...phaseProgress,
+        durationMs,
+        success: false,
+        taskCompleted: false,
+        ...(result.usage ? { usage: result.usage } : {})
+      });
+      return { success: false, cancelled: true };
+    }
+    const success = result.exitCode === 0;
     if (success) metrics.stepsCompleted += 1;
     options.onTaskComplete?.({
       ...phaseProgress,
@@ -554,6 +561,11 @@ async function runResolvedPipeline(
         throw error;
       }
 
+      if (result.usage) {
+        metrics.totalInputTokens += result.usage.inputTokens;
+        metrics.totalOutputTokens += result.usage.outputTokens;
+        metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
+      }
       if (options.signal?.aborted) {
         options.onTaskComplete?.({
           ...taskProgress,
@@ -575,11 +587,6 @@ async function runResolvedPipeline(
 
       const taskDurationMs = Date.now() - taskStartTime;
       const success = result.exitCode === 0;
-      if (result.usage) {
-        metrics.totalInputTokens += result.usage.inputTokens;
-        metrics.totalOutputTokens += result.usage.outputTokens;
-        metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
-      }
       if (success) metrics.stepsCompleted += 1;
       const taskCompleted = success && completesTaskOnSuccess(selection.task, selection.stepName);
       if (success) {

@@ -1,9 +1,14 @@
 import { expect, it } from "vitest";
-import { createOutputPreviewBuffer, limitOutputPreview, MAX_OUTPUT_PREVIEW_CHARS } from "./output-preview.js";
+import { createOutputPreviewBuffer, limitOutputPreview, MAX_OUTPUT_PREVIEW_CHARS, retainOutputTail } from "./output-preview.js";
 import { parseAnsi } from "./ansi.js";
 import { createDashboardLineBuffer } from "./line-buffer.js";
 
 const visible = (text: string) => parseAnsi(text).map(line => line.segments.map(segment => segment.text).join("")).join("\n");
+
+it("preserves raw UTF-16 code units when materializing a retained tail", () => {
+  const tail = "\ud800A\udc00B\u2028end";
+  expect(retainOutputTail("old ".repeat(5000) + tail, tail.length)).toBe(tail);
+});
 
 it.each(["\u001bP", "\u001b]", "\u001b[0;", "\u009f"])("recovers visible output after cancelling %s", (opening) => {
   for (const cancel of ["\u0018", "\u001a"]) {

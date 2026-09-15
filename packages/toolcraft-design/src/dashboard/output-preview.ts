@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { createTerminalStringFilter, terminalControlTailStart } from "./terminal-strings.js";
 
 export const MAX_OUTPUT_PREVIEW_CHARS = 16_384;
@@ -13,7 +14,8 @@ export function retainOutputTail(text: string, maxChars: number): string {
     if (firstCodeUnit >= 0xdc00 && firstCodeUnit <= 0xdfff) start += 1;
   }
   // Materialize the bounded tail rather than retaining a large substring backing store.
-  return JSON.parse(JSON.stringify(text.slice(start))) as string;
+  // UTF-16 preserves lone surrogate code units as well as complete Unicode text.
+  return Buffer.from(text.slice(start), "utf16le").toString("utf16le");
 }
 
 export function limitOutputPreview(text: string): string {

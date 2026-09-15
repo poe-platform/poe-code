@@ -1,3 +1,4 @@
+import { compareDocument, type DocumentDiffOptions } from "./diff.js";
 import { executeContentRemovalCommand } from "./removal-command.js";
 import { executeObjectsCommand, ObjectCommandPublicationError } from "./objects-command.js";
 import { ObjectExtractionCancellationError, type ObjectExtractionData } from "./objects.js";
@@ -91,7 +92,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let exitCode = 0;
       let imageReceipt: ImageExtractionData | ObjectExtractionData | undefined;
       const sinkFailure = (cause: unknown): DocxInspectionCommandResult => {
-        if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: 3 }; }
+        if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: invocation.operation === "diff" ? 2 : 3 }; }
         const extraction = { ...imageReceipt, complete: false };
         if (request.signal.aborted || cause instanceof CancellationError) {
           const published = [...extraction.entries.filter(entry => entry.published).map(entry => ({ path: entry.path, bytes: entry.bytes })), ...(extraction.manifest.published ? [{ path: extraction.manifest.path, bytes: extraction.manifest.bytes }] : [])];
@@ -125,7 +126,22 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const signatureOperation = ["signatures.list", "signatures.remove"].includes(invocation.operation);
       const packageResourceOperation = signatureOperation || invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
-        if (invocation.operation === "create") {
+        if (invocation.operation === "diff") {
+          acquiring = true;
+          const inputs: Uint8Array[] = [];
+          for (const input of invocation.inputs) {
+            inputs.push(await io.readBytes({ open(signal) {
+              if (input === "-") return request.stdin;
+              const path = resolvePath(request.cwd, input);
+              return request.filesystem.readStream ? request.filesystem.readStream(path, { signal }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+            } }));
+          }
+          acquiring = false;
+          const data = await compareDocument(inputs[0]!, inputs[1]!, context, invocation.options as DocumentDiffOptions);
+          exitCode = data.equal ? 0 : 1;
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: "diff", ok: true, data, warnings: [], errors: [], affected: 0, locations: [] }) + "\n" : `docx diff: ${data.equal ? "equal" : "different"} (${data.mode}); ${data.differences.length} changed parts\n`);
+          budget.check("serializedOutput", output.length);
+        } else if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
@@ -264,9 +280,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
         request.signal.throwIfAborted();
         if (error instanceof CancellationError) throw error;
-        if (writingDiagnostics) return { exitCode: 3 };
+        if (writingDiagnostics) return { exitCode: invocation.operation === "diff" ? 2 : 3 };
         const code = error instanceof ResourceLimitError ? "limit-exceeded" : acquiring ? "source-failure" : error && typeof error === "object" && "code" in error ? String(error.code) : "invalid-document";
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
+        if (invocation.operation === "diff") exitCode = 2;
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
         const batchFailure = invocation.operation === "batch" && error instanceof Error && "operationIndex" in error && "operationId" in error

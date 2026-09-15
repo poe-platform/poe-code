@@ -173,3 +173,5 @@ export { removeDocumentContent, type ContentRemovalOperation, type ContentRemova
 
 export { applyDocumentTemplate } from "./template.js";
 export type { DocxTemplateRecord } from "./operation-types.js";
+
+export { compareDocument, type DocumentDiffData, type DocumentDiffOptions, type DocumentDiffScope } from "./diff.js";

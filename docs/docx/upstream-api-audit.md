@@ -265,3 +265,11 @@ Finite numbers remain typed record values but cannot coerce to unbound text;
 strings/booleans follow their declared control kinds. No live model or whole
 public surface is promoted. The historical inventory is unchanged; later tasks,
 template utility batches and corpus/renderer qualification remain pending.
+
+The [bounded comparison record](../plans/docx-semantic-document-diff.md) adds
+explicitly scoped F48 utility comparison and records exact async byte/VFS,
+error/status and cumulative-budget JS/security mappings. It resolves the missing
+diff scope/default contract without promoting Document/Package/Part/XmlPart,
+inherited, collection, helper, enum or public underscore-prefixed obligations.
+The pinned inventory and documentation-error dispositions remain historical;
+later tasks and whole-model coverage remain pending.

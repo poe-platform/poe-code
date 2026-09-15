@@ -1880,3 +1880,26 @@ it.each([[50, 6], [50, 5], [20, 6]])("keeps the footer frame intact with plan co
     });
   } finally { vi.useRealTimers(); }
 });
+
+it.each([[120, 24], [50, 16]])("pages through consecutive history with fixed plan context at %sx%s", (cols, rows) => {
+  vi.useFakeTimers();
+  try {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(cols, rows);
+      const dashboard = createDashboard({ stdin, stdout, rightPaneWidth: 44 });
+      dashboard.start();
+      dashboard.updateStats({ context: ["Plan: first.md", "Next: second.md", "Next: third.md"] });
+      for (let index = 0; index < 100; index++) dashboard.appendOutput({ kind: "tool", text: `entry ${index}`, ts: index });
+      vi.advanceTimersByTime(20);
+      const before = renderTerminalOutput(stdout.output, cols, rows);
+      const visibleEntries = before.filter(line => line.includes("entry ")).length;
+      stdin.emit("data", Buffer.from("\u001b[5~"));
+      vi.advanceTimersByTime(20);
+      const after = renderTerminalOutput(stdout.output, cols, rows).join("\n");
+      expect(after).toContain(`entry ${99 - visibleEntries}`);
+      expect(after).not.toContain(`entry ${100 - visibleEntries}`);
+      dashboard.destroy();
+    });
+  } finally { vi.useRealTimers(); }
+});

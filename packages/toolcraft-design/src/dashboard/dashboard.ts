@@ -64,6 +64,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   const performanceMonitor = createRenderPerformanceMonitor();
   let showPerformance = false;
   let scrollOffset = 0;
+  let outputViewportHeight = 0;
   let heldOutput: OutputItem[] | undefined;
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -148,14 +149,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         command === "page-up" ||
         command === "page-down"
       ) {
-        const page = Math.max(
-          1,
-          computeDashboardLayout({
-            totalWidth: driver!.getSize().cols,
-            totalHeight: driver!.getSize().rows,
-            rightPaneWidth
-          }).leftPane.height
-        );
+        const page = Math.max(1, outputViewportHeight);
         const amount = command === "page-up" || command === "page-down" ? page : 1;
         const direction = command === "scroll-up" || command === "page-up" ? 1 : -1;
         if (direction > 0) heldOutput ??= getStore().getState().output;
@@ -263,9 +257,10 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         layout.rightPane.height -= height;
       }
     }
+    outputViewportHeight = Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0));
     scrollOffset = renderOutputPane(
       nextBuffer,
-      { ...layout.leftPane, height: Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0)) },
+      { ...layout.leftPane, height: outputViewportHeight },
       heldOutput ?? state.output,
       scrollOffset
     );

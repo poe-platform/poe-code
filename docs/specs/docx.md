@@ -539,7 +539,9 @@ helpers and aliases. No arbitrary strings/numbers substitute for enums.
 
 Profiles are compositional applicability rules, not permission to ignore flags:
 `read` allows json/limit; `selectedRead` adds section 6.3 selection/scope;
-`edit` adds output/inPlace/force/dryRun/allowEmpty to read; `selectedEdit` adds
+`edit` adds output/inPlace/force/dryRun/allowEmpty to read; `equationEdit` adds
+only required select to edit, with the exact applicability in section 6.5.4;
+`selectedEdit` adds
 valid selection and explicit supported all; `create` allows json/limit/output/
 force/dryRun/timestamp/author; `extract` allows json/limit/outputDir/force/
 allowPartialOutput and applicable resource selection; `batch` allows json/limit/
@@ -658,7 +660,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `shapes list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F36                                                                                                |
 | `charts list` | read | none | ResourceListData | F37 |
 | `diagrams list`         | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F38                                                                                                |
-| `equations list`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F39                                                                                                |
+| `equations list`        | read | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | EquationListData | F39                                                                                                |
 | `objects list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F40                                                                                                |
 | `signatures list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F43                                                                                                |
 | `settings list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F42                                                                                                |
@@ -666,8 +668,8 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `custom-xml list`       | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
 | `glossary list`         | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
 | `shapes set`            | selectedEdit | `text!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F36                                                                                                |
-| `equations add`         | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
-| `equations replace`     | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
+| `equations add`         | equationEdit | `file!`: VfsInput; `select!`: string | MutationData | F39                                                                                                |
+| `equations replace`     | equationEdit | `file!`: VfsInput; `select!`: string | MutationData | F39                                                                                                |
 | `objects extract`       | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F40                                                                                                |
 | `signatures remove`     | edit         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F43                                                                                                |
 | `lorem set`             | selectedEdit | `seed!`: safe integer; `words?`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F45                                                                                                |
@@ -2173,6 +2175,194 @@ cancellation and paired SDK/actual Shell behavior. Corpus absence, limit failure
 and unavailable real SmartArt/rendering profiles remain separately qualified;
 preparation or reference recognition tests do not establish live model parity.
 
+### 6.5.4 Bounded OMML equation inventory and explicit fragments
+
+F39 exposes physical OMML inventory plus explicit bounded fragment add/replace.
+It MUST NOT evaluate expressions, infer mathematical meaning, convert LaTeX,
+render, discover fonts, activate resources or expand MCE understanding. Namespace
+authority uses the admitted package's matching math namespace: Transitional
+`http://schemas.openxmlformats.org/officeDocument/2006/math` or Strict
+`http://purl.oclc.org/ooxml/officeDocument/math`. WordprocessingML `w:oMath` is a
+run-formatting property, not an OMML expression or new equation-model API.
+
+`equations.list` is a package-global physical read with only json/limit. All
+selectors and scope flags MUST reject as usage before input acquisition. Observe
+outer matching-namespace `m:oMath` and `m:oMathPara` units in admitted XML,
+including inactive/opaque/unreachable storage. An oMathPara is one display unit;
+its direct matching oMath children have explicit raw `mathPaths` and MUST NOT also
+produce separate inline records. An outer oMath without a containing math unit
+is one inline unit. Descendants of either unit MUST NOT create duplicate units.
+Wrong/foreign hosts or unsupported stored trees remain preserve-only physical
+evidence with issues, never guessed editable logical equations. Existing XML /
+OPC/dialect admission failures remain failures; this profile does not validate
+every stored math tree against the full primary schema.
+
+Each record has an existing source-bound `part` Location at the unit's raw
+namespace-qualified element-child path, generation zero, no range and empty
+readable positions. Its story is the applicable admitted physical story identity
+or its physical part when no admitted story applies. Records sort by canonical
+owner part and lexicographic numeric raw path. Incoming physical owner references
+and original outgoing owner relationships are inert metadata in existing canonical
+Reference order. List position is not an equation ordinal, rendered count or
+mathematical value. Existing inspection `counts.equations` retains its count of
+exposed oMath expressions; grouped raw unit counts can differ, especially in
+multi-expression displays and inactive/opaque storage. `active` describes exposure
+of that raw unit itself in the existing compatibility projection; selected branch
+ancestry MUST NOT manufacture active descendants of opaque nodes.
+
+Property snapshots retain expanded names, exact raw paths and stored attribute
+strings without computed defaults, coercion, inheritance, layout or evaluation.
+Recognize native math property wrappers accPr/barPr/boxPr/borderBoxPr/dPr/eqArrPr/
+fPr/funcPr/groupChrPr/limLowPr/limUppPr/mPr/naryPr/phantPr/radPr/sPrePr/sSubPr/
+sSubSupPr/sSupPr/rPr/argPr/ctrlPr/oMathParaPr and their stored descendants in
+their physical math context. Preserve associated matching WordprocessingML
+run/control property subtrees as inert metadata. Snapshot wrapper and descendant
+nodes individually, including duplicates, missing/empty values and unsupported
+attributes; do not dump source XML or equation text into issues. Property scope is
+display for oMathParaPr, run for rPr, argument for argPr, equation for other math
+properties and global for mathPr. Descendants inherit the nearest property scope.
+`stored` identifies recognized native stored metadata only, not schema validation
+or edit authority; foreign/unsupported context or attributes are opaque with
+bounded static issues. Attributes sort by namespace/local name; properties sort
+by part/numeric path. `globalProperties` additionally snapshots each direct mathPr
+and descendants in matching declared Word settings parts with an expanded settings
+root, including orphan parts. No property getter creates settings or fonts.
+
+The following exact closed utility snapshots replace the generic equations detail
+arm; global properties are present even when the physical unit list is empty.
+
+```typescript
+type EquationPropertyScope = "equation" | "run" | "argument" | "display" | "global";
+type EquationIssue = { code: string; part: string; path: number[]; message: string };
+type EquationAttribute = { namespace: string; localName: string; value: string };
+type EquationProperty = { scope: EquationPropertyScope; part: string; path: number[];
+  namespace: string; localName: string; attributes: EquationAttribute[];
+  status: "stored" | "opaque"; issues: EquationIssue[] };
+type EquationDetails = { kind: "equations"; mode: "inline" | "display";
+  ownerPart: string; root: { namespace: string; localName: string }; path: number[];
+  mathPaths: number[][]; active: boolean; properties: EquationProperty[];
+  status: "bounded" | "opaque"; issues: EquationIssue[] };
+type EquationRecord = { kind: "equations"; location: Location; name: string;
+  properties: []; references: Reference[]; support: "edit" | "preserve";
+  details: EquationDetails };
+type EquationInspectionData = { items: EquationRecord[];
+  globalProperties: EquationProperty[]; warnings: { code: string; message: string }[] };
+type EquationListData = { items: EquationRecord[]; globalProperties: EquationProperty[] };
+```
+
+The public SDK utilities are inspectDocumentEquations, addDocumentEquation and
+replaceDocumentEquation, corresponding to equations.list/add/replace and their
+declared typed arguments. The inspector returns EquationInspectionData; list JSON moves warnings to the standard
+envelope with EquationListData, affected zero and ordered record locations. Empty
+inventory succeeds. Bounded status means only the declared fragment grammar below;
+it MUST NOT imply full XSD, mathematical correctness or safe host authority.
+Record support is edit only for an active bounded unit in an admitted unambiguous
+editable native paragraph context below; all others are preserve with reasons.
+Generated result schemas MUST expose every closed nested field. Help/capabilities
+MUST distinguish physical read/preservation, explicit supported fragments and
+unsupported full math/model/layout/rendering profiles.
+
+The equationEdit option profile contains only json/limit/output/inPlace/force/
+dryRun/allowEmpty/select. Add and replace each require select plus file in CLI,
+SDK and typed batch schemas; common publication conflict rules still apply.
+All other selectors, scope and all-selection are inapplicable before acquisition.
+`equations.add` requires one emitted current whole-paragraph select token.
+No run, image, shape, link, field, control, bookmark, revision, range/caret or
+block-container insertion is supported. Add appends exactly one
+validated fragment root as the final direct child of that existing native w:p,
+retaining every prior child/marker/attribute and its bytes. Root oMath yields inline;
+oMathPara yields display within that paragraph. No implicit new paragraph, caret
+splitting, adjacent content replacement or mode conversion occurs.
+
+`equations.replace` requires one select token emitted for an existing physical
+equation unit. Resolve the token against acquired
+source fingerprint, raw path and physical story; only that native unit is targeted.
+Replacement MUST retain the same expanded root/mode, including a whole display
+group when its wrapper is selected. It MUST NOT replace just one inner display
+member using a fabricated token or mutate adjacent math/paragraph content.
+
+Both mutations use an existing admitted editable story paragraph, whose unit /
+anchor is exposed directly through existing understood transparent MCE wrappers
+and compatible native story/block ancestry. Foreign wrappers, inactive/opaque
+math, fields/control/review/unsupported compound ancestry, protected or signed
+content and ambiguous shared header/footer appearances MUST refuse. Text-box
+story mutation remains outside this first equation profile. Resolve and validate
+host selection/ownership/staleness and supported existing replacement tree before
+opening fragment input; invalid/unsupported hosts MUST NOT acquire fragment bytes.
+`file` uses existing BinaryInput in the SDK and an explicit scoped VfsInput path
+at the CLI, with the same operation IDs/options. No ambient path or implicit
+network resource resolution is permitted. Snapshot invocation/input/fragment bytes
+before asynchronous use; apply inherited and caller-lowered admission/work/retention/
+output limits and cancellation at acquisition, parsing, traversal and publication.
+
+New fragment input is exactly one standalone matching-namespace oMath/oMathPara
+root under existing UTF-8/UTF-16 XML byte admission. An optional valid XML
+declaration is standalone framing, never inserted paragraph content. Other
+processing instructions/comments are outside this new-input profile, including
+inside the root. This math-only utility grammar deliberately narrows full primary XSD WML
+content/property groups. It supports only these ordered structures:
+
+- oMath contains zero or more mathematical r/f/m/sSub children.
+- oMathPara has optional oMathParaPr first, then one or more oMath children.
+- r has optional rPr first, then zero or more t children.
+- f has optional fPr first, exactly one num, then exactly one den.
+- m has optional empty mPr first, then one or more mr; each mr has one or more e.
+- sSub has optional empty sSubPr first, exactly one e, then exactly one sub.
+- num/den/e/sub each have optional argPr first, then zero or more r/f/m/sSub.
+- argPr has optional argSz; fPr has optional type; oMathParaPr has optional jc.
+- rPr has optional lit, then either optional nor or optional scr then optional sty,
+  then optional brk and optional aln. Nor MUST NOT coexist with scr/sty.
+
+Empty oMath/arguments/run text and ragged matrix rows are permitted within these
+cardinalities; the primary XSD does not require nonempty expressions or rectangular
+matrices. Structural whitespace outside t is permitted, not literal content.
+t contains only literal XML text and optional xml:space default/preserve. It is
+never interpreted as an expression language. Other attributes are prohibited
+except namespace declarations binding the matching math or fixed XML namespace
+and exact qualified math attributes on empty property leaves:
+type requires val bar/skw/lin/noBar; argSz requires an XML-integer val in -2..2;
+jc has optional val left/right/center/centerGroup; scr has optional val roman/script/
+fraktur/double-struck/sans-serif/monospace; sty has optional val p/b/i/bi; lit/nor/
+aln have optional val true/false/1/0 (Transitional additionally on/off); brk has
+optional alnAt integer1..255. Integer/boolean whitespace follows XML-schema lexical
+normalization; string enumerations remain exact. No additional property children,
+unqualified val, imported WML/control properties, resources/relationships, drawings,
+links/objects, foreign namespace elements/attributes, MCE or extension wrappers
+are admitted. Unsupported schema-valid math remains unsupported by this explicit
+profile, not falsely declared invalid against the full XSD. Existing XML admission
+rejects malformed encoding/XML, DTD/entities and multiple roots. Root/namespace/
+structure/property misuse MUST refuse before publication with the stable shared
+failure model. Well-formed root/namespace/cardinality/property violations and
+unsupported fragment families outside this bounded grammar use unsupported-edit, while malformed
+XML retains existing invalid-document admission categories. No full XSD validator
+or external schema fetch enters product/build closure.
+
+Changed successful add/replace returns existing MutationData with affected one, one current
+generation/location for the inserted/replacement physical unit, standard warnings
+and publication metadata. An identical byte replacement preserves existing no-op /
+allowEmpty behavior. Ordinary admitted text/metadata/image edits MUST retain every
+untargeted OMML/resource/property byte, relationship/content-type declaration and
+unaffected member order. Raw XML replacement changing stored math units or global
+math properties MUST refuse unsupported-edit with an original source-bound unit /
+property raw-path part Location, rather than claim arbitrary whole-part math
+validation. Unchanged byte no-op and unrelated writable leaf replacement remain
+admissible when stored math and namespace context are unchanged. Added math with
+no source counterpart identifies existing owner root []; existing mutation/removal
+uses original offending raw path even when proposed content relocates it.
+Destructive containing paragraph/subtree edits MUST refuse with the existing
+containing paragraph Location. SDK error, JSON diagnostic token and standard
+failure locations MUST agree, affected zero and no prepublication output; existing
+source and destination bytes remain unchanged.
+
+Original tests MUST cover both matching dialects, inline/multiple-expression
+display units, fraction/matrix/subscript grammar and properties, empty/ragged valid
+cases, malformed/unsupported/resource-bearing input, stale/ambiguous/foreign/
+inactive hosts and poison fragment pre-acquisition refusal, unrelated retention,
+precise located errors, snapshot limits/cancellation, closed public types/schemas
+and paired SDK/actual Shell/virtual.sh behavior. The manifest's stored-expression
+census is QA preparation only; list-unit grouping, full-input limits, available
+round-trip profiles and rendering/model gaps remain explicitly qualified.
+
 ### 6.6 Closed JSON input types
 
 These are documentary type declarations for schema generation, not product code.
@@ -2766,6 +2956,7 @@ type ResourceDetails =
     }
   | ChartDetails
   | DiagramDetails
+  | EquationDetails
   | {
       kind: "headers" | "footers";
       section: number;
@@ -2776,7 +2967,6 @@ type ResourceDetails =
   | {
       kind:
         | "shapes"
-        | "equations"
         | "objects"
         | "signatures"
         | "fonts";

@@ -32,6 +32,7 @@ import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
 import { StdioOutput } from "./stdio-output.js";
 import { StdioInput } from "./stdio-input.js";
+import { isJsonValue } from "./json-value.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
@@ -1042,7 +1043,7 @@ function isCallToolResult(value: unknown): value is CallToolResult {
   if (
     hasOwnProperty(value, "structuredContent") &&
     value.structuredContent !== undefined &&
-    !isJsonObject(value.structuredContent)
+    (!isJsonObject(value.structuredContent) || !isJsonValue(value.structuredContent))
   ) {
     return false;
   }
@@ -1080,10 +1081,10 @@ function normalizeToolResult(
   const callToolResult = isCallToolResult(handlerResult) ? handlerResult : undefined;
   const structuredContent = callToolResult ? callToolResult.structuredContent : handlerResult;
 
-  if (!isJsonObject(structuredContent)) {
+  if (!isJsonObject(structuredContent) || !isJsonValue(structuredContent)) {
     throw new ToolError(
       JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-      "Structured tool result must be an object"
+      "Structured tool result must be a JSON object"
     );
   }
 

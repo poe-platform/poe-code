@@ -5,7 +5,7 @@ import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import type { FooterHint } from "./components/footer.js";
 import { renderOutputPane } from "./components/output-pane.js";
-import { renderStatsPane } from "./components/stats-pane.js";
+import { renderCompactStatsPane, renderStatsPane } from "./components/stats-pane.js";
 import { createKeymap } from "./keymap.js";
 import { computeDashboardLayout } from "./layout.js";
 import { createStore } from "./store.js";
@@ -228,6 +228,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     );
     if (scrollOffset === 0) heldOutput = undefined;
     renderStatsPane(nextBuffer, layout.rightPane, state.stats);
+    if (layout.summary) renderCompactStatsPane(nextBuffer, layout.summary, state.stats);
     renderFooter(nextBuffer, layout.footer, footerHints);
 
     driver.flush(diff(previousBuffer, nextBuffer));

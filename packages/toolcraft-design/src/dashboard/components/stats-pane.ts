@@ -1,10 +1,38 @@
 import { getTheme } from "../../internal/theme-detect.js";
 import { ScreenBuffer } from "../buffer.js";
+import { parseAnsi } from "../ansi.js";
 import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
 import { computeVisualLines, type VisualLine } from "./output-pane.js";
 
 type StatusTone = "error" | "info" | "muted" | "success" | "warning";
+
+export function renderCompactStatsPane(
+  buffer: ScreenBuffer,
+  rect: Rect,
+  stats: DashboardStats
+): void {
+  buffer.clearRect(rect);
+  if (rect.width <= 0 || rect.height <= 0) return;
+  const status = formatStatus(stats.status);
+  const metrics = `${status} · ${stats.iterationsLabel ?? "Iteration"} ${formatNumber(stats.iterations)} · ${formatElapsed(stats.elapsedMs)} · ${formatNumber(stats.tokensIn + stats.tokensOut)} tokens`;
+  const firstLine =
+    rect.height === 1 && stats.currentAction ? `${status} · ${stats.currentAction}` : metrics;
+  const messages = [firstLine, stats.currentAction ?? ""].map((text) =>
+    parseAnsi(text)
+      .map((line) => line.segments.map((segment) => segment.text).join(""))
+      .join(" ")
+  );
+  buffer.putInRect(
+    rect,
+    0,
+    truncateToWidth(messages[0]!, rect.width),
+    getStatusStyle(stats.status)
+  );
+  if (rect.height > 1 && stats.currentAction !== undefined) {
+    buffer.putInRect(rect, 1, truncateToWidth(messages[1]!, rect.width), getToneStyle("muted"));
+  }
+}
 
 export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: DashboardStats): void {
   buffer.clearRect(rect);

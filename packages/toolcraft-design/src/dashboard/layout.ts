@@ -4,6 +4,7 @@ const DEFAULT_RIGHT_PANE_WIDTH = 25;
 const DEFAULT_FOOTER_HEIGHT = 1;
 const DEFAULT_BORDER_WIDTH = 1;
 const MIN_LEFT_PANE_WIDTH = 20;
+const MIN_READABLE_OUTPUT_WIDTH = 40;
 
 export type LayoutOptions = {
   totalWidth: number;
@@ -14,6 +15,7 @@ export type LayoutOptions = {
 };
 
 export type DashboardLayout = {
+  summary?: Rect;
   outerBorder: Rect;
   leftPane: Rect;
   rightPane: Rect;
@@ -31,8 +33,8 @@ export function computeDashboardLayout(opts: LayoutOptions): DashboardLayout {
   const maxX = Math.max(0, totalWidth - 1);
   const maxY = Math.max(0, totalHeight - 1);
   const outerBorder: Rect = { x: 0, y: 0, width: totalWidth, height: totalHeight };
-  const innerWidth = Math.max(0, totalWidth - (borderWidth * 2));
-  const innerHeight = Math.max(0, totalHeight - (borderWidth * 2));
+  const innerWidth = Math.max(0, totalWidth - borderWidth * 2);
+  const innerHeight = Math.max(0, totalHeight - borderWidth * 2);
   const innerX = clampCoordinate(borderWidth, maxX);
   const innerY = clampCoordinate(borderWidth, maxY);
   const dividerWidth = innerWidth > 0 ? 1 : 0;
@@ -62,7 +64,7 @@ export function computeDashboardLayout(opts: LayoutOptions): DashboardLayout {
   const footerDividerLeft = innerX;
   const footerDividerRight = clampCoordinate(Math.max(innerX, totalWidth - borderWidth - 1), maxX);
 
-  return {
+  const layout: DashboardLayout = {
     outerBorder,
     leftPane,
     rightPane,
@@ -83,6 +85,23 @@ export function computeDashboardLayout(opts: LayoutOptions): DashboardLayout {
       right: footerDividerRight
     }
   };
+  if (
+    innerWidth > 0 &&
+    requestedRightPaneWidth > 0 &&
+    availablePaneWidth < MIN_READABLE_OUTPUT_WIDTH + requestedRightPaneWidth
+  ) {
+    const summaryHeight = Math.min(2, contentHeight);
+    layout.summary = { x: innerX, y: innerY, width: innerWidth, height: summaryHeight };
+    layout.leftPane = {
+      x: innerX,
+      y: innerY + summaryHeight,
+      width: innerWidth,
+      height: Math.max(0, contentHeight - summaryHeight)
+    };
+    layout.rightPane = { x: maxX, y: innerY, width: 0, height: 0 };
+    layout.divider = { x: maxX, top: innerY, bottom: innerY };
+  }
+  return layout;
 }
 
 function computeLeftPaneWidth(availablePaneWidth: number, requestedRightPaneWidth: number): number {

@@ -352,12 +352,12 @@ describe("computeDashboardLayout", () => {
     });
   });
 
-  it("keeps the left pane at a minimum width of 20 columns when space is tight", () => {
+  it("uses full-width logs with compact stats when space is tight", () => {
     const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 24 });
 
-    expect(layout.leftPane).toEqual({ x: 1, y: 1, width: 20, height: 20 });
-    expect(layout.divider).toEqual({ x: 21, top: 1, bottom: 20 });
-    expect(layout.rightPane).toEqual({ x: 22, y: 1, width: 17, height: 20 });
+    expect(layout.leftPane).toEqual({ x: 1, y: 3, width: 38, height: 18 });
+    expect(layout.divider).toEqual({ x: 39, top: 1, bottom: 1 });
+    expect(layout.rightPane).toEqual({ x: 39, y: 1, width: 0, height: 0 });
   });
 
   it("accounts for borders, divider, and footer when calculating heights", () => {
@@ -402,11 +402,11 @@ describe("renderBorder", () => {
 
     renderBorder(buffer, layout, { style: { fg: "cyan" } });
 
-    expect(readRow(buffer, 0)).toBe("┌────────────────────┬───────┐");
-    expect(readRow(buffer, 5)).toBe("├────────────────────┴───────┤");
+    expect(readRow(buffer, 0)).toBe("┌────────────────────────────┐");
+    expect(readRow(buffer, 5)).toBe("├────────────────────────────┤");
     expect(readRow(buffer, 7)).toBe("└────────────────────────────┘");
     expect(buffer.get(0, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
-    expect(buffer.get(21, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
+    expect(buffer.get(21, 1)).toEqual({ ch: " ", style: {} });
     expect(buffer.get(29, 1)).toEqual({ ch: "│", style: { fg: "cyan" } });
     expect(buffer.get(21, 6)).toEqual({ ch: " ", style: {} });
   });
@@ -421,7 +421,7 @@ describe("renderBorder", () => {
       style: { fg: "green", bold: true }
     });
 
-    expect(readRow(buffer, 0)).toBe("┌─ Agent Output ─────┬─ Stats ─────────┐");
+    expect(readRow(buffer, 0)).toBe("┌─ Agent Output ───────────────────────┐");
     expect(buffer.get(1, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
     expect(buffer.get(3, 0)).toEqual({ ch: "A", style: { fg: "green", bold: true } });
     expect(buffer.get(22, 0)).toEqual({ ch: "─", style: { fg: "green", bold: true } });
@@ -450,12 +450,12 @@ describe("renderBorder", () => {
     const layout = computeDashboardLayout({ totalWidth: 40, totalHeight: 8 });
 
     renderBorder(buffer, layout, {
-      leftTitle: "ABCDEFGHIJKLMNOPQRSTUVWX",
+      leftTitle: "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ",
       rightTitle: "12345678901234567890",
       style: { fg: "yellow" }
     });
 
-    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQR┬─ 123456789012345┐");
+    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ┐");
   });
 
   it("preserves top and bottom junctions when the divider touches the outer frame", () => {

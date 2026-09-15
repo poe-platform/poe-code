@@ -42,6 +42,18 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it.each(["ABCDEF", "界界AB"])("preserves %s when a tab crosses existing cells", (text) => {
+    expect(parseAnsi(`${text}\r\tX`)).toEqual([
+      { segments: [{ text: `${text}  X`, style: {} }] }
+    ]);
+  });
+
+  it("preserves the styles of cells skipped by a tab", () => {
+    expect(parseAnsi("\u001b[31mABCDEF\u001b[0m\r\tX")).toEqual([
+      { segments: [{ text: "ABCDEF", style: { fg: "red" } }, { text: "  X", style: {} }] }
+    ]);
+  });
+
   it("uses terminal tab stops when text is overwritten after a carriage return", () => {
     expect(parseAnsi("a\tB\rX")).toEqual([
       { segments: [{ text: "X       B", style: {} }] }

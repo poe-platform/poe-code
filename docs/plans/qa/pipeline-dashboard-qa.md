@@ -171,3 +171,7 @@ Use an isolated executable wrapper that records its PID, chooses activity-timeou
 ## Partial output before completion
 
 Launch the actual CLI with the isolated activity-timeout fake and wait for first attempt warning before any process completion or ten-minute timeout. The unfinished OSC payload must be absent. Capture at 100x24 and 50x16; resize settling must precede capture and the rendered top border must match requested columns. At 30x10 use PageUp to reveal the warning above the newest wrapped agent message, then End to restore follow; return to 100x24. Press q and verify exit 130, child gone, persisted open task, zero usage and restored primary terminal. Executed successfully with settled frames; /tmp/pipeline-live-partial-{100x24,50x16,30x10,restored}.png inspected. Package store regressions independently verify partial updates replace stable IDs without accumulating duplicate rows.
+
+## Tabs over existing terminal cells
+
+In cursor-controls, verify the tab preservation rows retain ABCDEF  X, red ABCDEF before a plain X, and 界界AB  X. Compare native terminal-model output for ABCDEF\r\tX with dashboard visible output: tab advances to column eight and preserves crossed text. Repeat wide/narrow/short resizing, PageUp/F and q; capture and inspect. Executed at 100x40 -> 100x24 -> 50x16 -> 30x10 -> 100x40, all controls/frame checks passed and q exited zero. Wide /tmp/pipeline-tab-preservation-100x40.png inspected; parser regressions independently verify retained color styles. Raster CJK font fallback remains separate from the proven cell geometry.

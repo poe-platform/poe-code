@@ -139,7 +139,10 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
 
     if (ch === "\t") {
       const spaces = 8 - (column % 8);
-      for (let offset = 0; offset < spaces; offset++) writeGrapheme(" ");
+      for (let offset = 0; offset < spaces; offset++) {
+        if (cells[column] === undefined) writeGrapheme(" ");
+        else column += 1;
+      }
       index += 1;
       continue;
     }

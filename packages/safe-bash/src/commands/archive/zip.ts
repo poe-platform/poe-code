@@ -21,6 +21,7 @@ interface ZipOptions {
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
+  readonly suffixes: readonly string[];
   readonly operands: readonly string[];
   readonly firstOperand: number;
 }
@@ -28,6 +29,8 @@ interface ZipOptions {
 class ZipFailure extends Error {
   constructor(readonly status: number, readonly label: string, detail: string) { super(detail); }
 }
+
+const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
 async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions> {
   const context = scope.context;
@@ -57,6 +60,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let storeLinks = false;
   let test = false;
   let level = 6;
+  let suffixes: readonly string[] = defaultStoreSuffixes;
   let stdinNames = false;
   let literal = false;
   let firstOperand = -1;
@@ -85,6 +89,19 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "T") test = true;
         else if (flag === "@") stdinNames = true;
         else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
+        else if (flag === "n") {
+          let value = argument.slice(offset + 1);
+          if (!value) {
+            const next = context.args[index + 1];
+            if (next === undefined || next.startsWith("-") && next !== "-") throw new ZipFailure(16, "Invalid command arguments", "option 'n' requires a value");
+            value = next;
+            index++;
+          }
+          if (value.startsWith("=")) value = value.slice(1);
+          suffixes = value ? value.split(":").filter(suffix => suffix.length > 0) : defaultStoreSuffixes;
+          if (value && suffixes.length > limits.maxMembers) fail("suffix count limit exceeded");
+          break;
+        }
         else if (flag === "i" || flag === "x") {
           const patterns = flag === "i" ? includes : excludes;
           const before = patterns.length;
@@ -138,7 +155,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, includes, excludes, level, operands: [...names, ...operands], firstOperand };
+  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, includes, excludes, level, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -267,8 +284,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
         const current = await inspectSource(scope, path, parsed.storeLinks);
         if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
-        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, limits, context.signal, parsed.level);
-        if ([".z", ".zip", ".zoo", ".arc", ".lzh", ".arj"].some(suffix => name.toLowerCase().endsWith(suffix))) entry = { ...entry, method: 0, data: bytes };
+        const level = parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix)) ? 0 : parsed.level;
+        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, limits, context.signal, level);
         if (prior?.comment) entry = { ...entry, comment: prior.comment };
         if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
         compressedBytes += entry.data.length;

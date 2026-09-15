@@ -12,6 +12,28 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+for (const { name, flags, method } of [
+  { name: "payload.zip", flags: [], method: 0 },
+  { name: "payload.ZIP", flags: [], method: 8 },
+  { name: "payload.zip", flags: ["-9"], method: 8 },
+  { name: "payload.txt", flags: ["-n", ".txt"], method: 0 },
+  { name: "payload.txt", flags: ["-n=.txt"], method: 0 },
+  { name: "payload.txt", flags: ["-n", ".TXT"], method: 8 },
+  { name: "payload.txt", flags: ["-9", "-n.txt"], method: 8 },
+  { name: "payload.zip", flags: ["-n", ":"], method: 8 },
+  { name: "payload.zip", flags: ["-n", ""], method: 0 },
+]) {
+  test(`zip suffix storage ${name} ${flags.join(" ")}`, async () => {
+    const fs = await fixture();
+    await fs.writeFile(`/work/${name}`, compressed);
+    const result = await execute("zip", fs, ["-q", ...flags, "output.zip", name]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries[0]!.method, method);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, compressed);
+  });
+}
+
 for (const flag of ["-u", "-f"]) {
   test(`zip ${flag} updates newer members but skips equal whole-second timestamps`, async () => {
     const fs = await fixture();

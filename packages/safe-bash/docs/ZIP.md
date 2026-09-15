@@ -30,6 +30,12 @@ including flags after operands and grouped flags such as `-q9r`. Files that do
 not compress smaller remain stored. Compression levels do not promise identical
 archive bytes to Info-ZIP.
 
+`-n SUFFIX:SUFFIX...` stores matching filename suffixes without compression.
+Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc`,
+`.lzh` and `.arj`; an empty value retains defaults, while `:` clears the list.
+Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
+overrides the suffix list and attempts maximum compression.
+
 `-@` reads one source filename per stdin line before processing command-line
 operands. Empty lines are ignored; trailing carriage returns are removed, while
 spaces, tabs and leading dashes are preserved. An unterminated final line is

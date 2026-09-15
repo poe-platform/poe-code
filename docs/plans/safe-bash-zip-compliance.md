@@ -114,3 +114,12 @@ captures establish the same behaviors, including odd-second Unix timestamps,
 freshening progress, missing-archive warnings and update's empty-inclusion result
 when creating a missing archive. Format/metadata dialect coverage still requires
 the remaining independent compatibility qualification.
+
+## Suffix storage
+
+`-n` accepts colon-separated suffixes and attached/equals values. Native Unix
+captures revealed and validated existing default-list defects: suffix matching
+is case-sensitive and level 9 overrides storage suffixes. Nine memory cases cover
+default/custom matching, case, level-9 precedence, empty defaults, cleared lists
+and binary round trips. Matching storage suffixes bypass compression work rather
+than compressing and then discarding the result.

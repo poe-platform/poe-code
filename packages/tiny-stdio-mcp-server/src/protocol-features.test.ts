@@ -381,17 +381,17 @@ describe("prompts and resources protocol conformance", () => {
     });
   });
 
-  it("rejects non-object output schemas at registration time", () => {
+  it("rejects output schema documents that are not JSON objects at registration time", () => {
     expect(() =>
       createServer({ name: "bad-schema", version: "1.0.0" }).registerTool(
         {
           name: "bad",
           inputSchema: defineSchema({}),
-          outputSchema: { type: "array" } as never,
+          outputSchema: true as never,
         },
         () => [],
       ),
-    ).toThrow('outputSchema root type must be "object"');
+    ).toThrow("outputSchema must be a JSON Schema object");
   });
 
   it("registers and validates spec-legal union, enum, nullable, and referenced schemas", async () => {

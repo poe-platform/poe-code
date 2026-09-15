@@ -2197,7 +2197,10 @@ describe("server protocol handlers", () => {
       ).resolves.toEqual({
         result: { content: [{ type: "text", text: "validated" }] }
       });
-      expect(handler).toHaveBeenCalledWith({ count: 2, optionalCount: null });
+      expect(handler).toHaveBeenCalledWith(
+        { count: 2, optionalCount: null },
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
 
       await expect(
         server.handleMessage("tools/call", {

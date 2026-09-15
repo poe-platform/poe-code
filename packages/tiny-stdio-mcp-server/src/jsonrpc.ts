@@ -2,9 +2,14 @@ import type {
   JSONRPCRequest,
   JSONRPCResponse,
   JSONRPCError,
-  JSONRPCNotification,
+  JSONRPCNotification
 } from "./types.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
+import { MODERN_PROTOCOL_VERSION } from "./protocol.js";
+
+export function isRequestId(value: unknown): value is string | number {
+  return typeof value === "string" || (typeof value === "number" && Number.isSafeInteger(value));
+}
 
 export interface ParseResult {
   success: true;
@@ -27,28 +32,39 @@ export function parseMessage(line: string): ParseResult | ParseError {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.PARSE_ERROR,
-        message: "Parse error",
+        message: "Parse error"
       },
-      id: null,
+      id: null
     };
   }
 
-  if (
-    typeof parsed !== "object" ||
-    parsed === null ||
-    Array.isArray(parsed)
-  ) {
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     return {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       },
-      id: null,
+      id: null
     };
   }
 
   const obj = parsed as Record<string, unknown>;
+  const metadata = (obj.params as Record<string, unknown> | undefined)?._meta;
+  if (
+    typeof metadata === "object" &&
+    metadata !== null &&
+    (metadata as Record<string, unknown>)["io.modelcontextprotocol/protocolVersion"] ===
+      MODERN_PROTOCOL_VERSION &&
+    "id" in obj &&
+    !isRequestId(obj.id)
+  ) {
+    return {
+      success: false,
+      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request ID" },
+      id: null
+    };
+  }
   const hasId = "id" in obj;
   const id =
     typeof obj.id === "string"
@@ -60,20 +76,16 @@ export function parseMessage(line: string): ParseResult | ParseError {
           : null;
 
   if (
-    "params" in obj
-    && (
-      typeof obj.params !== "object"
-      || obj.params === null
-      || Array.isArray(obj.params)
-    )
+    "params" in obj &&
+    (typeof obj.params !== "object" || obj.params === null || Array.isArray(obj.params))
   ) {
     return {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       },
-      id,
+      id
     };
   }
 
@@ -82,9 +94,9 @@ export function parseMessage(line: string): ParseResult | ParseError {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       },
-      id,
+      id
     };
   }
 
@@ -93,9 +105,9 @@ export function parseMessage(line: string): ParseResult | ParseError {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       },
-      id,
+      id
     };
   }
 
@@ -106,8 +118,8 @@ export function parseMessage(line: string): ParseResult | ParseError {
       request: {
         jsonrpc: "2.0",
         method: obj.method,
-        params: obj.params as Record<string, unknown> | undefined,
-      },
+        params: obj.params as Record<string, unknown> | undefined
+      }
     };
   }
 
@@ -116,9 +128,9 @@ export function parseMessage(line: string): ParseResult | ParseError {
       success: false,
       error: {
         code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-        message: "Invalid Request",
+        message: "Invalid Request"
       },
-      id: null,
+      id: null
     };
   }
 
@@ -129,31 +141,25 @@ export function parseMessage(line: string): ParseResult | ParseError {
       jsonrpc: "2.0",
       id,
       method: obj.method,
-      params: obj.params as Record<string, unknown> | undefined,
-    },
+      params: obj.params as Record<string, unknown> | undefined
+    }
   };
 }
 
-export function formatSuccessResponse(
-  id: string | number | null,
-  result: unknown
-): string {
+export function formatSuccessResponse(id: string | number | null, result: unknown): string {
   const response: JSONRPCResponse = {
     jsonrpc: "2.0",
     id,
-    result,
+    result
   };
   return JSON.stringify(response);
 }
 
-export function formatErrorResponse(
-  id: string | number | null,
-  error: JSONRPCError
-): string {
+export function formatErrorResponse(id: string | number | null, error: JSONRPCError): string {
   const response: JSONRPCResponse = {
     jsonrpc: "2.0",
     id,
-    error,
+    error
   };
   return JSON.stringify(response);
 }

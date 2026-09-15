@@ -2932,11 +2932,13 @@ export class HttpTransport implements McpTransport {
 
   private async forwardResponseMessages(response: Response): Promise<void> {
     if (response.status === 202) {
+      await response.body?.cancel();
       return;
     }
 
     const contentType = response.headers.get("Content-Type");
     if (contentType === null) {
+      await response.body?.cancel();
       return;
     }
 
@@ -2951,6 +2953,7 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
+    await response.body?.cancel();
     throw new Error("HTTP transport POST returned an unsupported response content type");
   }
 

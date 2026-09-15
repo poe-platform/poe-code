@@ -1,7 +1,8 @@
 # SmartArt and diagram preservation evidence
 
-Status: Task75 sole wording independently approved. No original TypeScript diagram operation,
-adaptation, corpus QA, model parity or preservation completion is claimed.
+Status: Task75 corrected bounded original TypeScript candidate independently
+approved. Original workflow QA, exact cleanup and final root lint pass; real
+SmartArt corpus qualification, model parity, layout and rendering remain unverified.
 
 The sole format contract is [docx.md](../specs/docx.md); shared behavior follows
 office-cli.md and office-sdk.md. All execution/QA procedures belong in
@@ -24,9 +25,9 @@ case/API identities and provenance stay in research; all product regressions use
 original small in-memory XML/bytes. Real examples, if available and admitted,
 remain disposable QA inputs and never enter canonical tests or product closure.
 
-No task75 product paths are assigned yet. Root owns integration/exports/Git and
-reconciles wording after disjoint domain/adapter investigation and different-worker
-independent review. No README edit, push or release is authorized.
+At that investigation baseline no task75 product paths were assigned. Root owns
+integration/exports/Git; disjoint domain/adapter work and different-worker review
+precede the corrected candidate below. No README edit, push or release is authorized.
 
 ## Exact preparation accounting
 
@@ -104,3 +105,68 @@ Addition wording independently approved in
 24ba45f94fb23bf5f9aaa2a0d46bd9330e1a1e81dd8178d9a37bd8c093775020.
 Sole SHA-2567e89e933e75fe5dbd8194a479a37536e4eb13decb3b2ee42b931672b0fd3a45d
 passes the bundled checker with zero warnings. This is wording-only evidence.
+
+## Corrected original TypeScript candidate
+
+Three independent findings were reproduced with failing original memfs tests
+before owned corrections: exact shape expanded-name recognition, original-source
+root fallback for added opaque observations and original inline-path precedence
+for binding mutation. Earlier informal, construction and executor-limit evidence
+is retained separately, without promoting preparation to product verification.
+
+Candidate-v2 has25 frozen product inputs,303 scoped entries and305 union inputs.
+Maintained full DOCX2782/2782 across129files, five selected builds, package lint /
+source/test types, portable public2/2, literal registration108/108, actual Shell
+127/127 across21files and compile-only26consumer groups pass. Root proof:
+/tmp/docx75-root-maintained-proof-v3.json, SHA-256
+96664dd77ce21758925e5768b0e5da3a476a327248a8a75d05d8e84b1d5901b1.
+Different-worker focused188/188, actual Shell127/127 and eight original public
+probes pass with append-aware source authentication. Approval:
+/tmp/docx75-reviewer-final-product-approval-v2.json, SHA-256
+1a2076a1c6d3a48f7c076a49ce41e88b8bd4521da4e233c8560fadf2c7628534.
+
+Current additive approval-v3 is /tmp/docx75-reviewer-final-product-approval-v3.json,
+SHA-256a76b47ed39c5c0b381fd4a3af1a7bc2d959cc2e15d7ce1dc561852771613258d.
+It corrects v2's supervision wording: domain canonical REDs used exec sessions
+with bounded original fixtures, without separate external supervisors. Renewed
+root/independent externally supervised GREEN gates establish acceptance; earlier
+approval and original failures remain retained unchanged.
+
+This verifies inert utility inventory and located guards on original data only.
+The23-record corpus/report does not establish an available separately sourced
+SmartArt example. Recognition case984 and live model/API95/866/867 remain at their
+historical pending dispositions. No layout generation, rendering, active extension
+support, full API parity, remote delivery or release is established.
+
+## Original workflow QA and cleanup
+
+[Reduced QA](smartart-and-diagrams-qa.json) records16 supervised invocations,
+including three separately retained construction/verifier failures. Six exact
+paired reads cover SDK, normal Shell and genuine virtual.sh in both dialects.
+Three paired text/core-metadata/image workflows have identical SDK/Shell archive
+bytes, preserved diagram resources/graph and unknown carrier, with unaffected
+member order retained. Selected image retirement/rebinding is qualified under the
+existing image contract. Three paired resource/raw-owner/paragraph refusals agree
+on precise existing locations, affected0, no SDK publication and unchanged source /
+preexisting sentinel. Matching explicit small archive ceilings and unchanged
+document-budget defaults qualify these original examples only.
+
+Three bounded actual CLI screenshots are inspected by root and independent
+reviewer; help/read explicitly identify preserve-only physical inventory, and
+scope usage error is complete/readable. Independent QA approval SHA is
+126b5e1f11e597c73e46f479fd5f60bcac850574805c6e511a16564d3afbcab4.
+Exact manifested cleanup deletes27files /552390bytes and retains original empty
+directory; independent post-cleanup auth SHA is
+cabaed989ae23afaf404b792484fcdc183f9f66fd55ab9f06c5a1a2d4ce27448.
+Approved original reduced snapshot remains retained, and final evidence differs
+only cleanup metadata/status. Final root guarded lint passes12668subjects,
+zero errors /12warnings, all25receipts /no gaps in430.276seconds under unchanged
+600second/64MiB/1GiB profile. All frozen product inputs remain exact.
+
+No separately sourced SmartArt example, full default-archive admission, live API
+parity, layout/rendering, remote main delivery or release is qualified.
+
+Verified local product commit is daaf0daf090e10ecf11adc1e25a5b73d98a46031,
+with exactly25frozen product paths and relevant task plan. Reduced evidence and
+bounded task75 statuses follow in a separate local Conventional Commit. Local
+delivery remains distinct from remote main or publication; no push/release occurs.

@@ -3,7 +3,8 @@
 Status: Corrected bounded original TypeScript candidate-v2 passes maintained
 scoped gates and independent product review. Original QA outcomes and screenshots
 pass independent QA review. Exact cleanup and final guarded root lint pass;
-local task75 product/evidence delivery remains pending. No task76 execution.
+local task75 product delivery is verified. Evidence/status commit and authentication
+are the final local delivery step. No task76 before complete local authentication.
 
 Authority: docs/specs/docx.md is the sole format contract; office-cli.md and
 office-sdk.md govern shared behavior. This procedure creates no competing spec.
@@ -406,3 +407,10 @@ authenticates all25owned/303append-aware bindings after lint. Root delivery GO n
 permits exactly25frozen product paths plus this plan in an atomic local product
 commit, then reduced evidence /F38 and only task75status scalars separately.
 No push/release/task76 before local delivery authentication.
+
+Verified local product commit daaf0daf090e10ecf11adc1e25a5b73d98a46031,
+feat(docx): add preserve-only diagram inventory, contains exactly25frozen product
+paths plus this plan. Every product blob matches candidate-v2; index remains empty
+and unrelated pipeline bytes preserved. Bounded task75 implement/test may now be
+recorded done; full model/API/rendering and sourced-example gaps stay unchanged.
+Evidence/F38/this plan and task75-only thin pipeline status follow separately.

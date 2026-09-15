@@ -1,0 +1,1806 @@
+{
+  "schemaVersion": 1,
+  "task": 75,
+  "status": "original QA operations passed and independently approved; exact approved campaign cleanup complete",
+  "formatAuthority": "docs/specs/docx.md §6.5.3",
+  "sharedAuthorities": [
+    "docs/specs/office-cli.md",
+    "docs/specs/office-sdk.md"
+  ],
+  "sourcePin": {
+    "branch": "main",
+    "head": "640ecf229011b136581e41cd7b7b42726e7342cf",
+    "freezeSha256": "18c5b7788456e1df458e21e72c7c23b5af1ff96f7a25d652d75b34ac8fca8aee",
+    "productInputs": 25,
+    "scopedInputs": 303,
+    "unionInputs": 305,
+    "inventorySha256": "826cf131030e94f5f3e8f26573929b7c6784ce0eefa65a8bf5b4088fd5fc3ef7",
+    "perOperationBeforeAfterAuthentication": true
+  },
+  "approval": {
+    "productReceiptSha256": "a76b47ed39c5c0b381fd4a3af1a7bc2d959cc2e15d7ce1dc561852771613258d",
+    "plan": "docs/plans/docx-smartart-and-diagrams.md"
+  },
+  "profile": {
+    "archiveLimits": {
+      "maxArchiveBytes": 131072,
+      "maxEntryBytes": 65536,
+      "maxTotalBytes": 131072,
+      "maxMembers": 64,
+      "maxPathBytes": 256,
+      "maxDepth": 32,
+      "maxExtraBytes": 0,
+      "maxCommentBytes": 32,
+      "maxRetainedBytes": 33554432,
+      "chunkSize": 1024
+    },
+    "documentLimits": "All DocumentBudget maintained defaults unchanged; no optional/raised profiles or retry",
+    "encoding": {
+      "order": "input",
+      "compression": "store"
+    },
+    "externalSeconds": 120,
+    "combinedCapturedOutputBytes": 67108864,
+    "outerInputBytes": 1048576,
+    "artifactBytes": 4194304,
+    "pngBytes": 4194304,
+    "pngMaxDimension": 8192,
+    "columns": 100,
+    "time": "2025-01-02T03:04:06Z original member timestamps",
+    "author": "Original QA core creator; no tracked edit, author or ambient time discovery",
+    "qualification": "Fixed matching explicit small archive host ceilings, including131072B input/total and65536B entry,64members,32MiB retained; not full default archive or dense profile qualification"
+  },
+  "inputs": {
+    "originalTransitional": {
+      "archiveSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+      "members": [
+        {
+          "name": "[Content_Types].xml",
+          "bytes": 1100,
+          "sha256": "4816c1fabd1e8ae5e08acffb8e26dc57d004d430c089afceb267e2afcfee6ba1"
+        },
+        {
+          "name": "word/document.xml",
+          "bytes": 2324,
+          "sha256": "bda35cd534f44bf09b5ef79631a5a1f3a3c9a7e7af9a3737c37bfa10f5df3902"
+        },
+        {
+          "name": "word/graphs/data.xml",
+          "bytes": 81,
+          "sha256": "74eaf909ab2953f95ee14ea6fb430dbdc4fe378f3250470398235ece86c17e7f"
+        },
+        {
+          "name": "word/graphs/layout.xml",
+          "bytes": 81,
+          "sha256": "dddc78864832c9ee39ea9dff440b3dd9f3293cbce59fde00d58e01d4ce667a12"
+        },
+        {
+          "name": "word/graphs/style.xml",
+          "bytes": 80,
+          "sha256": "3fd270446448054b0865f3d4cf9ec881b85f20d61cba68847fb1aa1a012d32c4"
+        },
+        {
+          "name": "word/graphs/color.xml",
+          "bytes": 81,
+          "sha256": "2d34fe4a4d5a80c0cf6a1c4bccc7e77f16f48233faa2f0121920214207b7bb1e"
+        },
+        {
+          "name": "docProps/core.xml",
+          "bytes": 237,
+          "sha256": "c1d187682c3bc413229374bd8ea3e67fe70b45d055e4b24cb905223d698dafe3"
+        },
+        {
+          "name": "_rels/.rels",
+          "bytes": 387,
+          "sha256": "6762dcacd9b687c37255c6ff24c23bdbcc0a9a46ccdcc3711bbf3b3946350a25"
+        },
+        {
+          "name": "word/_rels/document.xml.rels",
+          "bytes": 868,
+          "sha256": "4eaf050a0ea265cdd7e944167c865df45e9199c8d66fcfab7d0f333780574574"
+        },
+        {
+          "name": "word/media/image-1.png",
+          "bytes": 73,
+          "sha256": "9b2feecaa076b60ca965b3874450dd8e5ccb8a13f6061abc03faaa98a84d2af9"
+        }
+      ]
+    },
+    "originalStrict": {
+      "archiveSha256": "f3bf6161eebabbefcf3997addaeea91e84c808823da2003d2b7e92b85c31b55f",
+      "members": [
+        {
+          "name": "[Content_Types].xml",
+          "bytes": 1100,
+          "sha256": "4816c1fabd1e8ae5e08acffb8e26dc57d004d430c089afceb267e2afcfee6ba1"
+        },
+        {
+          "name": "word/document.xml",
+          "bytes": 2156,
+          "sha256": "d3ed68fed064a43bfff7fbe1604ef0c03079a1d0de0b64bd07fd6a2a6685cf5e"
+        },
+        {
+          "name": "word/graphs/data.xml",
+          "bytes": 69,
+          "sha256": "129cc825df4b5f7a836b850b2996565ced4ed6fd1fd1362ee4a4fe99c442aa7c"
+        },
+        {
+          "name": "word/graphs/layout.xml",
+          "bytes": 69,
+          "sha256": "08ce0e8824aac50e4e934922e85df67182ab8bee3577cb8f818dbc863b400bac"
+        },
+        {
+          "name": "word/graphs/style.xml",
+          "bytes": 68,
+          "sha256": "12179dfe320f88b061b9b430297b576547c41802311ec7b94c51a61636c842ac"
+        },
+        {
+          "name": "word/graphs/color.xml",
+          "bytes": 69,
+          "sha256": "71a900d3959198236c2bd1d2d753e4bcc08516f007d815fc294bc46a5019a3ec"
+        },
+        {
+          "name": "docProps/core.xml",
+          "bytes": 237,
+          "sha256": "c1d187682c3bc413229374bd8ea3e67fe70b45d055e4b24cb905223d698dafe3"
+        },
+        {
+          "name": "_rels/.rels",
+          "bytes": 375,
+          "sha256": "ad52a2ab36eca181d5f2045d90aea47ecc4065a209aa6ca1d8835f0830c7f8df"
+        },
+        {
+          "name": "word/_rels/document.xml.rels",
+          "bytes": 808,
+          "sha256": "37e81c62769b63b7016dfc9d86ed848fb137ebd679e64f70f8d4a4bba6d6412a"
+        },
+        {
+          "name": "word/media/image-1.png",
+          "bytes": 73,
+          "sha256": "9b2feecaa076b60ca965b3874450dd8e5ccb8a13f6061abc03faaa98a84d2af9"
+        }
+      ]
+    },
+    "authored": "Small original memfs technical package with four native roles, one native relIds, one unique-ID unknown graphic, simple paragraph, core metadata and original one-pixel raster; no reference assets",
+    "separatelySourcedExample": {
+      "available": "not established",
+      "manifestDocuments": 23,
+      "explicitDiagramMetadataKeys": [],
+      "metadataEvidence": "corpus-report.md records no diagram-directory parts and SmartArt unqualified",
+      "limitation": "Metadata-only read; no downloaded cache payload admission, acquisition or real-document product QA"
+    }
+  },
+  "denominators": {
+    "dialects": 2,
+    "sdkReads": 2,
+    "normalShellJsonReads": 2,
+    "actualVirtualScriptReads": 2,
+    "recordsPerInput": 5,
+    "nativeBindingStatusesPerInput": 4,
+    "unknownBindingsPerInput": 0,
+    "pairedMutationWorkflows": 3,
+    "sdkMutations": 3,
+    "normalShellMutations": 3,
+    "pairedRefusalCases": 3,
+    "sdkRefusals": 3,
+    "normalShellRefusals": 3,
+    "actualNormalShellTerminalScreenshots": 3,
+    "independentArchivePreservationWorkflows": 3
+  },
+  "operations": [
+    {
+      "id": "author-v1",
+      "supervision": {
+        "exitCode": 1,
+        "elapsedSeconds": 1.549521792010637,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 0,
+          "stderr": 958
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "43d62b148966887dcbb4e49e070f42202583818e924f798212fca3e2c0db394f",
+      "result": null,
+      "failureDetail": "/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/operation-schema.ts:234\n    if (!(customValidate?.(type, value[key]) ?? valid(type, value[key]))) throw new DocxUsageError(`Invalid ${key}; expected ${field.type}.`);\n                                                                                ^\n\nDocxUsageError: Invalid width; expected Length (explicit emu/in/cm/mm/pt).\n    at assertDocxFields (/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/operation-schema.ts:234:81)\n    at validateInvocation (/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/command.ts:344:3)\n    at validateDocxInvocation (/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/command.ts:375:10)\n    at Module.insertDocumentImage (/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/image-insertion.ts:119:59)\n    at file:///Users/kjopek/Workspace/poe-setup-scripts/[eval1]:21:10 {\n  code: 'usage',\n  exitCode: 2\n}\n\nNode.js v22.23.2\n",
+      "qualification": "construction/verification mistake; superseded without profile increase"
+    },
+    {
+      "id": "author-v2",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 2.365466874995036,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 3348,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "04fecfffba0017b1d6a7bf2c93de422fda9d33fe493760c71fae2e6c72e63bf5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "original-authored",
+        "written": [
+          {
+            "name": "original-transitional.docx",
+            "bytes": 6490,
+            "sha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1"
+          },
+          {
+            "name": "original-strict.docx",
+            "bytes": 6202,
+            "sha256": "f3bf6161eebabbefcf3997addaeea91e84c808823da2003d2b7e92b85c31b55f"
+          },
+          {
+            "name": "original-raster.png",
+            "bytes": 73,
+            "sha256": "67b4813729c887b3760595512199183df66fe62b525f3ed9b30c8f08381be310"
+          },
+          {
+            "name": "diagram-edit.xml",
+            "bytes": 104,
+            "sha256": "0b9f42395bdfe2b42d421334b35593d8cb55cf450c6513c618e199cbef2b36b3"
+          }
+        ],
+        "source": {
+          "archiveSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+          "members": [
+            {
+              "name": "[Content_Types].xml",
+              "bytes": 1100,
+              "sha256": "4816c1fabd1e8ae5e08acffb8e26dc57d004d430c089afceb267e2afcfee6ba1"
+            },
+            {
+              "name": "word/document.xml",
+              "bytes": 2324,
+              "sha256": "bda35cd534f44bf09b5ef79631a5a1f3a3c9a7e7af9a3737c37bfa10f5df3902"
+            },
+            {
+              "name": "word/graphs/data.xml",
+              "bytes": 81,
+              "sha256": "74eaf909ab2953f95ee14ea6fb430dbdc4fe378f3250470398235ece86c17e7f"
+            },
+            {
+              "name": "word/graphs/layout.xml",
+              "bytes": 81,
+              "sha256": "dddc78864832c9ee39ea9dff440b3dd9f3293cbce59fde00d58e01d4ce667a12"
+            },
+            {
+              "name": "word/graphs/style.xml",
+              "bytes": 80,
+              "sha256": "3fd270446448054b0865f3d4cf9ec881b85f20d61cba68847fb1aa1a012d32c4"
+            },
+            {
+              "name": "word/graphs/color.xml",
+              "bytes": 81,
+              "sha256": "2d34fe4a4d5a80c0cf6a1c4bccc7e77f16f48233faa2f0121920214207b7bb1e"
+            },
+            {
+              "name": "docProps/core.xml",
+              "bytes": 237,
+              "sha256": "c1d187682c3bc413229374bd8ea3e67fe70b45d055e4b24cb905223d698dafe3"
+            },
+            {
+              "name": "_rels/.rels",
+              "bytes": 387,
+              "sha256": "6762dcacd9b687c37255c6ff24c23bdbcc0a9a46ccdcc3711bbf3b3946350a25"
+            },
+            {
+              "name": "word/_rels/document.xml.rels",
+              "bytes": 868,
+              "sha256": "4eaf050a0ea265cdd7e944167c865df45e9199c8d66fcfab7d0f333780574574"
+            },
+            {
+              "name": "word/media/image-1.png",
+              "bytes": 73,
+              "sha256": "9b2feecaa076b60ca965b3874450dd8e5ccb8a13f6061abc03faaa98a84d2af9"
+            }
+          ]
+        },
+        "strictSource": {
+          "archiveSha256": "f3bf6161eebabbefcf3997addaeea91e84c808823da2003d2b7e92b85c31b55f",
+          "members": [
+            {
+              "name": "[Content_Types].xml",
+              "bytes": 1100,
+              "sha256": "4816c1fabd1e8ae5e08acffb8e26dc57d004d430c089afceb267e2afcfee6ba1"
+            },
+            {
+              "name": "word/document.xml",
+              "bytes": 2156,
+              "sha256": "d3ed68fed064a43bfff7fbe1604ef0c03079a1d0de0b64bd07fd6a2a6685cf5e"
+            },
+            {
+              "name": "word/graphs/data.xml",
+              "bytes": 69,
+              "sha256": "129cc825df4b5f7a836b850b2996565ced4ed6fd1fd1362ee4a4fe99c442aa7c"
+            },
+            {
+              "name": "word/graphs/layout.xml",
+              "bytes": 69,
+              "sha256": "08ce0e8824aac50e4e934922e85df67182ab8bee3577cb8f818dbc863b400bac"
+            },
+            {
+              "name": "word/graphs/style.xml",
+              "bytes": 68,
+              "sha256": "12179dfe320f88b061b9b430297b576547c41802311ec7b94c51a61636c842ac"
+            },
+            {
+              "name": "word/graphs/color.xml",
+              "bytes": 69,
+              "sha256": "71a900d3959198236c2bd1d2d753e4bcc08516f007d815fc294bc46a5019a3ec"
+            },
+            {
+              "name": "docProps/core.xml",
+              "bytes": 237,
+              "sha256": "c1d187682c3bc413229374bd8ea3e67fe70b45d055e4b24cb905223d698dafe3"
+            },
+            {
+              "name": "_rels/.rels",
+              "bytes": 375,
+              "sha256": "ad52a2ab36eca181d5f2045d90aea47ecc4065a209aa6ca1d8835f0830c7f8df"
+            },
+            {
+              "name": "word/_rels/document.xml.rels",
+              "bytes": 808,
+              "sha256": "37e81c62769b63b7016dfc9d86ed848fb137ebd679e64f70f8d4a4bba6d6412a"
+            },
+            {
+              "name": "word/media/image-1.png",
+              "bytes": 73,
+              "sha256": "9b2feecaa076b60ca965b3874450dd8e5ccb8a13f6061abc03faaa98a84d2af9"
+            }
+          ]
+        },
+        "profile": {
+          "maxArchiveBytes": 131072,
+          "maxEntryBytes": 65536,
+          "maxTotalBytes": 131072,
+          "maxMembers": 64,
+          "maxPathBytes": 256,
+          "maxDepth": 32,
+          "maxExtraBytes": 0,
+          "maxCommentBytes": 32,
+          "maxRetainedBytes": 33554432,
+          "chunkSize": 1024
+        }
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "read-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.6789666249824222,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 651,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "3aef76b522e2978960da4db7388ee219e3c76142ad9bd50a89511d4f26c97a4f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "results": [
+          {
+            "dialect": "transitional",
+            "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+            "items": 5,
+            "observations": [
+              {
+                "kind": "relIds",
+                "path": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  2,
+                  0,
+                  0
+                ],
+                "bindings": 4
+              },
+              {
+                "kind": "unknown-graphic",
+                "path": [
+                  0,
+                  2,
+                  0,
+                  0,
+                  0,
+                  2,
+                  0
+                ],
+                "bindings": 0
+              }
+            ],
+            "exactSdkShell": true,
+            "script": true,
+            "sourceUnchanged": true
+          },
+          {
+            "dialect": "strict",
+            "sourceSha256": "f3bf6161eebabbefcf3997addaeea91e84c808823da2003d2b7e92b85c31b55f",
+            "items": 5,
+            "observations": [
+              {
+                "kind": "relIds",
+                "path": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  2,
+                  0,
+                  0
+                ],
+                "bindings": 4
+              },
+              {
+                "kind": "unknown-graphic",
+                "path": [
+                  0,
+                  2,
+                  0,
+                  0,
+                  0,
+                  2,
+                  0
+                ],
+                "bindings": 0
+              }
+            ],
+            "exactSdkShell": true,
+            "script": false,
+            "sourceUnchanged": true
+          }
+        ]
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "text-v1",
+      "supervision": {
+        "exitCode": 1,
+        "elapsedSeconds": 2.052526499988744,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 0,
+          "stderr": 332
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "5178c5d4b532e2d000d0f24000677a6a7fcdb5fbe93c17acbdb8f06dfd6df2ed",
+      "result": null,
+      "failureDetail": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: false == true\n    at file:///Users/kjopek/Workspace/poe-setup-scripts/[eval1]:11:620 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n",
+      "qualification": "construction/verification mistake; superseded without profile increase"
+    },
+    {
+      "id": "text-validation-v2",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 2.3421926249866374,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 827,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "2e03e70b8f6351f9aa6f1163f8aae1bf70c21447c02829f008eb3de9cd987653",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "constructionCorrection": "Previous comparison incorrectly demanded unchanged physical owner descriptor SHA after authorized text edit; owner changes now qualified while native resources/observations/graph remain exact. Product outputs from v1 are reused unchanged.",
+        "sdkPreservation": {
+          "changed": [
+            "word/document.xml"
+          ],
+          "unchangedMembers": 9,
+          "orderExact": true,
+          "relationshipMembersExact": true,
+          "diagramInventoryPreserved": true
+        },
+        "shellPreservation": {
+          "changed": [
+            "word/document.xml"
+          ],
+          "unchangedMembers": 9,
+          "orderExact": true,
+          "relationshipMembersExact": true,
+          "diagramInventoryPreserved": true
+        },
+        "memberBytesExact": true,
+        "completeArchiveBytesExact": true,
+        "sdkOutputSha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4",
+        "shellOutputSha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4"
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "text-renewed-v3",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 3.018418499996187,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 393,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "6ae879627b5bb2d0c7479455a2bfbc7d80602ae74bfbf090e03d13d408cdff81",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "command": "docx text replace input.docx --find Original --with Revised --first --output -",
+        "sdkChanged": true,
+        "sdkChangeCount": 1,
+        "normalShellExit": 0,
+        "sdkOutputSha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4",
+        "shellOutputSha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4",
+        "completeOutputBytesExact": true,
+        "unchangedSource": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "metadata-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.9413338330050465,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 3621,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "9c44b12bb5b62d298b0198149926153f0edfac946ff07a5bebe091f44226c20e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "sdk": {
+          "changed": true,
+          "changes": [
+            {
+              "kind": "set",
+              "before": {
+                "kind": "part",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                  "generation": 0,
+                  "part": "/docProps/core.xml",
+                  "story": "/docProps/core.xml",
+                  "path": [],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii9kb2NQcm9wcy9jb3JlLnhtbCIsInN0b3J5IjoiL2RvY1Byb3BzL2NvcmUueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+                "positions": {}
+              },
+              "after": {
+                "kind": "part",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                  "generation": 1,
+                  "part": "/docProps/core.xml",
+                  "story": "/docProps/core.xml",
+                  "path": [],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii9kb2NQcm9wcy9jb3JlLnhtbCIsInN0b3J5IjoiL2RvY1Byb3BzL2NvcmUueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+                "positions": {}
+              }
+            }
+          ],
+          "dryRun": false,
+          "output": {
+            "path": "-",
+            "bytes": 6489,
+            "sha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb"
+          }
+        },
+        "shell": {
+          "version": 1,
+          "operation": "properties.set",
+          "ok": true,
+          "data": {
+            "changed": true,
+            "changes": [
+              {
+                "kind": "set",
+                "before": {
+                  "kind": "part",
+                  "value": {
+                    "version": 1,
+                    "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                    "generation": 0,
+                    "part": "/docProps/core.xml",
+                    "story": "/docProps/core.xml",
+                    "path": [],
+                    "range": null
+                  },
+                  "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii9kb2NQcm9wcy9jb3JlLnhtbCIsInN0b3J5IjoiL2RvY1Byb3BzL2NvcmUueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+                  "positions": {}
+                },
+                "after": {
+                  "kind": "part",
+                  "value": {
+                    "version": 1,
+                    "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                    "generation": 1,
+                    "part": "/docProps/core.xml",
+                    "story": "/docProps/core.xml",
+                    "path": [],
+                    "range": null
+                  },
+                  "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii9kb2NQcm9wcy9jb3JlLnhtbCIsInN0b3J5IjoiL2RvY1Byb3BzL2NvcmUueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+                  "positions": {}
+                }
+              }
+            ],
+            "dryRun": false,
+            "output": {
+              "path": "/work/metadata-shell.docx",
+              "bytes": 6489,
+              "sha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb"
+            }
+          },
+          "warnings": [],
+          "errors": [],
+          "affected": 1,
+          "locations": [
+            {
+              "kind": "part",
+              "value": {
+                "version": 1,
+                "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                "generation": 1,
+                "part": "/docProps/core.xml",
+                "story": "/docProps/core.xml",
+                "path": [],
+                "range": null
+              },
+              "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MSwicGFydCI6Ii9kb2NQcm9wcy9jb3JlLnhtbCIsInN0b3J5IjoiL2RvY1Byb3BzL2NvcmUueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+              "positions": {}
+            }
+          ]
+        },
+        "sdkPreservation": {
+          "changed": [
+            "docProps/core.xml"
+          ],
+          "unchangedMembers": 9,
+          "orderExact": true,
+          "relationshipMembersExact": true,
+          "diagramInventoryPreserved": true
+        },
+        "shellPreservation": {
+          "changed": [
+            "docProps/core.xml"
+          ],
+          "unchangedMembers": 9,
+          "orderExact": true,
+          "relationshipMembersExact": true,
+          "diagramInventoryPreserved": true
+        },
+        "memberBytesExact": true,
+        "completeArchiveBytesExact": true,
+        "sdkOutputSha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb",
+        "shellOutputSha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb"
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "image-v1",
+      "supervision": {
+        "exitCode": 1,
+        "elapsedSeconds": 1.6821840000047814,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 0,
+          "stderr": 1273
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "055b9367631ecdc1a2e7241c98b08e7e9f53e0c0839b411c0646cfa4c256e6aa",
+      "result": null,
+      "failureDetail": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    '[Content_Types].xml',\n    'word/document.xml',\n    'word/graphs/data.xml',\n    'word/graphs/layout.xml',\n...\n    'word/_rels/document.xml.rels',\n+   'word/media/image-2.png'\n-   'word/media/image-1.png'\n  ]\n\n    at preserve (file:///Users/kjopek/Workspace/poe-setup-scripts/[eval1]:10:135)\n    at async file:///Users/kjopek/Workspace/poe-setup-scripts/[eval1]:11:829 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: [\n    '[Content_Types].xml',\n    'word/document.xml',\n    'word/graphs/data.xml',\n    'word/graphs/layout.xml',\n    'word/graphs/style.xml',\n    'word/graphs/color.xml',\n    'docProps/core.xml',\n    '_rels/.rels',\n    'word/_rels/document.xml.rels',\n    'word/media/image-2.png'\n  ],\n  expected: [\n    '[Content_Types].xml',\n    'word/document.xml',\n    'word/graphs/data.xml',\n    'word/graphs/layout.xml',\n    'word/graphs/style.xml',\n    'word/graphs/color.xml',\n    'docProps/core.xml',\n    '_rels/.rels',\n    'word/_rels/document.xml.rels',\n    'word/media/image-1.png'\n  ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n",
+      "qualification": "construction/verification mistake; superseded without profile increase"
+    },
+    {
+      "id": "image-validation-v2",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.785241292003775,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 778,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "833daab5210da762deada0a9f5569d48769aca6a31f44a29eda005db487ab58b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "constructionCorrection": "Image replacement legitimately creates and rebinds replacement media, retiring zero-incoming old media. V1 outputs reused unchanged; unrelated nonmedia order/bytes, diagram graph and opaque observations exact.",
+        "changedNonmedia": [
+          "[Content_Types].xml",
+          "word/_rels/document.xml.rels"
+        ],
+        "retired": "word/media/image-1.png",
+        "replacement": "word/media/image-2.png",
+        "unchangedNonmediaMembers": 7,
+        "nonmediaOrderExact": true,
+        "nativeDiagramGraphExact": true,
+        "diagramObservationsExact": true,
+        "replacementBytesExact": true,
+        "memberBytesExact": true,
+        "completeArchiveBytesExact": true,
+        "sdkOutputSha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52",
+        "shellOutputSha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52"
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "image-renewed-v3",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 2.792433958995389,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 402,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "bc58366715507e23d79fe27a2f336d372cc79c13217bbcd8980e7510f45004fa",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "command": "docx images replace input.docx --image 1 --file original-raster.png --shared --output -",
+        "sdkChanged": true,
+        "sdkChangeCount": 1,
+        "normalShellExit": 0,
+        "sdkOutputSha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52",
+        "shellOutputSha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52",
+        "completeOutputBytesExact": true,
+        "unchangedSource": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "refusals-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.6009210829797667,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 195,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "04eabddc6b4996c6d64de11fcc1679089a09b575555d60a03d7ac52a2a55913c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "cases": 3,
+        "sdkExactShellLocations": true,
+        "zeroSdkPublication": true,
+        "unchangedDestinations": true,
+        "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1"
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "strict-script-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 2.441664167010458,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 270,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "cbcdfc44eed45c87dbe2efb76cae1d57d21c47d70fa16bf0af638e7d50e1ebf1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "dialect": "strict",
+        "command": "sh virtual.sh",
+        "scriptText": "docx diagrams list input.docx --json\n",
+        "exitCode": 0,
+        "exactSavedSdkShellInventory": true,
+        "stdoutSha256": "8a64f11d66143e4f8d9c562e772142df1a334f28c7a4bab8e291cfcabaeb7bac",
+        "sourceUnchanged": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "screen-help-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.2130459589825477,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 512,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "091ca945b66030deabd35b35454b0cfe7b2a60a01dcf03c681693ce21d127419",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "command": "docx diagrams list --help",
+        "exitCode": 0,
+        "stdoutBytes": 547,
+        "stderrBytes": 0,
+        "transcriptSha256": "4f39bf2db5691054e39d0ea77c8173136cf25db1f5521ec04fdb06991f52d505",
+        "wrappedSha256": "d07c78ddb752bcf0d772f05623ad884d830a6bcb50a37cf4304782df0627fac9",
+        "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+        "png": {
+          "name": "help.png",
+          "bytes": 198384,
+          "sha256": "5b695bf51fb7dee1bcacbe5a8aaab1feed3f0f7193e6312365e5ec6e18ac2d5c",
+          "width": 3605,
+          "height": 1073
+        },
+        "sourceUnchanged": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "screen-read-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.2937339999771211,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 517,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "4931afc22e7ccc742d18788832d2e81c789404dcf9c0a10b18ca068d80e08ad6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "command": "docx diagrams list input.docx",
+        "exitCode": 0,
+        "stdoutBytes": 225,
+        "stderrBytes": 140,
+        "transcriptSha256": "cbe37f365f053609cd1f5cd567f46a1c0c89cfee41eb7dfc27abb2bcb54415ba",
+        "wrappedSha256": "ef613d2e2089b3496d75ba152a325dc4c765e828955fba8880fd1e7471875b6a",
+        "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+        "png": {
+          "name": "read.png",
+          "bytes": 153198,
+          "sha256": "c5b449b8acad1eae4c74ce0814d14458a09329befbc3997f91a2c79b79a6859b",
+          "width": 3605,
+          "height": 871
+        },
+        "sourceUnchanged": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "screen-selector-error-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.1270140420238022,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 539,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "e06c7e337df4074bd26c2a4d17e54cf6a024baaf25552929dcb355839598cf9e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "command": "docx diagrams list input.docx --scope headers",
+        "exitCode": 2,
+        "stdoutBytes": 0,
+        "stderrBytes": 47,
+        "transcriptSha256": "cb3ac739b088f0483a82752cddfcd59a1e9760a4f2acd0b41fc174aacd69d3f3",
+        "wrappedSha256": "cb3ac739b088f0483a82752cddfcd59a1e9760a4f2acd0b41fc174aacd69d3f3",
+        "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+        "png": {
+          "name": "selector-error.png",
+          "bytes": 23488,
+          "sha256": "0e98ffdb07e776aa9c2713724eadd233bb3b70ed09cce9b5f6ff3c34e78335e9",
+          "width": 1788,
+          "height": 401
+        },
+        "sourceUnchanged": true
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    },
+    {
+      "id": "independent-preservation-v1",
+      "supervision": {
+        "exitCode": 0,
+        "elapsedSeconds": 0.5631237080087885,
+        "timeoutSeconds": 120,
+        "outputLimitBytes": 67108864,
+        "outputBytes": {
+          "stdout": 1061,
+          "stderr": 0
+        },
+        "termination": null,
+        "frozen25Scoped303Union305BeforeAfter": true
+      },
+      "stdoutSha256": "c643d8f4a83f71839340b1260e55ba990f40fff94d10e4e48f457a407604e5f9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "status": "pass",
+        "tool": "QA-only Python stdlib zipfile CRC and ElementTree; no native OOXML runtime or product dependency",
+        "sourceMembers": 10,
+        "results": [
+          {
+            "workflow": "text",
+            "sdkShellDecompressedPayloadAndOrderExact": true,
+            "nativeRoleResourceBytesExact": true,
+            "nativeAndUnknownGraphicDataRawBytesExact": true,
+            "allNonimageRelationshipRowsExact": true,
+            "changedCommonMembers": [
+              "word/document.xml"
+            ],
+            "unaffectedRelativeOrderExact": true
+          },
+          {
+            "workflow": "metadata",
+            "sdkShellDecompressedPayloadAndOrderExact": true,
+            "nativeRoleResourceBytesExact": true,
+            "nativeAndUnknownGraphicDataRawBytesExact": true,
+            "allNonimageRelationshipRowsExact": true,
+            "changedCommonMembers": [
+              "docProps/core.xml"
+            ],
+            "unaffectedRelativeOrderExact": true
+          },
+          {
+            "workflow": "image",
+            "sdkShellDecompressedPayloadAndOrderExact": true,
+            "nativeRoleResourceBytesExact": true,
+            "nativeAndUnknownGraphicDataRawBytesExact": true,
+            "allNonimageRelationshipRowsExact": true,
+            "changedCommonMembers": [
+              "[Content_Types].xml",
+              "word/_rels/document.xml.rels"
+            ],
+            "unaffectedRelativeOrderExact": true
+          }
+        ]
+      },
+      "failureDetail": null,
+      "qualification": "pass"
+    }
+  ],
+  "screenshots": [
+    {
+      "status": "pass",
+      "command": "docx diagrams list --help",
+      "exitCode": 0,
+      "stdoutBytes": 547,
+      "stderrBytes": 0,
+      "transcriptSha256": "4f39bf2db5691054e39d0ea77c8173136cf25db1f5521ec04fdb06991f52d505",
+      "wrappedSha256": "d07c78ddb752bcf0d772f05623ad884d830a6bcb50a37cf4304782df0627fac9",
+      "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+      "png": {
+        "name": "help.png",
+        "bytes": 198384,
+        "sha256": "5b695bf51fb7dee1bcacbe5a8aaab1feed3f0f7193e6312365e5ec6e18ac2d5c",
+        "width": 3605,
+        "height": 1073
+      },
+      "sourceUnchanged": true,
+      "leafInspection": {
+        "inspected": true,
+        "finding": "Complete readable transcript, preserve-only limits visible, no clipping. Hard wrapping splits words at100 Unicode scalar columns without changing content."
+      }
+    },
+    {
+      "status": "pass",
+      "command": "docx diagrams list input.docx",
+      "exitCode": 0,
+      "stdoutBytes": 225,
+      "stderrBytes": 140,
+      "transcriptSha256": "cbe37f365f053609cd1f5cd567f46a1c0c89cfee41eb7dfc27abb2bcb54415ba",
+      "wrappedSha256": "ef613d2e2089b3496d75ba152a325dc4c765e828955fba8880fd1e7471875b6a",
+      "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+      "png": {
+        "name": "read.png",
+        "bytes": 153198,
+        "sha256": "c5b449b8acad1eae4c74ce0814d14458a09329befbc3997f91a2c79b79a6859b",
+        "width": 3605,
+        "height": 871
+      },
+      "sourceUnchanged": true,
+      "leafInspection": {
+        "inspected": true,
+        "finding": "Complete readable transcript, preserve-only limits visible, no clipping. Hard wrapping splits words at100 Unicode scalar columns without changing content."
+      }
+    },
+    {
+      "status": "pass",
+      "command": "docx diagrams list input.docx --scope headers",
+      "exitCode": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 47,
+      "transcriptSha256": "cb3ac739b088f0483a82752cddfcd59a1e9760a4f2acd0b41fc174aacd69d3f3",
+      "wrappedSha256": "cb3ac739b088f0483a82752cddfcd59a1e9760a4f2acd0b41fc174aacd69d3f3",
+      "wrapping": "unchanged Unicode scalars, hard-wrap100columns; no clipping",
+      "png": {
+        "name": "selector-error.png",
+        "bytes": 23488,
+        "sha256": "0e98ffdb07e776aa9c2713724eadd233bb3b70ed09cce9b5f6ff3c34e78335e9",
+        "width": 1788,
+        "height": 401
+      },
+      "sourceUnchanged": true,
+      "leafInspection": {
+        "inspected": true,
+        "finding": "Complete readable transcript, preserve-only limits visible, no clipping. Hard wrapping splits words at100 Unicode scalar columns without changing content."
+      }
+    }
+  ],
+  "display": {
+    "leaf": {
+      "help": {
+        "elapsedMilliseconds": 13,
+        "watchdogSeconds": 120,
+        "watchdogExpired": false,
+        "opaqueToolCannotBeForciblyCancelled": true
+      },
+      "read": {
+        "elapsedMilliseconds": 12,
+        "watchdogSeconds": 120,
+        "watchdogExpired": false,
+        "opaqueToolCannotBeForciblyCancelled": true
+      },
+      "selector-error": {
+        "elapsedMilliseconds": 11,
+        "watchdogSeconds": 120,
+        "watchdogExpired": false,
+        "opaqueToolCannotBeForciblyCancelled": true
+      }
+    },
+    "root": {
+      "images": [
+        {
+          "path": "tmp/docx75-diagrams-qa/help.png",
+          "bytes": 198384,
+          "sha256": "5b695bf51fb7dee1bcacbe5a8aaab1feed3f0f7193e6312365e5ec6e18ac2d5c",
+          "width": 3605,
+          "height": 1073,
+          "inspected": true
+        },
+        {
+          "path": "tmp/docx75-diagrams-qa/read.png",
+          "bytes": 153198,
+          "sha256": "c5b449b8acad1eae4c74ce0814d14458a09329befbc3997f91a2c79b79a6859b",
+          "width": 3605,
+          "height": 871,
+          "inspected": true
+        },
+        {
+          "path": "tmp/docx75-diagrams-qa/selector-error.png",
+          "bytes": 23488,
+          "sha256": "0e98ffdb07e776aa9c2713724eadd233bb3b70ed09cce9b5f6ff3c34e78335e9",
+          "width": 1788,
+          "height": 401,
+          "inspected": true
+        }
+      ],
+      "findings": "All three actual transcripts readable, complete, preserve-only behavior explicit; fixed100-column hard wrapping retained without clipping.",
+      "opaqueToolWatchdog": "External120s observation cannot force-cancel opaque image tool."
+    },
+    "opaqueToolBoundary": "120second independent watchdog observes acknowledgment; cannot forcibly cancel opaque tool. No expiration or clipping."
+  },
+  "refusals": {
+    "sdk": {
+      "results": [
+        {
+          "case": "native-resource",
+          "code": "unsupported-edit",
+          "location": {
+            "kind": "part",
+            "value": {
+              "version": 1,
+              "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+              "generation": 0,
+              "part": "/word/graphs/data.xml",
+              "story": "/word/graphs/data.xml",
+              "path": [],
+              "range": null
+            },
+            "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2dyYXBocy9kYXRhLnhtbCIsInN0b3J5IjoiL3dvcmQvZ3JhcGhzL2RhdGEueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+            "positions": {}
+          },
+          "locations": [
+            {
+              "kind": "part",
+              "value": {
+                "version": 1,
+                "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                "generation": 0,
+                "part": "/word/graphs/data.xml",
+                "story": "/word/graphs/data.xml",
+                "path": [],
+                "range": null
+              },
+              "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2dyYXBocy9kYXRhLnhtbCIsInN0b3J5IjoiL3dvcmQvZ3JhcGhzL2RhdGEueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+              "positions": {}
+            }
+          ],
+          "publishedBytes": 0,
+          "destinationUnchanged": true
+        },
+        {
+          "case": "opaque-owner",
+          "code": "unsupported-edit",
+          "location": {
+            "kind": "part",
+            "value": {
+              "version": 1,
+              "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+              "generation": 0,
+              "part": "/word/document.xml",
+              "story": "/word/document.xml",
+              "path": [
+                0,
+                2,
+                0,
+                0,
+                0,
+                2,
+                0
+              ],
+              "range": null
+            },
+            "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sIiwicGF0aCI6WzAsMiwwLDAsMCwyLDBdLCJyYW5nZSI6bnVsbH0",
+            "positions": {}
+          },
+          "locations": [
+            {
+              "kind": "part",
+              "value": {
+                "version": 1,
+                "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                "generation": 0,
+                "part": "/word/document.xml",
+                "story": "/word/document.xml",
+                "path": [
+                  0,
+                  2,
+                  0,
+                  0,
+                  0,
+                  2,
+                  0
+                ],
+                "range": null
+              },
+              "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sIiwicGF0aCI6WzAsMiwwLDAsMCwyLDBdLCJyYW5nZSI6bnVsbH0",
+              "positions": {}
+            }
+          ],
+          "publishedBytes": 0,
+          "destinationUnchanged": true
+        },
+        {
+          "case": "containing-paragraph",
+          "code": "unsupported-edit",
+          "location": {
+            "kind": "paragraph",
+            "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwyXSwicmFuZ2UiOm51bGx9",
+            "value": {
+              "version": 1,
+              "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+              "generation": 0,
+              "part": "/word/document.xml",
+              "story": "/word/document.xml#body",
+              "path": [
+                0,
+                2
+              ],
+              "range": null
+            },
+            "positions": {
+              "section": 1,
+              "paragraph": 3
+            }
+          },
+          "locations": [
+            {
+              "kind": "paragraph",
+              "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwyXSwicmFuZ2UiOm51bGx9",
+              "value": {
+                "version": 1,
+                "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                "generation": 0,
+                "part": "/word/document.xml",
+                "story": "/word/document.xml#body",
+                "path": [
+                  0,
+                  2
+                ],
+                "range": null
+              },
+              "positions": {
+                "section": 1,
+                "paragraph": 3
+              }
+            }
+          ],
+          "publishedBytes": 0,
+          "destinationUnchanged": true
+        }
+      ]
+    },
+    "normalShell": {
+      "results": [
+        {
+          "case": "native-resource",
+          "command": "docx xml set input.docx --part /word/graphs/data.xml --file resource-edit.xml --output output.docx --force --json",
+          "exitCode": 1,
+          "result": {
+            "version": 1,
+            "operation": "xml.set",
+            "ok": false,
+            "data": null,
+            "affected": 0,
+            "locations": [
+              {
+                "kind": "part",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                  "generation": 0,
+                  "part": "/word/graphs/data.xml",
+                  "story": "/word/graphs/data.xml",
+                  "path": [],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2dyYXBocy9kYXRhLnhtbCIsInN0b3J5IjoiL3dvcmQvZ3JhcGhzL2RhdGEueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ",
+                "positions": {}
+              }
+            ],
+            "warnings": [],
+            "errors": [
+              {
+                "code": "unsupported-edit",
+                "message": "Document operation failed: unsupported-edit",
+                "location": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2dyYXBocy9kYXRhLnhtbCIsInN0b3J5IjoiL3dvcmQvZ3JhcGhzL2RhdGEueG1sIiwicGF0aCI6W10sInJhbmdlIjpudWxsfQ"
+              }
+            ]
+          },
+          "destinationUnchanged": true,
+          "sourceUnchanged": true
+        },
+        {
+          "case": "opaque-owner",
+          "command": "docx xml set input.docx --part /word/document.xml --file owner-edit.xml --output output.docx --force --json",
+          "exitCode": 1,
+          "result": {
+            "version": 1,
+            "operation": "xml.set",
+            "ok": false,
+            "data": null,
+            "affected": 0,
+            "locations": [
+              {
+                "kind": "part",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml",
+                  "path": [
+                    0,
+                    2,
+                    0,
+                    0,
+                    0,
+                    2,
+                    0
+                  ],
+                  "range": null
+                },
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sIiwicGF0aCI6WzAsMiwwLDAsMCwyLDBdLCJyYW5nZSI6bnVsbH0",
+                "positions": {}
+              }
+            ],
+            "warnings": [],
+            "errors": [
+              {
+                "code": "unsupported-edit",
+                "message": "Document operation failed: unsupported-edit",
+                "location": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sIiwicGF0aCI6WzAsMiwwLDAsMCwyLDBdLCJyYW5nZSI6bnVsbH0"
+              }
+            ]
+          },
+          "destinationUnchanged": true,
+          "sourceUnchanged": true
+        },
+        {
+          "case": "containing-paragraph",
+          "command": "docx paragraphs set input.docx --paragraph 3 --text Altered --output output.docx --force --json",
+          "exitCode": 1,
+          "result": {
+            "version": 1,
+            "operation": "paragraphs.set",
+            "ok": false,
+            "data": null,
+            "affected": 0,
+            "locations": [
+              {
+                "kind": "paragraph",
+                "token": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwyXSwicmFuZ2UiOm51bGx9",
+                "value": {
+                  "version": 1,
+                  "sourceSha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+                  "generation": 0,
+                  "part": "/word/document.xml",
+                  "story": "/word/document.xml#body",
+                  "path": [
+                    0,
+                    2
+                  ],
+                  "range": null
+                },
+                "positions": {
+                  "section": 1,
+                  "paragraph": 3
+                }
+              }
+            ],
+            "warnings": [],
+            "errors": [
+              {
+                "code": "unsupported-edit",
+                "message": "Document operation failed: unsupported-edit",
+                "location": "docx-loc-v1.eyJ2ZXJzaW9uIjoxLCJzb3VyY2VTaGEyNTYiOiJlN2MxNGU5MWU0YmIwMzNiZTM4ODZkMzZkMmM1MjQwZTlmODA1NTNiYTMxODM0YmU0ZGZhMDAzNGYxMDE3ZWYxIiwiZ2VuZXJhdGlvbiI6MCwicGFydCI6Ii93b3JkL2RvY3VtZW50LnhtbCIsInN0b3J5IjoiL3dvcmQvZG9jdW1lbnQueG1sI2JvZHkiLCJwYXRoIjpbMCwyXSwicmFuZ2UiOm51bGx9"
+              }
+            ]
+          },
+          "destinationUnchanged": true,
+          "sourceUnchanged": true
+        }
+      ]
+    }
+  },
+  "findings": {
+    "validatedProductDefects": [],
+    "constructionAndVerifierFailures": [
+      "First fixture attempt supplied CLI-style string width to typed SDK Length; rejected usage before artifact writes. Corrected to {value:1,unit:pt}.",
+      "First text verifier incorrectly required unchanged physical owner descriptor SHA after intended text edit. Existing outputs reused and independently validated.",
+      "First image verifier incorrectly required unchanged selected-media filename/all-member inventory. Existing contract retires zero-incoming image-1.png, publishes image-2.png and rebinds existing relationship; corrected verifier and renewed product operation preserve all unrelated member relative order and raw diagram/unknown content."
+    ],
+    "noProfileEscalation": true,
+    "expectedImageEffects": {
+      "retired": "word/media/image-1.png",
+      "created": "word/media/image-2.png",
+      "changedOtherMembers": [
+        "[Content_Types].xml",
+        "word/_rels/document.xml.rels"
+      ],
+      "unrelatedNonmediaRelativeOrderExact": true,
+      "normalShellSdkCompleteBytesExact": true
+    }
+  },
+  "qualification": [
+    "Original technical QA only; both dialect native/unknown read snapshots and virtual script transports verified.",
+    "Unrelated literal text/core metadata/raster replacement preserved diagram resources, native/unknown graphicData raw bytes and nonimage relationship rows under QA-only stdlib archive/XML checks.",
+    "Resource/raw-owner/containing-paragraph mutations precisely refused before SDK publication; existing tokens matched Shell and unchanged preexisting destinations.",
+    "No live diagram model/API parity, diagram layout activation/editing/rendering, independent real SmartArt example, external acquisition or full OOXML schema claim.",
+    "Product/build dependency closure unchanged; QA-only renderer and Python inspector absent from product/build closure."
+  ],
+  "cleanup": {
+    "status": "exact approved cleanup complete",
+    "approvalSha256": "126b5e1f11e597c73e46f479fd5f60bcac850574805c6e511a16564d3afbcab4",
+    "eligibleManifestSha256": "e1cc97a1e1566ef290d106d68d2c03016ce7fdde51187821f3018bc07491b6f3",
+    "allLeavesAdmittedBeforeFirstUnlink": true,
+    "deletedLeaves": [
+      "campaign-results.json",
+      "diagram-edit.xml",
+      "help.png",
+      "help.stderr.txt",
+      "help.stdout.txt",
+      "image-sdk.docx",
+      "image-shell.docx",
+      "metadata-sdk.docx",
+      "metadata-shell.docx",
+      "original-raster.png",
+      "original-strict.docx",
+      "original-transitional.docx",
+      "read-script.json",
+      "read-sdk.json",
+      "read-shell.json",
+      "read.png",
+      "read.stderr.txt",
+      "read.stdout.txt",
+      "refusal-sdk.json",
+      "refusal-shell.json",
+      "selector-error.png",
+      "selector-error.stderr.txt",
+      "selector-error.stdout.txt",
+      "strict-sdk.json",
+      "strict-shell.json",
+      "text-sdk.docx",
+      "text-shell.docx"
+    ],
+    "deletedLeafCount": 27,
+    "deletedLogicalBytes": 552390,
+    "directoryRetained": {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx75-diagrams-qa",
+      "dev": 16777234,
+      "ino": 370305570,
+      "mode": 16832
+    },
+    "directoryEmpty": true,
+    "unrelatedCaches": "No access, descent or deletion",
+    "method": "Exact held directory-relative regular nonlink single-link file admission and bounded hashing; reauthenticated pathname and held descriptor before individual unlink; trusted stable POSIX campaign, no atomic adversarial TOCTOU guarantee",
+    "supervision": {
+      "exitCode": 0,
+      "elapsedSeconds": 0.3367734999919776,
+      "timeoutSeconds": 120,
+      "outputLimitBytes": 67108864,
+      "outputBytes": {
+        "stdout": 1376,
+        "stderr": 0
+      },
+      "termination": null,
+      "frozen25Scoped303Union305BeforeAfter": true
+    }
+  },
+  "retention": {
+    "status": "cleaned; historical pre-cleanup manifest and byte totals retained below",
+    "currentLeafCount": 0,
+    "currentLogicalBytes": 0,
+    "campaignRoot": "tmp/docx75-diagrams-qa",
+    "ownedDirectory": {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx75-diagrams-qa",
+      "dev": 16777234,
+      "ino": 370305570,
+      "mode": 16832
+    },
+    "declaredLeaves": [
+      "campaign-results.json",
+      "diagram-edit.xml",
+      "help.png",
+      "help.stderr.txt",
+      "help.stdout.txt",
+      "image-sdk.docx",
+      "image-shell.docx",
+      "metadata-sdk.docx",
+      "metadata-shell.docx",
+      "original-raster.png",
+      "original-strict.docx",
+      "original-transitional.docx",
+      "read-script.json",
+      "read-sdk.json",
+      "read-shell.json",
+      "read.png",
+      "read.stderr.txt",
+      "read.stdout.txt",
+      "refusal-sdk.json",
+      "refusal-shell.json",
+      "selector-error.png",
+      "selector-error.stderr.txt",
+      "selector-error.stdout.txt",
+      "strict-sdk.json",
+      "strict-shell.json",
+      "text-sdk.docx",
+      "text-shell.docx"
+    ],
+    "cleanup": "Root granted exact cleanup after independent QA approval; all 27 eligible leaves individually deleted and the original empty directory retained",
+    "olderCaches": "Untouched",
+    "retainedManifest": [
+      {
+        "name": "campaign-results.json",
+        "bytes": 59366,
+        "sha256": "346ed8c06fa66d6a0eff5df15ef3e1803ce7cf26d952882499726cedf51ce585",
+        "dev": 16777234,
+        "ino": 370359588,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "diagram-edit.xml",
+        "bytes": 104,
+        "sha256": "0b9f42395bdfe2b42d421334b35593d8cb55cf450c6513c618e199cbef2b36b3",
+        "dev": 16777234,
+        "ino": 370341825,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "help.png",
+        "bytes": 198384,
+        "sha256": "5b695bf51fb7dee1bcacbe5a8aaab1feed3f0f7193e6312365e5ec6e18ac2d5c",
+        "dev": 16777234,
+        "ino": 370347724,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "help.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dev": 16777234,
+        "ino": 370347722,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "help.stdout.txt",
+        "bytes": 547,
+        "sha256": "4f39bf2db5691054e39d0ea77c8173136cf25db1f5521ec04fdb06991f52d505",
+        "dev": 16777234,
+        "ino": 370347721,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "image-sdk.docx",
+        "bytes": 6490,
+        "sha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52",
+        "dev": 16777234,
+        "ino": 370347155,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "image-shell.docx",
+        "bytes": 6490,
+        "sha256": "a4e388873fabd6faf85d2bb485f65294477e0df170ce3654acdabe4940ea6b52",
+        "dev": 16777234,
+        "ino": 370347156,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "metadata-sdk.docx",
+        "bytes": 6489,
+        "sha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb",
+        "dev": 16777234,
+        "ino": 370347045,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "metadata-shell.docx",
+        "bytes": 6489,
+        "sha256": "f0a2d08d8be931eebaa7dae797d05dcc1ef18250083d7e6dbbf376db6728dafb",
+        "dev": 16777234,
+        "ino": 370347047,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "original-raster.png",
+        "bytes": 73,
+        "sha256": "67b4813729c887b3760595512199183df66fe62b525f3ed9b30c8f08381be310",
+        "dev": 16777234,
+        "ino": 370341824,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "original-strict.docx",
+        "bytes": 6202,
+        "sha256": "f3bf6161eebabbefcf3997addaeea91e84c808823da2003d2b7e92b85c31b55f",
+        "dev": 16777234,
+        "ino": 370341809,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "original-transitional.docx",
+        "bytes": 6490,
+        "sha256": "e7c14e91e4bb033be3886d36d2c5240e9f80553ba31834be4dfa0034f1017ef1",
+        "dev": 16777234,
+        "ino": 370341770,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read-script.json",
+        "bytes": 12687,
+        "sha256": "44c9a7cc738547d57b4ca88e91f1ced63a3206a3feb2179abf4fc555480b2d68",
+        "dev": 16777234,
+        "ino": 370342349,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read-sdk.json",
+        "bytes": 9981,
+        "sha256": "0b1f03fda4d426437675842dcb89bd41f160056a6ef2d4ebdcb56500a74c0ff2",
+        "dev": 16777234,
+        "ino": 370342343,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read-shell.json",
+        "bytes": 12687,
+        "sha256": "44c9a7cc738547d57b4ca88e91f1ced63a3206a3feb2179abf4fc555480b2d68",
+        "dev": 16777234,
+        "ino": 370342344,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read.png",
+        "bytes": 153198,
+        "sha256": "c5b449b8acad1eae4c74ce0814d14458a09329befbc3997f91a2c79b79a6859b",
+        "dev": 16777234,
+        "ino": 370347736,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read.stderr.txt",
+        "bytes": 140,
+        "sha256": "047ef66e99903e9a5d9e7f3905a118a2c5d8f52715c50b51339d04c980d5a550",
+        "dev": 16777234,
+        "ino": 370347731,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "read.stdout.txt",
+        "bytes": 225,
+        "sha256": "f26b2d41508bd622468b613bfd37c1cee41707a1ccb848d3d8e1c2b0f9bea310",
+        "dev": 16777234,
+        "ino": 370347730,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "refusal-sdk.json",
+        "bytes": 3617,
+        "sha256": "250eb95169115e9f366882c107c3563995b57a2a31f43c50daa04047674a54fb",
+        "dev": 16777234,
+        "ino": 370347533,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "refusal-shell.json",
+        "bytes": 3750,
+        "sha256": "202003268811ad530d7af0d759ab381584cb2fa192fea25801fb2032727c2e3d",
+        "dev": 16777234,
+        "ino": 370347539,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "selector-error.png",
+        "bytes": 23488,
+        "sha256": "0e98ffdb07e776aa9c2713724eadd233bb3b70ed09cce9b5f6ff3c34e78335e9",
+        "dev": 16777234,
+        "ino": 370347749,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "selector-error.stderr.txt",
+        "bytes": 47,
+        "sha256": "cb3ac739b088f0483a82752cddfcd59a1e9760a4f2acd0b41fc174aacd69d3f3",
+        "dev": 16777234,
+        "ino": 370347747,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "selector-error.stdout.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dev": 16777234,
+        "ino": 370347746,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "strict-sdk.json",
+        "bytes": 9789,
+        "sha256": "9a0f9861ecb6a88578bc777aae159574fcbd3098040419e6b36af799894780e9",
+        "dev": 16777234,
+        "ino": 370342350,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "strict-shell.json",
+        "bytes": 12495,
+        "sha256": "8a64f11d66143e4f8d9c562e772142df1a334f28c7a4bab8e291cfcabaeb7bac",
+        "dev": 16777234,
+        "ino": 370342351,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "text-sdk.docx",
+        "bytes": 6581,
+        "sha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4",
+        "dev": 16777234,
+        "ino": 370346761,
+        "mode": 33188,
+        "nlink": 1
+      },
+      {
+        "name": "text-shell.docx",
+        "bytes": 6581,
+        "sha256": "b768b5c5b5be885fe6086d0dd35a3572ca9c6ef53be101359192bf79cc37e5d4",
+        "dev": 16777234,
+        "ino": 370346764,
+        "mode": 33188,
+        "nlink": 1
+      }
+    ],
+    "retainedBytes": 552390
+  }
+}

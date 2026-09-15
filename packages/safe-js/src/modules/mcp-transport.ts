@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams, type SpawnOptions } from "n
 import path from "node:path";
 import {
   HttpTransport,
+  fetchMcpResponse,
   McpClient,
   StdioTransport,
   type McpTransport
@@ -69,15 +70,21 @@ export function normalizeMcpOptions(
     if (Object.hasOwn(server, "command")) {
       readRecord(server, `MCP server ${name}`, ["command", "args", "cwd", "env"]);
       const command = readText(server.command, "MCP command");
-      if (
-        server.args !== undefined &&
-        (!Array.isArray(server.args) ||
-          server.args.some((argument) => typeof argument !== "string"))
-      )
-        throw new TypeError("MCP args must be an array of strings.");
+      let args: string[] | undefined;
+      if (server.args !== undefined) {
+        if (!Array.isArray(server.args)) throw new TypeError("MCP args must be an array of strings.");
+        args = [];
+        for (let index = 0; index < server.args.length; index++) {
+          const argument = Object.getOwnPropertyDescriptor(server.args, String(index));
+          if (argument === undefined || !("value" in argument) || typeof argument.value !== "string") {
+            throw new TypeError("MCP args must be an array of strings without holes or accessors.");
+          }
+          args.push(argument.value);
+        }
+      }
       normalized[name] = {
         command,
-        ...(server.args === undefined ? {} : { args: [...(server.args as string[])] }),
+        ...(args === undefined ? {} : { args }),
         ...(server.cwd === undefined ? {} : { cwd: readText(server.cwd, "MCP cwd") }),
         env: readStrings(server.env ?? {}, "MCP environment")
       };
@@ -193,10 +200,9 @@ export function connectMcpTransport(
               init?.signal?.removeEventListener("abort", cancel);
             };
             try {
-              const response = await (options.fetch ?? fetch)(input, {
+              const response = await fetchMcpResponse(options.fetch ?? fetch, input, {
                 ...init,
-                signal: controller.signal,
-                redirect: "error"
+                signal: controller.signal
               });
               if (response.body === null) {
                 finish();
@@ -204,17 +210,21 @@ export function connectMcpTransport(
               }
               const reader = response.body.getReader();
               let stopReading: (() => void) | undefined;
+              let released = false;
               const release = () => {
+                if (released) return;
+                released = true;
                 finish();
                 if (stopReading !== undefined)
                   controller.signal.removeEventListener("abort", stopReading);
+                reader.releaseLock();
               };
               const body = new ReadableStream<Uint8Array>({
                 start(stream) {
                   stopReading = () => {
                     void reader.cancel(controller.signal.reason).catch(() => undefined);
-                    stream.error(controller.signal.reason);
                     release();
+                    stream.error(controller.signal.reason);
                   };
                   controller.signal.addEventListener("abort", stopReading, { once: true });
                   if (controller.signal.aborted) stopReading();
@@ -232,9 +242,9 @@ export function connectMcpTransport(
                     stream.error(error);
                   }
                 },
-                async cancel(reason) {
+                cancel(reason) {
+                  void reader.cancel(reason).catch(() => undefined);
                   release();
-                  await reader.cancel(reason);
                 }
               });
               return new Response(body, {

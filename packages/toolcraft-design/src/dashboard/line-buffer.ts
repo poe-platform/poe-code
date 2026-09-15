@@ -54,7 +54,7 @@ export function createStreamingDashboardLineBuffer(emit: (line: string, id: stri
   let id = randomUUID();
   let lastPreview = "";
   const lines = createDashboardLineBuffer(line => {
-    emit(line, id);
+    if (line.length === 0 || line !== lastPreview) emit(line, id);
     id = randomUUID();
     lastPreview = "";
   });

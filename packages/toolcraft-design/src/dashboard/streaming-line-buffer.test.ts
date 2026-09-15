@@ -58,3 +58,16 @@ it("does not repaint unchanged partial text while a hidden control streams", () 
   buffer.push(" result");
   expect(emit).toHaveBeenCalledTimes(2);
 });
+
+it("does not publish unchanged previews again on newline or flush", () => {
+  const emit = vi.fn();
+  const buffer = createStreamingDashboardLineBuffer(emit);
+  buffer.push("first");
+  const firstId = emit.mock.calls[0]![1];
+  buffer.push("\nsecond");
+  buffer.flush();
+  expect(emit.mock.calls.map(([text]) => text)).toEqual(["first", "second"]);
+  expect(emit.mock.calls[1]![1]).not.toBe(firstId);
+  buffer.push("third\n\n");
+  expect(emit.mock.calls.map(([text]) => text)).toEqual(["first", "second", "third", ""]);
+});

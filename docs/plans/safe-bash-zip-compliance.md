@@ -488,3 +488,13 @@ failing memory case validates that publication guard, with corrupt-input coverag
 670 focused ZIP/unzip tests and scoped lint pass. Timestamp scoped release
 35019636709 succeeded; root release 35019637057 remains monitored. Full grammar,
 move, line conversion, large-byte ZIP64, streaming and other formats remain open.
+
+## Current file-sync test/timestamp combinations
+
+Native Zip 3.0 skips T when FS is already current, including corrupt retained
+payload CRCs; o still applies the latest-member timestamp. One failing memory
+case validates the oT mismatch; paired T-only coverage protects the fast path.
+Skip the test stage for unchanged file-sync while retaining timestamp publication.
+672 focused ZIP/unzip tests and scoped lint pass. Integrity fix 744bc9a1b is
+verified on remote main via a05c09903; release 35020582170 is monitored.
+Remaining broad compliance requirements above remain open.

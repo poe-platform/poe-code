@@ -136,7 +136,11 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
 }
 
 function hasCursorControls(text: string): boolean {
-  return text.includes("\r") || text.includes("\b");
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x0a && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) return true;
+  }
+  return false;
 }
 
 function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegment[][] {

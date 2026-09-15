@@ -67,8 +67,8 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   while (index < text.length) {
     const ch = text[index]!;
 
-    if (ch === ESC && text[index + 1] === "[") {
-      const paramsStart = index + 2;
+    if ((ch === ESC && text[index + 1] === "[") || ch === "\u009b") {
+      const paramsStart = index + (ch === ESC ? 2 : 1);
       let cursor = paramsStart;
 
       while (cursor < text.length && !isCsiFinalByte(text[cursor]!)) {
@@ -95,10 +95,21 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
+    if (ch === "\u009d" || ch === "\u0090" || ch === "\u0098" || ch === "\u009e" || ch === "\u009f") {
+      index = skipStringTerminated(text, index + 1, ch === "\u009d");
+      continue;
+    }
+
+    if (ch === "\u0085") {
+      finishLine();
+      index += 1;
+      continue;
+    }
+
     if (ch === ESC) {
       const next = text[index + 1];
       if (next === "]" || next === "P" || next === "X" || next === "^" || next === "_") {
-        index = skipStringTerminated(text, index + 2);
+        index = skipStringTerminated(text, index + 2, next === "]");
         continue;
       }
       index += 2;
@@ -131,13 +142,17 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     const code = ch.charCodeAt(0);
-    if (code < 0x20) {
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) {
       index += 1;
       continue;
     }
 
     let end = index + 1;
-    while (end < text.length && text.charCodeAt(end) >= 0x20) end += 1;
+    while (end < text.length) {
+      const next = text.charCodeAt(end);
+      if (next < 0x20 || (next >= 0x7f && next <= 0x9f)) break;
+      end += 1;
+    }
     for (const grapheme of graphemes(text.slice(index, end))) writeGrapheme(grapheme);
     index = end;
   }
@@ -168,11 +183,11 @@ function isCsiFinalByte(ch: string): boolean {
   return code >= 0x40 && code <= 0x7e;
 }
 
-function skipStringTerminated(text: string, start: number): number {
+function skipStringTerminated(text: string, start: number, allowBell: boolean): number {
   let index = start;
   while (index < text.length) {
     const ch = text[index]!;
-    if (ch === "\u0007") {
+    if ((allowBell && ch === "\u0007") || ch === "\u009c") {
       return index + 1;
     }
     if (ch === ESC && text[index + 1] === "\\") {

@@ -499,6 +499,16 @@ describe("renderBorder", () => {
 });
 
 describe("output pane", () => {
+  it.each(["\u007f", "\u0000", "\u009b2J", "\u009dHIDDEN_OSC\u009c"])(
+    "filters terminal controls in unstyled output %j", (control) => {
+      const buffer = new ScreenBuffer(20, 1);
+      renderOutputPane(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+        { kind: "tool", text: `left${control}right`, ts: 0 }
+      ]);
+      expect(readRow(buffer, 0).trimEnd()).toBe("│  leftright");
+    }
+  );
+
   const previousPoeCodeTheme = process.env.POE_CODE_THEME;
   const previousPoeTheme = process.env.POE_THEME;
 

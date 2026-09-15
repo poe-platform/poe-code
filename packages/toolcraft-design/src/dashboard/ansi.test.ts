@@ -2,6 +2,29 @@ import { describe, expect, it } from "vitest";
 import { hasAnsi, parseAnsi } from "./ansi.js";
 
 describe("parseAnsi", () => {
+  it.each(["\u001bP", "\u0090", "\u001b_", "\u009f"])(
+    "keeps device-control string %j hidden until its string terminator", (start) => {
+      expect(parseAnsi(`${start}HIDDEN_FIRST\u0007HIDDEN_SECOND\u009cvisible`)).toEqual([
+        { segments: [{ text: "visible", style: {} }] }
+      ]);
+    }
+  );
+
+  it.each(["\u007f", "\u0000", "\u009c", "\u009b2J", "\u009dHIDDEN_OSC\u009c", "\u0090HIDDEN_DCS\u009c"])(
+    "discards nonprinting control payload %j", (control) => {
+      expect(parseAnsi(`left${control}right`)).toEqual([
+        { segments: [{ text: "leftright", style: {} }] }
+      ]);
+    }
+  );
+
+  it("applies C1 SGR and next-line controls without retaining control bytes", () => {
+    expect(parseAnsi("\u009b31mred\u009b0m\u0085next")).toEqual([
+      { segments: [{ text: "red", style: { fg: "red" } }] },
+      { segments: [{ text: "next", style: {} }] }
+    ]);
+  });
+
   it.each([
     ["界", " X"],
     ["😀", " X"],

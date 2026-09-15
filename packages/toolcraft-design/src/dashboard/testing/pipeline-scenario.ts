@@ -80,6 +80,9 @@ if (scenario === "empty") {
   append("tool", "\u001b]52;c;HIDDEN_OSC_PAYLOAD\u0007Visible OSC result");
   append("tool", "\u001bP HIDDEN_DCS_PAYLOAD\u001b\\Visible DCS result");
   append("tool", "\u001b[2J\u001b[1;1HFrame preserved");
+  append("tool", "left\u007fright · \u009b2JC1 frame preserved");
+  append("tool", "\u009dHIDDEN_C1_OSC\u009cVisible C1 OSC result");
+  append("tool", "\u0090HIDDEN_FIRST\u0007HIDDEN_SECOND\u009cVisible C1 DCS result");
   append("success", "Cursor control fixture ready");
 } else {
   for (let index = 0; index < 200; index += 1) {

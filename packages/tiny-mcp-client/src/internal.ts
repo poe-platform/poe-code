@@ -3931,7 +3931,7 @@ function isJsonRpcErrorObject(value: unknown): value is JsonRpcErrorObject {
     return false;
   }
 
-  if (typeof value.code !== "number" || typeof value.message !== "string") {
+  if (!Number.isInteger(value.code) || typeof value.message !== "string") {
     return false;
   }
 

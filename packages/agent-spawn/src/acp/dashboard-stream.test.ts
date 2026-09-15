@@ -5,6 +5,42 @@ import { streamAcpEventsToDashboard } from "./dashboard-stream.js";
 
 afterEach(() => vi.useRealTimers());
 
+it("closes a cancelled event source without draining its backlog or publishing pending text", async () => {
+  vi.useFakeTimers();
+  const controller = new AbortController();
+  const onToolOutput = vi.fn();
+  const onErrorOutput = vi.fn();
+  let closed = false;
+  let consumed = 0;
+  await streamAcpEventsToDashboard({
+    signal: controller.signal,
+    events: (async function* () {
+      try {
+        yield { event: "agent_message", text: "visible" };
+        yield { event: "agent_message", text: " pending" };
+        controller.abort();
+        for (let index = 0; index < 1000; index++) {
+          consumed++;
+          yield { event: "agent_message", text: " cancelled backlog" };
+        }
+        yield { event: "error", message: "cancelled backlog error" };
+      } finally {
+        closed = true;
+      }
+    })(),
+    onToolOutput,
+    onErrorOutput
+  });
+  expect(closed).toBe(true);
+  expect(consumed).toBeLessThanOrEqual(1);
+  expect(onToolOutput).toHaveBeenCalledTimes(1);
+  expect(onToolOutput.mock.calls[0]![0]).toContain("visible");
+  expect(onErrorOutput).not.toHaveBeenCalled();
+  expect(vi.getTimerCount()).toBe(0);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(onToolOutput).toHaveBeenCalledTimes(1);
+});
+
 it("shows text before execution ends and updates its existing preview", async () => {
   vi.useFakeTimers();
   const store = createStore();

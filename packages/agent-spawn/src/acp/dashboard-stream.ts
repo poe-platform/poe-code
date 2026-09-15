@@ -6,6 +6,7 @@ import { renderAcpEvent } from "./renderer.js";
 /** Render live message previews with stable ids; other events remain individual log entries. */
 export async function streamAcpEventsToDashboard(options: {
   events: AsyncIterable<AcpEvent>;
+  signal?: AbortSignal;
   onToolOutput(chunk: string, id?: string): void;
   onErrorOutput(chunk: string): void;
 }): Promise<boolean> {
@@ -25,7 +26,7 @@ export async function streamAcpEventsToDashboard(options: {
     // Terminal separators belong between events, not inside timestamped dashboard entries.
     while (lines[0] === "") lines.shift();
     while (lines.at(-1) === "") lines.pop();
-    if (lines.length === 0) return;
+    if (lines.length === 0 || options.signal?.aborted) return;
     const output = lines.join("\n") + "\n";
     if (event.event === "error") options.onErrorOutput(output);
     else options.onToolOutput(output, id);
@@ -36,7 +37,7 @@ export async function streamAcpEventsToDashboard(options: {
     timer = undefined;
     await rendering;
     if (renderFailure !== undefined) throw renderFailure;
-    if (dirty && block) {
+    if (dirty && block && !options.signal?.aborted) {
       dirty = false;
       await publish({ event: block.event, text: block.preview.text() }, block.id);
     }
@@ -44,7 +45,9 @@ export async function streamAcpEventsToDashboard(options: {
   }
 
   try {
+    if (options.signal?.aborted) return false;
     for await (const event of options.events) {
+      if (options.signal?.aborted) break;
       sawEvents = true;
       if (renderFailure !== undefined) throw renderFailure;
       if (event.event !== "agent_message" && event.event !== "reasoning") {
@@ -69,7 +72,7 @@ export async function streamAcpEventsToDashboard(options: {
       if (timer !== undefined) continue;
       timer = setTimeout(() => {
         timer = undefined;
-        if (!dirty || !block) return;
+        if (!dirty || !block || options.signal?.aborted) return;
         const preview = { event: block.event, text: block.preview.text() };
         const id = block.id;
         dirty = false;

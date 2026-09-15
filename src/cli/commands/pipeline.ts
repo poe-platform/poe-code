@@ -463,6 +463,7 @@ function createPipelineDashboardRunAgent(options: {
 
         const eventStream = streamAcpEventsToDashboard({
           events,
+          ...(input.signal ? { signal: input.signal } : {}),
           onToolOutput(chunk, id) {
             if (id !== undefined) {
               options.appendOutput("tool", `[${options.activeStage()}] ${chunk.trimEnd()}`, id);

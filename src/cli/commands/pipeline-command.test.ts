@@ -1674,7 +1674,8 @@ describe("pipeline run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
-  it("aborts the pipeline when the dashboard quit command is used", async () => {
+  it.each(["quit", "forceQuit"])("waits for pipeline cleanup after dashboard %s", async (command) => {
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1682,7 +1683,9 @@ describe("pipeline run command", () => {
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      dashboardMock.commandHandlers[0]?.("quit");
+      dashboardMock.commandHandlers[0]?.(command);
+      expect(exit).not.toHaveBeenCalled();
+      if (command === "forceQuit") expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
 
       expect(options.signal?.aborted).toBe(true);
 
@@ -1729,7 +1732,9 @@ describe("pipeline run command", () => {
       ])
     );
 
-    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+    if (command === "forceQuit") {
+      expect(exit).toHaveBeenCalledExactlyOnceWith(130);
+    } else expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
       kind: "status",
       text: `${expectedTimestamp} Cancellation requested`,
       ts: 0

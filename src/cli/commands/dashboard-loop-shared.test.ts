@@ -144,4 +144,28 @@ describe("dashboard loop shared helpers", () => {
     expect(destroy).toHaveBeenCalledTimes(1);
     expect(exitSpy).toHaveBeenCalledWith(130);
   });
+  it("restores the terminal immediately but waits for run cleanup before force exit", async () => {
+    let commandHandler: (command: string) => void = () => {};
+    let finishCleanup!: () => void;
+    const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+    const abortController = new AbortController();
+    const destroy = vi.fn();
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    registerDashboardQuitCommands({
+      abortController,
+      dashboard: { onCommand(handler) { commandHandler = handler; }, stop: vi.fn(), destroy },
+      requestCancellation: vi.fn(),
+      cleanupComplete
+    });
+    commandHandler("forceQuit");
+    commandHandler("forceQuit");
+    expect(abortController.signal.aborted).toBe(true);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(exit).not.toHaveBeenCalled();
+    finishCleanup();
+    await cleanupComplete;
+    await Promise.resolve();
+    expect(exit).toHaveBeenCalledExactlyOnceWith(130);
+  });
+
 });

@@ -89,3 +89,7 @@ Unicode terminal-model diagnosis: /tmp/pipeline-live-unicode-screen.json shows a
 Raster placement fixed with five failing-before SVG regressions and 73 passing package tests. Re-rendered captured actual Unicode screen: /tmp/pipeline-unicode-fixed.png has aligned sidebar/outer borders throughout. Font placeholders remain for unsupported glyphs; cell placement and underlying Unicode text are verified separately. Forced design-doc generation completed; regenerated dashboard example inspected.
 
 Actual CLI limit/progression/no-work checks executed: three tasks completed with three tracked child jobs and 360/135/30 token summary; max-runs 1 completed only task one, with one child job and 120/45/10 tokens; no-work plan preserved all done statuses, created zero child jobs and showed zero usage. All exit 0 with primary-screen restoration. Capture names /tmp/pipeline-limits-{progression,max_runs,nothing_to_run}-{live,restored}.png (no live capture for immediate no-work outcome).
+
+### Same-plan restart after force quit
+
+Launch the actual CLI with the executable isolated fake agent in cancelled mode. Wait for live response 5, capture the child PID, and press terminal-pilot Control+C. Verify exit 130, child termination, open persisted task, and restored primary screen. Immediately launch the same plan with the completed fake scenario; verify it starts without a lock timeout and finishes done/exit 0. Capture and inspect the retry screen. Verified locally: active retry in 1,028ms. SIGKILL/crash recovery remains outside this result.

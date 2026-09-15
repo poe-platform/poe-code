@@ -4,6 +4,7 @@ type DashboardQuitCommandOptions = {
   abortController: AbortController;
   dashboard: Pick<Dashboard, "destroy" | "onCommand" | "stop">;
   requestCancellation: () => void;
+  cleanupComplete?: Promise<void>;
 };
 
 export { shouldUseInteractiveDashboard };
@@ -26,19 +27,25 @@ export function formatDashboardTimestamp(timestamp: number): string {
 export { createDashboardLineBuffer } from "toolcraft-design";
 
 export function registerDashboardQuitCommands(options: DashboardQuitCommandOptions): void {
+  let forceQuitting = false;
   options.dashboard.onCommand((command) => {
     if (command === "quit") {
       options.requestCancellation();
       return;
     }
 
-    if (command !== "forceQuit") {
+    if (command !== "forceQuit" || forceQuitting) {
       return;
     }
 
+    forceQuitting = true;
     options.abortController.abort();
     options.dashboard.stop();
     options.dashboard.destroy();
-    process.exit(130);
+    if (options.cleanupComplete) {
+      void options.cleanupComplete.then(() => process.exit(130));
+    } else {
+      process.exit(130);
+    }
   });
 }

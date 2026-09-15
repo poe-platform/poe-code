@@ -535,6 +535,8 @@ async function runPipelineWithDashboard(
     ]
   });
   const abortController = new AbortController();
+  let finishCleanup!: () => void;
+  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
   const startedAt = Date.now();
   let iterations = 0;
   let tokensIn = 0;
@@ -583,7 +585,8 @@ async function runPipelineWithDashboard(
   registerDashboardQuitCommands({
     abortController,
     dashboard,
-    requestCancellation
+    requestCancellation,
+    cleanupComplete
   });
   dashboard.start();
   syncStats();
@@ -660,6 +663,7 @@ async function runPipelineWithDashboard(
     process.off("SIGTERM", requestCancellation);
     dashboard.stop();
     dashboard.destroy();
+    finishCleanup();
   }
 }
 

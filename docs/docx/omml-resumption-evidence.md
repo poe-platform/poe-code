@@ -58,3 +58,84 @@ No corpus operation, rendered-document measurement, screenshot inspection,
 complete guarded workspace gate or whole-public-model parity follows from these
 focused results. Downloaded inputs remain disposable preparation material; no
 reference passages, media or identities enter product tests.
+
+## Corrected original candidate
+
+Original canonical REDs preceded fixes for native property contexts, associated
+Word run-property snapshots and selected transparent native paragraph equation
+editing. A targeted append authority preserves generic/inactive/foreign insertion
+refusal. Both dialects retain XML framing and inactive siblings. Identical-byte
+replacement was tested with both `allowEmpty` values and matched existing common
+behavior; no no-op defect was validated or code changed for it.
+
+The maintained full DOCX suite passed **2,860 tests across 134 files**. The final
+bounded help correction then reproduced two failing assertions and passed all
+20 discovery tests. It derives the selector guide from declared option fields;
+token-only equation edits no longer advertise simple selectors. Maintained DOCX
+lint passed after both corrections, including source and test type checking.
+
+The dynamically collected actual DOCX Shell family passed **130 tests across
+22 files**, with no skips. This is focused canonical semantic evidence, not the
+full safe-bash npm workspace unit suite. The maintained runner does not consume
+`SAFE_BASH_TEST_RG`; no selector was synthesized. Maintained safe-bash selected
+build and `typecheck:all` passed the declared build/source/test/strict-consumer
+closure. Compile-only consumers establish no runtime execution.
+
+Root and independent reviewer actually inspected normal Shell help, human list
+and rejected-scope screenshots. The first help capture remains failure evidence;
+the corrected help-v2 capture is readable and has the required token-only footer.
+
+Different-worker approval is `/tmp/docx76-resume-review-approval-v4.json`, SHA-256
+`dd655f09150abf2d914f0a859249909cf59574882942fc35620ebca9922aff57`.
+It verifies 24 original both-dialect probes and an append-aware 316-file frozen
+candidate with no pathname/hash drift. It approves the bounded original product
+candidate only. Corpus QA, final root gate and whole-public-model parity remain
+separate; task implement/test statuses are not promoted by this approval.
+
+## Default-profile corpus outcome
+
+The admitted read-only source is the manifest-pinned inventory volume 1,
+20,543,015 bytes, SHA-256
+`b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e`.
+Its historical census reports 45 expressions; the product did not verify that
+count. No corpus passage, image or binary was promoted into canonical fixtures.
+
+The public TS inspector refused `limit-exceeded` before XML accounting. Archive
+admission attempted to charge 32,484,313 expanded bytes × 64 = 2,078,996,032 work
+units on top of 164,344,120 already charged. The projected 2,243,340,152 exceeds
+the unchanged default 536,870,912 work ceiling. Recorded retention was
+135,395,996 bytes; this is a work refusal, not XML/retention corruption.
+
+The first Shell attempt failed in QA setup because the VFS's default 16-MiB
+per-file ceiling was smaller than the input. That construction failure remains
+separate. With an explicit 64-MiB QA VFS file ceiling and unchanged product
+defaults, actual normal Shell returned exit 4, `limit-exceeded`, affected zero,
+no locations and an unchanged input hash. No raised product retry occurred.
+
+Because default admission failed, no corpus text edit, output archive, equation
+snapshot equivalence or OMML-preservation pass is claimed. The generated archive
+leaf was never created, so there is no owned generated binary to clean up. The
+existing download stays immutable for future explicitly qualified campaigns.
+This bounded refusal is not a validated product defect requiring a new regression;
+original deterministic canonical tests remain independent of the download.
+
+Different-worker refusal-accounting approval is
+`/tmp/docx76-resume-review-qa-outcome-v1.json`, SHA-256
+`e18949a654adda5b96f4dfd8519fa6953746ad94e73ba28647725dedd82612a0`.
+It confirms the exact arithmetic, profile, unchanged source/candidate, separate
+construction failure and absent generated leaf. This approves evidence accuracy,
+not successful product corpus qualification.
+
+Task 76 corpus qualification remains unresolved, and tasks 77–107 stay pending.
+No task state, format conformance or full SDK parity is promoted by these results.
+
+## Final root gate limitation
+
+Maintained `npm run lint:eslint` remained running with no final output at a
+measured 610 seconds. Root manually terminated only its authenticated owned lint
+process after the 600-second intended ceiling; the command exited 143. This
+tool-runner/manual-poll supervision was not the leaf's external watchdog profile.
+No completed traversal, error count, receipt count or complete root-lint pass is
+claimed. The final root gate remains pending; its timeout is preserved alongside
+passing maintained package lint and consumer type checks, without a bypass or
+retired-tracer fallback.

@@ -98,6 +98,27 @@ const validationData = object({ valid: boolean, profile: { const: "core-v1" }, c
 const xmlData = object({ part: string, encoding: { enum: ["base64", "utf-8"] }, content: string, pretty: boolean, bytes: number, sha256: string });
 const mutationData = object({ changed: boolean, changes: array(object({ kind: { const: "replace" }, before: location, after: location })),
   output: { oneOf: [object({ path: nullableString, bytes: number, sha256: string }), { type: "null" }] }, dryRun: boolean });
+const equationLocation = object({ kind: { const: "part" }, token: string, value: object({ version: { const: 1 }, sourceSha256: string, generation: number, part: string, story: string, path: array(number), range: { type: "null" } }), positions: object({}) });
+const equationIssue = object({ code: string, part: string, path: array(number), message: string });
+const equationProperty = object({ scope: { enum: ["equation", "run", "argument", "display", "global"] }, part: string, path: array(number), namespace: string, localName: string,
+  attributes: array(object({ namespace: string, localName: string, value: string })), status: { enum: ["stored", "opaque"] }, issues: array(equationIssue) });
+const equationDetails = object({ kind: { const: "equations" }, mode: { enum: ["inline", "display"] }, ownerPart: string,
+  root: object({ namespace: string, localName: string }), path: array(number), mathPaths: array(array(number)), active: boolean,
+  properties: array(equationProperty), status: { enum: ["bounded", "opaque"] }, issues: array(equationIssue) });
+const equationRecord = object({ kind: { const: "equations" }, location: equationLocation, name: string, properties: empty, references: array(reference), support: { enum: ["edit", "preserve"] }, details: equationDetails });
+export const equationOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries(
+  ["equations.list", "equations.add", "equations.replace"].map(id => [id, {
+    description: id === "equations.list" ? "Read package-global physical outer OMML units and inert stored/global properties, including inactive and opaque storage. Explicit bounded fragment edits are separate; full math models, evaluation, layout, rendering and utility batch execution remain unsupported."
+      : "Edit one explicit current whole-paragraph add or physical-unit replacement using a matching-dialect bounded OMML fragment. Preserve adjacent/inactive/opaque content; full schema, math models, evaluation, conversion, layout, rendering and utility batch execution remain unsupported.",
+    featureIds: ["F39"], result: { oneOf: [
+      object({ version: { const: 1 }, operation: { const: id }, ok: { const: true },
+        data: id === "equations.list" ? object({ items: array(equationRecord), globalProperties: array(equationProperty) })
+          : object({ ...mutationData.properties, changes: { ...array(object({ kind: { const: id === "equations.add" ? "add" : "replace" }, before: location, after: equationLocation })), maxItems: 1 } }),
+        warnings: array(diagnostic), errors: empty, affected: id === "equations.list" ? { const: 0 } : { enum: [0, 1] }, locations: id === "equations.list" ? array(equationLocation) : { ...array(equationLocation), maxItems: 1 } }),
+      object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: locatedDiagnostic }, affected: { const: 0 }, locations: array(location) })
+    ] }
+  }])
+);
 const propertyValue = object({ name: string, type: { enum: ["string", "boolean", "integer", "number", "date"] }, value: { oneOf: [string, boolean, { type: "number" }, { type: "null" }] }, writable: boolean, cached: boolean });
 const propertyRecord: DocxJsonSchema = { ...object({ kind: { const: "property" }, location: resourcePartLocation, name: string, properties: { type: "array", maxItems: 1, items: propertyValue }, references: array(reference), support: { enum: ["edit", "read", "preserve"] }, details: object({ kind: { const: "property" }, group: { enum: ["core", "extended", "custom"] }, storedType: { oneOf: [object({ namespace: string, localName: string }), { type: "null" }] }, id: nullableString }) }), required: ["kind", "location", "properties", "references", "support", "details"] };
 const nullablePartLocation: DocxJsonSchema = { oneOf: [resourcePartLocation, { type: "null" }] };

@@ -61,6 +61,38 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.editDocumentShapes).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentCharts).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentDiagrams).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentEquations).toBeTypeOf("function");
+  expect.soft(runtime.addDocumentEquation).toBeTypeOf("function");
+  expect.soft(runtime.replaceDocumentEquation).toBeTypeOf("function");
+  if (runtime.inspectDocumentEquations && runtime.addDocumentEquation && runtime.replaceDocumentEquation) {
+    const namespace = "http://schemas.openxmlformats.org/officeDocument/2006/math";
+    const expression = `<m:oMath xmlns:m="${namespace}"><m:f><m:num><m:r><m:t>7</m:t></m:r></m:num><m:den><m:r><m:t>11</m:t></m:r></m:den></m:f></m:oMath>`;
+    const source = await textFixture('<w:p><w:r><w:t>Original passage</w:t></w:r>' + expression + '</w:p>');
+    const inventory = await runtime.inspectDocumentEquations(source, {}, textContext);
+    expect(inventory.items).toHaveLength(1);
+    expect(inventory.items[0]).toMatchObject({ support: "edit", details: { mode: "inline", status: "bounded", active: true, mathPaths: [[0, 0, 1]] } });
+    const paragraphLocation = (await runtime.openDocumentLocations(source, textContext)).list("paragraph")[0];
+    const inserted = await runtime.addDocumentEquation(source, { operation: "equations.add", options: {
+      select: paragraphLocation.token, file: { kind: "bytes", base64: Buffer.from(expression).toString("base64") }, dryRun: true
+    } }, { ...textContext, encoding: { order: "input", compression: "store" } });
+    expect(inserted).toMatchObject({ changed: true, dryRun: true, output: null });
+    expect(inserted.changes).toHaveLength(1);
+    expect(inserted.changes[0].after.value.path).toEqual([0, 0, 2]);
+    const chunks: Uint8Array[] = [];
+    const changed = await runtime.replaceDocumentEquation(source, { operation: "equations.replace", options: {
+      select: inventory.items[0].location.token, file: { kind: "bytes", base64: Buffer.from(expression.split(">7<").join(">13<")).toString("base64") }, output: "-"
+    } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes: Uint8Array) { chunks.push(new Uint8Array(bytes)); } } });
+    expect(changed.changed).toBe(true);
+    expect(changed.changes).toHaveLength(1);
+    expect(changed.changes[0].after.value.generation).toBe(1);
+    const output = new Uint8Array(Buffer.concat(chunks));
+    const after = await runtime.readDocumentArchive(output, textContext), before = await runtime.readDocumentArchive(source, textContext);
+    expect(after.members.map((member: { name: string }) => member.name)).toEqual(before.members.map((member: { name: string }) => member.name));
+    for (const member of before.members) if (member.name !== "word/document.xml")
+      expect(after.members.find((candidate: { name: string }) => candidate.name === member.name).bytes).toEqual(member.bytes);
+    expect((await runtime.extractDocumentText(output, textContext)).text).toBe("Original passage");
+    expect((await runtime.inspectDocumentEquations(output, {}, textContext)).items).toHaveLength(1);
+  }
   if (runtime.inspectDocumentDiagrams) {
     const opaqueCarrier = '<w:r><w:drawing><wp:inline><wp:extent cx="200" cy="300"/><wp:docPr id="2" name="Opaque resource"/><a:graphic><a:graphicData uri="urn:local:opaque-graphic"><stored:payload xmlns:stored="urn:local:stored-data"/></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
     const diagramSource = await diagramFixture({ body: '<w:p><w:r><w:t>coast</w:t></w:r>' + diagramCarrier() + opaqueCarrier + '</w:p>' });

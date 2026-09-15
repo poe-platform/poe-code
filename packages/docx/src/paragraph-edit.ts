@@ -1,5 +1,7 @@
 import { collectDiagramObservations } from "./diagram-observations.js";
 import { UnsupportedDiagramMutationError } from "./diagrams.js";
+import {collectEquationUnits,UnsupportedEquationMutationError} from './equations.js';
+import {mathNamespace} from './equation-fragments.js';
 import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
@@ -102,6 +104,8 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     if (request.operation === "paragraphs.set") {
       if (opts.text !== undefined) {
         const observations = collectDiagramObservations(xml.root, dialect, before.value.part, budget);
+        const equations=collectEquationUnits(node,mathNamespace(dialect==='strict'),budget);
+        if(equations.length)throw new UnsupportedEquationMutationError(before);
         if (observations.some(observation => before.value.path.every((index, i) => observation.path[i] === index))) throw new UnsupportedDiagramMutationError(before);
         assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
       }

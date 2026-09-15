@@ -1,4 +1,5 @@
 import { assertDiagramXmlReplacement, assertDiagramGraphReplacement } from "./diagrams.js";
+import { assertEquationXmlReplacement } from "./equations.js";
 import { readDocumentBindingOwnership } from "./binding-ownership.js";
 import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMember } from "./archive.js";
@@ -128,6 +129,7 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
   if (member) {
     const original = parseDocumentXml(member.bytes, {}, budget);
     if (changed) await assertDiagramXmlReplacement(archive, original.root, xml.root, owned, "/" + member.name, budget);
+    if (changed) await assertEquationXmlReplacement(archive, original.root, xml.root, owned, "/" + member.name, budget,xml.bytes);
     if (changed) await assertDiagramGraphReplacement(archive, graph, owned, name, budget);
     if (original.root.namespace !== xml.root.namespace || original.root.localName !== xml.root.localName)
       throw new UnsupportedEditError("Replacement must retain the part root expanded name.");

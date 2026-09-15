@@ -8,6 +8,9 @@ import {
 import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
 import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
+import {admitEquationFragment,inspectEquationFragment,mathNamespace} from './equation-fragments.js';
+import {documentDialects} from './dialect.js';
+import {assertOutsideRevisionRanges} from './revision-markup.js';
 import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
 
 type Token = XmlContent | XmlAttribute;
@@ -250,6 +253,10 @@ export class DocumentXmlEditor {
       for (const child of element.children) check(child);
     };
     check(node);
+    this.#stageReplacement(node,xml);
+  }
+
+  #stageReplacement(node:XmlElement,xml:string):void {
     this.#budget.charge("retainedBytes", xml.length * 8);
     this.#budget.charge("work", xml.length * 4);
     this.#patches.set(node, xml);
@@ -261,6 +268,44 @@ export class DocumentXmlEditor {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
     } catch (error) { this.#patches.delete(node); throw error; }
+  }
+
+  /** Explicit bounded math authority; generic subtree replacement remains conservative. */
+  replaceEquationElement(node:XmlElement,markup:string):void {
+    if(typeof markup!=="string")throw new InputTypeError("Expected equation markup.");
+    if(!this.#elements.has(node)||node===this.root||this.#patches.has(node)||!this.#dialect)unsupported();
+    const namespace=mathNamespace(this.#dialect==='strict');
+    if(node.namespace!==namespace||!['oMath','oMathPara'].includes(node.localName)||inspectEquationFragment(node,namespace,this.#budget).length)unsupported();
+    const fragment=admitEquationFragment(new TextEncoder().encode(markup),namespace,this.#budget);
+    if(fragment.root.localName!==node.localName)unsupported();
+    this.#assertEquationHost(node);
+    this.assertShapeEditAllowed(node);this.#stageReplacement(node,fragment.xml);
+  }
+
+  /** Append one bounded math root without granting generic compatibility insertion. */
+  appendEquationElement(paragraph:XmlElement,markup:string):void {
+    if(typeof markup!=="string")throw new InputTypeError("Expected equation markup.");
+    if(!this.#elements.has(paragraph)||this.#patches.has(paragraph)||!this.#dialect||paragraph.namespace!==documentDialects[this.#dialect].w||paragraph.localName!=='p')unsupported();
+    const fragment=admitEquationFragment(new TextEncoder().encode(markup),mathNamespace(this.#dialect==='strict'),this.#budget);
+    this.#assertEquationHost(paragraph);this.assertShapeEditAllowed(paragraph);
+    this.#stageInsertion(paragraph,fragment.xml);
+  }
+
+  #assertEquationHost(node:XmlElement):void {
+    const namespace=mathNamespace(this.#dialect==='strict'),w=documentDialects[this.#dialect!].w;
+    let chain:XmlElement[]|undefined;
+    const search=(current:XmlElement,parents:XmlElement[]):void=>{this.#budget.charge('work',1);if(current===node){chain=[...parents,current];return;}for(const child of current.children){if(chain)return;search(child,[...parents,current]);}};
+    search(this.root,[]);if(!chain)unsupported();
+    let paragraphIndex=-1;for(let i=chain.length-1;i>=0;i--)if(chain[i]!.namespace===w&&chain[i]!.localName==='p'){paragraphIndex=i;break;}if(paragraphIndex<0)unsupported();
+    const native=['document','body','hdr','ftr','footnotes','footnote','endnotes','endnote','comments','comment','tbl','tr','tc','p'];
+    const mc='http://schemas.openxmlformats.org/markup-compatibility/2006';
+    if(chain.slice(0,paragraphIndex+1).some(n=>n.namespace===w?!native.includes(n.localName):n.namespace!==mc||!['AlternateContent','Choice','Fallback'].includes(n.localName))||chain.slice(paragraphIndex+1,-1).some(n=>n.namespace!==mc||!['AlternateContent','Choice','Fallback'].includes(n.localName)))unsupported();
+    const paragraph=chain[paragraphIndex]!,view=this.compatibility,active=new Set<XmlElement>();
+    const projected=(content:typeof view.content):void=>{for(const item of content){this.#budget.charge('work',1);if('source' in item){active.add(item.source);this.#budget.charge('retainedBytes',32);if(item.disposition==='understood')projected(item.content);}}};projected(view.content);
+    if(!active.has(node)||!active.has(paragraph))unsupported();
+    const check=(current:XmlElement):void=>{this.#budget.charge('work',1+current.attributes.length);if(current.namespace===mc&&current.localName==='AlternateContent'){view.branches.find(b=>b.alternateContent===current)?.selected?.children.forEach(check);return;}if(!active.has(current))return;
+      if(![w,namespace].includes(current.namespace)||current.namespace===w&&['sdt','fldSimple','fldChar','instrText','ins','del','moveFrom','moveTo','pPrChange','rPrChange','moveFromRangeStart','moveFromRangeEnd','moveToRangeStart','moveToRangeEnd'].includes(current.localName)||current.attributes.some(a=>![w,namespace,mc,'','http://www.w3.org/XML/1998/namespace','http://www.w3.org/2000/xmlns/'].includes(a.namespace)))unsupported();current.children.forEach(check);};check(paragraph);
+    assertOutsideRevisionRanges(this.root,paragraph,this.#budget,view.branches);
   }
 
   /** Replace only scalar text content while preserving the exact owned element shell. */
@@ -289,6 +334,10 @@ export class DocumentXmlEditor {
     if (!this.#elements.has(parent) || (before && !parent.children.includes(before))) unsupported();
     if (this.#guardCompatibility && !this.#canEdit(parent)) unsupported();
     this.assertShapeEditAllowed(parent);
+    this.#stageInsertion(parent,xml,before);
+  }
+
+  #stageInsertion(parent:XmlElement,xml:string,before?:XmlElement):void {
     const span = this.#spans.get(parent)!;
     const offset = before ? this.#spans.get(before)!.start : span.contentEnd!;
     const prefix = this.#source.slice(span.start, offset);

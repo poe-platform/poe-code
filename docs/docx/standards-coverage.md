@@ -278,3 +278,14 @@ All F01–F50 behavior remains proposed. In particular, XSD validation alone doe
 validate ZIP limits, graph/range integrity, extension understanding, image codecs,
 font rendering, field execution safety or publication atomicity. Unsupported child
 features above remain visible even when their enclosing family is a required target.
+
+### Bounded F39 execution evidence
+
+The later [OMML resumption record](omml-resumption-evidence.md) links passing
+original TypeScript inventory/add/replace, property-context, exact preservation,
+CLI/SDK, Shell and portable-closure checks for the sole bounded F39 grammar.
+This register remains the normative research map; those scoped implementation
+checks do not establish full primary-XSD/math-model/rendering conformance or
+whole-public-API parity. The pinned real corpus input refused default archive work
+admission before math inspection, so its 45-expression census and preservation
+remain unqualified by the product. Unsupported families remain visible.

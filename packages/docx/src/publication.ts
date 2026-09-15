@@ -149,6 +149,11 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
   // Until feature-specific authorization is implemented, protected packages fail closed.
   const packageView = new DocumentPackage(archive, limits, budget);
   const sourcePackage = controlSource ? new DocumentPackage(controlSource, limits, budget) : undefined;
+  if (sourcePackage) {
+    if (sourcePackage.parts.some(part => signatureContentTypes.includes(part.content_type.toLowerCase()))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
+    for (const owner of ["/", ...sourcePackage.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)])
+      if (sourcePackage.relationships(owner).some(edge => signatureRelationshipTypes.includes(edge.reltype))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
+  }
   if (controlSource) for (const sourcePart of sourcePackage!.parts) {
     if (!sourcePart.content_type.toLowerCase().startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourcePart.content_type.toLowerCase().endsWith("+xml")) continue;
     const member = controlSource.members.find(member => "/" + member.name === sourcePart.partname)!;

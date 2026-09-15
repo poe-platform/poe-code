@@ -218,3 +218,11 @@ in the pin; inherited Part/XmlPart and Package/OpcPackage members, inline-shape
 enums, collections, helpers and public underscore-prefixed members retain their
 existing explicit dispositions. Historical source/test evidence and documentation
 errors are preserved; later tasks and whole-model coverage remain pending.
+
+The bounded [signature inventory/removal milestone](../plans/docx-signatures.md)
+implements package-global signature snapshots and a separate explicit graph
+removal operation, with null cryptographic validity and signed-baseline mutation
+refusal. Its exact JS/security mappings retain Package/OpcPackage, Part/XmlPart,
+relationship, inherited and public underscore-prefixed obligations at their
+existing dispositions. The pinned inventory and historical evidence are unchanged;
+later tasks and whole-public-API coverage remain pending.

@@ -40,6 +40,7 @@ import { executeStyleModelCommand } from "./style-model-command.js";
 import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
 import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
+import { executeSignaturesCommand } from "./signatures-command.js";
 import { executeSettingsCommand } from "./settings-command.js";
 import { executePropertiesCommand } from "./properties-command.js";
 import { executeImagesCommand, ImageCommandPublicationError } from "./images-command.js";
@@ -119,7 +120,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const diagramOperation = invocation.operation === "diagrams.list";
       const equationOperation = ["equations.list", "equations.add", "equations.replace"].includes(invocation.operation);
       const equationEditOperation = equationOperation && invocation.operation !== "equations.list";
-      const packageResourceOperation = invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const signatureOperation = ["signatures.list", "signatures.remove"].includes(invocation.operation);
+      const packageResourceOperation = signatureOperation || invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -138,7 +140,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
-        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["shapes.set", "properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
+        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["signatures.remove", "shapes.set", "properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -150,7 +152,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = invocation.operation === "settings.list" ? await executeSettingsCommand(invocation, bytes, context)
+          output = signatureOperation ? await executeSignaturesCommand(invocation, bytes, inputIdentity, request, context)
+            : invocation.operation === "settings.list" ? await executeSettingsCommand(invocation, bytes, context)
             : objectOperation ? await executeObjectsCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
             : equationOperation ? await executeEquationsCommand(invocation, bytes, inputIdentity, request, context, io)
             : diagramOperation ? await executeDiagramsCommand(invocation, bytes, request, context)

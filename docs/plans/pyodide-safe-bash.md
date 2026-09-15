@@ -81,8 +81,8 @@ tasks:
       real-runtime experiments belong in integration verification. Do not edit
       README.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: prove-document-libraries
     title: Qualify Word, Excel and PDF libraries in real Pyodide
     prompt: >
@@ -159,8 +159,8 @@ tasks:
       must not download runtimes or write host files; keep real-runtime checks
       separate.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: implement-python-filesystem-bridge
     title: Connect Python filesystem operations to safe-fs without changing its
       contract
@@ -225,8 +225,8 @@ tasks:
 
       using parsed configuration edits. Run focused checks; do not edit README.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: implement-python-command
     title: Run Python files, modules and stdin through safe-bash
     prompt: >
@@ -304,8 +304,8 @@ tasks:
       edit README. Full compliance must be measured, not claimed from a small
       subset.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: implement-python-packages
     title: Provide reliable installation and reuse of Python libraries
     prompt: >
@@ -371,8 +371,8 @@ tasks:
 
       Keep implementation in packages, root wiring thin, no README edits.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: enforce-python-lifecycle
     title: Preserve shell streaming, cancellation and interpreter lifecycle
     prompt: >
@@ -435,8 +435,8 @@ tasks:
       Run focused checks with real-runtime interruption cases separate from unit
       tests.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: verify-python-bash-and-artifacts
     title: Verify Bash-like Python behavior and real document workflows end to end
     prompt: >
@@ -509,8 +509,8 @@ tasks:
       Document actual evidence and leave unsupported required workflows
       incomplete.
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
   - id: document-python-usage
     title: Document Python commands, document recipes and measured compatibility
     prompt: >
@@ -563,14 +563,29 @@ tasks:
       No commit, push or release is authorized merely by this documentation
       task.
     status:
-      implement: done
-      test: done
-finalization: completed
+      implement: open
+      test: open
+finalization: pending
 name: pyodide-safe-bash
-state: archived
+state: active
 ---
 
 # Python inside safe-bash, powered by Pyodide
+
+## Reopened priority — 2026-09-15
+
+Pyodide integration is the next implementation priority. This plan is restored
+from the archive because current main has no Python command adapter, injectable
+Pyodide executor or Cloudflare Worker implementation. The prior archive commit
+`44ff155a8` labelled the plan completed; that label does not establish delivery.
+Task completion statuses are reopened, and the earlier qualification text below
+is historical evidence, not acceptance of the current checkout.
+
+Use [the Cloudflare implementation plan](pyodide-cloudflare-safe-bash.md) for
+the current execution order and embedding architecture. Retain this plan as the
+Python command, canonical filesystem and document-workflow requirements. The
+[current integration report](../integrations/cloudflare-safe-bash-python.md)
+records the missing implementation and outstanding production acceptance.
 
 ## Current qualification and readiness
 

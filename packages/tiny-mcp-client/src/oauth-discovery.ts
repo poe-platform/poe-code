@@ -128,6 +128,27 @@ function validateAuthorizationServerMetadata(
     throw new Error("Authorization server metadata must include token_endpoint");
   }
 
+  for (const field of ["authorization_endpoint", "token_endpoint", "registration_endpoint"]) {
+    if (field === "registration_endpoint" && value[field] === undefined) {
+      continue;
+    }
+    let endpoint: URL;
+    try {
+      if (typeof value[field] !== "string") {
+        throw new Error();
+      }
+      endpoint = new URL(value[field]);
+    } catch {
+      throw new Error(`Authorization server metadata ${field} must be an absolute URL`);
+    }
+    if (endpoint.username !== "" || endpoint.password !== "" || endpoint.hash !== "") {
+      throw new Error(
+        `Authorization server metadata ${field} must not include credentials or fragment`
+      );
+    }
+    assertSecureUrl(endpoint, `Authorization server metadata ${field}`);
+  }
+
   if (
     !isStringArray(value.response_types_supported) ||
     !value.response_types_supported.includes("code")

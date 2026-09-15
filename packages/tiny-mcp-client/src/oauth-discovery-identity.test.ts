@@ -42,3 +42,23 @@ describe("OAuth discovery issuer identity", () => {
     await expect(discoverOAuthMetadata(resource, { fetch })).rejects.toThrow("issuer mismatch");
   });
 });
+
+describe("OAuth discovery endpoint validation", () => {
+  it.each([
+    ["authorization_endpoint", "http://auth.example.com/authorize"],
+    ["token_endpoint", "http://auth.example.com/token"],
+    ["registration_endpoint", "http://auth.example.com/register"],
+    ["token_endpoint", "https://user:secret@auth.example.com/token"],
+    ["authorization_endpoint", "https://auth.example.com/authorize#fragment"],
+    ["token_endpoint", "/relative-token"],
+    ["registration_endpoint", 123]
+  ])("rejects invalid %s value %s before returning discovery", async (field, value) => {
+    const issuer = "https://auth.example.com";
+    const fetch = vi.fn(async (input: string | URL) =>
+      input.toString().includes("oauth-protected-resource")
+        ? json({ resource, authorization_servers: [issuer] })
+        : json({ ...metadata(issuer), [field]: value })
+    );
+    await expect(discoverOAuthMetadata(resource, { fetch })).rejects.toThrow(String(field));
+  });
+});

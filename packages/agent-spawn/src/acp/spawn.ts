@@ -80,7 +80,8 @@ function createLineQueue(): {
   close(): void;
   lines(): AsyncIterable<string>;
 } {
-  const lines: string[] = [];
+  const lines: Array<string | undefined> = [];
+  let lineIndex = 0;
   const waiters: Array<{
     resolve(value: IteratorResult<string>): void;
   }> = [];
@@ -129,8 +130,17 @@ function createLineQueue(): {
         [Symbol.asyncIterator](): AsyncIterator<string> {
           return {
             next(): Promise<IteratorResult<string>> {
-              if (lines.length > 0) {
-                return Promise.resolve({ done: false, value: lines.shift()! });
+              if (lineIndex < lines.length) {
+                const value = lines[lineIndex]!;
+                lines[lineIndex++] = undefined;
+                if (lineIndex === lines.length) {
+                  lines.length = 0;
+                  lineIndex = 0;
+                } else if (lineIndex >= 4096 && lineIndex * 2 >= lines.length) {
+                  lines.splice(0, lineIndex);
+                  lineIndex = 0;
+                }
+                return Promise.resolve({ done: false, value });
               }
               if (closed) {
                 return Promise.resolve({ done: true, value: undefined });

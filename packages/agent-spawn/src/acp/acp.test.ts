@@ -1334,6 +1334,26 @@ describe("acp/spawnStreaming", () => {
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
   });
 
+  it("drains a large native output burst promptly without dropping or reordering events", async () => {
+    const count = 60_000;
+    const mock = createMockChildProcess({
+      stdoutLines: Array.from({ length: count }, (_, index) =>
+        JSON.stringify({ type: "text", sessionID: "burst", part: { text: String(index) } })
+      )
+    });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const started = performance.now();
+    const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
+    let received = 0;
+    for await (const event of events) {
+      if (event.event !== "agent_message") continue;
+      expect(event.text).toBe(String(received++));
+    }
+    expect((await done).exitCode).toBe(0);
+    expect(received).toBe(count);
+    expect(performance.now() - started).toBeLessThan(1_000);
+  });
+
   it("ignores inherited streaming spawn option fields", async () => {
     const stdoutLines = [
       JSON.stringify({

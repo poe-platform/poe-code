@@ -94,6 +94,9 @@ if (scenario === "empty") {
   output.push("HIDDEN_SECOND\nHIDDEN_THIRD\u001b");
   output.push("\\Visible multiline OSC result\n");
   append("tool", "\u001b[" + "0;".repeat(20_000) + "mVisible long CSI result");
+  append("tool", "\u001bPHIDDEN_CANCELLED_DCS\u0018Visible cancelled DCS result");
+  append("tool", "\u001b]HIDDEN_CANCELLED_OSC\u001aVisible cancelled OSC result");
+  append("tool", "\u001b[0;\u001b[32mVisible restarted CSI result\u001b[0m");
   append("success", "Cursor control fixture ready");
 } else {
   for (let index = 0; index < 200; index += 1) {

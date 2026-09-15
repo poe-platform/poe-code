@@ -5,6 +5,25 @@ import { createDashboardLineBuffer } from "./line-buffer.js";
 
 const visible = (text: string) => parseAnsi(text).map(line => line.segments.map(segment => segment.text).join("")).join("\n");
 
+it.each(["\u001bP", "\u001b]", "\u001b[0;", "\u009f"])("recovers visible output after cancelling %s", (opening) => {
+  for (const cancel of ["\u0018", "\u001a"]) {
+    const input = "before " + opening + "\n" + cancel + "Visible cancellation result";
+    expect(visible(input)).toBe("before Visible cancellation result");
+    const preview = createOutputPreviewBuffer();
+    for (const chunk of ["before ", opening, "\n", cancel, "Visible cancellation result"]) preview.push(chunk);
+    expect(visible(preview.text())).toBe("before Visible cancellation result");
+  }
+});
+
+it("recovers styling after an escape interrupts an unfinished CSI", () => {
+  const input = "before \u001b[0;\u001b[32mVisible restart result";
+  expect(visible(input)).toBe("before Visible restart result");
+  const preview = createOutputPreviewBuffer();
+  for (const chunk of ["before \u001b[0;", "\u001b", "[32m", "Visible restart result"]) preview.push(chunk);
+  expect(visible(preview.text())).toBe("before Visible restart result");
+  expect(parseAnsi(preview.text())[0]!.segments.at(-1)!.style.fg).toBe("green");
+});
+
 it.each(["\u001bP", "\u001b]", "\u0090", "\u009d"])("keeps %s payload hidden before preview truncation", (opening) => {
   const input = "before " + opening + "HIDDEN_".repeat(4_000) + "\u001b\\after";
   expect(visible(limitOutputPreview(input))).toBe("before after");

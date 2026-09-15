@@ -14,7 +14,20 @@ export function createTerminalStringFilter(): { push(text: string): string } {
           !text.includes("\u0098") && !text.includes("\u009d") && !text.includes("\u009e") && !text.includes("\u009f")) return text;
       let output = "";
       for (const ch of text) {
+        if ((ch === "\u0018" || ch === "\u001a") && (hidden || escape || csi !== undefined)) {
+          hidden = false;
+          escape = false;
+          csi = undefined;
+          oversizedCsi = false;
+          continue;
+        }
         if (csi !== undefined) {
+          if (ch === "\u001b") {
+            csi = undefined;
+            oversizedCsi = false;
+            escape = true;
+            continue;
+          }
           if (!oversizedCsi) {
             csi += ch;
             if (csi.length > MAX_CONTROL_SEQUENCE_CHARS) {

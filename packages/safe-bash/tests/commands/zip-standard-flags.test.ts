@@ -215,7 +215,6 @@ for (const { flags, method } of [
 for (const { flags, status } of [
   { flags: ["-Z", "unknown"], status: 16 },
   { flags: ["-Z"], status: 16 },
-  { flags: ["-Z", "bzip2"], status: 19 },
   { flags: ["-0", "-Z", "deflate"], status: 5 },
 ]) {
   test(`zip compression method rejects ${flags.join(" ")} without replacing the archive`, async () => {

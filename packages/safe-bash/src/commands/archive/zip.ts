@@ -45,7 +45,7 @@ interface ZipOptions {
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
-  readonly method: "store" | "deflate";
+  readonly method: "store" | "deflate" | "bzip2";
   readonly suffixes: readonly string[];
   readonly operands: readonly string[];
   readonly firstOperand: number;
@@ -211,8 +211,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
             const matches = ["store", "deflate", "bzip2"].filter(name => name.startsWith(value.toLowerCase()));
             const selected = matches.length === 1 ? matches[0] : undefined;
             if (!selected) throw new ZipFailure(16, "Invalid command arguments", "Option -Z (--compression-method):  unknown method");
-            if (selected === "bzip2") throw new ZipFailure(19, "Not supported", "Compression method bzip2 not enabled");
-            method = selected === "store" ? "store" : "deflate";
+            method = selected === "store" ? "store" : selected === "bzip2" ? "bzip2" : "deflate";
           }
           break;
         }
@@ -402,7 +401,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       budget.totalBytes += bytes.length - originalSize;
     }
     const level = store ? 0 : parsed.level;
-    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0));
+    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0), parsed.method === "bzip2" ? "bzip2" : "deflate");
     if (parsed.descriptors) entry.descriptors = true;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = old.get(name);

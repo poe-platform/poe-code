@@ -653,3 +653,34 @@ bytes without pulling the next frame or stripping XZ padding. Three independent
 Python BZIP2 fixture cases verify real decoding with 1/7/65536-byte chunks and
 exact trailing-byte preservation. All 31 bounded-codec tests pass. This is a
 prerequisite; ZIP method 12 parsing, headers, encoding and decoding remain open.
+
+## BZIP2 method integration in progress
+
+Eleven failing ZIP tests reproduced method rejection, independent Python input
+rejection and missing method-12 wire support. Reused existing boundedCodec with
+singleMember; no dependency or lockfile edit. Added method selection, bounded
+encoding/decoding, STORE fallback and extraction version 46 even for ZIP64.
+Twenty-three method tests now cover level/method abbreviations, descriptors/T,
+ZIP64, Python binary fixture, copy preservation, trailing/concatenated streams,
+truncation, checksum damage, invalid versions and DEFLATE-only header flags.
+The corrected header tests reproduced three flag-admission failures before the
+fix. All 785 focused ZIP/unzip cases and scoped ESLint pass. Python verifies
+method 12/version 46/exact binary data in /tmp/safe-bash-zip-bzip2-result.zip;
+Apple UnZip skips it because it supports extraction only through version 45,
+so native validation is not claimed. Workspace typecheck:all is running in
+session 31252 after the nonbuilding route correctly refused missing inputs.
+Full workspace session 9534 is still active but reported an agent-harness
+callable-parity rejected-result 5000ms timeout. No new remote delivery yet.
+
+The build-first typecheck terminated with stale safe-fs declarations missing
+removeEntryConditional in the root checkout. This does not validate production
+types. Started the maintained virtual-bash workspace build closure and then
+nonbuilding typecheck to rebuild the actual safe-fs dependency first.
+
+Workspace closure build and subsequent production tsc passed, resolving the
+safe-fs contract declarations. Consumer typecheck still requires a browser
+artifact produced by the root bundle suffix, so consumer validation remains
+unproven until the normal build runs in the delivery checkout. Full session
+9534 terminated: 2265 passed files, one callable-parity timeout, two skipped
+files; the exact callable-parity file rerun passed all 21 cases in 2.65s. A
+full maintained rerun is required, rather than treating that rerun as the gate.

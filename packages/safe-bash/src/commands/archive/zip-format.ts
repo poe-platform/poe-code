@@ -2,6 +2,7 @@ import { zip64Directory, zip64Fields, stripZip64, zip64Extra, writeZip64End } fr
 import { collectBytes, type ByteSource } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
+import { boundedCodec } from "../bytes/compression/bounded-codec.js";
 import { fail, text, type ArchiveLimits } from "./internal.js";
 
 export interface ZipEntry {
@@ -136,9 +137,9 @@ function nameFrom(rawName: Uint8Array, flags: number, metadata: ExtraMetadata, l
 function format(method: number, flags: number, version: number): void {
   number(flags, 65535, "general purpose flags");
   if (flags & (1 | 64 | 0x2000)) fail("ZIP encryption is unsupported");
-  if (flags & ~0x80e || method === 0 && flags & 6) fail("ZIP unsupported general purpose flags");
-  if (method !== 0 && method !== 8) fail("ZIP unsupported compression method");
-  if (version < (method === 8 || flags & 8 ? 20 : 10) || version > 20 && version !== 45) fail("ZIP unsupported extraction version (including ZIP64)");
+  if (flags & ~0x80e || method !== 8 && flags & 6) fail("ZIP unsupported general purpose flags");
+  if (method !== 0 && method !== 8 && method !== 12) fail("ZIP unsupported compression method");
+  if (version < (method === 12 ? 46 : method === 8 || flags & 8 ? 20 : 10) || version > 20 && version !== 45 && version !== 46) fail("ZIP unsupported extraction version (including ZIP64)");
 }
 
 function dosModified(date: number, time: number): Date {
@@ -160,7 +161,7 @@ function entryBounds(entry: ZipEntry, limits: ArchiveLimits): void {
   number(entry.data.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "compressed byte");
   number(entry.crc32, 0xffffffff, "CRC32");
   number(entry.mode, 0xffff, "mode");
-  format(entry.method, entry.flags ?? 0x800, entry.method === 8 || (entry.flags ?? 0) & 8 ? 20 : 10);
+  format(entry.method, entry.flags ?? 0x800, entry.method === 12 ? 46 : entry.method === 8 || (entry.flags ?? 0) & 8 ? 20 : 10);
   if (entry.directory !== entry.name.endsWith("/") || entry.directory && (entry.symlink || entry.size !== 0)) fail("ZIP inconsistent directory metadata");
   const type = entry.mode & 0o170000;
   const pipePayload = !entry.directory && !entry.symlink && type === 0o010000;
@@ -315,7 +316,7 @@ export async function* decodeZipEntry(entry: ZipEntry, limits: ArchiveLimits, si
   const reader = new CodecReader((async function* () { yield entry.data; })(), signal);
   let length = 0;
   let checksum = 0;
-  const source = entry.method === 8 ? codec(reader, { mode: "inflate-raw", chunkSize }, signal) : (async function* () {
+  const source = entry.method === 12 ? boundedCodec(reader, { format: "bzip2", decompress: true, level: 9, singleMember: true }, signal) : entry.method === 8 ? codec(reader, { mode: "inflate-raw", chunkSize }, signal) : (async function* () {
     for (let offset = 0; offset < entry.data.length; offset += chunkSize) {
       yield new Uint8Array(entry.data.subarray(offset, offset + chunkSize));
       await yieldTurn(signal);
@@ -329,13 +330,13 @@ export async function* decodeZipEntry(entry: ZipEntry, limits: ArchiveLimits, si
       checksum = crc32(chunk, checksum);
       yield chunk;
     }
-    if (entry.method === 8 && await reader.chunk() !== undefined) fail("ZIP trailing compressed data");
+    if (entry.method !== 0 && await reader.chunk() !== undefined) fail("ZIP trailing compressed data");
     if (length !== entry.size) fail("ZIP uncompressed size mismatch");
     if (checksum !== entry.crc32) fail("ZIP CRC32 mismatch");
   } finally { await reader.close(); }
 }
 
-export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean }, limits: ArchiveLimits, signal: AbortSignal, level = 6, forceCompression = false): Promise<ZipEntry> {
+export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean }, limits: ArchiveLimits, signal: AbortSignal, level = 6, forceCompression = false, method: "deflate" | "bzip2" = "deflate"): Promise<ZipEntry> {
   const chunkSize = admit(limits, signal);
   const entry: ZipEntry = { name, data: bytes, size: bytes.length, method: 0, crc32: 0, ...attributes, modified: new Date(attributes.modified.getTime()) };
   entryBounds(entry, limits);
@@ -358,7 +359,8 @@ export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: 
     if (level !== 0 && (bytes.length || forceCompression) && !entry.directory && !entry.symlink) {
       const chunks: Uint8Array[] = [];
       let length = 0;
-      for await (const chunk of codec(reader, { mode: "deflate-raw", chunkSize, level }, signal)) {
+      const source = method === "bzip2" ? boundedCodec(reader, { format: "bzip2", decompress: false, level }, signal) : codec(reader, { mode: "deflate-raw", chunkSize, level }, signal);
+      for await (const chunk of source) {
         length += chunk.length;
         if (length > limits.maxArchiveBytes) fail("ZIP compressed byte limit exceeded");
         if (!forceCompression && length >= bytes.length) break;
@@ -372,7 +374,7 @@ export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: 
           offset += chunk.length;
           await yieldTurn(signal);
         }
-        entry.method = 8;
+        entry.method = method === "bzip2" ? 12 : 8;
         return entry;
       }
     }
@@ -530,7 +532,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     const offset = 0;
     const bytes = new Uint8Array(30 + rawName.length + localExtra.length);
     const view = new DataView(bytes.buffer);
-    const version = wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
+    const version = entry.method === 12 ? 46 : wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
     view.setUint32(offset, 0x04034b50, true);
     view.setUint16(offset + 4, version, true);
     view.setUint16(offset + 6, flags, true);
@@ -566,7 +568,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
   for (const item of encoded) {
     await yieldTurn(signal);
     const { entry, rawName, wide, flags, centralExtra, comment, date, time, offset } = item;
-    const version = wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
+    const version = entry.method === 12 ? 46 : wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
     const central = 0;
     const bytes = new Uint8Array(46 + rawName.length + centralExtra.length + comment.length);
     const view = new DataView(bytes.buffer);

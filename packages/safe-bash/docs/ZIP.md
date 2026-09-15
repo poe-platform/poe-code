@@ -13,7 +13,8 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] ARCHIVE FILES...` creates an archive or updates selected entries while
+`zip [-r] [-q] [-j] [-D] [-y] [-T] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
 selection patterns are matched inside the archive. Existing regular files prompt
@@ -23,10 +24,79 @@ implicit filesystem access or network fallback.
 
 ## Quiet creation and byte streaming
 
+`-0` stores files without compression; `-1` through `-9` select DEFLATE effort,
+from fastest to maximum compression. The default is `-6`. The last level wins,
+including flags after operands and grouped flags such as `-q9r`. Files that do
+not compress smaller remain stored. Compression levels do not promise identical
+archive bytes to Info-ZIP.
+
+`-n SUFFIX:SUFFIX...` stores matching filename suffixes without compression.
+Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc`,
+`.lzh` and `.arj`; an empty value retains defaults, while `:` clears the list.
+Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
+overrides the suffix list and attempts maximum compression.
+
+`-@` reads one source filename per stdin line before processing command-line
+operands. Empty lines are ignored; trailing carriage returns are removed, while
+spaces, tabs and leading dashes are preserved. An unterminated final line is
+accepted. Repeated `-@` flags consume stdin once. Filename input is bounded by
+`maxFilesFromBytes`, with the usual combined operand, path and work limits.
+The input stream is owned and drained before cancellation settlement. This option
+reads filename lists; stdin file payloads and stdout archives remain separate
+streaming work.
+
+`-u` updates existing members only when the source has a newer whole-second
+modification time, and adds new members. `-f` freshens only existing newer members.
+With no file operands, these modes select existing archive paths. Unchanged source
+payloads are not read or recompressed. If nothing changes, status 12 is returned
+without the fatal `Nothing to do!` diagnostic or archive publication. Freshening
+does not create a missing archive. Different action flags (`-u`, `-f`, `-d`) cannot
+be combined; repeated instances of the same action are accepted.
+
+`zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
+their source files. Inclusion and exclusion lists apply to those archive paths.
+Unmatched operand patterns warn unless quiet; no selected members returns status
+12 without replacing the archive. Retained payloads, metadata and the archive
+comment are preserved. Deleting all members produces an empty ZIP, while combining
+that operation with `-T` rejects the empty candidate and preserves the original.
+`-r` is ignored with a nonquiet advisory warning in delete mode; `-j` does not
+rename existing archive paths.
+
 `zip -j` stores files by basename, discarding their directory paths and omitting
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
+
+`-D` omits newly selected directory entries while still traversing directories
+with `-r`. Existing directory members remain in an updated archive. Selecting
+only a directory without recursion produces `Nothing to do!` and status 12.
+
+`-y` stores symbolic links as their target bytes with Unix symlink metadata,
+including broken links and links to directories. It does not traverse link
+targets, so recursive cycles through links are preserved as links. Without `-y`,
+sources are dereferenced. Link reads require the filesystem's `readlink` operation
+and are checked for source replacement before publication. Storing an escaping
+target does not authorize its extraction; extraction path checks remain enabled.
+
+`-T` rereads the prepared archive and verifies every member's decompression,
+length and CRC before publication, including retained old members. It does not
+extract files or invoke a host executable. Invalid payloads and an empty result
+return status 8 without publishing the update. Successful nonquiet tests print
+`test of ARCHIVE OK`; `-q` suppresses this message. Decoded bytes are discarded
+under the archive limits rather than written or charged as stdout. Corruption
+uses the native ZIP failure status and final diagnostic; embedded UnZip diagnostic
+text and temporary filenames are not reproduced by this implementation.
+
+`-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
+`?`, bracket classes and backslash escapes; `*` can span directories. Quote
+patterns to prevent shell expansion, for example
+`zip -qr project.zip project -x '*/node_modules/*' '*/.git/*'`.
+Exclusion takes precedence over inclusion. Filters use source member paths before
+`-j` removes directories and do not prevent traversal into unmatched directories.
+Pattern lists end at the next option or a standalone `@`; attached patterns such
+as `-x'*.tmp'` are supported. Existing unselected archive members remain intact.
+An unmatched inclusion list produces an empty archive with status 0; exclusion-only
+selection with nothing to add returns status 12.
 
 `zip -q` suppresses adding/updating progress and the advisory warnings that native
 Info-ZIP suppresses in quiet mode, including missing-source and repeated-name
@@ -82,7 +152,7 @@ the archive plugin; registration otherwise checks collisions before mutation.
 | `maxPathBytes` | 4096 | Member, filesystem and symlink-target names |
 | `maxDepth` | 128 | Member/traversal depth |
 | `maxPaxBytes` | 1048576 | Shared archive metadata bound; ZIP extra fields also have their format bound |
-| `maxFilesFromBytes` | 1048576 | Overwrite-response input bytes |
+| `maxFilesFromBytes` | 1048576 | Stdin filename lists and overwrite-response input bytes |
 | `maxArgumentBytes` | 65536 | Argument bytes |
 | `maxTextBytes` | 1048576 | Progress, listing and comment bytes; not raw `-p` payload |
 | `maxDiagnosticBytes` | 4096 | Error diagnostic bytes |

@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "task": "independent-ooxml-interoperability",
+  "validator": {
+    "executable": "/usr/bin/xmllint",
+    "library": "libxml2",
+    "version": "2.9.13",
+    "reported_version": "20913",
+    "schema_pins": "../../packages/docx/tests/schema-pins.json",
+    "network_during_validation": false,
+    "mce_preprocessing": false
+  },
+  "original_schema_tests": {
+    "cases": 10,
+    "passing_checks": 10,
+    "strict_document_schema_success": false,
+    "schema_unavailable_cases": 1,
+    "canonical_mocked_consumer_tests": 7
+  },
+  "corpus_edits": [
+    {
+      "corpus_id": "gst-reforms-interim-appendixb",
+      "source_sha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "output_sha256": "51abe24422fc41152dbac05379a4533dbeee942eb721b17fa9bcdc6511084d9a",
+      "output_bytes": 620472,
+      "parts": 41,
+      "dirty_parts": ["word/document.xml"],
+      "source_unchanged": true,
+      "untouched_payloads_equal": true,
+      "opc_targets_and_owner_ids": true,
+      "schemas": [
+        {
+          "part": "[Content_Types].xml",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "_rels/.rels",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "word/_rels/document.xml.rels",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "word/document.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 463,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}document', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 208,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId' is not allowed."
+            },
+            {
+              "count": 208,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId' is not allowed."
+            },
+            {
+              "count": 23,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}tr', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId' is not allowed."
+            },
+            {
+              "count": 23,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}tr', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/styles.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 1,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}styles', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/settings.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 2,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}settings', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.microsoft.com/office/word/2010/wordml}docId': This element is not expected."
+            }
+          ]
+        },
+        {
+          "part": "word/numbering.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 46,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}numbering', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 20,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}abstractNum', attribute '{http://schemas.microsoft.com/office/word/2012/wordml}restartNumberingAfterBreak': The attribute '{http://schemas.microsoft.com/office/word/2012/wordml}restartNumberingAfterBreak' is not allowed."
+            },
+            {
+              "count": 25,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}num', attribute '{http://schemas.microsoft.com/office/word/2016/wordml/cid}durableId': The attribute '{http://schemas.microsoft.com/office/word/2016/wordml/cid}durableId' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/fontTable.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 1,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fonts', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "corpus_id": "hk-values-story-teacher",
+      "source_sha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "output_sha256": "391ebd3d8e38e47876441bb0f8d094f3d7e0bbcf0c03255fdd97001b898af442",
+      "output_bytes": 209041,
+      "parts": 17,
+      "dirty_parts": ["word/document.xml"],
+      "source_unchanged": true,
+      "untouched_payloads_equal": true,
+      "opc_targets_and_owner_ids": true,
+      "schemas": [
+        {
+          "part": "[Content_Types].xml",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "_rels/.rels",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "word/_rels/document.xml.rels",
+          "baseline_exit": 0,
+          "edited_exit": 0,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 0,
+          "diagnostic_signatures": []
+        },
+        {
+          "part": "word/document.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 213,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}document', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 105,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId' is not allowed."
+            },
+            {
+              "count": 105,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId' is not allowed."
+            },
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}tr', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}paraId' is not allowed."
+            },
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}tr', attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId': The attribute '{http://schemas.microsoft.com/office/word/2010/wordml}textId' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/styles.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 1,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}styles', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/settings.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 2,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}settings', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.microsoft.com/office/word/2010/wordml}docId': This element is not expected."
+            }
+          ]
+        },
+        {
+          "part": "word/numbering.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 5,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}numbering', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            },
+            {
+              "count": 2,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}abstractNum', attribute '{http://schemas.microsoft.com/office/word/2012/wordml}restartNumberingAfterBreak': The attribute '{http://schemas.microsoft.com/office/word/2012/wordml}restartNumberingAfterBreak' is not allowed."
+            },
+            {
+              "count": 2,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}num', attribute '{http://schemas.microsoft.com/office/word/2016/wordml/cid}durableId': The attribute '{http://schemas.microsoft.com/office/word/2016/wordml/cid}durableId' is not allowed."
+            }
+          ]
+        },
+        {
+          "part": "word/fontTable.xml",
+          "baseline_exit": 3,
+          "edited_exit": 3,
+          "unchanged_diagnostics": true,
+          "diagnostic_count": 1,
+          "diagnostic_signatures": [
+            {
+              "count": 1,
+              "message": "Element '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fonts', attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable': The attribute '{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable' is not allowed."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "exploratory_refusal": {
+    "corpus_id": "gst-reforms-interim-appendixc",
+    "code": "limit-exceeded",
+    "limit": "retainedBytes",
+    "ceiling": 536870912,
+    "schema_success": false,
+    "source_unchanged": true
+  },
+  "claims": {
+    "visual_correctness": false,
+    "complete_schema_coverage": false,
+    "whole_public_api_coverage": false,
+    "new_product_defects": 0
+  }
+}

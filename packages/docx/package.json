@@ -21,6 +21,7 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "cd ../.. && vitest run packages/docx",
     "test:unit": "cd ../.. && vitest run packages/docx",
+    "test:schemas": "cd ../.. && vitest run --config packages/docx/vitest.schema.config.ts",
     "lint": "eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {

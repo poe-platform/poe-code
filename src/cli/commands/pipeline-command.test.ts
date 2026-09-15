@@ -1272,6 +1272,10 @@ describe("pipeline run command", () => {
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ currentAction: "Preparing pipeline" }));
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ text: `${expectedTimestamp} Config · Agent: codex · Model: gpt-5.2 · Plan: custom-plan.yaml` }));
+      options.onLockWait?.("/repo/custom-plan.yaml");
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ currentAction: "Waiting for another run" }));
       options.onPlanResolved?.({
         planPath: "custom-plan.yaml",
         done: 1,
@@ -1366,6 +1370,11 @@ describe("pipeline run command", () => {
       {
         kind: "info",
         text: `${expectedTimestamp} Config · Agent: codex · Model: gpt-5.2 · Plan: custom-plan.yaml`,
+        ts: 0
+      },
+      {
+        kind: "status",
+        text: `${expectedTimestamp} Waiting for another pipeline operation · /repo/custom-plan.yaml`,
         ts: 0
       },
       {

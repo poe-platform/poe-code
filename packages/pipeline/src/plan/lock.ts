@@ -14,12 +14,14 @@ export async function withPlanLock<Result>(options: {
   lockPath?: string;
   kind: "run" | "status";
   signal?: AbortSignal;
+  onWait?: (planPath: string) => void;
   operation: () => Promise<Result>;
 }): Promise<Result> {
   const absolutePath = path.resolve(options.planPath);
   const lockPath = options.lockPath ?? path.join(path.dirname(absolutePath), `.${path.basename(absolutePath)}.pipeline-${options.kind}.lock`);
   const owner = `${process.pid}:${randomUUID()}`;
   const deadline = Date.now() + LOCK_WAIT_MS;
+  let notifiedWait = false;
   for (;;) {
     assertNotAborted(options.signal);
     try {
@@ -27,6 +29,10 @@ export async function withPlanLock<Result>(options: {
       break;
     } catch (error) {
       if (!hasOwnErrorCode(error, "EEXIST")) throw error;
+      if (!notifiedWait) {
+        notifiedWait = true;
+        options.onWait?.(absolutePath);
+      }
       if (Date.now() >= deadline) {
         throw new UserError(
           `Timed out waiting for pipeline ${options.kind} lock: ${absolutePath}. ` +

@@ -93,3 +93,7 @@ Actual CLI limit/progression/no-work checks executed: three tasks completed with
 ### Same-plan restart after force quit
 
 Launch the actual CLI with the executable isolated fake agent in cancelled mode. Wait for live response 5, capture the child PID, and press terminal-pilot Control+C. Verify exit 130, child termination, open persisted task, and restored primary screen. Immediately launch the same plan with the completed fake scenario; verify it starts without a lock timeout and finishes done/exit 0. Capture and inspect the retry screen. Verified locally: active retry in 1,028ms. SIGKILL/crash recovery remains outside this result.
+
+### Live lock contention
+
+Use the same canonical isolated plan path for two actual CLI sessions. Keep the first fake agent running in cancelled mode. Launch a second session; verify selected agent/model/plan and Waiting for another run, with zero work/usage. Capture at 100x24 and resize to 50x16, then inspect both. Press q in the waiter: verify exit 130 and that the first session's parsed child PID remains alive. Quit the owner and verify its child stops. In a separate run, use completed mode for the waiter, quit the owner while the waiter is blocked, and verify the waiter resumes, replaces the wait action with its task title, completes done/exit 0, and restores the primary terminal. Verified locally: waiting cancellation 21ms; resumed completion 1,677ms.

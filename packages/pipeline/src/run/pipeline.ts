@@ -158,14 +158,31 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   const lockDirectory = path.join(tmpdir(), "poe-code-pipeline");
   await fs.mkdir(lockDirectory, { recursive: true });
   const planIdentity = createHash("sha256").update(canonicalPlanPath).digest("hex");
-  return withPlanLock({
-    fs,
-    planPath: absolutePlanPath,
-    lockPath: path.join(lockDirectory, `${planIdentity}.lock`),
-    kind: "run",
-    signal: options.signal,
-    operation: () => runResolvedPipeline({ ...options, fs, plan: planPath, runAgent }, metrics)
-  });
+  const lockWaitStartedAt = Date.now();
+  let executionStarted = false;
+  try {
+    return await withPlanLock({
+      fs,
+      planPath: absolutePlanPath,
+      lockPath: path.join(lockDirectory, `${planIdentity}.lock`),
+      kind: "run",
+      signal: options.signal,
+      onWait: options.onLockWait,
+      operation: () => {
+        executionStarted = true;
+        return runResolvedPipeline({ ...options, fs, plan: planPath, runAgent }, metrics);
+      }
+    });
+  } catch (error) {
+    if (executionStarted || !isAbortError(error)) throw error;
+    return {
+      stopReason: "cancelled",
+      planPath,
+      runsCompleted: 0,
+      totalDurationMs: Math.max(0, Date.now() - lockWaitStartedAt),
+      metrics
+    };
+  }
 }
 
 async function runResolvedPipeline(

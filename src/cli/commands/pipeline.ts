@@ -541,7 +541,7 @@ async function runPipelineWithDashboard(
   let iterations = 0;
   let tokensIn = 0;
   let tokensOut = 0;
-  let currentAction: string | undefined;
+  let currentAction: string | undefined = "Preparing pipeline";
   let currentStage = "pipeline";
   let status: "running" | "done" | "error" = "running";
 
@@ -589,6 +589,16 @@ async function runPipelineWithDashboard(
     cleanupComplete
   });
   dashboard.start();
+  appendOutput(
+    "info",
+    `Config · ${formatPipelineConfigSummary({
+      agent: options.agent,
+      model: options.model,
+      planPath: options.planPath,
+      planIndex: options.planIndex,
+      totalPlans: options.totalPlans
+    })}`
+  );
   syncStats();
 
   const intervalId = global.setInterval(() => {
@@ -611,17 +621,13 @@ async function runPipelineWithDashboard(
       onPlanReloadError(error: Error) {
         appendOutput("error", `Plan reload failed, using last good state: ${error.message}`);
       },
+      onLockWait(planPath: string) {
+        currentAction = "Waiting for another run";
+        appendOutput("status", `Waiting for another pipeline operation · ${planPath}`);
+        syncStats();
+      },
       onPlanResolved(summary: PlanSummary) {
-        appendOutput(
-          "info",
-          `Config · ${formatPipelineConfigSummary({
-            agent: options.agent,
-            model: options.model,
-            planPath: summary.planPath,
-            planIndex: options.planIndex,
-            totalPlans: options.totalPlans
-          })}`
-        );
+        currentAction = undefined;
         appendOutput("info", `Tasks · ${formatPipelineTasksSummary(summary)}`);
         syncStats();
       },

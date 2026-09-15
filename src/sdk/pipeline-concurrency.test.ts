@@ -161,7 +161,7 @@ describe("SDK pipeline run coordination", () => {
       void second.catch(() => undefined);
       await expect(Promise.race([setup.waiting.promise.then(() => "waiting"), second.then(() => "finished")])).resolves.toBe("waiting");
       controller.abort();
-      await expect(second).rejects.toMatchObject({ name: "AbortError" });
+      await expect(second).resolves.toMatchObject({ stopReason: "cancelled", runsCompleted: 0 });
       expect(nextAgent).not.toHaveBeenCalled();
       await expect(setup.raw.stat(runLock)).resolves.toBeDefined();
       expect(await setup.statuses()).toEqual({ first: "open", second: "open" });
@@ -187,7 +187,7 @@ describe("SDK pipeline run coordination", () => {
       if (file === runLock) controller.abort();
     };
     const runAgent = vi.fn(async () => success());
-    await expect(runPipeline({ ...setup.options, signal: controller.signal, runAgent })).rejects.toMatchObject({ name: "AbortError" });
+    await expect(runPipeline({ ...setup.options, signal: controller.signal, runAgent })).resolves.toMatchObject({ stopReason: "cancelled", runsCompleted: 0 });
     expect(runAgent).not.toHaveBeenCalled();
     await setup.assertReleased();
   });

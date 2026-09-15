@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine } from "./command.js";
+import { parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine, type DocxCommandRequest } from "./command.js";
 import { Volume } from "memfs";
 import { DocxUsageError } from "./argument-json.js";
 import { ResourceLimitError } from "./archive.js";
@@ -7,6 +7,17 @@ import { getDocxDiscovery } from "./discovery.js";
 
 const argv = (...args: string[]) => args.map(value => new TextEncoder().encode(value));
 const parse = (...args: string[]) => parseDocxArguments(argv(...args));
+
+it("keeps typed neutral handler metadata optional on grammar and discovery results", async () => {
+  const engine = createDocxCommandEngine<DocxCommandRequest, { readonly exitCode: number; readonly receipt: { readonly published: true } }>({ async execute() { return { exitCode: 3, receipt: { published: true } }; } });
+  const request = { args: argv("inspect", "/input.docx"), signal: new AbortController().signal, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("unexpected input"); } }; } }, stdout: { async write() {} }, stderr: { async write() {} } };
+  const dispatched = await engine.execute(request);
+  expect(dispatched.exitCode).toBe(3); expect(dispatched.receipt?.published).toBe(true);
+  const early = await engine.execute({ ...request, args: argv("invalid") });
+  expect(early.exitCode).toBe(2); expect(early.receipt).toBeUndefined();
+  const discovery = await engine.execute({ ...request, args: argv("help") });
+  expect(discovery.exitCode).toBe(0); expect(discovery.receipt).toBeUndefined();
+});
 
 describe("document literal command grammar", () => {
   it.each([

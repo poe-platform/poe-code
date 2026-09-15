@@ -460,12 +460,13 @@ export interface DocxCommandRequest {
   readonly stderr: { write(bytes: Uint8Array): Promise<void> };
   readonly signal: AbortSignal;
 }
-export function createDocxCommandEngine<Request extends DocxCommandRequest>(handler: {
-  execute(invocation: DocxInvocation, request: Request): Promise<{ readonly exitCode: number }>;
+export type DocxCommandEngineResult<Result extends { readonly exitCode: number } = { readonly exitCode: number }> = { readonly exitCode: number } & Partial<Omit<Result, "exitCode">>;
+export function createDocxCommandEngine<Request extends DocxCommandRequest, Result extends { readonly exitCode: number } = { readonly exitCode: number }>(handler: {
+  execute(invocation: DocxInvocation, request: Request): Promise<Result>;
   readSource?(source: DocxArgumentSource, request: Request, budget: DocumentBudget): Promise<Uint8Array>;
 }, hostLimits: Partial<DocumentLimits> = {}) {
   return {
-    async execute(request: Request): Promise<{ readonly exitCode: number }> {
+    async execute(request: Request): Promise<DocxCommandEngineResult<Result>> {
       request.signal.throwIfAborted();
       let invocation: DocxInvocation | undefined;
       let budget = new DocumentBudget(hostLimits, request.signal);
@@ -524,12 +525,12 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest>(hand
         const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
         if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
         await request.stderr.write(new TextEncoder().encode(diagnostic.human));
-        return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError ? 3 : 2 };
+        return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError ? 3 : 2 } as DocxCommandEngineResult<Result>;
       }
       if (discoveryOutput) {
         request.signal.throwIfAborted();
         await request.stdout.write(discoveryOutput);
-        return { exitCode: 0 };
+        return { exitCode: 0 } as DocxCommandEngineResult<Result>;
       }
       return handler.execute(invocation, request);
     }

@@ -204,3 +204,6 @@ export type { PackedStyle } from "./screen/style.js";
 export { createRenderPerformanceMonitor, formatRenderPerformance } from "./render-performance.js";
 export type { RenderPerformanceSnapshot, RenderPercentiles } from "./render-performance.js";
 
+export { createViewport, selectViewportTail } from "./viewport.js";
+export { createNotices, createCommandRegistry, createOverlayManager, createEventGroups, createTaskTree, renderTaskRows, renderEventGroupRows, renderProgressGroup, createMetric, renderNotice } from "./primitives.js";
+export type { DesignCommand, GroupEvent, EventGroupRow, TaskNode, ProgressItem, InlineNotice } from "./primitives.js";

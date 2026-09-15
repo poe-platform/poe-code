@@ -1,4 +1,4 @@
-import { parseZipDate, zipDateMatches } from "./zip/dates.js";
+import { parseZipDate, zipDateMatches, zipLatestTime } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
 import { readZipComment, ZipCommentInput } from "./zip/comments.js";
 import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
@@ -32,6 +32,7 @@ interface ZipOptions {
   readonly filesync: boolean;
   readonly archiveComment: boolean;
   readonly entryComments: boolean;
+  readonly latestTime: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
@@ -84,6 +85,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let filesync = false;
   let archiveComment = false;
   let entryComments = false;
+  let latestTime = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
   let descriptors = false;
@@ -146,6 +148,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "q") quiet = true;
         else if (flag === "z") archiveComment = true;
         else if (flag === "c") entryComments = true;
+        else if (flag === "o") latestTime = true;
         else if (flag === "j") junkPaths = true;
         else if (flag === "X") {
           metadata = argument[offset + 1] === "-" ? "all" : "strip";
@@ -267,7 +270,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -352,11 +355,13 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
   if (existing && (existing.type !== "file" || !hasIdentity(existing) || existing.nlink !== 1)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
   let archive: ZipArchive = { entries: [], comment: new Uint8Array() };
+  let originalBytes: Uint8Array | undefined;
   if (existing && input) {
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
     const bytes = await collectBytes(scope.input(input), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
     archive = await readZipArchive(bytes, limits, context.signal);
+    if (parsed.latestTime) originalBytes = bytes;
     const current = await scope.stat(input);
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
@@ -549,11 +554,17 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     for (const entry of archive.entries) if (!synchronized.has(entry.name)) deleted.add(entry.name);
     if (!selected.size && !deleted.size) {
       if (!parsed.quiet) await budget.output("Archive is current\n");
-      return { kind: "current" as const };
+      if (!parsed.latestTime) return { kind: "current" as const, exitCode: 0 };
     }
   }
-  if (!selected.size && !((editComment || editEntries) && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
-  if (!selected.size && !deleted.size && !((editComment || editEntries) && archive.entries.length) && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
+  const changed = selected.size > 0 || deleted.size > 0;
+  let exitCode = 0;
+  if (!selected.size && !((editComment || editEntries) && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) {
+    if (!parsed.latestTime || !archive.entries.length) return undefined;
+    exitCode = 12;
+  }
+  if (parsed.latestTime && !changed && !archive.entries.length && parsed.archive !== "-") throw new ZipFailure(13, "Missing or empty zip file", parsed.archive);
+  if (!selected.size && !deleted.size && !((editComment || editEntries || parsed.latestTime) && archive.entries.length) && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${parsed.args.slice(0, parsed.firstOperand).join(" ")} . -i ${parsed.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
@@ -612,7 +623,19 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
   if (!publication) return { kind: "stream" as const, archive: { entries, comment }, progress };
-  const bytes = await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
+  if (parsed.latestTime) {
+    const mtimeMs = await zipLatestTime(entries, context.signal);
+    if (mtimeMs === undefined) queue(entries.length
+      ? "\tzip warning: zip file has only directories, can't make it as old as latest entry\n"
+      : "\tzip warning: zip file is empty, can't make it as old as latest entry\n");
+    else publication = { ...publication, mtimeMs };
+    if (mtimeMs === undefined && !changed && originalBytes && !editComment && !editEntries) {
+      for (const message of progress) await budget.output(message);
+      return { kind: "current" as const, exitCode };
+    }
+  }
+  const bytes = parsed.latestTime && originalBytes && !changed && !editComment && !editEntries ? originalBytes
+    : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
   if (parsed.test && parsed.archive !== "-") {
     for (const message of progress) await budget.output(message);
     progress.length = 0;
@@ -636,7 +659,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       queue(`test of ${parsed.archive} OK\n`);
     }
   }
-  return { kind: "file" as const, publication, bytes, progress };
+  return { kind: "file" as const, publication, bytes, progress, exitCode };
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
@@ -651,7 +674,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };
-      if (prepared.kind === "current") return { exitCode: 0 };
+      if (prepared.kind === "current") return { exitCode: prepared.exitCode };
       if (prepared.kind === "file") {
         const publication = prepared.publication;
         if (!publication) fail("ZIP missing file publication");
@@ -666,7 +689,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
           }
         } finally { await output.close(); }
       }
-      return { exitCode: 0 };
+      return { exitCode: prepared.kind === "file" ? prepared.exitCode : 0 };
     } catch (error) {
       original.signal.throwIfAborted();
       context.signal.throwIfAborted();

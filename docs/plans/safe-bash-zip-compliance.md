@@ -454,3 +454,24 @@ payloads. Stdin members receive the same existing-comment selection treatment.
 644 focused ZIP/unzip tests and scoped lint pass. Native captures remain manual;
 unit tests use memory filesystems. Remaining formats, streaming, line conversion,
 move/timestamps and grammar requirements are still open.
+
+## Latest-member archive timestamps
+
+Native Zip 3.0 finish/latest and Unix stamp establish o/latest-time uses the
+newest non-directory member, rounds upward to DOS two-second boundaries and sets
+both access and modification times. Timestamp-only operations retain archive
+bytes; unchanged update/freshen keeps status 12 while applying time. Added
+cancellation-aware selection, original-byte retention and timestamp-bearing owned
+staging, verified before publication. Initial eleven unsupported-option failures
+validate the gap. Seventeen memory cases cover aliases, rounded/fractional times,
+retained/deleted/copy-selected members, unchanged actions, staging options and
+metadata rejection cleanup, stdout, directory-only warnings/time preservation,
+pre-DOS/midnight boundaries and cancellation. Further failing cases validated
+empty cancellation, missing access time and directory-only timestamp changes.
+661 focused ZIP/unzip tests and scoped lint pass. Native UnZip integrity and
+Python verify the actual generated binary archive; output access/modification
+times match native odd-second capture at 1700000002. Artifacts are preserved in
+/tmp/safe-bash-zip-latest-result.zip and /tmp/safe-bash-zip-latest-result.json.
+Reference: https://github.com/LuaDist/zip/blob/master/zip.c and unix/unix.c
+Comment-selection release 35018219722 failed on published-version collision
+0.1.624. Remaining move, line conversion, streaming, formats and grammar stay open.

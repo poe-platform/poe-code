@@ -124,6 +124,15 @@ members can still receive comments. Include/exclude name filters continue to
 apply. `-D` omits new directory entries without preventing comments on existing
 directory members.
 
+`-o` / `--latest-time` sets archive access and modification times to the newest
+non-directory member's DOS two-second time. Odd seconds round upward and pre-1980
+times clamp to the DOS minimum. Retained members participate; directory-only
+archives warn unless quiet and keep their existing timestamp when unchanged.
+Timestamp-only operations preserve archive bytes. Unchanged update/freshen keeps
+status 12 while applying archive time. Stdout ignores this option; separate output
+uses the selected output members. Both times are supplied to owned staging and
+verified before publication, so rejected metadata leaves the destination intact.
+
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.
 Unmatched operand patterns warn unless quiet; no selected members returns status

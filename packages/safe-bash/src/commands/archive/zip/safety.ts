@@ -90,6 +90,7 @@ export interface ZipPublication {
   readonly existing: FileStat | undefined;
   readonly parentStat: FileStat;
   readonly bytes: Uint8Array;
+  readonly mtimeMs?: number;
 }
 
 export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
@@ -114,6 +115,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
         await scope.operation(async () => {
           staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: prepared.bytes }, {
             signal, parent: prepared.parentStat, ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}),
+            ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs, atimeMs: prepared.mtimeMs }),
           });
         });
         break;
@@ -123,6 +125,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
       }
     }
     if (!staging) fail("ZIP temporary directory attempt limit exceeded");
+    if (prepared.mtimeMs !== undefined && (staging.file.stat.mtimeMs !== prepared.mtimeMs || staging.file.stat.atimeMs !== prepared.mtimeMs)) fail("ZIP staging did not retain archive modification time");
     const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
     if (parent !== prepared.parent) fail("archive parent changed before publication");
     await scope.operation(() => fs.publishStagedFile!(staging!, prepared.output, {

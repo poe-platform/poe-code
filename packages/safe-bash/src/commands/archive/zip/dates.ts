@@ -1,4 +1,21 @@
 import { ZipFailure } from "./options.js";
+import { yieldTurn } from "../../../contracts/yield.js";
+import type { ZipEntry } from "../zip-format.js";
+
+export async function zipLatestTime(entries: readonly ZipEntry[], signal: AbortSignal): Promise<number | undefined> {
+  signal.throwIfAborted();
+  let latest: number | undefined;
+  for (let index = 0; index < entries.length; index++) {
+    if (index % 128 === 0) await yieldTurn(signal);
+    const entry = entries[index]!;
+    if (entry.directory) continue;
+    const rounded = new Date(Math.ceil(Math.floor(entry.modified.getTime() / 1000) / 2) * 2000);
+    const timestamp = rounded.getFullYear() < 1980 ? new Date(1980, 0, 1).getTime()
+      : new Date(rounded.getFullYear(), rounded.getMonth(), rounded.getDate(), rounded.getHours(), rounded.getMinutes(), rounded.getSeconds()).getTime();
+    if (latest === undefined || timestamp > latest) latest = timestamp;
+  }
+  return latest;
+}
 
 function integer(input: string, start: number, width: number): { value: number; end: number } | undefined {
   let offset = start;

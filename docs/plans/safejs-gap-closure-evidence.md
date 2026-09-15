@@ -3471,3 +3471,89 @@ Exit **1**: **18 failed / 184 passed**, two failed files, 3.10 seconds. Union de
 ## 2026-09-15 — fresh runtime qualification and isolated evidence delivery
 
 **OPEN / RELEASE BLOCKED.** [Fresh reproducible report](safejs-runtime-support-fresh-delivery-20260915.md) and [raw receipts](runtime-support-20260915/fresh-audit/receipt.json): 56 maintained imports passed, 138 controls passed, two minimum-Node fresh-symbol WeakMap failures, zero skips. All 100 maintained type contracts passed. Source dirty HEAD 365774cd83ff387c4237adfed8fe7b8bf0ffb4f1; original source fingerprints unchanged. Fixed edition16/402 edition12 target and explicit host authority preserved. Remaining Linux/Windows, Workerd metadata, complete feature/current-artifact qualification and backend defect are release blockers. Isolated evidence-only checkout avoids delivering 60 unrelated local commits against 1026 concurrent remote commits. Release and delivery receipts follow separately; predecessor public0.1.605 is not a task release. No runtime repair or weakened support/budgets/assertions/timeouts.
+
+
+## Compatibility documentation delivery — 2026-09-15
+
+**Acceptance OPEN: no accepted final full corpus exists.** Documentation-only
+publication is authorized; this does not certify the accumulated runtime candidate.
+Original local SHA e63e1b158c58de8b14a926a6e6c8989da1d23feb and all unrelated
+local/staged changes are preserved. Fetched remote source SHA
+`a03cf4f986dcbb7de309cbe4c1f5587551d81d04`; documentation delivery uses a
+separate checkout on main at that SHA, preserving concurrent remote work.
+No divergent runtime commits, lockfile edits or uncommitted repairs are delivered.
+Node v22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin arm64.
+
+Target unchanged: published ECMA-262 edition 16 / ECMA-402 edition 12 (June
+2025), Test262 419d3e0a2273ba01a3bfcbec423f2801425b8e93; newer APIs remain
+separately tracked. [Losslessly compressed inherited full report](publish-compatibility-documentation-20260915/full-corpus.jsonl.gz)
+and [digest/source disposition](publish-compatibility-documentation-20260915/corpus-receipt.json)
+retain its terminal aborted/complete:false/ENOSPC record. This is dirty-candidate
+historical evidence, not a completed remote-source run. No skips, unsupported
+required modes, fixture counts or report prefixes become passes.
+
+Both READMEs describe implemented surfaces, runtime contract and measured gaps,
+intentional embedding restrictions, residual limitations and delivered transport
+repairs. Existing detailed development notes are preserved as historical source
+notes; dated publication receipts determine delivery. Host authority remains
+explicit; missing host authority by design is not an ECMAScript defect.
+[Transport final report](qualify-realms-and-recovery/final-delivery-20260914.md)
+and [runtime matrix/commands](safejs-runtime-support-fresh-delivery-20260915.md)
+are delivered evidence, not blanket acceptance. Minimum weak-symbol semantics,
+Linux/Windows and complete Workerd/runtime feature coverage, raw shared-write
+recovery, Temporal/Intl extremes, archive/license disposition and accumulated
+candidate source/lock/publication binding remain unresolved. The root strict
+minimum installation previously rejected @noble/hashes 2.4.0's newer engine
+requirement; this documentation changes neither engines nor dependency resolution.
+
+Reproduce with clean generated inputs, unchanged defaults and new report paths:
+
+```sh
+node packages/safe-js/scripts/numberformat-data.mjs
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --include built-ins/Array/of --report /tmp/safejs-selected-new.jsonl
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --enumerate --report /tmp/safejs-manifest-new.jsonl
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --manifest /tmp/safejs-manifest-new.jsonl --report /tmp/safejs-full-new.jsonl
+```
+
+Pin the corpus checkout to the revision above. Selector-free commands were
+reviewed against maintained command.ts; not executed as a fresh full campaign.
+Variant/startup defaults remain 3000/10000ms, no resource override. First
+quickstart import failed because Intl generated files were absent; first selected
+run exited 1 with source-change rejection after concurrent generation. These
+setup failures remain nonpasses. Generator then exited 0 (766 number locales,
+224 plural locales). Stable rerun and quickstart terminal results follow below.
+No runtime code/config/budget/timeout/authority changes, repair TDD or CLI visual
+change; screenshots and broad runtime gates are inapplicable to this docs diff.
+README links, including fragments, are verified before commit; stale missing
+WeakMap report link is replaced with the retained ledger.
+
+Pre-push read-only publication observations: scoped SafeJS 0.1.606, predecessor
+source be0cac7268ed62429623e39f6868b86c5c455ad1, workflow
+https://github.com/poe-platform/poe-code/actions/runs/34935034511 success;
+poe-code 15.0.41 gitHead a03cf4f986dcbb7de309cbe4c1f5587551d81d04,
+https://github.com/poe-platform/poe-code/actions/runs/34935069364 success.
+These are predecessor observations, not this documentation publication.
+
+Local commit, verified remote-main delivery, workflow conclusion and actual
+published versions will be recorded separately after normal hooks/push. No local
+npm publication or issue closure; no explicitly associated issue was supplied.
+Recovery: complete immutable candidate/runtime/corpus qualification with TDD for
+validated repairs; never weaken support or budgets. For partial publication,
+verify every scoped package and root independently, follow an ancestry-verified
+successor and retry registry propagation. Never unpublish or force-push.
+
+Stable verification terminal results: selected command with actual corpus
+/private/tmp/safejs-binary-test262 and report
+/tmp/safejs-delivery-array-of-stable-20260915.jsonl exited 0: 16 files, 32 variants
+passed, zero failures/unsupported/fixtures/metadata/execution errors and no skips.
+[Stable raw report](publish-compatibility-documentation-20260915/array-of-stable.jsonl)
+retains source/harness hashes. [Setup-aborted raw report](publish-compatibility-documentation-20260915/array-of-setup-aborted.jsonl)
+is not a pass. This selection does not supersede the aborted full corpus.
+Quickstart current-source check via node --import tsx --input-type=module,
+importing Budget/run from ./packages/safe-js/src/index.ts with documented source,
+bindings and budgets, asserted ok===true and [6,10,16]: exit 0, no skips.
+Package installation remains separately subject to installed-artifact receipts.
+
+Markdown verification: 48 relative README links including heading fragments
+resolve, zero failures; [receipt](publish-compatibility-documentation-20260915/links.json).
+Manual documentation review and git diff --check pass.

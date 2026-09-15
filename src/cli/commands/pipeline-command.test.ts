@@ -1826,7 +1826,12 @@ describe("pipeline run command", () => {
 
       return {
         events: (async function* () {
-          if (agent === "codex") yield { event: "agent_message" as const, text: "Rendered response" };
+          if (agent === "codex") {
+            yield { event: "agent_message" as const, text: "Rendered response" };
+            expect(dashboardMock.appendOutput.mock.calls.some(([item]) =>
+              item.text.includes("Rendered response")
+            )).toBe(true);
+          }
         })(),
         result: Promise.resolve({
           stdout: "",

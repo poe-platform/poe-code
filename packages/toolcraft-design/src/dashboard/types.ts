@@ -1,6 +1,8 @@
 export type OutputItemKind = "info" | "success" | "error" | "tool" | "status";
 
 export type OutputItem = {
+  /** Reusing an id replaces its retained preview in place, without changing held history. */
+  id?: string;
   kind: OutputItemKind;
   text: string;
   ts: number;

@@ -36,9 +36,12 @@ export function createStore(): DashboardStore {
   function appendOutput(item: OutputItem): void {
     const preview = limitOutputPreview(item.text);
     const retainedItem = preview === item.text ? item : { ...item, text: preview };
-    const next = state.output.length >= MAX_RETAINED_OUTPUT
-      ? [...state.output.slice(state.output.length - MAX_RETAINED_OUTPUT + 1), retainedItem]
-      : [...state.output, retainedItem];
+    const existing = item.id === undefined ? -1 : state.output.findIndex((entry) => entry.id === item.id);
+    const next = existing !== -1
+      ? state.output.map((entry, index) => index === existing ? retainedItem : entry)
+      : state.output.length >= MAX_RETAINED_OUTPUT
+        ? [...state.output.slice(state.output.length - MAX_RETAINED_OUTPUT + 1), retainedItem]
+        : [...state.output, retainedItem];
 
     state = { ...state, output: next };
     notify();

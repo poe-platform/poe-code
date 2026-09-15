@@ -84,6 +84,7 @@ export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./acp/renderer.js";
+export { streamAcpEventsToDashboard } from "./acp/dashboard-stream.js";
 export { createToolRenderState, sessionUpdateToEvents } from "./acp/session-update-converter.js";
 export type { ToolRenderState } from "./acp/session-update-converter.js";
 export type { LogEntry, MalformedSpawnLogRecord, ReadSpawnLogOptions } from "./acp/replay.js";

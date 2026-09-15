@@ -4,7 +4,6 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
-  acp,
   cancel,
   createDashboard,
   isCancel,
@@ -20,8 +19,7 @@ import {
 } from "@poe-code/agent-defs";
 import {
   getSpawnConfig,
-  renderAcpEvent,
-  type AcpEvent,
+  streamAcpEventsToDashboard,
   type AcpMiddleware
 } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
@@ -411,80 +409,8 @@ function formatPipelineStageLabel(progress: TaskProgress): string {
   return progress.stepName ? `${progress.taskId}:${progress.stepName}` : progress.taskId;
 }
 
-async function streamAcpEventsToDashboard(options: {
-  events: AsyncIterable<AcpEvent>;
-  onToolOutput(chunk: string): void;
-  onErrorOutput(chunk: string): void;
-}): Promise<boolean> {
-  let sawEvents = false;
-  let messageBuffer = "";
-  let reasoningBuffer = "";
-
-  const emitRendered = async (kind: "tool" | "error", event: AcpEvent): Promise<void> => {
-    await acp.withAcpWriter(
-      (line) => {
-        if (kind === "error") {
-          options.onErrorOutput(`${line}\n`);
-          return;
-        }
-        options.onToolOutput(`${line}\n`);
-      },
-      async () => {
-        renderAcpEvent(event);
-      }
-    );
-  };
-
-  const flushMessageBuffer = async (): Promise<void> => {
-    if (messageBuffer.length === 0) {
-      return;
-    }
-    await emitRendered("tool", {
-      event: "agent_message",
-      text: messageBuffer
-    });
-    messageBuffer = "";
-  };
-
-  const flushReasoningBuffer = async (): Promise<void> => {
-    if (reasoningBuffer.length === 0) {
-      return;
-    }
-    await emitRendered("tool", {
-      event: "reasoning",
-      text: reasoningBuffer
-    });
-    reasoningBuffer = "";
-  };
-
-  for await (const event of options.events) {
-    sawEvents = true;
-
-    if (event.event === "agent_message") {
-      await flushReasoningBuffer();
-      messageBuffer += event.text;
-      continue;
-    }
-
-    if (event.event === "reasoning") {
-      await flushMessageBuffer();
-      reasoningBuffer += event.text;
-      continue;
-    }
-
-    await flushMessageBuffer();
-    await flushReasoningBuffer();
-    await emitRendered(event.event === "error" ? "error" : "tool", event);
-  }
-
-  await flushMessageBuffer();
-  await flushReasoningBuffer();
-
-  return sawEvents;
-}
-
 function createPipelineDashboardRunAgent(options: {
-  appendOutput: (kind: "tool" | "error", message: string) => void;
+  appendOutput: (kind: "tool" | "error", message: string, id?: string) => void;
   activeStage: () => string;
   middlewares?: AcpMiddleware[];
 }): NonNullable<PipelineRunOptions["runAgent"]> {
@@ -533,8 +459,12 @@ function createPipelineDashboardRunAgent(options: {
 
         const eventStream = streamAcpEventsToDashboard({
           events,
-          onToolOutput(chunk) {
-            toolBuffer.push(chunk);
+          onToolOutput(chunk, id) {
+            if (id !== undefined) {
+              options.appendOutput("tool", `[${options.activeStage()}] ${chunk.trimEnd()}`, id);
+            } else {
+              toolBuffer.push(chunk);
+            }
           },
           onErrorOutput(chunk) {
             errorBuffer.push(chunk);
@@ -628,9 +558,11 @@ async function runPipelineWithDashboard(
 
   const appendOutput = (
     kind: "info" | "success" | "error" | "tool" | "status",
-    message: string
+    message: string,
+    id?: string
   ): void => {
     dashboard.appendOutput({
+      ...(id === undefined ? {} : { id }),
       kind,
       text: `${formatDashboardTimestamp(Date.now())} ${message}`,
       ts: Date.now()

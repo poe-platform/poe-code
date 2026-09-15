@@ -12,6 +12,7 @@ export type {
 } from "./types.js";
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./renderer.js";
+export { streamAcpEventsToDashboard } from "./dashboard-stream.js";
 export { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 export type { LogEntry, MalformedSpawnLogRecord, ReadSpawnLogOptions } from "./replay.js";
 export {

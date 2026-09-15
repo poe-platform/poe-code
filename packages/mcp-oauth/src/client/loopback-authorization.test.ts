@@ -2,7 +2,10 @@ import http from "node:http";
 import { EventEmitter } from "node:events";
 import { describe, expect, it } from "vitest";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
+import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import { createLoopbackAuthorizationSession } from "../index.js";
+
+installInMemoryHttp();
 
 async function requestUrl(url: string): Promise<{ status: number; body: string }> {
   const response = await nodeFetch(url);

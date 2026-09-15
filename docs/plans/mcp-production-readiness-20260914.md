@@ -11,6 +11,10 @@ Goal started September 14, 2026: work for at least nine hours improving all MCP 
 5. Run maintained focused verification for individual improvements; run repository-wide checks for shared or cross-workspace changes. Use manual screenshot validation for any CLI visual impact.
 6. Record validated findings, fixes, test evidence, residual limitations, and delivery state here. Do not claim full production readiness from passing unit tests alone.
 
+## Latest revision migration requirements
+
+The official 2026-07-28 changelog removes the initialize handshake and protocol sessions. Compliance requires implementing stateless per-request version/capability metadata, server/discover, subscriptions/listen POST streams, required resultType and cache freshness/scope fields, and revised error codes. Multi round-trip requests replace server-initiated request flows. Schema/content changes, extensions, and HTTP header mappings must be checked against normative revision pages. Maintain explicit compatibility for older clients without advertising unsupported new-version behavior.
+
 ## Initial evidence
 
 - Official latest specification fetched from https://modelcontextprotocol.io/specification/latest; visible version is 2026-07-28.
@@ -25,7 +29,8 @@ Goal started September 14, 2026: work for at least nine hours improving all MCP 
 - These discovery improvements do not yet establish full authorization compliance: exact issuer preservation, metadata trust/cache validation, finite I/O limits, credential identity binding, and authorization-response issuer validation remain to be audited and fixed from reproductions.
 - Reproduced issuer identity loss in four tests: path/root trailing slash and explicit default port/hostname case exact matches were rejected; metadata with a removed trailing slash was incorrectly accepted. Preserve the validated input issuer string and compare metadata exactly. Updated legacy tests that explicitly expected normalization. Added seven failing endpoint-validation tests and reject insecure non-loopback HTTP, relative URLs, credentials, fragments, and non-string optional registration endpoints before returning discovery. All 357 client tests pass. Focused ESLint and workspace build verification recorded during this turn.
 - Reproduced injected-cache validation bypass for resource identity, resource metadata, issuer, unadvertised issuer, insecure token endpoint, and unrelated metadata location; also reproduced caller mutations poisoning memory-cache results. Reuse shared metadata validation, enforce advertised issuer/discovery-location binding, deep-copy cache snapshots, and add optional cache deletion for invalid entries. Three additional failing tests demonstrated relative, credential-bearing, and fragment-bearing cached resource locations; reject these too. All 368 client tests pass, focused ESLint passes, and selected workspace build closure passes.
+- OAuth provider and loopback unit suites attempted real listeners without explicitly installing the maintained in-memory HTTP harness, reproducing 27 and five EPERM failures respectively. Explicitly install the harness in both affected suites. Provider and standalone loopback unit tests now run in memory; combined client/OAuth verification covers 476 tests.
 
 ## Delivery
 
-No commits, remote delivery, or releases yet. Work on the current main checkout. Push only when requested.
+Local commits: faa3b62df records the audit plan; 8830e4d83 fixes Bearer parameter casing; 1c381c399 adds protected-resource root fallback; 99eba0bbc adds OAuth/OIDC priority discovery; 80aeab85d preserves issuer identity; 1a3b10714 validates endpoint URLs; 823d7d14a validates and isolates cached discovery. Credential binding and explicit OAuth test-harness installation are under focused verification. No remote delivery or releases yet. Work on the current main checkout. Push only when requested.

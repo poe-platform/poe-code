@@ -1378,6 +1378,30 @@ describe("acp/spawnStreaming", () => {
     }
   });
 
+  it("closes native middleware streams when their event consumer stops early", async () => {
+    const mock = createMockChildProcess({ stdoutLines: [
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "first" } }),
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "second" } })
+    ] });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    let closed = false;
+    const middleware: AcpMiddleware = async (ctx, next) => {
+      const source = ctx.eventStream!;
+      ctx.eventStream = (async function* () {
+        try {
+          for await (const event of source) yield event;
+        } finally {
+          closed = true;
+        }
+      })();
+      await next();
+    };
+    const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo", middlewares: [middleware] });
+    for await (const ignoredEvent of events) break;
+    expect(closed).toBe(true);
+    expect((await done).exitCode).toBe(0);
+  });
+
   it("ignores inherited streaming spawn option fields", async () => {
     const stdoutLines = [
       JSON.stringify({

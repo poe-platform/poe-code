@@ -542,18 +542,10 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
 
   const events =
     hasMiddlewares
-      ? {
-          [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
-            let iterator: AsyncIterator<AcpEvent> | undefined;
-            return {
-              async next(): Promise<IteratorResult<AcpEvent>> {
-                await middlewaresApplied;
-                iterator ??= ctx.eventStream![Symbol.asyncIterator]();
-                return iterator.next();
-              }
-            };
-          }
-        }
+      ? (async function* () {
+          await middlewaresApplied;
+          yield* ctx.eventStream!;
+        })()
       : ctx.eventStream;
 
   return {

@@ -2338,6 +2338,47 @@ finite rational values and nonzero denominators. Unsafe offsets, invalid units
 and invalid physical resolution are rejected before mutation. Characterization
 does not imply full pixel decoding or successful rendering.
 
+**Standalone image model.** `Image.from_blob(blob, context?)` admits owned bytes;
+`Image.from_file(image_descriptor, context?)` admits owned bytes, an explicitly
+supplied byte-source capability, or a VFS path with its matching explicit
+capability. Both factories MUST always return a Promise. The admitted `Image`
+is an immutable value independent of a document owner; it grants no package,
+relationship, collection or mutation authority. Omitted context supplies only
+the documented intrinsic limits and cancellation machinery, never ambient I/O,
+network, time, identity or font authority. A supplied byte source exposes
+`open(signal): AsyncIterable<Uint8Array>`; acquisition MUST forward cancellation,
+copy retained producer fragments before advancing, bound bytes/work/retention
+before allocation and await cooperative iterator cleanup on failure. JSON
+operations use finite owned base64 or capability-bearing VFS descriptors as
+equivalents; live streams MUST NOT be serialized or inferred from filenames.
+
+The model exposes synchronous `blob`, `content_type`, `ext`, `filename`,
+`px_width`, `px_height`, `horz_dpi`, `vert_dpi`, `width`, `height`,
+`scaled_dimensions(width?, height?)` and `sha1`. Every `blob` access MUST return
+an owned copy under the retained-byte/work limits. Bytes and unnamed streams use
+`image.<canonical-extension>` with png, jpg, gif, bmp or tiff according to the
+characterized MIME type. A VFS input retains its virtual POSIX basename as
+`filename`; `ext` is that filename's final suffix without the dot, retaining
+case, unknown suffixes and an empty suffix. These filename properties are
+metadata, not type authority. Recognized suffix assertions above apply at model
+admission too; unknown suffixes do not change `content_type`.
+
+Effective model DPI getters MUST preserve characterized positive fractional
+values and independently substitute 72 for null axes. They MUST NOT round
+pixels-per-metre conversions or substitute 96. Native `width` and `height`
+return shared `Inches` length values from the corresponding pixel/DPI axis.
+`scaled_dimensions` returns an immutable two-element shared `Length` tuple:
+omitted/undefined/null dimensions use native dimensions; one supplied dimension
+preserves the unrounded physical native aspect ratio; two supplied dimensions
+are independent. Numeric dimensions denote EMUs; declared shared length units
+are accepted without implicit numeric coercion. Final dimensions MUST be positive
+safe integer EMUs using shared halfway-away-from-zero rounding. Computing two
+explicit dimensions MUST NOT require rounded native extents to be positive.
+Invalid types, units, values or unsafe results fail with neutral typed errors.
+`sha1` is the lowercase 40-hex digest of the exact owned admitted bytes, computed
+within bounded admission work; it is never an authentication or provenance seal.
+These value APIs do not qualify image-part, drawing or collection APIs.
+
 Read-only protection and locked controls MUST NOT be silently bypassed. Signed
 documents require explicit signature removal before mutation. Field result
 updates MUST preserve instructions and MUST NOT execute them; a subsequent Word

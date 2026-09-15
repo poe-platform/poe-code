@@ -92,7 +92,9 @@ Keyed collections retain their key semantics: placeholder keys are placeholder
 IDs, not positions; styles use names/IDs as specified; comment lookup uses IDs.
 SDK indexes MUST NOT be confused with one-based CLI display positions.
 
-Returned model objects are live views with explicit owner identity. A documented
+Returned document/presentation-owned model objects are live views with explicit
+owner identity. Immutable admitted values, such as standalone images and shared
+length/color values, carry no document owner or mutation authority. A documented
 replacement that invalidates a handle MUST invalidate it deterministically and
 return the new handle. Cross-document object assignment without explicit import
 fails. Collection membership/order and aliasing of merged cells MUST match the

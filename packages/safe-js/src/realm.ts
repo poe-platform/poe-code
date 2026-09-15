@@ -12,7 +12,7 @@ import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.j
 import { attachExecutionControl, SandboxJobQueue, runAsyncPrefix, suspendJob, type ExecutionControl } from "./interp/jobs.js";
 import { withCancellationSignal, awaitSandboxValue } from "./interp/cancel.js";
 import { enterRunningState } from "./interp/running-state.js";
-import { runResources } from "./interp/resources.js";
+import { runResources, type RunResources } from "./interp/resources.js";
 import {
   createSandboxPromiseRejectionTracker,
   withSandboxPromiseRejectionTracker
@@ -127,6 +127,7 @@ class RealmState {
   readonly consoleExtension?: string;
   readonly cleanups: Array<() => void | Promise<void>> = [];
   readonly referenceReleases = new Set<() => void>();
+  readonly resources: RunResources;
   readonly callbacks = new Map<Callback, SandboxClosure>();
   readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
@@ -211,6 +212,12 @@ class RealmState {
       captureArguments: this.captureArguments,
       invoke: this.invokeHost,
       awaitResult: (operation) => this.nestedOperations.has(operation)
+    };
+    this.resources = {
+      signal: this.controller.signal,
+      referenceReleases: this.referenceReleases,
+      add: this.onCleanup,
+      reportError: reason => this.poison(reason)
     };
     try {
       this.builtinBindings = createBuiltinBindings({
@@ -609,7 +616,7 @@ class RealmState {
     try {
       const active = this.active !== undefined;
       const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
+        runResources.run(this.resources, () =>
           withCancellationSignal(this.controller.signal, () =>
             active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
           )
@@ -831,7 +838,7 @@ class RealmState {
     if (this.active !== undefined) throw new SandboxError("reentry");
     const pending = Promise.resolve().then(() =>
       withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
+        runResources.run(this.resources, () =>
           withCancellationSignal(this.controller.signal, task)
         )
       )

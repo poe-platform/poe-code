@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-import { tmpdir } from "node:os";
+import { serializePlan } from "./plan/serialize.js";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
@@ -4556,26 +4555,24 @@ describe("createPipelineSimulation", () => {
 });
 
 
-describe("pipeline lock progress", () => {
-  it("forwards lock contention before plan resolution and lets the caller cancel", async () => {
+describe("pipeline coordination progress", () => {
+  it("forwards contention before plan resolution and lets the caller cancel", async () => {
     const planPath = "/repo/docs/plans/wait.md";
-    const identity = createHash("sha256").update(planPath).digest("hex");
-    const lockPath = path.join(tmpdir(), "poe-code-pipeline", `${identity}.lock`);
-    const fs = createPipelineTestFs(createFs({
-      [planPath]: "---\nkind: pipeline\nversion: 1\ntasks: []\n---\n",
-      [lockPath]: "active-owner"
-    }));
-    const abort = new AbortController();
-    const onPlanResolved = vi.fn();
-    const onLockWait = vi.fn(() => abort.abort());
-    const runAgent = vi.fn();
-    await expect(runPipeline({
-      cwd: "/repo", homeDir: "/home/test", plan: planPath, agent: "codex",
-      fs, runAgent, signal: abort.signal, onLockWait, onPlanResolved
-    })).resolves.toMatchObject({ stopReason: "cancelled", planPath, runsCompleted: 0, metrics: { tasksCompleted: 0, tasksFailed: 0 } });
-    expect(onLockWait).toHaveBeenCalledExactlyOnceWith(planPath);
-    expect(onPlanResolved).not.toHaveBeenCalled();
-    expect(runAgent).not.toHaveBeenCalled();
-    expect(await fs.readFile(lockPath, "utf8")).toBe("active-owner");
+    const fs = createPipelineTestFs(createFs({ [planPath]: "---\nkind: pipeline\nversion: 1\ntasks: []\n---\n" }));
+    let release!: () => void; let entered!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const ready = new Promise<void>(resolve => { entered = resolve; });
+    const owner = serializePlan({ planPath, kind: "run", operation: async () => { entered(); await gate; } });
+    const abort = new AbortController(); const onPlanResolved = vi.fn();
+    const onLockWait = vi.fn(() => abort.abort()); const runAgent = vi.fn();
+    let operation: ReturnType<typeof runPipeline> | undefined;
+    try {
+      await ready;
+      operation = runPipeline({ cwd: "/repo", homeDir: "/home/test", plan: planPath, agent: "codex", fs, runAgent, signal: abort.signal, onLockWait, onPlanResolved });
+      void operation.catch(() => undefined); await new Promise(setImmediate);
+      expect(onLockWait).toHaveBeenCalledExactlyOnceWith(planPath);
+      await expect(operation).resolves.toMatchObject({ stopReason: "cancelled", planPath, runsCompleted: 0, metrics: { tasksCompleted: 0, tasksFailed: 0 } });
+      expect(onPlanResolved).not.toHaveBeenCalled(); expect(runAgent).not.toHaveBeenCalled();
+    } finally { abort.abort(); release(); await Promise.allSettled([owner, operation]); }
   });
 });

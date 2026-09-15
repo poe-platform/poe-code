@@ -1,0 +1,5975 @@
+
+ RUN  v4.1.11 /private/tmp/poe-resource-delivery
+
+ ❯ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts (3 tests | 2 failed) 103ms
+   ✓ permits the six-character scan with sufficient work budget 49ms
+   × admits the neighboring scan at exactly the public work limit 26ms
+   × rejects the next candidate scan and retains consumed work 28ms
+FAIL packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts > admits the neighboring scan at exactly the public work limit
+AssertionError: expected 88 to be 100 // Object.is equality
+
+- Expected
++ Received
+
+- 100
++ 88
+
+ ❯ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts:22:28
+     20|     returnValue: false
+     21|   });
+     22|   expect(budget.stepsUsed).toBe(100);
+       |                            ^
+     23| });
+     24|
+
+FAIL packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts > rejects the next candidate scan and retains consumed work
+AssertionError: promise resolved "{ ok: true, returnValue: false, …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": false,
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 4,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 413152629,
++       "seed": 413152629,
++       "state": 413152629,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "9e434a73",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 5,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts:27:70
+     25| it("rejects the next candidate scan and retains consumed work", async …
+     26|   const budget = new Budget({ maxSteps: 100 });
+     27|   await expect(run(source, { bindings: { input: "aaaaaa" }, budget }))…
+       |                                                                      ^
+     28|     code: "budgetExceeded",
+     29|     budget: "steps",
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts (17 tests | 16 failed) 298ms
+     × polls the caller deadline during a single scan 4ms
+     × charges successive candidate positions to the caller budget 3ms
+     × bounds failed candidate scans with flag  without native fallback 1ms
+     × bounds failed candidate scans with flag d without native fallback 1ms
+     × bounds failed candidate scans with flag g without native fallback 1ms
+     × bounds failed candidate scans with flag i without native fallback 1ms
+     × bounds failed candidate scans with flag m without native fallback 1ms
+     × bounds failed candidate scans with flag s without native fallback 1ms
+     × bounds failed candidate scans with flag u without native fallback 1ms
+     × bounds failed candidate scans with flag v without native fallback 1ms
+     × counts Unicode positions and honors sticky and global starting positions 1ms
+     × match cannot catch or override aggregate rejection 79ms
+     × matchAll cannot catch or override aggregate rejection 47ms
+     × replace cannot catch or override aggregate rejection 41ms
+     × replaceAll cannot catch or override aggregate rejection 36ms
+     × search cannot catch or override aggregate rejection 39ms
+     ✓ split cannot catch or override aggregate rejection 39ms
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > polls the caller deadline during a single scan
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:12:8
+     10|     const budget = new Budget({ deadline: Date.now() - 1 });
+     11|     expect(() => matchRegex(pattern, "a".repeat(1000), 0, budget))
+     12|       .toThrow(expect.objectContaining({ code: "budgetExceeded", budge…
+       |        ^
+     13|   });
+     14|
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > charges successive candidate positions to the caller budget
+AssertionError: expected +0 to be 2000 // Object.is equality
+
+- Expected
++ Received
+
+- 2000
++ 0
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:19:30
+     17|     const budget = new Budget({ maxSteps: 2000 });
+     18|     expect(matchRegex(pattern, "a".repeat(999), 0, budget)).toBeNull();
+     19|     expect(budget.stepsUsed).toBe(2000);
+       |                              ^
+     20|     expect(() => matchRegex(pattern, "z", 0, budget)).toThrow(SandboxE…
+     21|     expect(matchRegex(pattern, "a".repeat(1000) + "z", 0, new Budget({…
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag  without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag d without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag g without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag i without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag m without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag s without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag u without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag v without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > counts Unicode positions and honors sticky and global starting positions
+AssertionError: expected +0 to be 2000 // Object.is equality
+
+- Expected
++ Received
+
+- 2000
++ 0
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:44:31
+     42|     const unicode = new Budget({ maxSteps: 2000 });
+     43|     expect(matchRegex(parseRegex("z", "u"), "😀".repeat(999), 0, unico…
+     44|     expect(unicode.stepsUsed).toBe(2000);
+       |                               ^
+     45|     const sticky = new Budget({ maxSteps: 2 });
+     46|     expect(matchRegex(parseRegex("z", "y"), "a".repeat(1000), 0, stick…
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > match cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 9,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 4184889484,
++       "seed": 4184889484,
++       "state": 4184889484,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "1611d2b3",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 10,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > matchAll cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 11,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 560719253,
++       "seed": 560719253,
++       "state": 560719253,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "01fd1e4d",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 13,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > replace cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 10,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 730096720,
++       "seed": 730096720,
++       "state": 730096720,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "a043ab4d",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 11,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > replaceAll cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 10,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 2810082509,
++       "seed": 2810082509,
++       "state": 2810082509,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "51bd2514",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 11,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+FAIL packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > search cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 9,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 59671017,
++       "seed": 59671017,
++       "state": 59671017,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "16619c8a",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 10,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 18 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > polls the caller deadline during a single scan
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:12:8
+     10|     const budget = new Budget({ deadline: Date.now() - 1 });
+     11|     expect(() => matchRegex(pattern, "a".repeat(1000), 0, budget))
+     12|       .toThrow(expect.objectContaining({ code: "budgetExceeded", budge…
+       |        ^
+     13|   });
+     14|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > charges successive candidate positions to the caller budget
+AssertionError: expected +0 to be 2000 // Object.is equality
+
+- Expected
++ Received
+
+- 2000
++ 0
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:19:30
+     17|     const budget = new Budget({ maxSteps: 2000 });
+     18|     expect(matchRegex(pattern, "a".repeat(999), 0, budget)).toBeNull();
+     19|     expect(budget.stepsUsed).toBe(2000);
+       |                              ^
+     20|     expect(() => matchRegex(pattern, "z", 0, budget)).toThrow(SandboxE…
+     21|     expect(matchRegex(pattern, "a".repeat(1000) + "z", 0, new Budget({…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag  without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag d without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag g without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag i without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag m without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag s without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag u without native fallback
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > bounds failed candidate scans with flag v without native fallback
+AssertionError: expected function to throw an error, but it didn't
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:33:12
+     31|       try {
+     32|         expect(() => matchRegex(pattern, "a".repeat(1000), 0, new Budg…
+     33|           .toThrow(SandboxError);
+       |            ^
+     34|         expect(native).not.toHaveBeenCalled();
+     35|       } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > counts Unicode positions and honors sticky and global starting positions
+AssertionError: expected +0 to be 2000 // Object.is equality
+
+- Expected
++ Received
+
+- 2000
++ 0
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:44:31
+     42|     const unicode = new Budget({ maxSteps: 2000 });
+     43|     expect(matchRegex(parseRegex("z", "u"), "😀".repeat(999), 0, unico…
+     44|     expect(unicode.stepsUsed).toBe(2000);
+       |                               ^
+     45|     const sticky = new Budget({ maxSteps: 2 });
+     46|     expect(matchRegex(parseRegex("z", "y"), "a".repeat(1000), 0, stick…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > match cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 9,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 4184889484,
++       "seed": 4184889484,
++       "state": 4184889484,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "1611d2b3",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 10,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > matchAll cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 11,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 560719253,
++       "seed": 560719253,
++       "state": 560719253,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "01fd1e4d",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 13,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > replace cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 10,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 730096720,
++       "seed": 730096720,
++       "state": 730096720,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "a043ab4d",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 11,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > replaceAll cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 10,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 2810082509,
++       "seed": 2810082509,
++       "state": 2810082509,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "51bd2514",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 11,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts > aggregate RegExp scan budget > search cannot catch or override aggregate rejection
+AssertionError: promise resolved "{ ok: true, …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": "overridden",
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 9,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 59671017,
++       "seed": 59671017,
++       "state": 59671017,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "16619c8a",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 10,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts:61:9
+     59|         budget: new Budget({ maxSteps: 2000 }),
+     60|         bindings: { input: "a".repeat(1000) }
+     61|       })).rejects.toMatchObject({ code: "budgetExceeded", budget: "ste…
+       |         ^
+     62|     }
+     63|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts > admits the neighboring scan at exactly the public work limit
+AssertionError: expected 88 to be 100 // Object.is equality
+
+- Expected
++ Received
+
+- 100
++ 88
+
+ ❯ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts:22:28
+     20|     returnValue: false
+     21|   });
+     22|   expect(budget.stepsUsed).toBe(100);
+       |                            ^
+     23| });
+     24|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/18]⎯
+
+ FAIL  packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts > rejects the next candidate scan and retains consumed work
+AssertionError: promise resolved "{ ok: true, returnValue: false, …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "ok": true,
++   "returnValue": false,
++   "snapshot": {
++     "bindings": {
++       "AggregateError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AggregateError",
++       },
++       "Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Array",
++       },
++       "ArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ArrayBuffer",
++       },
++       "AsyncDisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "AsyncDisposableStack",
++       },
++       "Atomics": {},
++       "BigInt": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt",
++       },
++       "BigInt64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigInt64Array",
++       },
++       "BigUint64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "BigUint64Array",
++       },
++       "Boolean": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Boolean",
++       },
++       "DataView": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DataView",
++       },
++       "Date": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Date",
++       },
++       "DisposableStack": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "DisposableStack",
++       },
++       "Error": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Error",
++       },
++       "EvalError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "EvalError",
++       },
++       "FinalizationRegistry": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "FinalizationRegistry",
++       },
++       "Float16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float16Array",
++       },
++       "Float32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float32Array",
++       },
++       "Float64Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Float64Array",
++       },
++       "Function": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Function",
++       },
++       "Infinity": Infinity,
++       "Int16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int16Array",
++       },
++       "Int32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int32Array",
++       },
++       "Int8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Int8Array",
++       },
++       "Intl": {},
++       "Iterator": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Iterator",
++       },
++       "JSON": {},
++       "Map": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Map",
++       },
++       "Math": {},
++       "NaN": NaN,
++       "Number": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Number",
++       },
++       "Object": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Object",
++       },
++       "Promise": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Promise",
++       },
++       "Proxy": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Proxy",
++       },
++       "RangeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RangeError",
++       },
++       "ReferenceError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "ReferenceError",
++       },
++       "Reflect": {},
++       "RegExp": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "RegExp",
++       },
++       "Set": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Set",
++       },
++       "SharedArrayBuffer": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SharedArrayBuffer",
++       },
++       "String": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "String",
++       },
++       "SuppressedError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SuppressedError",
++       },
++       "Symbol": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Symbol",
++       },
++       "SyntaxError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "SyntaxError",
++       },
++       "Temporal": {},
++       "TypeError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "TypeError",
++       },
++       "URIError": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "URIError",
++       },
++       "Uint16Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint16Array",
++       },
++       "Uint32Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint32Array",
++       },
++       "Uint8Array": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8Array",
++       },
++       "Uint8ClampedArray": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "Uint8ClampedArray",
++       },
++       "WeakMap": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakMap",
++       },
++       "WeakRef": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakRef",
++       },
++       "WeakSet": {
++         "call": [Function call],
++         "construct": [Function construct],
++         "kind": "fn",
++         "name": "WeakSet",
++       },
++       "console": {
++         "error": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "error",
++         },
++         "log": {
++           "call": [Function call],
++           "kind": "fn",
++           "name": "log",
++         },
++       },
++       "decodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURI",
++       },
++       "decodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "decodeURIComponent",
++       },
++       "encodeURI": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURI",
++       },
++       "encodeURIComponent": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "encodeURIComponent",
++       },
++       "escape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "escape",
++       },
++       "eval": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "eval",
++       },
++       "globalThis": {},
++       "input": "aaaaaa",
++       "isFinite": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isFinite",
++       },
++       "isNaN": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "isNaN",
++       },
++       "parseFloat": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseFloat",
++       },
++       "parseInt": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "parseInt",
++       },
++       "structuredClone": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "structuredClone",
++       },
++       "undefined": undefined,
++       "unescape": {
++         "call": [Function call],
++         "kind": "fn",
++         "name": "unescape",
++       },
++     },
++     "clock": undefined,
++     "executionSemantics": "jobs-v9",
++     "initialInputs": {
++       "nodes": [
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "bindings": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 1,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "entryPointArgs": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "tag": "undefined",
++               },
++               "writable": true,
++             },
++             "importMeta": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 3,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++             "imports": {
++               "configurable": true,
++               "enumerable": true,
++               "value": {
++                 "id": 2,
++                 "tag": "ref",
++               },
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": false,
++           "properties": {
++             "input": {
++               "configurable": true,
++               "enumerable": true,
++               "value": "aaaaaa",
++               "writable": true,
++             },
++           },
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++         {
++           "extensible": true,
++           "kind": "object",
++           "nullPrototype": true,
++           "properties": {},
++         },
++       ],
++       "root": {
++         "id": 0,
++         "tag": "ref",
++       },
++     },
++     "promiseReplay": {
++       "promises": 0,
++       "settlements": [],
++       "steps": 4,
++       "version": 1,
++     },
++     "random": {
++       "initialState": 413152629,
++       "seed": 413152629,
++       "state": 413152629,
++     },
++     "replay": {
++       "calls": [],
++       "version": 1,
++     },
++     "sourceHash": "9e434a73",
++     "version": 2,
++   },
++   "stats": {
++     "nodeVisits": 5,
++   },
+  }
+
+ ❯ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts:27:70
+     25| it("rejects the next candidate scan and retains consumed work", async …
+     26|   const budget = new Budget({ maxSteps: 100 });
+     27|   await expect(run(source, { bindings: { input: "aaaaaa" }, budget }))…
+       |                                                                      ^
+     28|     code: "budgetExceeded",
+     29|     budget: "steps",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/18]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  18 failed | 2 passed (20)
+   Start at  17:15:08
+   Duration  2.10s (transform 2.60s, setup 69ms, import 3.41s, tests 401ms, environment 0ms)
+

@@ -434,7 +434,7 @@ async function replaceRegex(
   budget.setRetainedValues(retained, () => [value, regex, cursor, replacement, result]);
   try {
     const lastIndex = await sandboxNumber(cursor, budget, context);
-    const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), undefined, lastIndex);
+    const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), budget, lastIndex);
     let copiedThrough = 0;
     for (const match of matches) {
       result += value.slice(copiedThrough, match.index);
@@ -746,7 +746,7 @@ function splitNormalized(
       let copiedThrough = 0;
       let endedWithZeroWidthMatch = false;
       while (result.length < limit) {
-        const match = executeRegex(splitter, value, Number(splitter.lastIndex));
+        const match = executeRegex(splitter, value, Number(splitter.lastIndex), budget);
         if (match === null) break;
         if (match.text.length === 0) splitter.lastIndex = advanceStringIndex(value, match.index, splitter.flags.includes("u") || splitter.flags.includes("v"));
         endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
@@ -774,8 +774,11 @@ function splitNormalized(
       operation.release();
     }
   }
-  const result = splitString(value, separator, limit).map((part) => budget.allocateString(part));
+  const result = value.split(separator as string, limit);
   budget.allocateArrayLength(result.length);
+  // Admit the container before checking each string; keep the native output
+  // rather than allocating a second array solely for validation.
+  for (const part of result) budget.allocateString(part);
   return result;
 }
 
@@ -943,12 +946,12 @@ function callMatchLikeMethod(
   if (methodName === "search") {
     const lastIndex = regex.lastIndex;
     if (!Object.is(lastIndex, 0)) regex.lastIndex = 0;
-    const match = executeRegex(regex, value, 0);
+    const match = executeRegex(regex, value, 0, compilation.owner?.budget);
     if (!Object.is(regex.lastIndex, lastIndex)) regex.lastIndex = lastIndex;
     return match?.index ?? -1;
   }
   if (methodName === "match" && !regex.flags.includes("g"))
-    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value, compilation.owner?.budget);
+    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex), compilation.owner?.budget), value, compilation.owner?.budget);
   if (methodName === "match") regex.lastIndex = 0;
   const matcher =
     methodName === "matchAll"
@@ -970,7 +973,7 @@ function callMatchLikeMethod(
 function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget, lastIndex = 0) {
   const matches = [];
   do {
-    const match = executeRegex(regex, value, lastIndex);
+    const match = executeRegex(regex, value, lastIndex, budget);
     if (match === null) break;
     budget?.allocateArrayLength(matches.length + 1);
     matches.push(match);
@@ -978,18 +981,4 @@ function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, b
     if (all && match.text.length === 0) regex.lastIndex = lastIndex = advanceStringIndex(value, lastIndex, regex.flags.includes("u") || regex.flags.includes("v"));
   } while (all);
   return matches;
-}
-
-function splitString(
-  value: string,
-  separator: string | undefined,
-  limit: number | undefined
-): string[] {
-  const split = String.prototype.split as (
-    this: string,
-    separator: string | undefined,
-    limit?: number
-  ) => string[];
-
-  return split.call(value, separator, limit);
 }

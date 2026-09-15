@@ -228,8 +228,6 @@ it.each([
         "commands/line-endings/index.browser": path.join(root, "packages/safe-bash/src/commands/line-endings/index.ts"),
         "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
         "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
-      },
-      {
         "commands/op/index.browser": path.join(root, "packages/safe-bash/src/commands/op/index.ts"),
       },
     ]);

@@ -51,7 +51,9 @@
     },
     "./commands/op": {
       "types": "./dist/commands/op/index.d.ts",
-      "import": "./dist/commands/op/index.js"
+      "import": "./dist/commands/op/index.js",
+      "workerd": "./dist/commands/op/index.browser.js",
+      "browser": "./dist/commands/op/index.browser.js"
     },
     "./commands/network": {
       "types": {

@@ -1,6 +1,4 @@
 import path from "node:path";
-import { createHash } from "node:crypto";
-import { tmpdir } from "node:os";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import {
@@ -11,7 +9,7 @@ import {
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeFinalizationStatus, writeTaskStatus } from "../plan/writer.js";
-import { withPlanLock } from "../plan/lock.js";
+import { serializePlan } from "../plan/serialize.js";
 import { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./runner.js";
 import { interpolatePipelineVars } from "../vars/interpolate.js";
 import { resolvePipelineVars } from "../vars/resolve.js";
@@ -156,16 +154,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const canonicalPlanPath = fs.realpath ? await fs.realpath(absolutePlanPath) : path.resolve(absolutePlanPath);
-  const lockDirectory = path.join(tmpdir(), "poe-code-pipeline");
-  await fs.mkdir(lockDirectory, { recursive: true });
-  const planIdentity = createHash("sha256").update(canonicalPlanPath).digest("hex");
-  const lockWaitStartedAt = Date.now();
+  const waitStartedAt = Date.now();
   let executionStarted = false;
   try {
-    return await withPlanLock({
-      fs,
-      planPath: absolutePlanPath,
-      lockPath: path.join(lockDirectory, `${planIdentity}.lock`),
+    return await serializePlan({
+      planPath: canonicalPlanPath,
       kind: "run",
       signal: options.signal,
       onWait: options.onLockWait,
@@ -176,13 +169,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     });
   } catch (error) {
     if (executionStarted || !isAbortError(error)) throw error;
-    return {
-      stopReason: "cancelled",
-      planPath,
-      runsCompleted: 0,
-      totalDurationMs: Math.max(0, Date.now() - lockWaitStartedAt),
-      metrics
-    };
+    return { stopReason: "cancelled", planPath, runsCompleted: 0, totalDurationMs: Math.max(0, Date.now() - waitStartedAt), metrics };
   }
 }
 

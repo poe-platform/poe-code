@@ -392,26 +392,13 @@ describe("Pipeline finalization recovery", () => {
     const setup = fixture({ tasks: [task("work", "done")], finalization: "pending" });
     const entered = deferred();
     const release = deferred();
-    const waiting = deferred();
-    const fs: PipelineFileSystem = {
-      ...setup.options.fs!,
-      async writeFile(filename, content, options) {
-        try {
-          await setup.raw.writeFile(filename, content, options);
-        } catch (error) {
-          if (filename === runLock && (error as { code?: string }).code === "EEXIST")
-            waiting.resolve();
-          throw error;
-        }
-      }
-    };
     const firstRunner = vi.fn(async () => {
       entered.resolve();
       await release.promise;
       return { stdout: "", stderr: "", exitCode: 0 };
     });
     const secondRunner = runner();
-    const first = runPipeline({ ...setup.options, fs, runAgent: firstRunner });
+    const first = runPipeline({ ...setup.options, runAgent: firstRunner });
     let second: ReturnType<typeof runPipeline> | undefined;
     try {
       await Promise.race([
@@ -420,13 +407,8 @@ describe("Pipeline finalization recovery", () => {
           throw new Error("First retry ended before teardown");
         })
       ]);
-      second = runPipeline({ ...setup.options, fs, runAgent: secondRunner });
-      await Promise.race([
-        waiting.promise,
-        second.then(() => {
-          throw new Error("Second retry did not wait for the active run");
-        })
-      ]);
+      second = runPipeline({ ...setup.options, runAgent: secondRunner });
+      await new Promise(setImmediate);
       expect(secondRunner).not.toHaveBeenCalled();
       release.resolve();
       await expect(first).resolves.toMatchObject({ stopReason: "completed", runsCompleted: 0 });

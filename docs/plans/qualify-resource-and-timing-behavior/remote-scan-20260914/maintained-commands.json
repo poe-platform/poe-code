@@ -1,0 +1,29 @@
+[
+  {
+    "sample": 2,
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--concurrency=4",
+      "--exclude-workspace=virtual-bash"
+    ],
+    "startUnix": 1789424779.765426,
+    "elapsedSeconds": 191.53473925590515,
+    "exit": 1
+  },
+  {
+    "sample": 3,
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--concurrency=4",
+      "--exclude-workspace=virtual-bash"
+    ],
+    "startUnix": 1789425076.925499,
+    "elapsedSeconds": 166.83690404891968,
+    "exit": 1,
+    "preparation": "normal npm run build after selected build; direct root SafeFS import passes"
+  }
+]

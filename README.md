@@ -290,6 +290,15 @@ These features are available but subject to breaking changes.
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
 - **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
 
+SafeJS targets published ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025),
+with newer APIs tracked separately. Classes, async functions/generators, guest
+eval, Proxy/Reflect and Temporal are implemented, but **full conformance is not
+established**: the corpus aborted and failures/unsupported modes remain. Node
+18.18+ ESM is declared; minimum-Node, full runtime and recovery qualification
+remain open. Host authority requires explicit grants. See the
+[compatibility summary](packages/safe-js/README.md#compatibility-evidence--2026-09-15)
+and [commands and release evidence](docs/plans/safejs-gap-closure-evidence.md#compatibility-documentation-delivery--2026-09-15).
+
 ### Update Poe Code
 
 ```sh

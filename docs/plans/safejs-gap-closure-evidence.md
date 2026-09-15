@@ -3313,3 +3313,247 @@ namespace fix is on main, its successor workflows are being monitored, and the
 portable-fallback fix must also reach a successful successor publication.
 No package was locally published, unpublished or rolled back. Receipt JSON,
 attestations and compressed logs are in the delivery evidence directory.
+
+
+## 2026-09-14 approved README release recovery
+
+Concurrent integration `2d2a3a83407fabddf86a075dcb9de39ac84a5aef` contains both
+snapshot repair commits, but its scoped and root package checks failed because
+`packages/safe-python/README.md` was missing. The other 16 package rules passed.
+The user explicitly approved the prepared README through hey-boss task
+`fb4477fb-5a8d-43e5-a62b-1dcb81644f64` (terminal status `ok`, result
+“Approve the drafted README”). The exact approved text is now added. No package
+rule was weakened. Source API/options and absence of direct runtime environment
+configuration were checked against this integration SHA.
+
+A second isolated checkout on `main`, `/tmp/poe-snapshot-successor-20260914`,
+keeps the original full test run stable at `ae8449c83`. Normal `npm ci` and
+`npm run build` succeed in the integrated checkout. `npm run lint:packages`
+now passes **all 17 rules / 73 packages**, including `package-readme-required`.
+This documentation repair is committed and delivered separately from a concurrent
+`op` export declaration repair. Its required root/schema successors, final
+integrated snapshot checks and root publication are still pending. The approval,
+failed release, successful build and package lint receipts are retained.
+
+
+## 2026-09-14 concurrent op export release repair
+
+The same integration SHA's shell shards failed the unchanged assertion
+`published root mirrors only declared subpaths and keeps the feature isolated`.
+Direct job-log API reads supplied evidence while `gh run view --log` was still
+unavailable for the running workflow. The root manifest advertised the new `op`
+command's browser/workerd build, but `virtual-bash`'s own explicit subpath omitted
+those two conditions. The existing browser build is present; this was a manifest
+mismatch, not a snapshot or ECMAScript defect.
+
+Local reproduction on `2d2a3a83407fabddf86a075dcb9de39ac84a5aef`:
+`node --test --test-name-pattern='published root mirrors only declared subpaths' packages/safe-bash/scripts/integration-inputs.test.mjs`
+fails the same deep equality assertion. Adding `workerd` and `browser` targets
+for `./commands/op` in the workspace manifest makes it pass unchanged. The full
+maintained `npm run test:runner --workspace=virtual-bash` then passes **318/318**,
+zero failures/skips, **17,642.66525 ms**; normal build and all 17 package lint rules
+also pass. Node 22.23.2 / ICU 78.2. This configuration-only correction introduces
+no test relaxation, budget change or guest authority. It is a separate atomic
+commit after the approved README repair `da63c75eb`, which has been pushed through
+normal hooks. Required publication is still pending successor verification.
+
+## Resource/timing remote-main scan reproduction — 2026-09-14
+
+[Fresh continuation](qualify-resource-and-timing-behavior/remote-scan-20260914/qualification.md): fetched remote 775253e664c8c14502178cf9dcb74e6a656aacb0 reproduces 18/20 deterministic scan failures. Minimal caller-budget propagation passes 1,031 regex/string-split tests; scoped lint and normal build pass. Node 22.23.2 / ICU 78.2, commands and exact hashes retained. First maintained concurrency attempt fails in terminal-pilot generated-declaration pretest build; both Promise-symbol regressions also reproduce. Target, budgets, assertions, deadlines and host grants are unchanged. Acceptance/delivery/publication remain incomplete; no task release claimed.
+
+Reconciled-source continuation: all nine Node20/22/24 repetitions pass 7,533 tests; all 18 fresh original-workload profile samples and all 430 available accounting regressions pass unchanged limits. Final scoped lint/build and built public SDK authority/accounting controls pass. Two maintained attempts fail with 327 Safe Python failures and cleanup EPERM, interrupting SafeJS. One preparation defect (selected build removing root suffix artifacts) is independently corrected via normal build; the correctly prepared retry still fails. Full-matrix acceptance remains blocked and no successful task publication is claimed. Detailed commands/hashes/counts/failure/recovery dispositions are in the continuation record.
+
+Final scoped source c33305ee9 passes the full maintained SafeJS task: 30,257 passed / zero failed / 47 declared skips. Expanded Node20/22/24 matrix passes all nine repetitions (8,280 tests), final 18 original profiles pass, and 432 accounting regressions pass unchanged limits. Exact source/environment/sample counts and commands are retained. The original replacement, async ordering and four collection checkpoint failures are repaired with TDD; no timeout/budget/host-grant relaxation. Broader CI acceptance remains blocked by independently reproduced Python failures and unresolved cleanup EPERM. Main delivery/publication remain separate pending receipts.
+
+Scoped delivery verified at ad827a462f97faabcdee0ecf7e0d38c8bfd3327f on remote main. Scoped workflow 34907786200 succeeded; all three scoped safe packages 0.1.604 independently pass installed-artifact/signature checks with matching tarball integrity and provenance source/subject. Root publication and overall acceptance remain pending/incomplete; detailed receipts and recovery are in the continuation record.
+
+Root workflow 34907786467 fails fresh unit validation (317 failures, all 42 failed files SafePython; remaining task closure blocked), and skips release-stable. No poe-code task publication: registry15.0.40 is older source. Scoped604 releases remain verified. Overall acceptance is incomplete; full workflow receipts and concrete recovery are recorded in the continuation.
+
+
+## qualify-generated-interactions — reconciled main delivery audit (2026-09-14 CDT)
+
+[Fresh GI-1 evidence](qualify-generated-interactions/delivery-20260914/audit.md) records the unchanged edition pins, deterministic seeds, bounded grammar/budgets, exact probe fixtures and terminal JSON results. Node 22.23.2 / ICU 78.2: preserved dirty local source **124 passed / 2 failed / 0 skipped**, 8.84 seconds; isolated fetched main `eff793d5dfda1b4e6d1008b04f5da4033237f742` **99 passed / 27 failed / 0 skipped**, 8.63 seconds. Both finish within the unchanged 30-second watchdog. Counts are finite template evidence, not conformance percentages.
+
+GI-PENDING-DISPOSAL remains two minimized product snapshot-contract counterexamples; original execution and no-resource/unnested neighbors pass. GI-REMOTE-MODULE remains 25 missing integration nonpasses, reduced to export admission with a passing legacy neighbor; it is not an ECMAScript defect. No repair, runtime/assertion/budget relaxation, README change or ambient authority grant was made. The original checkout and staged work are preserved. Campaign completion and failure disposition are evidenced; semantic recovery remains blocked.
+
+Local delivery commit: pending creation in isolated fetched-main checkout. Verified remote-main delivery: pending normal push. Workflow/publication: pending, no task release claimed. No associated issue supplied. Docs-only delivery does not publish scoped packages; root workflow outcome must be recorded separately.
+
+
+GI-1 delivery receipt: local evidence commit `32acf07c6f247fd277c975384ad5f09fe82c3462`, normal-hook push fast-forwarded parent `eff793d5dfda1b4e6d1008b04f5da4033237f742`; fetched remote main matched the delivered SHA and ancestry verified. [Release run 34913423595](https://github.com/poe-platform/poe-code/actions/runs/34913423595) audit gate succeeded, build/publication still pending at this receipt. [Workflow snapshot](qualify-generated-interactions/delivery-20260914/workflow-initial.json) and independent per-package registry metadata are retained. Scoped releases are not triggered by these docs paths. Existing scoped 0.1.604 artifacts and root poe-code 15.0.40 are predecessor versions, not task publication. Installed-artifact/provenance verification for a new task version is not applicable until a version is actually published.
+
+The preceding root run 34909928712 failed unit validation: 317 tests across 42 SafePython files, release-stable skipped. This is historical diagnosis, not a conclusion about the current run. Concrete unresolved-publication recovery: inspect the task run terminal jobs/logs, reproduce each actual validation failure under maintained tests, repair with separate TDD commits without reducing gates, and follow a verified successor containing the GI-1 evidence SHA. If validation succeeds with no semantic-release version for docs-only commits, record no-release explicitly. No local publish, rollback or predecessor-version substitution is allowed. This receipt commit itself triggers another root run; verify its ancestry and terminal result too. Semantic snapshot/module blockers remain unrepaired.
+
+### qualify-environment-contract — remote-main candidate qualification, 2026-09-14
+
+The delivery candidate starts from fetched remote main `7da4c8a6e8a1a012ee92fbd1a4166c21057de031`, in an isolated checkout on main. Original local main `cdab7a7bfd71cc26586ba05d45fe550eb1f5b9f6` and its concurrent local/staged work are preserved; its 56 divergent local commits are not bundled into this delivery. Local control commit `fc3bdd270fecd2a81e1ffb89e1f221786e159ff4` supplies the independently revalidated computed-authority controls, whose content is delivered separately from that divergent history. Source fingerprints and commands are retained in `qualify-environment-contract/delivery-20260914`. Node **22.23.2**, ICU **78.2**, V8 **12.4.254.21-node.56**, Darwin ARM64. The compatibility target remains **ECMA-262 edition 16 (June 2025)** and **ECMA-402 edition 12 (June 2025)**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, plus the previously tracked newer APIs. No target, budget, runtime support, assertion or timeout is reduced.
+
+A reproducible packaging defect was repaired: exported MCP options/connection declarations referenced private `tiny-mcp-client` types. The production declaration closure rejected that dependency. The SDK now owns its fetch/spawn signatures using host types and reuses its existing narrow MCP connection interface, including pagination. The implementation still uses the same trusted MCP transports; no additional process, network or filesystem operation is admitted. An explicit string-array annotation permits isolated declaration emission with zero diagnostics. The regression asserts both zero diagnostics and absence of the private declaration import; the normal build and private-dependency packaging guard remain required.
+
+| Intentional restriction or supported grant | Rationale and disposition | Reproducible denial/control |
+| --- | --- | --- |
+| No ambient process, require, fetch, fs, document, window or WebSocket | These are host APIs, not ECMAScript intrinsic requirements. A realm does not inherit the supervisor's authority. | `src/environment-contract-qualification.test.ts`: typeof absence, direct ReferenceError / UNBOUND_IDENTIFIER, message and source position; Promise/Map controls. `environment-authority-negative-controls.test.ts`: computed names, Function and constructor chains. Installed Node/Bun and actual Workerd controls. |
+| No arbitrary Node, URL or npm resolution | Unregistered names reject without a native loader. Static wrapper imports refuse protocol, path and file-like specifiers even when registered. Dynamic lookup admits exact opaque labels only when their exports are explicitly supplied; a URL-looking label does not resolve a resource. Naming ECMAScript does not authorize npm/CJS. | Environment qualification tests assert exact invalid-specifier/unknown-module errors, including node:fs, URL, scoped/path and fixture.js labels: unregistered dynamic denial, registered static denial before effects, and narrow registered dynamic success with fs/fetch still absent. Registry/dynamic-import tests retain namespace/replay controls. |
+| Source-module graph resolver mode is unsupported in this delivered public SDK/CLI | Dirty local source-resolver work is a distinct, undelivered capability. Script/registered-module wrappers are not native Module-context qualification. | Installed type fixture uses an expected compile error for sourceType; installed CLI `--source-type module` exits 1, `Unknown flag: --source-type`. No resolver/global fallback is added. |
+| Grants must admit actual supplied extensions; capability labels grant no automatic globals | A manifest is an admission declaration, not OS interception. Lint permission is independent of runtime authority. | Computed-authority controls: missing grants reject before setup; labels-only grants retain denials; lint allowedGlobals does not supply process. Realm tests reject version/conflict/accessor/proxy/unknown-field inputs before effects. |
+| Registered helpers and bindings expose only supplied authority | Native code is trusted and can perform its own effects. The guest receives only configured exports. | Environment allowlist has ENV_ACCESS_DENIED neighbor; agent, MCP, log, metric, fail, time and harness tests inject runners/transports/sinks. Cross-realm module grant remains unavailable in the other realm. |
+| Native Promise symbol data requires exact caller-key admission; host async metadata is not discovered | Native Promise transfer is a host admission boundary, separate from guest Promise/symbol semantics. Callers must not grant supervisor-private keys. | native-promise-admission/budgets and promise-import-properties tests cover active/retired context denial, own-data/accessor validation, explicit symbol grants, retained accounting and replay. Installed public fixture uses explicit admission. |
+| Callback/reference ownership revokes on release or close; failed import poisons its realm | A retained handle cannot revive disposed authority or migrate across owners. | `realm.test.ts`, `realm-callback-phases.test.ts` and negative controls exercise retained state, wrong owner, release, close, next invocation refusal and import-failure reuse refusal. |
+| Cleanup is awaited and once-only; setup/cleanup failures remain visible | Partial admission cannot leave untracked live resources. | Realm tests exercise reverse partial-setup cleanup, aggregation, active-callback cancellation and close; labels-only control closes twice and observes one cleanup. Managed MCP tests close transports on success, failure, budget exhaustion and cancellation. |
+| Cooperative cancellation cannot preempt synchronous blocking host code or undo effects | Guest checks do not control arbitrary native execution. Blocking operations require external supervision. | Environment cancellation control records effects before and after abort, then denies the next host call; cancel/reconciliation tests and actual Workerd supervisor clean exit. No timeout or guest budget is relaxed. |
+| Filesystem helper admits bounded Node representations and options | Buffer/URL/fd paths, bigint stat representation, signal, handles/streams/watch and callback filters are independent host capabilities, not missing ECMAScript BigInt/Date semantics. | `modules/fs.test.ts`, fs.option-surface/config/adapter tests assert TypeError/EACCES refusals and no writes after refusal, beside normal string/numeric read/write/stat controls. |
+| General root validation is not atomic hostile-namespace confinement | Native validation and use can race. Use a trusted namespace, immutable adapter or external OS confinement when hostile host writers exist. | Memfs race qualification: existing escape symlink denies EACCES; a post-check host swap reads the outside file. This success is evidence of the boundary, not a confinement pass. |
+| SDK/CLI configuration grants are explicit and validated before effects | Config-file presence/frontmatter alone cannot authorize fs/env/MCP. CLI uses the same adapters and option parsers. Default CLI agent/metric implementations are stubs; fs registration is opt-in. | cli.test/fs-config tests cover SDK options versus flags, explicit registration, malformed/conflicting/duplicate settings, --fs-root requiring --fs, environment allowlist and MCP validation. |
+| Live extension portable snapshot/replay refuses; interrupted effects require reconciliation | A snapshot cannot prove unrecorded native effects or carry live realm authority. | Installed recovery control rejects snapshot/snapshotBackend/snapshotPath/entryPointArgs with exact TypeError; persistent realm succeeds. Managed MCP and fs adapter tests require external reconciliation and do not repeat completed effects. |
+| Workerd requires its explicit entry and supported adapter; browser DOM and Win32 native filesystem are not promised | Environment compatibility is separate from the edition pin. Native dependency resolution is not repaired by granting ambient authority. | Actual Workerd 2026-09-14 / nodejs_compat: packaged /workerd denials, narrow helper and rooted memory adapter read/write with EACCES control. General SafeFS root bundling rejects unavailable #safe-fs-native-seek; explicit fs/memory entry bundles and executes. Browser exports are null; fs.test simulates exact Win32 construction refusal. |
+| Packaged declarations cannot import private/CLI dependencies | Installed SDK entrypoints must have a publishable closure, without unrestricted npm recovery. | MCP declaration regression; five maintained packager/guard tests; normal-build candidate packaging and installed public types. The guard is not removed. |
+
+Commands executed in the isolated main checkout (exact argv, source hashes, versions and logs are in the receipt packet):
+
+```sh
+npm ci
+npm run build:workspaces -- --workspace=@poe-code/safe-js
+npm run build
+npm test --workspace=@poe-code/safe-js
+npm exec vitest run packages/safe-js/src/environment-authority-negative-controls.test.ts packages/safe-js/src/environment-contract-qualification.test.ts packages/safe-js/src/modules/fs-race-boundary-qualification.test.ts packages/safe-js/src/modules/mcp-declaration-contract.test.ts packages/safe-js/src/modules/mcp-managed.test.ts packages/safe-js/src/modules/mcp.test.ts packages/safe-js/src/cli.fs-config.test.ts packages/safe-js/src/realm.test.ts packages/safe-js/src/modules/registry.test.ts packages/safe-js/src/modules/env.test.ts packages/safe-js/src/modules/fs.test.ts
+npm exec vitest run scripts/package-safe.test.ts scripts/package-safe-native.test.ts
+npm exec vitest run packages/safe-js/src/cli.test.ts packages/safe-js/src/cli.fs-config.test.ts packages/safe-js/src/modules/fs.option-surface.test.ts packages/safe-js/src/modules/fs-config.test.ts
+npm exec eslint packages/safe-js/src/modules/mcp.ts packages/safe-js/src/modules/mcp-transport.ts packages/safe-js/src/modules/mcp-declaration-contract.test.ts packages/safe-js/src/environment-authority-negative-controls.test.ts packages/safe-js/src/environment-contract-qualification.test.ts packages/safe-js/src/modules/fs-race-boundary-qualification.test.ts
+npm run lint:packages
+node scripts/package-safe.mjs --out-dir <canonical-task-owned-directory> --version 0.0.0-contract-qualification
+```
+
+Verified final focused results: **731/731** in 11 files, zero skips; supplement **257/257** in six collected files, zero skips; SDK/CLI configuration **153/153**, zero skips; packager **5/5**, zero skips; Workerd errno mock **1/1**; final declaration/MCP gate **37/37**, helper gate **131/131** and host admission/ownership gate **157/157**, zero skips; ESLint exit 0; package policy **17/17**. Selected maintained builds include **8/8** fresh built-import checks. The normal root build succeeded, including root suffix declaration rewriting. No visible CLI behavior was changed, so screenshot QA is inapplicable.
+
+Installed local artifact controls: maintained `safe-packages-smoke.mjs` passes independently under Node 22 and Bun 1.3.11; public type fixture compiles. Public node/core/workerd entry ambient denials and helper controls pass on Node 18.18.0 / ICU 73.2, 18.20.8 / 74.2, 20.20.2 / 78.2, 22.23.2 / 78.2, 24.21.0 / 78.3, 26.8.2 / 78.3 and Bun 1.3.11 / 74.2. Those workerd imports are host initialization controls, separate from actual Workerd. Actual Workerd additionally passes rooted explicit memory filesystem grant/denial, with supervisor cleanup exit 0, unchanged 15-second readiness and 2-second HTTP bounds. Node-only MCP consumer types compile with `--lib ES2022 --types node` and the consumer's Node type root; no DOM library or ambient DOM is supplied.
+
+Failures/exclusions remain explicit: initial declaration probe had diagnostic 9017 for the unannotated array default; the corrected probe independently reproduced the private import. Final regression retains the zero-diagnostic assertion and import denial. First clean source tests started before generated Intl dependencies existed and failed at host import, not guest execution; after maintained build the same focused selection passed. Packaging before root build failed on missing package-lint dist. Packaging after a selected-only rebuild failed on private agent-spawn/parallel: root suffix declaration rewriting is required; this incomplete output and its premature identity comparison are excluded from installed/publication evidence. Workerd general SafeFS root bundling failed on disabled native seek; the explicit memory subpath succeeds, with no fallback. The first Node-only type probe discovered unrelated workspace turndown ambient DOM types; consumer-only Node type discovery passes without DOM. Missing selected test filenames are not counted as skipped or passing files. No LLM request was made.
+
+Full maintained-suite terminal results, final normal-build packaging receipts and delivery/publication dispositions follow below. Focused success is not a completed push or publication. Unsupported browser DOM/CJS/npm, Win32 native filesystem, undelivered source-resolver mode and unexercised broader runtime/OS cells remain named boundaries; these controls do not claim complete ECMAScript conformance or every host integration. Pending native effects require external reconciliation, blocking operations require external supervision, and hostile filesystem writers require an appropriate confinement boundary. No associated issue number was supplied.
+
+Maintained package terminal: `npm test --workspace=@poe-code/safe-js`, **exit 0**, **1,407 passing / two skipped files (1,409 total), 30,292 passing / 47 skipped tests (30,339 total)**, 1,369.63 seconds, zero failures. The exact command invokes native npm pretest (`numberformat-data` and filesystem type contract) and the declared package unit route. Skips: 33 filesystem reference gaps, 11 unavailable native Temporal comparisons (seven structured-clone-host-instant and four temporal-instant-native), two unavailable native f16round comparisons and one optional fuzz profile. The skip file summary is retained; unavailable cases are not passes and no optional profile was synthesized. Repository-local Git and four optional unit-profile variables were absent.
+
+The suite collected before the final string-array annotation, zero-diagnostic assertion restoration, direct-error assertion strengthening and four resolver controls. It is not mislabeled an exact-source full final suite. The final declaration/MCP gate, 731-test focused gate and ESLint recheck cover those changes. Type-erased JavaScript for both repaired source files compares byte-identical to the fetched remote source; no runtime behavior changed. The final normal build/packaging still must verify the final declaration closure. SafeJS's default export is its Node entry; there is no invented `/node` SDK export. `/fs/node` is the canonical SafeFS compatibility entry, exercised by the installed maintained fixture. Workerd `/workerd` is separately qualified under its supported conditions; Node/Bun imports of it do not substitute for actual Workerd.
+
+Final sequential candidate check: normal `npm run build` exit **0**, then canonical `package-safe.mjs` exit **0** for all three scoped artifacts. Fresh final tarball installation, maintained Node/Bun smoke and public types each exit **0**; Node-only injected MCP types exit **0**. Actual Workerd against these final installed artifacts passes default/direct/import denial, narrow helper success, rooted memory read/write and outside-root EACCES, with supervisor exit **0**. The final wrapper/configuration, binary/bundle hashes and response are retained in the final Workerd receipt. Partial selected-build packaging output remains excluded; it was not substituted for this successful normal-build candidate. `runtime-erasure-comparison.json` confirms both repaired files produce identical erased JavaScript to the fetched source.
+
+Local boundary acceptance is verified on these explicit supported surfaces. Commit, remote ancestry, required workflows and actual npm publication remain separate pending gates; no local tarball is claimed as a publication. Recovery if publication fails: retain any individually published package/version, diagnose the required workflow, reproduce a defect with a failing test, commit an atomic repair, fetch/reconcile and push normally, then follow an ancestor-verified successor and independently check exact registry versions/installed artifacts. Do not remove dependency/native guards, broaden default capabilities, unpublish or force-push.
+
+### qualify-environment-contract — verified main delivery and scoped publication receipts
+
+Local verified code commit: **`6bc5290f862612a79944c105facb408d9e0057b0`**. Normal `git push origin main` completed, with configured hooks and without force or verification bypass. Fresh fetch verifies that commit on remote main (same SHA at observation) and ancestry from `7da4c8a6e8a1a012ee92fbd1a4166c21057de031`. Original local/staged work remains preserved in its original checkout. Only task-owned files were committed from the isolated main checkout; log normalization removed trailing blank EOF lines, without changing results.
+
+| Required workflow/package | Verified disposition | Actual version/source |
+| --- | --- | --- |
+| [Scoped safe publication](https://github.com/poe-platform/poe-code/actions/runs/34921860899) | **success**, exact head 6bc5290f8; all three publish steps completed | safe-js, safe-fs and safe-bash **0.1.605** |
+| [Schema publication](https://github.com/poe-platform/poe-code/actions/runs/34921860957) | **success**, exact head 6bc5290f8; build and deploy success | Schema deployment, not npm publication |
+| [poe-code Release](https://github.com/poe-platform/poe-code/actions/runs/34921861184) | **failure**: build/audit/packed-CLI/cached-unit/four Bash shards passed; fresh-unit failed, release-stable skipped | **Blocked**; no new poe-code publication |
+
+Each scoped registry tarball independently matches its SHA-512 integrity and SHA-1 registry shasum. Every publish/provenance subject matches the actual downloaded bytes. All three SLSA provenance statements identify source **6bc5290f862612a79944c105facb408d9e0057b0**, workflow `.github/workflows/release-safe.yml`, and invocation `34921860899/attempts/1`. Scoped registry gitHead fields are absent; their source is established by provenance, not invented gitHead values. Fresh registry-name installs of exact **0.1.605** pass maintained Node/Bun smoke and public types. `npm audit signatures --json` exits **0**, with **invalid: [] / missing: []**. Actual Workerd against the published packages passes default/direct/import denial, narrow helper grant and rooted memory read/write/EACCES control; supervisor exit **0**. Registry integrity/provenance, installed checks and published Workerd receipts are retained separately.
+
+Partial availability was handled honestly: initial exact-version probes returned 404 before publication; later SafeJS/Safe Bash metadata remained unavailable after successful publish steps. SafeFS and SafeJS were independently installed and tested during that partial propagation period. Direct-version, online npm and cache-bypassed package-metadata retries subsequently obtained all three exact versions. No 404 or incomplete metadata was counted as success; no package was unpublished or rolled back. Required poe-code publication remains open until the root workflow and exact published version/provenance are verified below.
+
+### Root publication blocker — terminal disposition
+
+Root workflow **34921861184** finished **failure**, on delivered source `6bc5290f862612a79944c105facb408d9e0057b0`. Fresh unit reported **317 failed / 113,044 passed / two skipped tests**, **42 failed / 2,073 passed / two skipped files**. All 42 failed files belong to `packages/safe-python`; no SafeJS failure is listed. The retained owner receipt and full failed-job log distinguish this failure from the successful scoped publication. `release-stable` was skipped. Last observed root registry version is **poe-code@15.0.40**, gitHead `0bba68687af792727e8ae86d158b2999e8990193`; this is not claimed to contain the task commit.
+
+Reproduction at delivered source, Node **22.23.2**, ICU **78.2**:
+
+```sh
+cd packages/safe-python
+npm run test:unit -- src/session-bytes-iterator.test.ts src/session-union-construction-descriptors.test.ts
+```
+
+Exit **1**: **18 failed / 184 passed**, two failed files, 3.10 seconds. Union descriptor output, for example, expects `int | str | Other()` with no `ror` call but receives `23` with `ror`; byte iterator controls also fail. Tests compare pinned CPython 3.14.7 snapshots, not an absent live Python interpreter. The earlier root-cwd/config attempt is excluded as an invalid reproduction. No supported runtime, oracle, assertion, budget or timeout was changed. These language-semantics repairs are outside the requested SafeJS/integration scope; no in-scope shared-runner defect has been demonstrated.
+
+**Task completion remains blocked by required root publication**, despite verified local boundary acceptance, remote-main code delivery and all three scoped publications. Concrete recovery: repair these validated SafePython regressions under their pinned oracle with TDD in a separately scoped atomic commit; run maintained fresh-unit validation; fetch/reconcile and push normally; verify successor ancestry contains `6bc5290f862612a79944c105facb408d9e0057b0`; follow required workflows through success and independently verify the new poe-code registry version, integrity, source/provenance and installed CLI artifact. Existing scoped 0.1.605 publications remain intact. Do not weaken the fresh gate, republish locally, unpublish, force-push or destructively roll back. No associated issue was supplied to close.
+
+
+## 2026-09-15 — fresh runtime qualification and isolated evidence delivery
+
+**OPEN / RELEASE BLOCKED.** [Fresh reproducible report](safejs-runtime-support-fresh-delivery-20260915.md) and [raw receipts](runtime-support-20260915/fresh-audit/receipt.json): 56 maintained imports passed, 138 controls passed, two minimum-Node fresh-symbol WeakMap failures, zero skips. All 100 maintained type contracts passed. Source dirty HEAD 365774cd83ff387c4237adfed8fe7b8bf0ffb4f1; original source fingerprints unchanged. Fixed edition16/402 edition12 target and explicit host authority preserved. Remaining Linux/Windows, Workerd metadata, complete feature/current-artifact qualification and backend defect are release blockers. Isolated evidence-only checkout avoids delivering 60 unrelated local commits against 1026 concurrent remote commits. Release and delivery receipts follow separately; predecessor public0.1.605 is not a task release. No runtime repair or weakened support/budgets/assertions/timeouts.
+
+
+## Compatibility documentation delivery — 2026-09-15
+
+**Acceptance OPEN: no accepted final full corpus exists.** Documentation-only
+publication is authorized; this does not certify the accumulated runtime candidate.
+Original local SHA e63e1b158c58de8b14a926a6e6c8989da1d23feb and all unrelated
+local/staged changes are preserved. Fetched remote source SHA
+`a03cf4f986dcbb7de309cbe4c1f5587551d81d04`; documentation delivery uses a
+separate checkout on main at that SHA, preserving concurrent remote work.
+No divergent runtime commits, lockfile edits or uncommitted repairs are delivered.
+Node v22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin arm64.
+
+Target unchanged: published ECMA-262 edition 16 / ECMA-402 edition 12 (June
+2025), Test262 419d3e0a2273ba01a3bfcbec423f2801425b8e93; newer APIs remain
+separately tracked. [Losslessly compressed inherited full report](publish-compatibility-documentation-20260915/full-corpus.jsonl.gz)
+and [digest/source disposition](publish-compatibility-documentation-20260915/corpus-receipt.json)
+retain its terminal aborted/complete:false/ENOSPC record. This is dirty-candidate
+historical evidence, not a completed remote-source run. No skips, unsupported
+required modes, fixture counts or report prefixes become passes.
+
+Both READMEs describe implemented surfaces, runtime contract and measured gaps,
+intentional embedding restrictions, residual limitations and delivered transport
+repairs. Existing detailed development notes are preserved as historical source
+notes; dated publication receipts determine delivery. Host authority remains
+explicit; missing host authority by design is not an ECMAScript defect.
+[Transport final report](qualify-realms-and-recovery/final-delivery-20260914.md)
+and [runtime matrix/commands](safejs-runtime-support-fresh-delivery-20260915.md)
+are delivered evidence, not blanket acceptance. Minimum weak-symbol semantics,
+Linux/Windows and complete Workerd/runtime feature coverage, raw shared-write
+recovery, Temporal/Intl extremes, archive/license disposition and accumulated
+candidate source/lock/publication binding remain unresolved. The root strict
+minimum installation previously rejected @noble/hashes 2.4.0's newer engine
+requirement; this documentation changes neither engines nor dependency resolution.
+
+Reproduce with clean generated inputs, unchanged defaults and new report paths:
+
+```sh
+node packages/safe-js/scripts/numberformat-data.mjs
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --include built-ins/Array/of --report /tmp/safejs-selected-new.jsonl
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --enumerate --report /tmp/safejs-manifest-new.jsonl
+npm run test:conformance --workspace=@poe-code/safe-js -- --corpus /path/to/test262 --manifest /tmp/safejs-manifest-new.jsonl --report /tmp/safejs-full-new.jsonl
+```
+
+Pin the corpus checkout to the revision above. Selector-free commands were
+reviewed against maintained command.ts; not executed as a fresh full campaign.
+Variant/startup defaults remain 3000/10000ms, no resource override. First
+quickstart import failed because Intl generated files were absent; first selected
+run exited 1 with source-change rejection after concurrent generation. These
+setup failures remain nonpasses. Generator then exited 0 (766 number locales,
+224 plural locales). Stable rerun and quickstart terminal results follow below.
+No runtime code/config/budget/timeout/authority changes, repair TDD or CLI visual
+change; screenshots and broad runtime gates are inapplicable to this docs diff.
+README links, including fragments, are verified before commit; stale missing
+WeakMap report link is replaced with the retained ledger.
+
+Pre-push read-only publication observations: scoped SafeJS 0.1.606, predecessor
+source be0cac7268ed62429623e39f6868b86c5c455ad1, workflow
+https://github.com/poe-platform/poe-code/actions/runs/34935034511 success;
+poe-code 15.0.41 gitHead a03cf4f986dcbb7de309cbe4c1f5587551d81d04,
+https://github.com/poe-platform/poe-code/actions/runs/34935069364 success.
+These are predecessor observations, not this documentation publication.
+
+Local commit, verified remote-main delivery, workflow conclusion and actual
+published versions will be recorded separately after normal hooks/push. No local
+npm publication or issue closure; no explicitly associated issue was supplied.
+Recovery: complete immutable candidate/runtime/corpus qualification with TDD for
+validated repairs; never weaken support or budgets. For partial publication,
+verify every scoped package and root independently, follow an ancestry-verified
+successor and retry registry propagation. Never unpublish or force-push.
+
+Stable verification terminal results: selected command with actual corpus
+/private/tmp/safejs-binary-test262 and report
+/tmp/safejs-delivery-array-of-stable-20260915.jsonl exited 0: 16 files, 32 variants
+passed, zero failures/unsupported/fixtures/metadata/execution errors and no skips.
+[Stable raw report](publish-compatibility-documentation-20260915/array-of-stable.jsonl)
+retains source/harness hashes. [Setup-aborted raw report](publish-compatibility-documentation-20260915/array-of-setup-aborted.jsonl)
+is not a pass. This selection does not supersede the aborted full corpus.
+Quickstart current-source check via node --import tsx --input-type=module,
+importing Budget/run from ./packages/safe-js/src/index.ts with documented source,
+bindings and budgets, asserted ok===true and [6,10,16]: exit 0, no skips.
+Package installation remains separately subject to installed-artifact receipts.
+
+Markdown verification: 48 relative README links including heading fragments
+resolve, zero failures; [receipt](publish-compatibility-documentation-20260915/links.json).
+Manual documentation review and git diff --check pass.

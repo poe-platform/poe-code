@@ -185,7 +185,7 @@ test("variable appends cannot retain values beyond the expansion byte limit", as
 
 test("wall-clock limits abort commands that are awaiting host work", async () => {
   const { shell, commands } = setup();
-  commands.register({ name: "wait", async execute({ signal }) {
+  commands.register({ name: "host-wait", async execute({ signal }) {
     await new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, 50);
       signal.addEventListener("abort", () => { clearTimeout(timer); resolve(); }, { once: true });
@@ -193,7 +193,7 @@ test("wall-clock limits abort commands that are awaiting host work", async () =>
     signal.throwIfAborted();
     return { exitCode: 0 };
   } });
-  await assert.rejects(shell.exec("wait", { limits: { maxWallClockMs: 5 } }),
+  await assert.rejects(shell.exec("host-wait", { limits: { maxWallClockMs: 5 } }),
     error => error instanceof ShellLimitError && error.limit === "maxWallClockMs");
 });
 

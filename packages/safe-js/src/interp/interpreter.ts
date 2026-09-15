@@ -518,7 +518,9 @@ export async function interpret(
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
     let evaluation = await withCancellationSignal(options.signal, () =>
-      options.nested ? runAsyncPrefix(execute) : jobs.run(execute)
+      // A reported async prefix suspends its own job while its caller continues.
+      // Nested host operations without a prefix retain the enclosing token.
+      options.nested ? runAsyncPrefix(execute, options.onSuspend === undefined) : jobs.run(execute)
     );
     if (!options.nested) await jobs.drain();
     if (options.script !== undefined && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {

@@ -623,6 +623,44 @@ test("guarded compiler admits only declared private op types, not its source or 
   noHeldReads(owned);
 });
 
+for (const nested of [false, true]) test(`guarded compiler carries private op declaration closure inside portable dist (nested declarations: ${nested})`, async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
+    "../op/dist/index.d.ts": 'export type { Backend } from "./types.js";',
+    "../op/dist/types.d.ts": 'export interface Backend { name: string; }',
+    "../op/dist/unreferenced.d.ts": 'UNREFERENCED SENTINEL',
+    "src/commands/op/index.ts": 'export type { Backend } from "@poe-platform/op"; export type Options = import("@poe-platform/op").Backend;',
+  }, nested ? { declarationDir: root + "/dist/types" } : {});
+  const result = await owned.run();
+  assert.equal(result.status, 0, owned.output.join(""));
+  const declarationDirectory = nested ? "/dist/types" : "/dist";
+  const output = owned.memory.readFileSync(root + declarationDirectory + "/commands/op/index.d.ts", "utf8");
+  assert.ok(output.includes(nested ? '"../../../internal/op/index.js"' : '"../../internal/op/index.js"'), output);
+  assert.ok(!output.includes("@poe-platform/op"), output);
+  assert.equal(owned.memory.readFileSync(root + "/dist/internal/op/index.d.ts", "utf8"), 'export type { Backend } from "./types.js";');
+  assert.equal(owned.memory.readFileSync(root + "/dist/internal/op/types.d.ts", "utf8"), 'export interface Backend { name: string; }');
+  assert.ok(!owned.reads.includes("/owned/op/dist/unreferenced.d.ts"));
+  assert.ok(!owned.memory.existsSync(root + "/dist/internal/op/unreferenced.d.ts"));
+  const relocated = createFsFromVolume(new Volume());
+  for (const path of result.emittedFiles.filter(path => path.endsWith(".d.ts"))) {
+    const destination = path.replace(root, "/relocated");
+    relocated.mkdirSync(destination.slice(0, destination.lastIndexOf("/")), { recursive: true });
+    relocated.writeFileSync(destination, owned.memory.readFileSync(path));
+  }
+  relocated.writeFileSync("/relocated/globals.d.ts", globals);
+  relocated.writeFileSync("/relocated/consumer.ts", `import type { Backend, Options } from ".${declarationDirectory}/commands/op/index.js"; const backend: Backend = { name: "portable" }; const options: Options = backend;`);
+  const options = { strict: true, noEmit: true, noLib: true, types: [], module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler };
+  const host = ts.createCompilerHost(options);
+  host.fileExists = path => relocated.existsSync(path);
+  host.readFile = path => relocated.existsSync(path) ? relocated.readFileSync(path, "utf8") : undefined;
+  host.directoryExists = path => relocated.existsSync(path) && relocated.statSync(path).isDirectory();
+  host.getSourceFile = (path, version) => { const text = host.readFile(path); return text === undefined ? undefined : ts.createSourceFile(path, text, version, true); };
+  const consumer = ts.createProgram(["/relocated/globals.d.ts", "/relocated/consumer.ts"], options, host);
+  assert.deepEqual(ts.getPreEmitDiagnostics(consumer).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")), []);
+  noHeldReads(owned);
+});
+
 for (const defect of ["name", "private", "types"]) test(`guarded compiler rejects untrusted op declaration metadata: ${defect}`, async () => {
   const op = { name: "@poe-platform/op", private: true, exports: { ".": { types: "./dist/index.d.ts" } } };
   if (defect === "name") op.name = "other";

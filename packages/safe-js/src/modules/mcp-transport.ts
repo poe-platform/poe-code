@@ -1,13 +1,13 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams, type SpawnOptions } from "node:child_process";
 import path from "node:path";
 import {
   HttpTransport,
   McpClient,
   StdioTransport,
-  type HttpTransportFetch,
-  type McpTransport,
-  type StdioSpawn
+  type McpTransport
 } from "tiny-mcp-client";
+
+import type { McpConnection } from "./mcp.js";
 
 export type McpServerConfig =
   | { command: string; args?: string[]; cwd?: string; env?: Record<string, string> }
@@ -19,12 +19,12 @@ export type McpModuleOptions = {
   closeTimeoutMs?: number;
   maxToolPages?: number;
   signal?: AbortSignal;
-  fetch?: HttpTransportFetch;
-  spawn?: StdioSpawn;
+  fetch?: (input: string | URL, init?: RequestInit) => Promise<Response>;
+  spawn?: (command: string, args: ReadonlyArray<string>, options: SpawnOptions) => ChildProcessWithoutNullStreams;
 };
 
 export type ManagedMcpConnection = {
-  ready: Promise<McpClient>;
+  ready: Promise<McpConnection>;
   close(): Promise<void>;
 };
 
@@ -49,7 +49,7 @@ export function parseMcpConfig(source: string, directory: string): McpModuleOpti
 
 export function normalizeMcpOptions(
   value: unknown,
-  keys = [
+  keys: string[] = [
     "servers",
     "requestTimeoutMs",
     "closeTimeoutMs",
@@ -102,8 +102,8 @@ export function normalizeMcpOptions(
     closeTimeoutMs: readTimeout(options.closeTimeoutMs, 1_000),
     maxToolPages: readTimeout(options.maxToolPages, 100),
     ...(options.signal === undefined ? {} : { signal: options.signal as AbortSignal }),
-    ...(options.fetch === undefined ? {} : { fetch: options.fetch as HttpTransportFetch }),
-    ...(options.spawn === undefined ? {} : { spawn: options.spawn as StdioSpawn })
+    ...(options.fetch === undefined ? {} : { fetch: options.fetch as McpModuleOptions["fetch"] }),
+    ...(options.spawn === undefined ? {} : { spawn: options.spawn as McpModuleOptions["spawn"] })
   };
 }
 

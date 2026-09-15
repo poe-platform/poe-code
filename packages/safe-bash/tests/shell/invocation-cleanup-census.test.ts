@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Dirent } from "node:fs";
 import { Volume, createFsFromVolume } from "memfs";
-import { census, digest } from "../shell-stress/invocation-cleanup-runtime/migration/binding.js";
+import { captureOpBuildInputs, census, digest } from "../shell-stress/invocation-cleanup-runtime/migration/binding.js";
 
 function fixture() {
   const fs = createFsFromVolume(Volume.fromJSON({
@@ -81,4 +81,24 @@ test("public snapshot census drains admitted reads before reporting exact failur
   assert.equal(started, 16, "Failure must drain the admitted batch without starting another");
   assert.equal(active, 0);
   assert.equal(completed, started);
+});
+
+
+test("op snapshot inputs bind source and metadata without borrowing shared dist", async () => {
+  const fs = createFsFromVolume(Volume.fromJSON({
+    "/op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true }),
+    "/op/tsconfig.json": "{}", "/op/src/index.ts": "export const value = 1;",
+    "/op/dist/index.d.ts": "STALE SHARED OUTPUT",
+  }));
+  const io = {
+    readdir: async (path: string) => fs.readdirSync(path, { withFileTypes: true }) as Dirent[],
+    readFile: async (path: string) => fs.readFileSync(path) as Buffer,
+    lstat: async (path: string) => fs.lstatSync(path),
+  };
+  const captured = await captureOpBuildInputs("/op", io);
+  assert.deepEqual(Object.keys(captured.files).sort(), ["package.json", "src/index.ts", "tsconfig.json"]);
+  fs.writeFileSync("/op/src/index.ts", "export const value = 2;");
+  assert.notDeepEqual((await captureOpBuildInputs("/op", io)).files, captured.files);
+  fs.symlinkSync("/op/src/index.ts", "/op/src/alias.ts");
+  await assert.rejects(captureOpBuildInputs("/op", io), /Unexpected snapshot symlink/);
 });

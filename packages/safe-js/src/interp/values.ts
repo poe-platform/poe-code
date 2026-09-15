@@ -944,8 +944,9 @@ export function measureSandboxData(
       let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
       // Capture before visiting: retained callbacks can mutate later properties.
       for (const key of symbols) {
-        if (!internalSymbols.has(key))
-          (descriptors ??= []).push([key, Object.getOwnPropertyDescriptor(value, key)!]);
+        if (internalSymbols.has(key)) continue;
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
       }
       if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;
@@ -1201,6 +1202,7 @@ export function measureSandboxData(
       for (const key of Reflect.ownKeys(getPromiseProperties(value))) {
         const descriptor = Object.getOwnPropertyDescriptor(getPromiseProperties(value), key)!;
         usage += typeof key === "string" ? key.length + 1 : 1;
+        if (typeof key === "symbol") visit(key, depth + 1);
         if ("value" in descriptor) visit(descriptor.value, depth + 1);
         else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
       }

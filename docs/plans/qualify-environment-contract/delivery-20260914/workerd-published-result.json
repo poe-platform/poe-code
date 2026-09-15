@@ -1,0 +1,43 @@
+{
+  "argv": [
+    "/Users/kjopek/.npm/_npx/8a75bae3af68c99e/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd",
+    "serve",
+    "docs/plans/qualify-environment-contract/delivery-20260914/workerd-published.capnp"
+  ],
+  "versions": {
+    "safe-fs": "0.1.605",
+    "safe-js": "0.1.605"
+  },
+  "sourceSha": "6bc5290f862612a79944c105facb408d9e0057b0",
+  "version": "workerd 2026-09-14",
+  "binarySha256": "d5f7c6905ca4dc084ac633d924864e11c674b6ded1a5a462f7d422be8e70acc2",
+  "bundleSha256": "95d7e7a71a3267601a4789757032c6fe9bc28e754396aed633e5bc727df8f5fd",
+  "readinessSeconds": 15,
+  "requestSeconds": 2,
+  "lastReadinessError": "<urlopen error [Errno 61] Connection refused>",
+  "response": {
+    "denial": [
+      "undefined",
+      "undefined",
+      "undefined",
+      "undefined",
+      "undefined",
+      "function"
+    ],
+    "directDenied": true,
+    "importDenied": true,
+    "helper": [
+      "grant",
+      "undefined",
+      "undefined"
+    ],
+    "filesystem": [
+      "grant",
+      "EACCES",
+      "undefined",
+      "undefined"
+    ]
+  },
+  "pass": true,
+  "cleanupExit": 0
+}

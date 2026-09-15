@@ -273,12 +273,16 @@ export function createResumableJobContext(): {run<T>(task: () => T): T; release(
   }};
 }
 
-export function runAsyncPrefix<T>(task: () => Promise<T>): Promise<T> {
+export function runAsyncPrefix<T>(task: () => Promise<T>, joinOwner = false): Promise<T> {
   const parent = activeJob.getStore();
   if (parent === undefined) return task();
   let owner: ExecutionJob | undefined = parent;
   while (owner !== undefined && !owner.ownsExecution) owner = owner.prefixParent;
   if (owner === undefined) return parent.queue.run(task);
+  // Authorized nested source is joined by its enclosing host call. Sharing
+  // that execution token lets a guest await release/reacquire the queue; a
+  // host implementation yield alone still holds the enclosing prefix.
+  if (joinOwner) return activeJob.run(owner, task);
   const job = { queue: parent.queue, ownsExecution: false, prefixParent: parent };
   return activeJob.run(job, async () => {
     try {

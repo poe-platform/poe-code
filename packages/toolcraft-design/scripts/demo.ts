@@ -24,7 +24,7 @@ import {
   getTheme,
   resolveOutputFormat,
   resetOutputFormatCache,
-  dashboard
+  dashboard, createMetric, renderProgressGroup, renderNotice
 } from "../src/index.js";
 import { getMarkdownDemo, type MarkdownDemoName } from "../src/terminal-markdown/demo-content.js";
 
@@ -52,6 +52,7 @@ type DemoType =
   | "layout-expanded"
   | "table"
   | "table-markdown"
+  | "primitives"
   | "dashboard"
   | "markdown"
   | "markdown-minimal"
@@ -389,6 +390,16 @@ export async function main(argv = process.argv.slice(2), context: DemoContext = 
     case "table-markdown":
       runTableMarkdownDemo();
       break;
+    case "primitives": {
+      const metric = createMetric({ capacity: 8, unit: "ms" });
+      [2, 4, 3, 7, 5, 4, 3, 2].forEach(value => metric.push(value));
+      const lines = [...renderProgressGroup([{ label: "Upload", completed: 3, total: 4 }, { label: "Agent working" }], 60), metric.render(60), renderNotice({ level: "warning", text: "Retrying; output remains focused" }, 60)];
+      const format = resolveOutputFormat();
+      for (const line of lines) {
+        console.log(format === "json" ? JSON.stringify({ type: "primitive", text: line }) : line);
+      }
+      break;
+    }
     case "dashboard":
       runDashboardDemo();
       break;

@@ -50,6 +50,29 @@ console.log(palette.header('Title'));
 
 Each example below shows the plain text markdown output captured with `OUTPUT_FORMAT=markdown`.
 
+## Interactive primitives
+
+Scrollable viewports, collapsible event groups, indexed task trees, concurrent progress, command registries, overlay focus stacks, bounded metrics and inline notices. Dashboard Ctrl+G shows repaint dispatch FPS and paint/input latency; getPerformance() exposes cumulative slow frames and the longest paint. Idle FPS is zero; terminal presentation is not observable.
+
+### primitives
+
+Known progress uses a percentage; unknown work uses an ellipsis. Metrics retain bounded samples. Notices do not take focus. Use createViewport, createEventGroups, createTaskTree, createCommandRegistry, createOverlayManager and createNotices for stateful interaction.
+
+```typescript
+const metric = createMetric({ capacity: 64, unit: "ms" });
+metric.push(4);
+metric.render(40);
+renderProgressGroup([{ label: "Upload", completed: 3, total: 4 }], 40);
+renderNotice({ level: "info", text: "Working" }, 40);
+```
+
+```markdown
+● Upload 75%
+● Agent working …
+2 ms ▁▄▂█▅▄▂▁
+▲ Retrying; output remains focused
+```
+
 ## Layout Patterns
 
 Standard command layout patterns. These show complete UI flows from start to finish.

@@ -2802,7 +2802,10 @@ export class Runtime {
       Object.assign(childIO, { terminal: list.pipelines.length === 1 ? { target: list.pipelines[0]!, frame: descriptors } : undefined });
       if (options.stdin === "async-default") {
         const input = new ShellInput((async function* () {})(), this.budget, signal);
-        scope.register(() => input.close());
+        scope.register(async () => {
+          try { await input.close(); }
+          catch (reason) { if (!signal.aborted || !Object.is(reason, signal.reason)) throw reason; }
+        });
         Object.assign(childIO, { asyncDefaultInput: input });
       }
       runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
@@ -3751,10 +3754,12 @@ export class Runtime {
           let target;
           let outputScope: InvocationScope | undefined;
           const retireOutputCleanups: (() => void)[] = [];
+          let outputOwner = io[invocationScope];
+          while (outputOwner.parent) outputOwner = outputOwner.parent;
           try {
             outputScope = new InvocationScope(this.commandSignal, io[invocationScope].failures);
             const context = { fs: resourceFs, signal: this.commandSignal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => {
-              const retire = (outputScope ?? io[invocationScope]).register(cleanup);
+              const retire = (canonical ? outputOwner : outputScope!).register(cleanup);
               if (canonical) retireOutputCleanups.push(retire);
             } };
             if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.commandSignal), (chunk, write) => this.budget.writeCounted(chunk, write, this.commandSignal));

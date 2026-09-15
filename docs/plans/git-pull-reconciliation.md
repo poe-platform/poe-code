@@ -32,3 +32,13 @@ of omitted lockfile dependencies against the manifest's empty object. npm
 omits that empty map. Normalize only the dependency-map comparison; preserve
 strict checks of every populated dependency and all other workspace fields.
 The same packed-revision test passes after this correction.
+
+## Preserve diagnosed cleanup outcomes
+
+The broad shell run exposed status and diagnostic regressions from moving
+canonical close callbacks into a detached resource scope. Enroll those callbacks
+at the top invocation owner, after the normal diagnostic acknowledgement path,
+while retaining lifetime scopes for noncanonical output. Async default-input
+cleanup suppresses only its own active cancellation reason. All 419 focused
+background, descriptor, cancellation and retained-output checks pass with this
+correction; independent review found no additional defect.

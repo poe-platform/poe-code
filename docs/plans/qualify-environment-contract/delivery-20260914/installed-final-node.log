@@ -1,0 +1,12 @@
+Public retained arguments preserve deferred identity, cycles, closures and live objects
+Public named collections preserve identity, removal, indexed composition and revocation
+Public indexed collections preserve liveness, identity, iteration and revocation
+Public realm DOM-like adapter, callbacks, nested ordering and cleanup passed
+Public root/core named mutation, quotas, identity and revocation passed
+Public Date construction, reported jQuery expressions, realm mutation and clock replay passed
+Public owned console authorization, aliases, isolation and cleanup passed
+Public Object type inspection, jQuery-style lookup, replay and realm isolation passed
+Public realm callback phases, identity, nesting, yields, failures and cleanup passed
+Public curl buffered/mixed output preserves bytes, cancellation and non-replay failures
+Packed curl preserves body intent, HTTP-error omission and conflicting-flag admission
+Scoped SafeJS, shell, canonical filesystem, copy options and input limits passed

@@ -397,3 +397,14 @@ This completes task73's maintained and independently reviewed bounded candidate
 checks. Product/status localcommits remain pending until exact owned staging and
 delivery verification. Real box-setter corpus success/same-profile corpus Shell
 parity/rendering remain explicitly unqualified; no task74, push or release.
+
+## Local delivery
+
+Verified atomic product commit723314ac4 on main contains exactly35changed owned
+product paths and this relevant plan,36paths total. All37 frozen inputs and the
+285path independent cohort were authenticated before staging; no unrelated index
+entry existed. Root staged exact paths and used the normal commit hook. Sole
+wording reconciliation is separately committed as e8a8e37c5. Final evidence/status
+commit will include only owned research/QA/plan plus task73 implement/test scalars
+from parsed HEAD UTF-16 ranges in a thin index. Preserve task48–59 unrelated working
+statuses and the untracked pyodide plan. No remote delivery or release occurred.

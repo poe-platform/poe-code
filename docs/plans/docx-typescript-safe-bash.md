@@ -3439,8 +3439,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: charts-and-workbooks
     title: Inspect charts and preserve embedded workbook relationships
     prompt: |

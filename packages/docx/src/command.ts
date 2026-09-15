@@ -220,7 +220,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
       options.limit = limits;
     } else {
       options[name] = name.endsWith("Json") ? raw : cliValue(fields[name]!.type, raw, name, budget);
-      if (!name.endsWith("Json") && !validateDocxValue(fields[name]!.type, options[name])) usage("Invalid option value.");
+      if (!name.endsWith("Json") && !validateDocxValue(fields[name]!.type, options[name])) usage(`Invalid value for --${kebab(name)}. See docx help ${operation.split(".").join(" ")} for accepted values.`);
     }
   }
   budget = lowerLimits(options.limit, budget);
@@ -558,6 +558,8 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
 }
 
 export function commandDiagnostic(source: string, code: string, limit: number): { message: string; human: string } {
+  if (code === "stale-selection" && source === "Document operation failed: " + code)
+    source += ". Inspect the input again and select a fresh location.";
   const encoder = new TextEncoder();
   const prefix = limit >= 8 ? "docx: " : "";
   const suffix = limit >= 2 ? "\n" : "";

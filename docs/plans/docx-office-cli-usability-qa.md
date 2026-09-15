@@ -35,3 +35,19 @@ before/after are disposable QA evidence; no binaries are committed.
 
 Remaining execution accounting and exact mappings will be recorded in the
 DOCX execution receipt after the remaining available recipes are inspected.
+
+## Diagnostic recovery
+
+Built Q32 exposed only the stale-selection code; Q47 exposed only `Invalid
+option value.` Two original tests failed before code in
+`command-recovery-guidance.test.ts`. Invalid direct flag values now name the flag
+and its valid nested help route without echoing the supplied value. Generic stale
+selection diagnostics advise inspecting again and selecting a fresh location;
+the existing diagnostic byte bounds still apply.
+
+Verification: focused grammar/inspection checks passed 71 tests. Maintained DOCX
+tests passed 175 files, 3,432 tests with four skips; scoped lint and the selected
+build closure passed. Inspected maintained screenshots of the flag error and
+stale diagnostic formatter. The formatter screenshot uses its internal built
+module, not a promised public export; the initial wrong-import capture is a QA
+setup error, not a product API defect.

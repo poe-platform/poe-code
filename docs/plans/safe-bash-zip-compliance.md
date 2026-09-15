@@ -321,3 +321,19 @@ invalid month/day, repeats, odd/even midnight, impossible-day ordering, high
 years, empty intervals, deletion and unmatched diagnostics. Actual native and
 virtual archives select identical midnight members and payloads. Remaining
 argument/output, streaming, metadata and format requirements remain active.
+
+## Archive copy mode and separate output
+
+Native Zip captures confirm U/copy-entries requires O/output-file, no operands
+copy all, --out without operands selects copy mode, and separate output always
+requires existing input. Stdout archive argument ignores --out. Added separate
+input admission and destination staging with same-path/backing-identity rejection.
+Archive copy never reads member source files or inflates payloads. Native copy
+progress prints only member names. Empty output basename maps to .zip.
+541 focused ZIP/unzip tests and scoped lint pass, covering selection/intersection,
+unchanged input, ordinary updates, existing non-ZIP destination replacement,
+input directory absence, no-match, aliases, progress, stdout override and basename
+boundaries. Independent native/actual virtual copied archives agree on names,
+payloads and CRC/method/compressed/uncompressed sizes; source bytes stay unchanged.
+Earlier date release 35014094327 failed on stale shared version 0.1.620 collision.
+Remaining format, metadata, streaming and grammar work stays active.

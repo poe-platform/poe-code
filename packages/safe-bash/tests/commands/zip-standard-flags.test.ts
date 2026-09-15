@@ -1394,3 +1394,119 @@ test("zip deletion date exclusion does not misreport an existing name as unmatch
   assert.equal(result.exitCode, 12);
   assert.equal(result.stdout.toString().includes("name not matched"), false);
 });
+
+for (const action of ["-U", "--copy-entries"]) {
+  test(`zip ${action} copies selected compressed members to separate output`, async () => {
+    const fs = await fixture();
+    const original = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q", action, "sample.zip", "folder/*", "--out=copy.zip"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+    const archive = await readZipArchive(await fs.readFile("/work/copy.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), ["folder/", "folder/data"]);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "copy.zip", "folder/data"])).stdout, compressed);
+  });
+}
+test("zip separate output supports ordinary updates without mutating input", async () => {
+  const fs = await fixture();
+  const original = await fs.readFile("/work/sample.zip");
+  await fs.writeFile("/work/new", Buffer.from("new"));
+  const result = await execute("zip", fs, ["-q", "sample.zip", "new", "-Ocopy"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+  const archive = await readZipArchive(await fs.readFile("/work/copy.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.at(-1)!.name, "new");
+});
+test("zip copy defaults to all entries and applies include/exclude intersection", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qU", "sample.zip", "-Ocopy.zip", "-i", "folder/*", "-x", "folder/"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/copy.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["folder/data"]);
+});
+for (const [args, status] of [
+  [["-U", "sample.zip"], 16],
+  [["-U", "sample.zip", "-Osample.zip"], 16],
+  [["-U", "missing.zip", "-Ocopy.zip"], 18],
+  [["-U", "sample.zip", "absent", "-Ocopy.zip"], 12],
+] as const) {
+  test(`zip copy rejects ${args.join(" ")}`, async () => {
+    const fs = await fixture();
+    const original = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q", ...args]);
+    assert.equal(result.exitCode, status);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), original);
+    await assert.rejects(fs.stat("/work/copy.zip"), { code: "ENOENT" });
+  });
+}
+
+test("zip output-only invocation copies all entries and replaces existing output bytes", async () => {
+  const fs = await fixture();
+  const input = await fs.readFile("/work/sample.zip");
+  await fs.writeFile("/work/copy.zip", Buffer.from("not an archive"));
+  const result = await execute("zip", fs, ["-q", "sample.zip", "--output-file=copy.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/copy.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), members.map(member => member.name));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), input);
+});
+test("zip copy does not read member source files", async () => {
+  const fs = await fixture();
+  const reads: string[] = [];
+  const view = new Proxy(fs, { get(target, property) {
+    const value = Reflect.get(target, property);
+    if (property === "readFile" || property === "readStream") return (path: string, options: unknown) => {
+      reads.push(path);
+      if (path !== "/work/sample.zip") throw new Error(`member source read: ${path}`);
+      return value.call(target, path, options);
+    };
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await execute("zip", view, ["-qU", "sample.zip", "-Ocopy.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(reads, ["/work/sample.zip"]);
+});
+test("zip copy with absent input directory returns native file-not-found status", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qU", "absent/source.zip", "-Ocopy.zip"]);
+  assert.equal(result.exitCode, 18);
+  await assert.rejects(fs.stat("/work/copy.zip"), { code: "ENOENT" });
+});
+
+
+test("zip copy progress matches native member names without source compression reporting", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-U", "sample.zip", "folder/*", "-Ocopy.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.toString(), " copying: folder/\n copying: folder/data\n");
+});
+
+test("zip separate output refuses absent input archive parent", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-q", "absent/source.zip", "binary", "-Ocopy.zip"]);
+  assert.equal(result.exitCode, 18);
+  await assert.rejects(fs.stat("/work/copy.zip"), { code: "ENOENT" });
+});
+
+
+test("zip --out requires existing input even for adding files", async () => {
+  const fs = await fixture();
+  assert.equal((await execute("zip", fs, ["-q", "missing.zip", "binary", "-Ocopy.zip"])).exitCode, 18);
+  await assert.rejects(fs.stat("/work/copy.zip"), { code: "ENOENT" });
+});
+test("zip stdout archive ignores --out path and emits a valid binary stream", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-q", "-", "binary", "-Oabsent/copy.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(result.stdout, settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["binary"]);
+  await assert.rejects(fs.stat("/work/absent/copy.zip"), { code: "ENOENT" });
+});
+
+test("zip copy accepts empty output basename as native .zip filename", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qU", "sample.zip", "-O", ""]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.length, members.length);
+});

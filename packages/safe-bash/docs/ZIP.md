@@ -254,6 +254,15 @@ parsing, and comparisons use local DOS time rounded up to two seconds.
 Repeated bounds use the last value. Date ranges apply to source selection and
 archive deletion; an empty interval does not publish a new archive.
 
+`-U` / `--copy-entries` copies selected archive members to the destination
+set by `-O PATH` / `--output-file=PATH` (abbreviated `--out`). It preserves
+compressed payloads without reading member source files. With no operands, all
+members are considered; include, exclude, date and wildcard controls still
+apply. `--out` alone with no operands selects copy mode. Separate-output updates
+require an existing input archive and leave its bytes unchanged. Output and
+input must differ, including backing identity; publication uses owned staging.
+An archive argument of `-` continues to use stdout and ignores `--out`.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

@@ -1,0 +1,1749 @@
+{
+  "schema_version": 1,
+  "task": "task69 sdk-image-format-api",
+  "procedure": "docs/plans/docx-image-format-api.md#final-image-value-qa-procedure",
+  "status": "complete_for_stated_image_value_cohorts",
+  "product_original_ts_gate": "Root full108files2402tests passed before finalfreeze QA; not inferred from acquisition",
+  "counts": {
+    "complete_inputs": 8,
+    "authentic_retained_originals": 3,
+    "complete_derived_formats": 3,
+    "complete_density_derivatives": 2,
+    "public_admission_cohorts": 24,
+    "passed_cohorts": 24,
+    "controls": 4,
+    "failed_cohorts": 0,
+    "candidate_paths": 258
+  },
+  "tool": {
+    "path": "/usr/bin/sips",
+    "version": "sips-316",
+    "sha256": "2febb7d9e0849ea8c207806f380264163b9673f6fbd188eee3acb5de739ae459",
+    "scope": "QA-only independent converter/metadata reader; no product/build dependency"
+  },
+  "independent_verifier": "Python stdlib hashlib plus original bounded signature metadata inspection and Fraction physical-unit/half-away expected-size calculations; sips dimensional profile",
+  "inputs": [
+    {
+      "path": "/tmp/docx68-leaf-pixels-ovtk88vi/alpha.png",
+      "name": "alpha.png",
+      "sha256": "9c1c76e8e490e3d6db4491aeffc68aa26ea50521357d662b195174d0643305d4",
+      "sha1": "06bc7506d8ddbb0314a36c9ece13a93816cdb551",
+      "bytes": 74,
+      "original": true,
+      "independentMetadata": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/tmp/docx68-leaf-pixels-ovtk88vi/portrait.jpg",
+      "name": "portrait.jpg",
+      "sha256": "c6b31ea5d496931e51984cf11c6f95cd40a2e8802575ead8c9e42e707c45bbc6",
+      "sha1": "cbb5d654652a92da8a5508a3f67d4968d621b654",
+      "bytes": 776,
+      "original": true,
+      "independentMetadata": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/tmp/docx68-leaf-pixels-ovtk88vi/landscape.jpg",
+      "name": "landscape.jpg",
+      "sha256": "fab61f1f973721bc94c0848d367842b4d8f0e15088325a8ac09acc8fee07995b",
+      "sha1": "99ab1b678f425f213fb274c517b9df2c9cf4d285",
+      "bytes": 776,
+      "original": true,
+      "independentMetadata": {
+        "pixelWidth": 5,
+        "pixelHeight": 3,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/alpha.gif",
+      "name": "alpha.gif",
+      "sha256": "92ff904fc8f78ddd11a6b94daedd2ecf79ffb6a7363b285bcfba18b0521f3d2e",
+      "sha1": "7b4df695754ca8c34a8700b6caa8ecaa2619d767",
+      "bytes": 49,
+      "original": false,
+      "independentMetadata": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/alpha.bmp",
+      "name": "alpha.bmp",
+      "sha256": "50437d9455fcb9bb28684a0a30d2fe43879e84e6e6b4af35cd57d36e0761259c",
+      "sha1": "97c74c5afe4acdedf991ee0d37ea49150e944d32",
+      "bytes": 154,
+      "original": false,
+      "independentMetadata": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/alpha.tiff",
+      "name": "alpha.tiff",
+      "sha256": "a12358afaf8e058af0c3b9432d10821624595e72434290f3149fd6cbb63c9d51",
+      "sha1": "5d4fe4270acbe77c92a79d50bb07cf6d1725871e",
+      "bytes": 3424,
+      "original": false,
+      "independentMetadata": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/alpha-physical.png",
+      "name": "alpha-physical.png",
+      "sha256": "5d6adffe94bbe1c5e3dd1eb9cf40732ca0dd27bf7cd06ad234043b060a9626cd",
+      "sha1": "3f5ea0ef2e2495d18a8f1ffce926b9430f083c37",
+      "bytes": 242,
+      "original": false,
+      "derived_from": "/tmp/docx68-leaf-pixels-ovtk88vi/alpha.png",
+      "conversion": "/private/tmp/docx68-leaf-pixels-ovtk88vi/alpha.png\n  /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/alpha-physical.png\n",
+      "independentMetadata": {
+        "pixelWidth": 2,
+        "pixelHeight": 2,
+        "dpiWidth": 73,
+        "dpiHeight": 79
+      },
+      "independentEncodedDpi": [
+        72.9996,
+        78.994
+      ],
+      "independentEffectiveDpi": [
+        72.9996,
+        78.994
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/portrait-physical.jpg",
+      "name": "portrait-physical.jpg",
+      "sha256": "43b7030526460a8e1ee3bdc7ceac91afcd9453e78cebfa537472c654fb81e968",
+      "sha1": "92db31f74ca92b5a8c8a5976f1f849930e9ceeb3",
+      "bytes": 718,
+      "original": false,
+      "derived_from": "/tmp/docx68-leaf-pixels-ovtk88vi/portrait.jpg",
+      "conversion": "/private/tmp/docx68-leaf-pixels-ovtk88vi/portrait.jpg\n  /Users/kjopek/Workspace/poe-setup-scripts/tmp/docx69-image-value-w0qeihli/portrait-physical.jpg\n",
+      "independentMetadata": {
+        "pixelWidth": 3,
+        "pixelHeight": 5,
+        "dpiWidth": 72,
+        "dpiHeight": 72
+      },
+      "independentEncodedDpi": [
+        null,
+        null
+      ],
+      "independentEffectiveDpi": [
+        72,
+        72
+      ]
+    }
+  ],
+  "results": {
+    "results": [
+      {
+        "input": "alpha.png",
+        "mode": "bytes",
+        "bytes": 74,
+        "mime": "image/png",
+        "filename": "image.png",
+        "ext": "png",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "06bc7506d8ddbb0314a36c9ece13a93816cdb551",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.png",
+        "mode": "stream",
+        "bytes": 74,
+        "mime": "image/png",
+        "filename": "image.png",
+        "ext": "png",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "06bc7506d8ddbb0314a36c9ece13a93816cdb551",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.png",
+        "mode": "vfs",
+        "bytes": 74,
+        "mime": "image/png",
+        "filename": "ALPHA.PNG",
+        "ext": "PNG",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "06bc7506d8ddbb0314a36c9ece13a93816cdb551",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait.jpg",
+        "mode": "bytes",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "cbb5d654652a92da8a5508a3f67d4968d621b654",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait.jpg",
+        "mode": "stream",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "cbb5d654652a92da8a5508a3f67d4968d621b654",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait.jpg",
+        "mode": "vfs",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "PORTRAIT.JPG",
+        "ext": "JPG",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "cbb5d654652a92da8a5508a3f67d4968d621b654",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "landscape.jpg",
+        "mode": "bytes",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          5,
+          3
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          63500,
+          38100
+        ],
+        "scaled": {
+          "native": [
+            63500,
+            38100
+          ],
+          "width": [
+            100000,
+            60000
+          ],
+          "height": [
+            166667,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "99ab1b678f425f213fb274c517b9df2c9cf4d285",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "landscape.jpg",
+        "mode": "stream",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          5,
+          3
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          63500,
+          38100
+        ],
+        "scaled": {
+          "native": [
+            63500,
+            38100
+          ],
+          "width": [
+            100000,
+            60000
+          ],
+          "height": [
+            166667,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "99ab1b678f425f213fb274c517b9df2c9cf4d285",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "landscape.jpg",
+        "mode": "vfs",
+        "bytes": 776,
+        "mime": "image/jpeg",
+        "filename": "LANDSCAPE.JPG",
+        "ext": "JPG",
+        "pixels": [
+          5,
+          3
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          63500,
+          38100
+        ],
+        "scaled": {
+          "native": [
+            63500,
+            38100
+          ],
+          "width": [
+            100000,
+            60000
+          ],
+          "height": [
+            166667,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "99ab1b678f425f213fb274c517b9df2c9cf4d285",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.gif",
+        "mode": "bytes",
+        "bytes": 49,
+        "mime": "image/gif",
+        "filename": "image.gif",
+        "ext": "gif",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "7b4df695754ca8c34a8700b6caa8ecaa2619d767",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.gif",
+        "mode": "stream",
+        "bytes": 49,
+        "mime": "image/gif",
+        "filename": "image.gif",
+        "ext": "gif",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "7b4df695754ca8c34a8700b6caa8ecaa2619d767",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.gif",
+        "mode": "vfs",
+        "bytes": 49,
+        "mime": "image/gif",
+        "filename": "ALPHA.GIF",
+        "ext": "GIF",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "7b4df695754ca8c34a8700b6caa8ecaa2619d767",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.bmp",
+        "mode": "bytes",
+        "bytes": 154,
+        "mime": "image/bmp",
+        "filename": "image.bmp",
+        "ext": "bmp",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "97c74c5afe4acdedf991ee0d37ea49150e944d32",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.bmp",
+        "mode": "stream",
+        "bytes": 154,
+        "mime": "image/bmp",
+        "filename": "image.bmp",
+        "ext": "bmp",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "97c74c5afe4acdedf991ee0d37ea49150e944d32",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.bmp",
+        "mode": "vfs",
+        "bytes": 154,
+        "mime": "image/bmp",
+        "filename": "ALPHA.BMP",
+        "ext": "BMP",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "97c74c5afe4acdedf991ee0d37ea49150e944d32",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.tiff",
+        "mode": "bytes",
+        "bytes": 3424,
+        "mime": "image/tiff",
+        "filename": "image.tiff",
+        "ext": "tiff",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "5d4fe4270acbe77c92a79d50bb07cf6d1725871e",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.tiff",
+        "mode": "stream",
+        "bytes": 3424,
+        "mime": "image/tiff",
+        "filename": "image.tiff",
+        "ext": "tiff",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "5d4fe4270acbe77c92a79d50bb07cf6d1725871e",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha.tiff",
+        "mode": "vfs",
+        "bytes": 3424,
+        "mime": "image/tiff",
+        "filename": "ALPHA.TIFF",
+        "ext": "TIFF",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          25400,
+          25400
+        ],
+        "scaled": {
+          "native": [
+            25400,
+            25400
+          ],
+          "width": [
+            100000,
+            100000
+          ],
+          "height": [
+            100000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "5d4fe4270acbe77c92a79d50bb07cf6d1725871e",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha-physical.png",
+        "mode": "bytes",
+        "bytes": 242,
+        "mime": "image/png",
+        "filename": "image.png",
+        "ext": "png",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72.9996,
+          78.994
+        ],
+        "native": [
+          25052,
+          23151
+        ],
+        "scaled": {
+          "native": [
+            25052,
+            23151
+          ],
+          "width": [
+            100000,
+            92412
+          ],
+          "height": [
+            108212,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "3f5ea0ef2e2495d18a8f1ffce926b9430f083c37",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha-physical.png",
+        "mode": "stream",
+        "bytes": 242,
+        "mime": "image/png",
+        "filename": "image.png",
+        "ext": "png",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72.9996,
+          78.994
+        ],
+        "native": [
+          25052,
+          23151
+        ],
+        "scaled": {
+          "native": [
+            25052,
+            23151
+          ],
+          "width": [
+            100000,
+            92412
+          ],
+          "height": [
+            108212,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "3f5ea0ef2e2495d18a8f1ffce926b9430f083c37",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "alpha-physical.png",
+        "mode": "vfs",
+        "bytes": 242,
+        "mime": "image/png",
+        "filename": "ALPHA-PHYSICAL.PNG",
+        "ext": "PNG",
+        "pixels": [
+          2,
+          2
+        ],
+        "dpi": [
+          72.9996,
+          78.994
+        ],
+        "native": [
+          25052,
+          23151
+        ],
+        "scaled": {
+          "native": [
+            25052,
+            23151
+          ],
+          "width": [
+            100000,
+            92412
+          ],
+          "height": [
+            108212,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "3f5ea0ef2e2495d18a8f1ffce926b9430f083c37",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait-physical.jpg",
+        "mode": "bytes",
+        "bytes": 718,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "92db31f74ca92b5a8c8a5976f1f849930e9ceeb3",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 0,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait-physical.jpg",
+        "mode": "stream",
+        "bytes": 718,
+        "mime": "image/jpeg",
+        "filename": "image.jpg",
+        "ext": "jpg",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "92db31f74ca92b5a8c8a5976f1f849930e9ceeb3",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": true,
+        "signalReceived": true,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      },
+      {
+        "input": "portrait-physical.jpg",
+        "mode": "vfs",
+        "bytes": 718,
+        "mime": "image/jpeg",
+        "filename": "PORTRAIT-PHYSICAL.JPG",
+        "ext": "JPG",
+        "pixels": [
+          3,
+          5
+        ],
+        "dpi": [
+          72,
+          72
+        ],
+        "native": [
+          38100,
+          63500
+        ],
+        "scaled": {
+          "native": [
+            38100,
+            63500
+          ],
+          "width": [
+            100000,
+            166667
+          ],
+          "height": [
+            60000,
+            100000
+          ],
+          "both": [
+            23,
+            914400
+          ]
+        },
+        "sha1": "92db31f74ca92b5a8c8a5976f1f849930e9ceeb3",
+        "exactBytes": true,
+        "defensiveGetter": true,
+        "opens": 1,
+        "closed": false,
+        "signalReceived": false,
+        "independentChecks": {
+          "pixelDimensions": true,
+          "effectiveDensity": true,
+          "native": true,
+          "scaledNative": true,
+          "widthOnly": true,
+          "heightOnly": true,
+          "both": true,
+          "sha1": true,
+          "rawBytes": true,
+          "defensiveGetter": true,
+          "filename": true,
+          "producerReuseCleanup": true
+        }
+      }
+    ],
+    "controls": [
+      {
+        "kind": "absent",
+        "opens": 0,
+        "error": {
+          "code": "unsupported-edit",
+          "message": "Image paths require a matching explicit capability."
+        }
+      },
+      {
+        "kind": "mismatched",
+        "opens": 0,
+        "error": {
+          "code": "unsupported-edit",
+          "message": "Image paths require a matching explicit capability."
+        }
+      },
+      {
+        "kind": "suffix",
+        "opens": 1,
+        "error": {
+          "code": "usage",
+          "message": "Image filename suffix conflicts with its byte signature."
+        }
+      },
+      {
+        "kind": "unknown-suffix",
+        "opens": 1,
+        "filename": "pixels.asset",
+        "ext": "asset",
+        "mime": "image/png"
+      }
+    ]
+  },
+  "frozen_proof": {
+    "selection": "/tmp/docx69-independent-final-inputs-003.json files258 +inventory254; fresh hashes",
+    "append_membership": [
+      "packages/docx/src directfiles",
+      "packages/docx/tests/fixtures directfiles"
+    ],
+    "before_sha256": "f86ed1589e47f499a5a181897060a7a2e3ebc8ade1af7db1c866df1c35062885",
+    "after_sha256": "f86ed1589e47f499a5a181897060a7a2e3ebc8ade1af7db1c866df1c35062885",
+    "drift": [],
+    "source_unchanged": true,
+    "excluded_initial_inventory": "Initial read-only recursive safe-bash tests hashing46827 was overbroad and is limited/out-of-scope evidence, never finalproof. Secondary662 old637/directdocx/dist profile likewise superseded. No historical payload was executed/modified; finalproof uses only approved258/no safe-bash traversal."
+  },
+  "limitations": [
+    "No product pixel decoding/rendering, extra-format insertion, ImagePart7, shape13 or full source mock/binary parity qualified.",
+    "sips displays PNG density73/79 rounded; independent pHYs fields yield exact72.9996/78.994 used by product and expected calculations.",
+    "Requested JPEG144/72 converter edit retained72/72 according to independent tool/bytes; no144DPI case is claimed. Physical axes and unrounded aspect qualified by complete physical PNG.",
+    "VFS basename/capability admission verified; producer open(signal) cancellation token forwarding and reused-fragment cleanup verified for stream cohorts only."
+  ],
+  "retention": {
+    "retained_original_input_directory": "/tmp/docx68-leaf-pixels-ovtk88vi",
+    "derived_cache": "tmp/docx69-image-value-w0qeihli",
+    "cache_ignored": true,
+    "downloaded_corpus": "untouched; not enumerated or modified in finalQA",
+    "cleanup": "No cleanup performed; retain exact original/derived inventory while campaign needs it. Root coordinates authenticated owned cleanup only.",
+    "owned_cache_inventory": [
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/after.json",
+        "bytes": 28535,
+        "sha256": "f86ed1589e47f499a5a181897060a7a2e3ebc8ade1af7db1c866df1c35062885"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/alpha-physical.png",
+        "bytes": 242,
+        "sha256": "5d6adffe94bbe1c5e3dd1eb9cf40732ca0dd27bf7cd06ad234043b060a9626cd"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/alpha.bmp",
+        "bytes": 154,
+        "sha256": "50437d9455fcb9bb28684a0a30d2fe43879e84e6e6b4af35cd57d36e0761259c"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/alpha.gif",
+        "bytes": 49,
+        "sha256": "92ff904fc8f78ddd11a6b94daedd2ecf79ffb6a7363b285bcfba18b0521f3d2e"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/alpha.tiff",
+        "bytes": 3424,
+        "sha256": "a12358afaf8e058af0c3b9432d10821624595e72434290f3149fd6cbb63c9d51"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/before.json",
+        "bytes": 28535,
+        "sha256": "f86ed1589e47f499a5a181897060a7a2e3ebc8ade1af7db1c866df1c35062885"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/conversions.json",
+        "bytes": 661,
+        "sha256": "9e44612cb8228a83f312138db3d53012b322436386d80398fe8a703a79d4fcb0"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/execute.mts",
+        "bytes": 3565,
+        "sha256": "2f222c79bd37ac2cfad07cd537bb793522d41d5d74ce138866f2ff66d26c6663"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/execution.log",
+        "bytes": 10140,
+        "sha256": "88bd2f1010a6e4d118707778fdbe91c267c48210d0d251384364fdac02209696"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/independent-inputs.json",
+        "bytes": 4984,
+        "sha256": "49575e14f0cf79572fe30bf4d9bff32526433d21ae9a0b39452f2c8e3c13a7bd"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/inputs.json",
+        "bytes": 3982,
+        "sha256": "d63bb09877a70443f301efc058f4e13a1abbdcf4bc94436efd21d89ff61ee4cc"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/limited-initial-before.json",
+        "bytes": 8691210,
+        "sha256": "783e13201bc63442d37474d3edd58fdbff117a6fb327590dc4b4d928f036bac9"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/limited-secondary-before.json",
+        "bytes": 72804,
+        "sha256": "ddb2a44d3cd0b3a4dee76cec94e0f3abdaa16c4a5d8b4cc1271de3cf10415ea1"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/portrait-physical.jpg",
+        "bytes": 718,
+        "sha256": "43b7030526460a8e1ee3bdc7ceac91afcd9453e78cebfa537472c654fb81e968"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/results.json",
+        "bytes": 19592,
+        "sha256": "993a717122a5b4b152ea7d03c8505437a7b75b90a15afb04b681857485ae35a5"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/verified-results.json",
+        "bytes": 28712,
+        "sha256": "668b59e382ec40543a19822ac674fd1d73dbb287329efe68c4da6486440436ea"
+      },
+      {
+        "path": "tmp/docx69-image-value-w0qeihli/receipt.json",
+        "bytes": 43122,
+        "sha256": "dd3991ad1e5a5288943f57b26c6bbb609bf0566f818a3352bb24848d0f8d7cf3"
+      }
+    ]
+  },
+  "qa_execution_scratch": "Ignored cache execute.mts is disposable execution scratch, not maintained QA procedure/product asset."
+}

@@ -76,7 +76,8 @@ All source/docs/cache entries are now settled before a third current-candidate
 guarded lint retry. The final v3 retry passed exit 0, complete 12621/12621 subjects,
 0 errors / 12 existing warnings, 25 receipts and 0 gaps in
 /tmp/docx69-root-final-guarded-lint-v3.log. Implementation/test statuses remain
-open pending atomic local commits. No push or release, no later task started.
+verified, with completion recorded only alongside the atomic local commits.
+No push or release, no later task started.
 
 Local atomic delivery begins with 3b6dd8003 (sole/shared reconciliation and
 preparation mapping) and 6117a1e99 (original bounded characterization fixtures
@@ -84,6 +85,14 @@ and cases). The matching standalone value API follows as a separate improvement.
 Standalone Image, its bounded input admission and portable public export are
 locally delivered by 67cf87f6e. Awaitable SDK/command transport is a separate
 atomic improvement; no commit establishes remote delivery or release.
+SDK-backed awaitable batches, refined wire/schema/types and exact Shell
+registration are locally delivered by 220100e69. The final documentation commit
+records the 138 limited observable adaptations, complete-input QA receipt and
+only task69 implement/test completion. Parsed HEAD-based index construction
+changed only task69 title/prompt/status values; unrelated task48–59 staging and
+working edits remain excluded. Its proof is
+/tmp/docx69-root-pipeline-stage-proof.json. Task70 may begin only after this final
+local commit; full API parity and the 20 live part/shape cases remain pending.
 
 Initial ownership is read-only investigation, not implementation authorization.
 Root additionally owns docs/specs/office-sdk.md solely to qualify the shared

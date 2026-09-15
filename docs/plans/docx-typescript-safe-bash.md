@@ -3211,10 +3211,10 @@ tasks:
       implement: done
       test: done
   - id: sdk-image-format-api
-    title: Complete image sizing and metadata parity
+    title: Implement bounded image metadata and sizing API
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -3225,7 +3225,7 @@ tasks:
       reduce meaningful cases into original small unit tests before cleanup. No README
       edits, ambient host I/O, native runtime or implicit network.
 
-      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, source aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
+      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, the sole contract's physical native aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
 
       Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
       command/SDK contracts. Use plural resources (images, tables, properties), text

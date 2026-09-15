@@ -88,6 +88,7 @@ You can also call `discoverOAuthMetadata(resourceUrl, options)` directly, or ins
 | `fetch`               | `(input, init?) => Promise<Response>` | Custom fetch implementation.          |
 | `oauth`               | `OAuthClientProviderOptions`          | Enables OAuth authorization handling. |
 | `oauthDiscoveryCache` | `OAuthDiscoveryCache`                 | Optional shared metadata cache.       |
+| `maxResponseBytes`     | `number`                              | Maximum JSON/error body or retained SSE event bytes; defaults to 16 MiB and must be a positive safe integer. |
 
 ### `StdioTransportOptions`
 

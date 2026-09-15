@@ -3042,3 +3042,8 @@ Remote-main task delivery: none. Task publication: none. No push requested or
 attempted; divergent history and candidate qualification remain unresolved.
 Disposition: documentation clarification locally verified; final-corpus and
 release-bound acceptance remain OPEN.
+
+
+## prepare-release-failure-recovery — committed independent execution receipt, 2026-09-15
+
+[Standalone executed QA record](safejs-release-recovery-independent-20260915.md) records seven nonpublishing scenarios, exact recovery procedures, source e63e1b158c58de8b14a926a6e6c8989da1d23feb plus dirty inputs, Node22.23.2 / ICU78.2, reproduced helper commands, 21/21 retained hashes, independent failed/cancelled identities, and separate three-package predecessor receipts/root no-release. Manual workflow lint exit0; no workflow unit tests, code edits, publishing or destructive actions. Recovery-QA scope satisfied; historical failures and exact-old-version selective resume remain unresolved. Fixed edition16/edition12 and tracked newer APIs unchanged. Local commit reported after commit; remote delivery:none; task publication:none. Unrelated staged/local evidence preserved.

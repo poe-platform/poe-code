@@ -5,11 +5,12 @@ import { type Location, SelectionError } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml } from "./package-xml.js";
-import { sectionAttribute, sectionChild } from "./section-properties.js";
+import { sectionAttribute } from "./section-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { tableRows } from "./table-rows.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import type { XmlElement } from "./package-xml.js";
+import { UnsupportedEditError } from "./xml-write.js";
 
 export interface TableDetails {
   readonly kind: "tables";
@@ -39,14 +40,22 @@ export async function inspectDocumentTable(input: Uint8Array, options: DocxOpera
   const root = parseDocumentXml(archive.members.find(part => "/" + part.name === owner.value.part)!.bytes, {}, budget).root; let node = root;
   for (const i of owner.value.path) node = node.children[i]!;
   const active = new Map<XmlElement, XmlElement[]>(); const index = (content: readonly CompatibilityContent[]) => { for (const child of content) if ("source" in child) { active.set(child.source, child.content.filter(child => "source" in child).map(child => child.source)); index(child.content); } }; index(new MarkupCompatibility(root, documentCompatibilityProfile, budget).content);
+  const property = (parent: XmlElement | undefined, name: string) => {
+    const children = parent ? active.get(parent) ?? [] : [];
+    budget.charge("work", children.length);
+    const matches = children.filter(child => child.namespace === parent!.namespace && child.localName === name);
+    if (matches.length > 1) throw new UnsupportedEditError("Duplicate logical table properties cannot be interpreted.");
+    return matches[0];
+  };
   const rows = tableRows(node, node => node, node => active.get(node) ?? [], budget);
-  const columns = sectionChild(node, "tblGrid")?.children.filter(child => child.namespace === node.namespace && child.localName === "gridCol").length ?? 0;
+  const grid = property(node, "tblGrid");
+  const columns = (grid ? active.get(grid) ?? [] : []).filter(child => child.namespace === node.namespace && child.localName === "gridCol").length;
   budget.table(rows.length, columns);
   const cells = new Map<string, TableDetails["cells"][number]>();
   const omitted = rows.map((row, i) => {
-    const props = sectionChild(row, "trPr");
-    const before = Number(sectionAttribute(sectionChild(props, "gridBefore"), "val") ?? 0);
-    const after = Number(sectionAttribute(sectionChild(props, "gridAfter"), "val") ?? 0);
+    const props = property(row, "trPr");
+    const before = Number(sectionAttribute(property(props, "gridBefore"), "val") ?? 0);
+    const after = Number(sectionAttribute(property(props, "gridAfter"), "val") ?? 0);
     if (![before, after].every(value => Number.isSafeInteger(value) && value >= 0) || before + after > columns)
       throw new InvalidValueError("Invalid omitted table slots.");
     for (let column = before + 1; column <= columns - after; column++) {

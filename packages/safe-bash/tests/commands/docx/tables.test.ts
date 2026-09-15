@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocumentArchive, parseDocumentXml, writeArchive, type XmlElement } from "../../../../docx/src/index.js";
+import { createDocumentArchive, openDocumentLocations, parseDocumentXml, writeArchive, type XmlElement } from "../../../../docx/src/index.js";
 import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import type { FileStat, FileSystem } from "../../../src/contracts/filesystem.js";
@@ -18,11 +18,12 @@ const wordNamespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/m
 const child = (node: XmlElement, name: string) => node.children.find(value => value.namespace === wordNamespace && value.localName === name)!;
 const attribute = (node: XmlElement, name: string) => node.attributes.find(value => value.namespace === wordNamespace && value.localName === name)?.value;
 
-async function fixture() {
+async function fixture(body?: string) {
   const archive = await createDocumentArchive({}, context);
   const xml = new TextEncoder().encode('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:bottom="1440" w:left="1440" w:right="1440"/></w:sectPr></w:pPr><w:r><w:t>North coast</w:t></w:r></w:p><w:p><w:r><w:t>South coast</w:t></w:r></w:p><w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:bottom="1440" w:left="1440" w:right="1440"/></w:sectPr></w:body></w:document>');
   const volume = Volume.fromJSON({ "/work/source.docx": "" });
-  await writeArchive({ ...archive, members: archive.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: xml } : member) },
+  const documentXml = body === undefined ? xml : new TextEncoder().encode(`<w:document xmlns:w="${wordNamespace}"><w:body>${body}<w:sectPr/></w:body></w:document>`);
+  await writeArchive({ ...archive, members: archive.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: documentXml } : member) },
     { async write(bytes) { volume.appendFileSync("/work/source.docx", bytes); } }, { order: "input", compression: "store" }, context);
   const fs: FileSystem = new MemoryFileSystem();
   await fs.mkdir("/work");
@@ -64,6 +65,60 @@ async function fixture() {
   const shell = new Shell({ fs, cwd: "/work" }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits }) }));
   return { shell, volume };
 }
+
+test("docx tables get reads selected grids and spanning owners from binary stdin", async () => {
+  const grid = '<w:tblGrid><w:gridCol/><w:gridCol/><w:gridCol/></w:tblGrid>';
+  for (const supported of [true, false]) {
+    const selected = supported ? grid : '<w:tblGrid><w:gridCol/></w:tblGrid>';
+    const fallback = supported ? '<w:tblGrid><w:gridCol/></w:tblGrid>' : grid;
+    const body = `<w:tbl><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice xmlns:req="${supported ? wordNamespace : "urn:unsupported-columns"}" Requires="req">${selected}</mc:Choice><mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent><w:tr><w:tc><w:tcPr><w:gridSpan w:val="3"/></w:tcPr><w:p><w:r><w:t xml:space="preserve">  0007 海  </w:t></w:r></w:p></w:tc></w:tr></w:tbl>`;
+    const { shell, volume } = await fixture(body);
+    try {
+      const bytes = new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array);
+      const before = bytes.slice();
+      const result = await shell.exec("docx tables get - --table 1 --json", { stdin: bytes });
+      assert.equal(result.exitCode, 0, result.stderr);
+      const envelope = JSON.parse(result.stdout);
+      assert.equal(envelope.ok, true);
+      assert.equal(envelope.operation, "tables.get");
+      const details = envelope.data.item.details;
+      assert.equal(details.columns, 3);
+      assert.equal(details.rows, 1);
+      assert.deepEqual(details.cells.map((cell: { row: number; column: number; columnSpan: number; text: string }) => [cell.row, cell.column, cell.columnSpan, cell.text]), [[1, 1, 3, "  0007 海  "]]);
+      const document = await openDocumentLocations(bytes, context);
+      assert.equal(details.cells[0].location.token, document.cell(document.at("table", 1).token, "C1").token);
+      assert.deepEqual(bytes, before);
+      assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array), before);
+      assert.deepEqual(volume.readdirSync("/work"), ["source.docx"]);
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("docx tables get distinguishes active omitted slots from physical cells", async () => {
+  const alternate = (content: string, fallback: string) => `<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice xmlns:req="${wordNamespace}" Requires="req">${content}</mc:Choice><mc:Fallback>${fallback}</mc:Fallback></mc:AlternateContent>`;
+  const before = '<w:gridBefore w:val="1"/>', after = '<w:gridAfter w:val="1"/>';
+  for (const position of ["properties", "before", "after", "columns"]) {
+    const properties = position === "properties" ? alternate(`<w:trPr>${before}${after}</w:trPr>`, '<w:trPr/>') : `<w:trPr>${position === "before" ? alternate(before, '<w:gridBefore w:val="0"/>') : before}${position === "after" ? alternate(after, '<w:gridAfter w:val="0"/>') : after}</w:trPr>`;
+    const columns = '<w:gridCol/><w:gridCol/><w:gridCol/>';
+    const grid = `<w:tblGrid>${position === "columns" ? alternate(columns, '<w:gridCol/>') : columns}</w:tblGrid>`;
+    const { shell, volume } = await fixture(`<w:tbl>${grid}<w:tr>${properties}<w:tc><w:p><w:r><w:t xml:space="preserve">  001.20 🌊  </w:t></w:r></w:p></w:tc></w:tr></w:tbl>`);
+    try {
+      const bytes = new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array);
+      const snapshot = bytes.slice();
+      const result = await shell.exec("docx tables get - --table 1 --json", { stdin: bytes });
+      assert.equal(result.exitCode, 0, `${position}: ${result.stderr}`);
+      const details = JSON.parse(result.stdout).data.item.details;
+      assert.equal(details.columns, 3);
+      assert.deepEqual(details.omitted, [{ row: 1, before: 1, after: 1 }]);
+      assert.deepEqual(details.cells.map((cell: { row: number; column: number; text: string }) => [cell.row, cell.column, cell.text]), [[1, 2, "  001.20 🌊  "]]);
+      const document = await openDocumentLocations(bytes, context);
+      assert.equal(details.cells[0].location.token, document.cell(document.at("table", 1).token, "B1").token);
+      assert.deepEqual(bytes, snapshot);
+      assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array), snapshot);
+      assert.deepEqual(volume.readdirSync("/work"), ["source.docx"]);
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("docx tables add builds an explicit empty grid and preserves section owners", async () => {
   const { shell, volume } = await fixture();

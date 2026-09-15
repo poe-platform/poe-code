@@ -1,0 +1,71 @@
+{
+  "task": "adapt-upstream-tables-bdd",
+  "atomic_improvement": "active-table-grid-inspection",
+  "status": "verified-local-atomic-correction-full-adaptation-pending",
+  "baseline_main": "b3288827342d27d7cf37a6d4ecb3efb1609f5cb0",
+  "baseline_table_read_sha256": "113b28fd8dd9085ddff2e36b6079f3fac6394ddf07649fe2467dee3da6b1398f",
+  "final_owned_files": {
+    "packages/docx/src/table-read.ts": "3985a85b95240a9711a1fd77ca885b3ac2eef0abef5abf5ad21f3c10bddb3b54",
+    "packages/docx/src/table-active-grid.test.ts": "f90178ef9c2e87a1d2fe0ca241e21441b6667f306ec2a08a2ce3f670cb43de99",
+    "packages/safe-bash/tests/commands/docx/tables.test.ts": "433e37fa89ce6042659bffc47783d4ebfe917ba7e0da2b0f08591f9830707781"
+  },
+  "red_policy": "Initial wrong Choice namespace retained separately. Corrected six/seven tests failed before table-read edits. Red fixture source was not separately archived; raw logs retain the execution and the final file retains the seven original queries plus27 later verification-only combinations. No new red result is claimed for passing Shell/verification cases.",
+  "checks": {
+    "focused": {
+      "command": "npx vitest run packages/docx/src/table-active-grid.test.ts",
+      "result": "34 passed"
+    },
+    "docx_unit": {
+      "command": "npm test --workspace=docx",
+      "result": "163 files;3279 tests passed; final34-case file included"
+    },
+    "docx_lint": {
+      "command": "npm run lint --workspace=docx",
+      "result": "passed; one existing type-only unused-variable warning"
+    },
+    "docx_build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "result": "passed maintained uncached dependency closure and suffix checks"
+    },
+    "shell_focused": {
+      "command": "TSX_DISABLE_CACHE=1 node --import tsx --test packages/safe-bash/tests/commands/docx/tables.test.ts",
+      "result": "15 tests passed;6 new fixture executions within2 test cases"
+    },
+    "shell_runner": {
+      "command": "npm run test:runner --workspace=virtual-bash",
+      "result": "522 passed"
+    },
+    "shell_typecheck": {
+      "command": "npm run typecheck --workspace=virtual-bash",
+      "result": "passed source-and-tests and26 currentConsumerGroups; expected negative consumers exit2; compile-only historical models not runtime qualification"
+    },
+    "guarded_root_lint": {
+      "command": "npm run lint:eslint",
+      "result": "passed exit0;0 errors/13 warnings; complete true;15397 configured/linted subjects; owned test has no diagnostics"
+    }
+  },
+  "screenshot": {
+    "command": "npm run screenshot -- -o /tmp/docx-active-grid-cli.png --no-header -- node --import tsx --input-type=module -e <ad-hoc public-engine invocation>",
+    "path": "/tmp/docx-active-grid-cli.png",
+    "sha256": "fd28ed738b22befb81a11fd56362d65ddd06876f4996d1c5f463d6d5bb70fbdf",
+    "result": "visually inspected help and actual3-column middle-cell human result; both exit0; terminal font lacks CJK glyph, exact SDK/Shell Unicode byte assertions pass"
+  },
+  "renderer_qa": "not-run; explicit Markdown procedure under docs/plans/docx-table-bdd-adaptation.md",
+  "source_identity_scan": "owned product/source tests: zero reference-project identities; namespace standards URIs retained",
+  "case_accounting": "separate table-bdd-case-verification.json;870 rows;446 bounded existing supplements;424 pending; no complete source-workflow qualification",
+  "cleanup": "zero; no downloaded/cloned fixture touched",
+  "delivery": "local owned commits only; no push/release",
+  "raw_logs": {
+    "corrected-six-red.log": "7857f9e709b01dd551de4b8f16ed58cf2685f44302b1816670176782aeece338",
+    "focused-final-green.log": "d94208aabf450fd3a2eec591e29ef4993815a17887389f048bb912bb7b65a71e",
+    "guarded-root-lint.log": "013727d9dea9679ccea0fb5a5d5a3f8c1326c87fc7bbbb589b82b016eb00de3b",
+    "initial-fixture-selection-red.log": "ca2f65ff0f4fa71a794347bf43d6b03234560692e885e7a7fb018a8bef54b3a5",
+    "seven-red.log": "039977851960f1c0608e1e073a2ba66ccdee727c1539abb766923254eaeed574",
+    "shell-focused.log": "6d3b5b0cf81072c0a8c115d49c650311769ea9c847fef1d7e75ae8efd67cb344",
+    "shell-runner.log": "62da3b452879cf2f3867564a67c9ee056169e52aeca16b6484329a41513b8f5d",
+    "shell-typecheck.log": "6815a77dafab2502fed29aedfd1b8ad948e801165cff06e3b619abb0ebf0c233",
+    "workspace-build.log": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4",
+    "workspace-lint.log": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619",
+    "workspace-unit.log": "43551ce7c0d176273feb99f27a4166feb0a36d8ee42613d32d42fcc9d3e15f05"
+  }
+}

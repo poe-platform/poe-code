@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/table-active-grid.test.ts (34 tests) 2061ms
+
+ Test Files  1 passed (1)
+      Tests  34 passed (34)
+   Start at  14:36:51
+   Duration  4.19s (transform 1.64s, setup 57ms, import 1.96s, tests 2.06s, environment 0ms)
+

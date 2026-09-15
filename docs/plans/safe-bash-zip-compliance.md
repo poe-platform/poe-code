@@ -420,3 +420,24 @@ Reference: https://github.com/LuaDist/zip/blob/master/zip.c
 Range release 35016159365 failed on previously published version 0.1.622;
 archive-comment release 35016686051 remains live. Remaining line conversion,
 move/timestamps, streaming, formats and grammar stay open.
+
+## Classic member-count maximum and automatic count ZIP64
+
+Native Zip 3.0 copy captures of 65,534/65,535/65,536-member archives establish
+65,535 is still classic and ZIP64 directory escalation starts at 65,536. Added
+compact captured end-record fixtures, admitted classic maximum input/output,
+automatic wide end records for larger counts and saturated classic count fields.
+Member size/offset widths remain independent. Initially failing reader/writer
+cases validate the old 65,534 cap and classic maximum rejection. A further failing
+comment fixture proves a count-only sentinel must not bypass ordinary EOCD span
+checks. Fast directory-record tests cover native boundaries and configured caps;
+real maximum-count writer metadata remains tested with scheduling mocked.
+Manual complete writer/reader round trips generated both boundary archives.
+Native UnZip integrity checks returned 0, and Python checked exact counts,
+ZIP64 threshold, final member payloads and comments. Artifacts:
+/tmp/safe-bash-zip-count-65535.zip and /tmp/safe-bash-zip-count-65536.zip.
+Archive-comment scoped release 35016686051 succeeded. Entry-comment release
+35017363897 failed with the buffered input TS2322 mismatch; c406691e8 fixes
+it with admitted owned byte storage and a failing ownership regression test.
+639 focused ZIP/unzip tests and scoped lint pass. Automatic large-byte ZIP64,
+line conversion, move/timestamps, streaming and other format/grammar areas stay open.

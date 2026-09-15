@@ -306,7 +306,12 @@ The bounded format profile supports ordinary single-disk ZIP records with stored
 or raw-DEFLATE payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
 modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
 single-disk ZIP64 input and output records. ZIP64 sizes and offsets must be safely representable
-and within configured limits. Archive updates normally emit classic ZIP records and remove
+and within configured limits. The classic 65,535-member maximum is admitted;
+archives with more members automatically emit ZIP64 directory/end records while
+retaining classic member headers when sizes and offsets fit. Configured
+`maxMembers` still applies. Large byte-size/offset automatic escalation remains
+unimplemented; archive and entry byte admission retains classic-width caps.
+Archive updates normally emit classic ZIP records and remove
 obsolete ZIP64 size tags while preserving unrelated metadata. It rejects
 encryption, unsupported compression methods, split archives, self-extracting
 prefixes, unreferenced records and trailing bytes rather than guessing their

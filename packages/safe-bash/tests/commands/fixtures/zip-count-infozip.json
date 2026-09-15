@@ -1,0 +1,23 @@
+{
+  "source": "Manual Unix Info-ZIP 3.0 -qU in.zip -O out.zip; source archives generated with Python zipfile, empty decimal-named members",
+  "cases": [
+    {
+      "count": 65534,
+      "length": 5613726,
+      "footer": "504b050600000000fefffeff34d4320054d422000000",
+      "sha256": "e9ad857bc3523befa946c8e4585ccd5c62e8ff16b4511aee91efe778833978df"
+    },
+    {
+      "count": 65535,
+      "length": 5613812,
+      "footer": "504b050600000000ffffffff67d4320077d422000000",
+      "sha256": "58be33968607fb99324f3d838bb1334e3065c5ed200783537bea4b1bc8361b7e"
+    },
+    {
+      "count": 65536,
+      "length": 5613974,
+      "footer": "504b06062c000000000000001e032d000000000000000000000001000000000000000100000000009ad43200000000009ad4220000000000504b06070000000034a955000000000001000000504b050600000000ffffffff9ad432009ad422000000",
+      "sha256": "f3ac70c4f0768982b739dfc3f6b4bd41bd4ba9c635aa9a84b40de4b7547c2f77"
+    }
+  ]
+}

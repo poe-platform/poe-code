@@ -31,7 +31,7 @@ export function zip64Directory(view: DataView, end: number, limits: ArchiveLimit
     members = count;
     centralSize = size;
     centralStart = start;
-  } else if (members === 65535 || centralSize === 0xffffffff || centralStart === 0xffffffff) fail("ZIP64 missing end record and locator");
+  } else if (centralSize === 0xffffffff || centralStart === 0xffffffff) fail("ZIP64 missing end record and locator");
   else if (diskMembers !== members) fail("ZIP inconsistent member count");
   if (members > limits.maxMembers) fail("ZIP member limit exceeded");
   if (centralStart > limits.maxArchiveBytes || centralSize > limits.maxArchiveBytes || centralStart + centralSize !== centralEnd) fail("ZIP invalid central directory span");

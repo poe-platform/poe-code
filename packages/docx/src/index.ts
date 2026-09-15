@@ -88,6 +88,7 @@ export type {
   DocxFieldKind, DocxFieldLevels, DocxFieldSelection,
   DocxBatchArgumentMap, DocxBatchItemMap, DocxBatchItem, DocxBatchOperationId,
   DocxBinaryInput, DocxVfsPath, DocxLength, DocxDirectLength, DocxModelHandle,
+  DocxImageWrapPolygon,
   DocxBindingRecord, DocxRunInput, DocxBlock, DocxContent, DocxTransportContext,
   DocxPageSettings, DocxStyleSettings, DocxThemeSettings,
   DocxXmlNode, DocxEnumValue, DocxEnumNames
@@ -153,4 +154,5 @@ export { inspectDocumentImages, extractDocumentImages, ImageExtractionPublicatio
 export { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
 export { insertDocumentImage, type ImageInsertionRequest, type ImageInsertionData, type ImageInsertionContext, type ImageBinaryResolver } from "./image-insertion.js";
 export { replaceDocumentImage, type ImageReplacementRequest, type ImageReplacementData, type ImageReplacementContext } from "./image-replacement.js";
+export { setDocumentImageLayout, type ImageLayoutRequest, type ImageLayoutData, type ImageLayoutContext } from "./image-layout.js";
 export { Image, type ImageModelContext, type ImageModelInput } from "./image-model.js";

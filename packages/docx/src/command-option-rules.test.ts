@@ -3,6 +3,30 @@ import { DocxUsageError } from "./argument-json.js";
 import { validateDocxOptionRules } from "./command-option-rules.js";
 
 it.each([
+  { x: { value: 2147483648, unit: "emu" } },
+  { x: { value: 2147483647.1, unit: "emu" } },
+  { width: { value: 0.49, unit: "emu" } },
+  { y: { value: -2147483649, unit: "emu" } },
+  { width: { value: 2147483648, unit: "emu" } },
+  { distanceTop: { value: -0.1, unit: "emu" } },
+  { distanceRight: { value: 4294967296, unit: "emu" } },
+  { zOrder: -1 }, { zOrder: 4294967296 },
+  { relativeTo: "paragraph" }, { relativeTo: "page", horizontalRelativeFrom: "page" },
+  { x: { value: 1, unit: "emu" }, horizontalAlignment: "left" },
+  { y: { value: 1, unit: "emu" }, verticalAlignment: "top" }
+])("refuses layout native range and axis conflicts before I/O: %j", options => {
+  expect(() => validateDocxOptionRules("images.set", options)).toThrow(DocxUsageError);
+});
+
+it("admits exact native layout boundary values and independent axes", () => {
+  expect(() => validateDocxOptionRules("images.set", { x: { value: -2147483648, unit: "emu" }, y: { value: 2147483647, unit: "emu" }, distanceLeft: { value: 4294967295, unit: "emu" }, zOrder: 4294967295, width: { value: 2147483647, unit: "emu" }, height: { value: 1, unit: "emu" } })).not.toThrow();
+});
+
+it.each([0.5, 0.75])("admits a positive extent %s EMU that rounds to one native EMU", value => {
+  expect(() => validateDocxOptionRules("images.set", { width: { value, unit: "emu" } })).not.toThrow();
+});
+
+it.each([
   ["sanitize", { remove: ["revisions"] }],
   ["sanitize", { remove: ["comments"], revisionPolicy: "accept" }],
   ["revisions.add", { kind: "insert", author: "", timestamp: "2026-01-01T00:00:00Z" }],
@@ -67,7 +91,7 @@ it.each([
 });
 
 it.each([
-  ["images.set", { x: { value: -0.5, unit: "emu" }, y: { value: Number.MIN_SAFE_INTEGER, unit: "emu" } }],
+  ["images.set", { x: { value: -0.5, unit: "emu" }, y: { value: -2147483648, unit: "emu" } }],
   ["images.add", { width: { value: 0.5, unit: "emu" } }],
   ["sections.columns.set", { equalWidth: true, columns: [{ width: { value: 1, unit: "in" } }, { width: { value: 72, unit: "pt" }, gapAfter: { value: 0, unit: "emu" } }] }],
   ["lists.levels.set", { levels: [{ level: 0, start: 0 }, { level: 1, start: 0, restartAfter: 0 }, { level: 2, start: 0, restartAfter: null }] }],

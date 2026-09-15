@@ -1,6 +1,14 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps native layout SDK fields semantic, optional and axis-specific", () => {
+  expectTypeOf<DocxOperationArguments<"images.set">["allowOverlap"]>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<DocxOperationArguments<"images.set">["verticalRelativeFrom"]>().toEqualTypeOf<"page" | "margin" | "paragraph" | "line" | "topMargin" | "bottomMargin" | "insideMargin" | "outsideMargin" | undefined>();
+  type Invalid = "wrapPolygonJson" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.set">, Invalid>>().toEqualTypeOf<never>();
+  const direct: DocxOperationArguments<"images.set"> = { all: true, lockAspect: false, wrapPolygon: { start: { x: 0, y: 0 }, lineTo: [{ x: 0, y: 1 }, { x: 1, y: 1 }] } };
+  expectTypeOf(direct).toMatchTypeOf<DocxOperationArguments<"images.set">>();
+});
 it("omits never-applicable selectors from direct and batch image replacement", () => {
   type Invalid = "all" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
   expectTypeOf<Extract<keyof DocxOperationArguments<"images.replace">, Invalid>>().toEqualTypeOf<never>();

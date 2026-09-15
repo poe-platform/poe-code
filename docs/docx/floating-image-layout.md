@@ -1,8 +1,10 @@
 # Floating image layout evidence
 
 Task71 read-only preparation begins at verified local main commit
-2057602218bf92be14f1a8966bdab6d808015c4e. Implementation and product/render QA
-remain pending. docs/specs/docx.md remains the sole format contract.
+2057602218bf92be14f1a8966bdab6d808015c4e. The preparation findings below retain
+their historical scope. Original implementation checks now pass as recorded
+below; edited-report QA and final delivery remain pending.
+docs/specs/docx.md remains the sole format contract.
 
 Original memfs probes confirm images.set rejects unsupported-profile before
 filesystem reads; current flags omit task71 independent frames/alignment,
@@ -90,7 +92,7 @@ authenticates that cohort. All task71 edited-product/page QA remains pending.
 
 | Observable task71 behavior | JavaScript/security mapping and retained obligation |
 | --- | --- |
-| images.set utility | setDocumentImageLayout always returns Promise; owned admitted bytes and explicit PublicationContext, no host path/time/font/media discovery; changed physical drawings return shared MutationData kind set. Final execution verification remains pending. |
+| images.set utility | setDocumentImageLayout always returns Promise; owned admitted bytes and explicit PublicationContext, no host path/time/font/media discovery; changed physical drawings return shared MutationData kind set. Original public/Shell and package checks pass; report QA is separately recorded below. |
 | Coordinates/sizes/distances | SDK accepts the same explicit Length value/unit records as direct CLI flags, checked half-away rounding once; inventory emits integer EMUs. Polygon points are bounded native integers in a closed owned record, not physical units or pixels. |
 | Selection/Locations | CLI ordinals are one-based per owner; immutable utility snapshots/current generation tokens are distinct from live model objects and zero-based model sequences. All preadmission does not authorize shared-story appearances. |
 | Optional native properties | Undefined preserves; false/zero are explicit values; absent/invalid inventory metadata is null with warnings. Merged crop/alt/decorative and native semantic-equivalent lexical noops require original tests. |
@@ -105,3 +107,80 @@ See upstream-api-audit.md, upstream-test-audit.md and the existing image invento
 format and replacement records for the retained broader obligations. Final
 product identity scanning and native-free build closure verification remain
 pending; no complete current-scope proof follows from these mappings.
+
+## Original implementation verification
+
+Maintained uncached selected build derived five workspace stages and passed;
+the portable safe-fs stage reported no native asset targets. Maintained
+`npm test --workspace=docx` passed 2509/2509 tests across 114 files. Its first run
+preserves 2507 passes and two obsolete assertions: images.set still expected reject,
+and the exact occurrence register omitted six new nullable fields. Original
+focused reproduction preceded the test-only reconciliation, independently
+approved with 6/6 passing tests and exact field/subset assertions. No product correction
+was inferred from those failures.
+
+Maintained DOCX lint/source/test types passed. Guarded safe-bash typecheck built
+once and passed 26 current consumer groups, with three expected negative compile
+exits; this is not runtime acceptance. Independent actual DOCX Shell passed
+121/121 across 17 currently derived files, exact literal registration 108/108 and
+focused/public 254/254 across 12 files. Root public portable-export tests passed 2/2,
+including actual resize and exact media preservation. Independent 270-path
+append-aware cohorts authenticated all 24 leaf-owned paths and stayed unchanged
+after the authorized additional contract-test update.
+
+Original reds also reduced axis-native inventory, namespace-context mutation,
+native boolean/numeric lexical noops, wrap override coherence, positive extent
+rounding and DEFLATE noop re-encoding. Final domain checks 59/59 plus three
+compressed publication guards and adapter/schema 174/174 passed. Callback input
+mutation and cancellation refuse before stdout; semantic noops retain exact
+original ZIP bytes. Initial eight CLI screenshots and final range schema capture
+were inspected; temporary saved drivers were reduced to the Markdown procedure
+and exactly authenticated/deleted. No screenshot unit tests or saved QA scripts
+remain.
+
+Two mistaken root runner invocations are retained separately: unsupported root
+unit selector and node:test invocation of a Vitest file. Neither is product-test
+evidence; the corrected maintained package and Vitest export routes above passed.
+Root authenticated 28 owned product paths, found none of the pinned reference
+identities and verified manifests/lock unchanged. The portable browser/workerd
+bundle closed without external imports; QA-only LibreOffice/Poppler and downloaded
+inputs remain outside product/build/runtime dependencies. Edited-report outcomes
+are recorded below; final guarded lint and atomic local delivery remain pending.
+
+## Bounded edited report outcomes
+
+Default SDK inventory and actual Shell report editing refused with limit-exceeded
+before publication. Raised work 4 GiB alone still hit retained 512 MiB; the combined
+seven-field edit also refused with retained 2 GiB before any output. These exact
+receipts remain separate. Reservations are conservative cumulative accounting,
+not measured RSS. No product default, public Shell budget binding or source was
+changed to bypass admission.
+
+With explicit SDK host work 4 GiB, retained 2 GiB and xmlNodes 8 million (all remaining
+ceilings unchanged, 120s supervision per operation), independent single-field
+rotation 5 degrees, horizontal frame page, distanceLeft 12700 EMU and both aspect locks
+false succeeded from the authenticated ordinary report original. Typed equivalent
+noop succeeded with exactly 8320866 original bytes and original SHA256. Independent
+ZIP/XML verification preserved 193 members and their order, 43 media and 18 relationship parts byte
+for byte; only document XML changed, raw XML outside the anchor stayed exact and
+semantic XML matched after restoring only the requested native attributes.
+
+The correctly selected public-active Wales VML grouped alternate refused geometry
+with unsupported-edit, zero output and unchanged input. Its native grouped Choice
+is inactive under core-v1 MCE and was not product-selected; preserve the original
+failed branch selector as QA error, not product defect. Native grouped behavior
+remains original tiny TypeScript evidence. Actual Shell report output parity was
+not established; maintained small-fixture CLI/SDK equivalence remains scoped.
+
+The actual rotation DOCX exported with the same qualified IP-denied LibreOffice
+profile to 167 A4 pages (baseline 167). Independent/root inspection of its first three
+Poppler PNG pages found the subtle selected-icon rotation and no new gross layout
+failure in that subset. Original cover/ack/copyright overlap, recognizable second
+page citation layout and blank numbered third page remain. No Word parity, native
+coordinate accuracy or inspection of all 167 pages is claimed. All assets stay
+disposable local QA; durable exact outcomes/inventory belong to the owned QA JSON.
+Final guarded root lint passed after the receipt and all entries froze: 12635
+configured inputs linted, 25 receipts complete, zero gaps and zero blocking
+errors. Twelve unrelated cached usage warnings remain; no task71 diagnostics.
+The run settled within external 600s supervision. Existing historical seals and
+compatibility contracts remain unchanged. Atomic local delivery is pending.

@@ -21,6 +21,10 @@ export interface ImageDetails {
   readonly widthEmu: number | null; readonly heightEmu: number | null; readonly placement: "inline" | "floating" | null;
   readonly crop: { readonly left: number; readonly right: number; readonly top: number; readonly bottom: number } | null;
   readonly rotation: number | null; readonly flipHorizontal: boolean | null; readonly flipVertical: boolean | null;
+  readonly wrapText: "bothSides" | "left" | "right" | "largest" | null;
+  readonly wrapPolygon: { readonly start: { readonly x:number; readonly y:number }; readonly lineTo: readonly { readonly x:number; readonly y:number }[] } | null;
+  readonly distances: { readonly top:number|null; readonly bottom:number|null; readonly left:number|null; readonly right:number|null } | null;
+  readonly allowOverlap:boolean|null; readonly behindText:boolean|null; readonly lockAspect:boolean|null;
   readonly wrap: "none" | "square" | "tight" | "through" | "top-bottom" | null; readonly zOrder: number | null;
   readonly horizontalPosition: { readonly relativeFrom: string | null; readonly offsetEmu: number | null; readonly alignment: string | null } | null;
   readonly verticalPosition: { readonly relativeFrom: string | null; readonly offsetEmu: number | null; readonly alignment: string | null } | null;
@@ -51,11 +55,18 @@ function ownData(value: unknown, keys?: readonly string[]): Record<string, unkno
   return result;
 }
 const attribute = (node: XmlElement | undefined, name: string, namespace = "") => node?.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === name)?.value;
-function integer(value: string | undefined, minimum: number, maximum = Number.MAX_SAFE_INTEGER): number | null {
-  if (value === undefined || !value || value.length > 32 || [...value].some((char, index) => !(char >= "0" && char <= "9") && !(index === 0 && char === "-"))) return null;
-  const number = Number(value); return Number.isSafeInteger(number) && number >= minimum && number <= maximum ? number : null;
+function nativeToken(value:string|undefined):string|undefined {
+  if(value===undefined)return undefined;let start=0,end=value.length;
+  while(start<end&&" \t\r\n".includes(value[start]!))start++;
+  while(end>start&&" \t\r\n".includes(value[end-1]!))end--;
+  return value.slice(start,end);
 }
-function boolean(value: string | undefined): boolean | null { return value === "1" || value === "true" || value === "on" ? true : value === "0" || value === "false" || value === "off" ? false : null; }
+function integer(value:string|undefined,minimum:number,maximum=Number.MAX_SAFE_INTEGER):number|null {
+  const token=nativeToken(value);if(token===undefined||!token||token.length>32||[...token].some((char,index)=>!(char>="0"&&char<="9")&&!(index===0&&["-","+"].includes(char))))return null;
+  const result=Number(token);return Number.isSafeInteger(result)&&result>=minimum&&result<=maximum?result:null;
+}
+function boolean(value:string|undefined):boolean|null {const token=nativeToken(value);return token==="1"||token==="true"?true:token==="0"||token==="false"?false:null;}
+
 async function hash(bytes: Uint8Array, budget: DocumentBudget): Promise<string> {
   budget.charge("work", bytes.length); budget.charge("retainedBytes", bytes.length + 128);
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes))); budget.check("work", 0);
@@ -126,12 +137,37 @@ async function inventory(input: Uint8Array, operation: "images.list" | "images.g
       if (positions.length !== 1) return null;
       const axis = positions[0]!, offsets = axis.children.filter(node => node.namespace === wp && node.localName === "posOffset"), alignments = axis.children.filter(node => node.namespace === wp && node.localName === "align");
       const relative = attribute(axis, "relativeFrom"), permitted = name === "positionH" ? ["page", "margin", "column", "character", "leftMargin", "rightMargin", "insideMargin", "outsideMargin"] : ["page", "margin", "paragraph", "line", "topMargin", "bottomMargin", "insideMargin", "outsideMargin"];
-      const alignment = alignments.length === 1 && offsets.length === 0 && ["left", "right", "center", "inside", "outside", "top", "bottom"].includes(alignments[0]!.text) ? alignments[0]!.text : null;
+      const alignment = alignments.length === 1 && offsets.length === 0 && (name === "positionH" ? ["left","right","center","inside","outside"] : ["top","bottom","center","inside","outside"]).includes(alignments[0]!.text) ? alignments[0]!.text : null;
       return { relativeFrom: relative && permitted.includes(relative) ? relative : null, offsetEmu: offsets.length === 1 && alignments.length === 0 ? integer(offsets[0]!.text, -2147483648, 2147483647) : null, alignment };
     };
     const rotation = integer(attribute(transform, "rot"), -21600000, 21600000);
     const wrapping = frame?.children.filter(node => node.namespace === wp && ["wrapNone", "wrapSquare", "wrapTight", "wrapThrough", "wrapTopAndBottom"].includes(node.localName)) ?? [];
     const wraps: Readonly<Record<string, ImageDetails["wrap"]>> = { wrapNone: "none", wrapSquare: "square", wrapTight: "tight", wrapThrough: "through", wrapTopAndBottom: "top-bottom" };
+    const wrapNode = wrapping.length === 1 ? wrapping[0] : undefined;
+    const wrapTextValue = attribute(wrapNode, "wrapText");
+    const wrapText = frame?.localName === "anchor" && wrapNode && ["wrapSquare","wrapTight","wrapThrough"].includes(wrapNode.localName) && ["bothSides","left","right","largest"].includes(wrapTextValue ?? "") ? wrapTextValue as "bothSides"|"left"|"right"|"largest" : null;
+    const distance = (side: "T"|"B"|"L"|"R"): number|null => {
+      if (frame?.localName !== "anchor") return null;
+      const applicable = wrapNode?.localName === "wrapSquare" || ["wrapTight","wrapThrough"].includes(wrapNode?.localName ?? "") && ["L","R"].includes(side) || wrapNode?.localName === "wrapTopAndBottom" && ["T","B"].includes(side);
+      const override = applicable ? attribute(wrapNode,"dist"+side) : undefined;
+      return integer(override ?? attribute(frame,"dist"+side),0,4294967295);
+    };
+    let wrapPolygon: ImageDetails["wrapPolygon"] = null;
+    const polygons = wrapNode?.children.filter(child => child.namespace === wp && child.localName === "wrapPolygon") ?? [];
+    if (frame?.localName === "anchor" && wrapNode && ["wrapTight","wrapThrough"].includes(wrapNode.localName) && polygons.length === 1) {
+      const polygon = polygons[0]!, start = polygon.children.filter(child => child.namespace === wp && child.localName === "start"), lines = polygon.children.filter(child => child.namespace === wp && child.localName === "lineTo");
+      budget.check("matches",polygon.children.length); budget.charge("retainedBytes",polygon.children.length*64); budget.charge("work",polygon.children.length);
+      const point = (child: XmlElement) => { const x=integer(attribute(child,"x"),-27273042329600,27273042316900), y=integer(attribute(child,"y"),-27273042329600,27273042316900); return x!==null&&y!==null&&!child.children.length ? {x,y} : null; };
+      if (start.length === 1 && polygon.children[0] === start[0] && lines.length >= 2 && polygon.children.length === lines.length+1) {
+        const first=point(start[0]!), others=lines.map(point); if (first&&others.every(value=>value!==null)) wrapPolygon={start:first,lineTo:others as {x:number;y:number}[]};
+      }
+      if (!wrapPolygon) warn("unrecognized-image-metadata","Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.");
+    }
+    const frameProperties = frame?.children.filter(child=>child.namespace===wp&&child.localName==="cNvGraphicFramePr") ?? [], pictureProperties=metadata.filter(child=>child.namespace===dialect.pic&&child.localName==="cNvPicPr");
+    const frameLocks=frameProperties.length===1 ? frameProperties[0]!.children.filter(child=>child.namespace===a&&child.localName==="graphicFrameLocks") : [], pictureLocks=pictureProperties.length===1 ? pictureProperties[0]!.children.filter(child=>child.namespace===a&&child.localName==="picLocks") : [];
+    const frameLock=frameLocks.length===1?boolean(attribute(frameLocks[0],"noChangeAspect")):null, pictureLock=pictureLocks.length===1?boolean(attribute(pictureLocks[0],"noChangeAspect")):null;
+    const lockAspect=frameLock!==null&&pictureLock!==null&&frameLock===pictureLock?frameLock:null;
+    if (lockAspect===null) warn("unrecognized-image-metadata","Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.");
     const alternates = node.children.filter(node => node.namespace === a && node.localName === "extLst").flatMap(list => list.children.filter(node => node.namespace === a && node.localName === "ext").flatMap(extension => extension.children.filter(node => node.namespace === svg && node.localName === "svgBlip")));
     const alternateParts = [...new Set(alternates.map(node => resolve(attribute(node, "embed", r))).filter((part): part is string => part !== null))];
     let complete = primary !== null;
@@ -148,6 +184,7 @@ async function inventory(input: Uint8Array, operation: "images.list" | "images.g
     const details: ImageDetails = { kind: "images", part: primary?.part ?? null, mime: primary?.mime ?? null, declaredMime: primary ? graph.getPart(primary.part).content_type : null, bytes: primary?.bytes.length ?? null, sha256: primary?.sha256 ?? null, pixelWidth: null, pixelHeight: null,
       widthEmu: native ? integer(attribute(extent, "cx"), 1) : null, heightEmu: native ? integer(attribute(extent, "cy"), 1) : null, placement: frame ? frame.localName === "inline" ? "inline" : "floating" : null,
       crop: native ? crop : null, rotation: native && rotation !== null ? rotation / 60000 : null, flipHorizontal: native ? boolean(attribute(transform, "flipH")) : null, flipVertical: native ? boolean(attribute(transform, "flipV")) : null,
+      wrapText, wrapPolygon, distances: frame?.localName === "anchor" ? {top:distance("T"),bottom:distance("B"),left:distance("L"),right:distance("R")} : null, allowOverlap: frame?.localName === "anchor" ? boolean(attribute(frame,"allowOverlap")) : null, behindText: frame?.localName === "anchor" ? boolean(attribute(frame,"behindDoc")) : null, lockAspect,
       wrap: wrapping.length === 1 ? wraps[wrapping[0]!.localName] ?? null : null, zOrder: frame?.localName === "anchor" ? integer(attribute(frame, "relativeHeight"), 0, 4294967295) : null,
       horizontalPosition: frame?.localName === "anchor" ? position("positionH") : null, verticalPosition: frame?.localName === "anchor" ? position("positionV") : null,
       alt: native ? attribute(docPr, "descr") ?? null : null, decorative: native ? boolean(attribute(one(decorativeNamespace, "decorative"), "val")) : null, owners: [location], fallbackPart, alternateParts, linked: linked || references.some(reference => reference.external) };

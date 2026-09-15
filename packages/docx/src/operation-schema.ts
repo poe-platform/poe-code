@@ -132,6 +132,11 @@ export function isDocxLiteralUnion(type: string): boolean {
 }
 
 function valid(type: string, value: unknown): boolean {
+  if (["ImageLayoutOffset", "ImageLayoutExtent", "ImageLayoutDistance"].includes(type)) return valid("Length (explicit emu/in/cm/mm/pt)", value) && (type !== "ImageLayoutDistance" || object(value) && typeof value.value === "number" && value.value >= 0);
+  if (type === "unsigned 32-bit integer") return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 4294967295;
+  if (type === "native polygon coordinate") return typeof value === "number" && Number.isInteger(value) && value >= -27273042329600 && value <= 27273042316900;
+  if (type === "ImageWrapPoint") return closed(value, { x: "native polygon coordinate", y: "native polygon coordinate" });
+  if (type === "ImageWrapPolygon") return object(value) && closed(value, { start: "ImageWrapPoint", lineTo: "ReadonlyArray<ImageWrapPoint>" }) && Array.isArray(value.lineTo) && value.lineTo.length >= 2;
   if (type === "nonempty unique list: properties|comments|revisions|links|objects") return Array.isArray(value) && value.length > 0 && new Set(value).size === value.length && value.every(item => ["properties", "comments", "revisions", "links", "objects"].includes(String(item)));
   const variants = splitDocxType(type);
   if (variants.length > 1) return isDocxLiteralUnion(type) ? variants.includes(String(value)) && typeof value === "string" : variants.some(item => valid(item, value));

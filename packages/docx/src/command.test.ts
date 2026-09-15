@@ -8,6 +8,13 @@ import { getDocxDiscovery } from "./discovery.js";
 const argv = (...args: string[]) => args.map(value => new TextEncoder().encode(value));
 const parse = (...args: string[]) => parseDocxArguments(argv(...args));
 
+it("maps native layout polygon JSON to the shared semantic SDK field", () => {
+  const polygon = { start: { x: -27273042329600, y: 0 }, lineTo: [{ x: 0, y: 1 }, { x: 2, y: 3 }] };
+  const result = parse("images", "set", "input.docx", "--image", "1", "--horizontal-relative-from", "character", "--vertical-relative-from", "line", "--horizontal-alignment", "inside", "--wrap", "tight", "--wrap-text", "left", "--wrap-polygon-json", JSON.stringify(polygon), "--allow-overlap", "false", "--dry-run");
+  expect(result.options).toMatchObject({ horizontalRelativeFrom: "character", verticalRelativeFrom: "line", horizontalAlignment: "inside", wrapPolygon: polygon, allowOverlap: false });
+  expect(result.options).not.toHaveProperty("wrapPolygonJson");
+});
+
 it("keeps typed neutral handler metadata optional on grammar and discovery results", async () => {
   const engine = createDocxCommandEngine<DocxCommandRequest, { readonly exitCode: number; readonly receipt: { readonly published: true } }>({ async execute() { return { exitCode: 3, receipt: { published: true } }; } });
   const request = { args: argv("inspect", "/input.docx"), signal: new AbortController().signal, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("unexpected input"); } }; } }, stdout: { async write() {} }, stderr: { async write() {} } };

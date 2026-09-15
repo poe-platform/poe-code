@@ -70,6 +70,18 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (operation === "images.set") {
+    for (const name of ["x", "y", "width", "height", "distanceTop", "distanceBottom", "distanceLeft", "distanceRight"]) {
+      const value = magnitude(options[name]); if (value === undefined) continue;
+      const distance = name.startsWith("distance"), offset = name === "x" || name === "y";
+      const minimum = offset ? -2147483648 : distance ? 0 : 1, maximum = distance ? 4294967295 : 2147483647;
+      const supplied = options[name] as { value: number; unit: string }, converted = supplied.value * lengthUnits[supplied.unit]!;
+      if ((!offset && !distance ? supplied.value <= 0 || converted <= 0 : converted < minimum) || converted > maximum || value < minimum || value > maximum || distance && supplied.value < 0) reject("Image layout length exceeds its native range.");
+    }
+    if (has("zOrder") && (!Number.isInteger(options.zOrder) || Number(options.zOrder) < 0 || Number(options.zOrder) > 4294967295)) reject("Image stacking requires an unsigned 32-bit integer.");
+    if (has("relativeTo") && (!["page", "margin", "insideMargin", "outsideMargin"].includes(String(options.relativeTo)) || has("horizontalRelativeFrom") || has("verticalRelativeFrom"))) reject("Legacy image frame conflicts with explicit axis frames.");
+    if (has("x") && has("horizontalAlignment") || has("y") && has("verticalAlignment")) reject("Image axis offset conflicts with alignment.");
+  }
   if (operation.startsWith("comments.")) {
     const adding = operation === "comments.add";
     const invalid = adding ? ["run", "image", "comment", "note", "link", "control", "revision", "shape", "field", "bookmark", "all"] : ["paragraph", "run", "table", "cell", "image", "section", "note", "link", "control", "revision", "shape", "field", "bookmark"];

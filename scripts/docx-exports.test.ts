@@ -53,6 +53,7 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.extractDocumentImages).toBeTypeOf("function");
   expect.soft(runtime.insertDocumentImage).toBeTypeOf("function");
   expect.soft(runtime.replaceDocumentImage).toBeTypeOf("function");
+  expect.soft(runtime.setDocumentImageLayout).toBeTypeOf("function");
   if (runtime.insertDocumentImage && runtime.replaceDocumentImage) {
     const chunks: Uint8Array[] = [];
     const source = rasterPng(3, 5), replacement = rasterPng(7, 2);
@@ -70,6 +71,20 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
     const replaced = await runtime.readDocumentArchive(new Uint8Array(Buffer.concat(chunks)), textContext);
     expect(replaced.members.filter((member: { name: string }) => member.name.endsWith(".png"))).toHaveLength(1);
     expect(replaced.members.find((member: { name: string }) => member.name.endsWith(".png")).bytes).toEqual(replacement);
+    if (runtime.setDocumentImageLayout) {
+      const source = new Uint8Array(Buffer.concat(chunks)); chunks.length = 0;
+      const layout = await runtime.setDocumentImageLayout(source, {
+        operation: "images.set", options: { image: 1, width: { value: 2, unit: "in" }, output: "-" }
+      }, context);
+      expect(layout.changed).toBe(true);
+      expect(layout.changes).toHaveLength(1);
+      expect(layout.changes[0].kind).toBe("set");
+      const resized = await runtime.readDocumentArchive(new Uint8Array(Buffer.concat(chunks)), textContext);
+      expect(resized.members.find((member: { name: string }) => member.name.endsWith(".png")).bytes).toEqual(replacement);
+      const inventory = await runtime.inspectDocumentImages(new Uint8Array(Buffer.concat(chunks)), { operation: "images.list" }, textContext);
+      expect(inventory.items[0].details.widthEmu).toBe(1828800);
+      expect(inventory.items[0].details.heightEmu).toBe(3048000);
+    }
   }
   expect.soft(runtime.characterizeRasterHeader).toBeTypeOf("function");
   expect.soft(runtime.Image?.from_blob).toBeTypeOf("function");

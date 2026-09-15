@@ -31,7 +31,7 @@ it("keeps insertion PNG and JPEG only while five formats have standalone read su
   expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit", reason: expect.stringContaining("image-part, drawing and collection models remain unsupported") }), expect.objectContaining({ name: "standalone-image-values", level: "read" }), expect.objectContaining({ name: "raster-occurrence-replacement", level: "edit" })] })]) });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.image.image.Image.from_blob.call" } })!.data).toMatchObject({ operations: [{ support: "read", featureIds: ["F32"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.replace" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F32", "F35"] }] });
-  for (const operation of ["images.set", "model.parts.image.ImagePart.from_image.call", "model.shape.InlineShapes.__len__.get"]) {
+  for (const operation of ["model.parts.image.ImagePart.from_image.call", "model.shape.InlineShapes.__len__.get"]) {
     expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data).toMatchObject({ operations: [{ support: "reject" }] });
   }
 });

@@ -6,13 +6,14 @@ import { validateDocxInvocation } from "./command.js";
 function schema(operation: string) {
   return (getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data as DocxSchemaData).operations[0]!;
 }
-it("advertises only bounded image utility reads after product qualification", () => {
+it("advertises bounded image utility reads and direct native layout edits", () => {
   for (const [operation, featureIds] of [["images.list", ["F31", "F34", "F35"]], ["images.get", ["F31", "F33"]], ["images.extract", ["F31", "F34"]]] as const) expect(schema(operation)).toMatchObject({ support: "read", featureIds });
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
   expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F31", level: "read", detected: null, subsets: expect.arrayContaining([expect.objectContaining({ name: "image-inventory-extraction", level: "read" })]) })]) });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data).toMatchObject({ operations: expect.arrayContaining([expect.objectContaining({ id: "images.list", support: "read" }), expect.objectContaining({ id: "images.get", support: "read" }), expect.objectContaining({ id: "images.extract", support: "read" })]) });
   expect(schema("images.add")).toMatchObject({ support: "edit", featureIds: expect.arrayContaining(["F32"]) });
-  expect(schema("images.set").support).toBe("reject");
+  expect(schema("images.set")).toMatchObject({ support: "edit", featureIds: ["F33"] });
+  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F33", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "stored-image-layout", level: "read" }), expect.objectContaining({ name: "native-picture-layout", level: "edit", reason: expect.stringContaining("utility batch execution and live drawing/collection models remain unsupported") })] })]) });
 });
 it("declares closed image occurrence records with nullable stored metadata", () => {
   for (const operation of ["images.list", "images.get"]) {
@@ -24,8 +25,8 @@ it("declares closed image occurrence records with nullable stored metadata", () 
     expect(item.properties?.kind).toEqual({ const: "images" });
     const details = item.properties?.details;
     expect(details?.additionalProperties).toBe(false);
-    expect(details?.required).toEqual(["kind", "part", "mime", "declaredMime", "bytes", "sha256", "pixelWidth", "pixelHeight", "widthEmu", "heightEmu", "placement", "crop", "rotation", "flipHorizontal", "flipVertical", "wrap", "zOrder", "horizontalPosition", "verticalPosition", "alt", "decorative", "owners", "fallbackPart", "alternateParts", "linked"]);
-    for (const name of ["part", "mime", "bytes", "widthEmu", "crop", "rotation", "placement", "flipHorizontal", "wrap", "horizontalPosition", "alt", "decorative"]) expect(details?.properties?.[name]?.oneOf).toEqual(expect.arrayContaining([{ type: "null" }]));
+    expect(details?.required).toEqual(["kind", "part", "mime", "declaredMime", "bytes", "sha256", "pixelWidth", "pixelHeight", "widthEmu", "heightEmu", "placement", "crop", "rotation", "flipHorizontal", "flipVertical", "wrap", "zOrder", "horizontalPosition", "verticalPosition", "alt", "decorative", "wrapText", "wrapPolygon", "distances", "allowOverlap", "behindText", "lockAspect", "owners", "fallbackPart", "alternateParts", "linked"]);
+    for (const name of ["part", "mime", "bytes", "widthEmu", "crop", "rotation", "placement", "flipHorizontal", "wrap", "horizontalPosition", "alt", "decorative", "wrapText", "wrapPolygon", "distances", "allowOverlap", "behindText", "lockAspect"]) expect(details?.properties?.[name]?.oneOf).toEqual(expect.arrayContaining([{ type: "null" }]));
   }
 });
 it("declares absolute publication receipts separately from the image manifest", () => {

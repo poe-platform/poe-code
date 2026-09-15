@@ -246,7 +246,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     docxInvocationBudgets.set(invocation, budget);
     return invocation;
   }
-  for (const name of ["tabStops", "tabStopAdd", "borders", "shading", "columnWidths", "rowOptions"]) {
+  for (const name of ["tabStops", "tabStopAdd", "borders", "shading", "columnWidths", "rowOptions", "wrapPolygon"]) {
     if (options[name + "Json"] !== undefined) { options[name] = options[name + "Json"]; delete options[name + "Json"]; }
   }
   const sources: DocxArgumentSource[] = [];

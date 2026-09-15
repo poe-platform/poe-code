@@ -91,6 +91,10 @@ const imageDetails = object({ kind: { const: "images" }, part: nullableString, m
   rotation: imageNumber, flipHorizontal: nullableBoolean, flipVertical: nullableBoolean,
   wrap: { oneOf: [{ enum: ["none", "square", "tight", "through", "top-bottom"] }, { type: "null" }] }, zOrder: imageNumber,
   horizontalPosition: imagePosition, verticalPosition: imagePosition, alt: nullableString, decorative: nullableBoolean,
+  wrapText: { oneOf: [{ enum: ["bothSides", "left", "right", "largest"] }, { type: "null" }] },
+  wrapPolygon: { oneOf: [object({ start: object({ x: { type: "integer", minimum: -27273042329600, maximum: 27273042316900 }, y: { type: "integer", minimum: -27273042329600, maximum: 27273042316900 } }), lineTo: { type: "array", minItems: 2, items: object({ x: { type: "integer", minimum: -27273042329600, maximum: 27273042316900 }, y: { type: "integer", minimum: -27273042329600, maximum: 27273042316900 } }) } }), { type: "null" }] },
+  distances: { oneOf: [object({ top: imageNumber, bottom: imageNumber, left: imageNumber, right: imageNumber }), { type: "null" }] },
+  allowOverlap: nullableBoolean, behindText: nullableBoolean, lockAspect: nullableBoolean,
   owners: array(location), fallbackPart: nullableString, alternateParts: strings, linked: boolean });
 const imageRecord: DocxJsonSchema = { ...object({ kind: { const: "images" }, location, name: string, properties: empty,
   references: array(reference), support: { enum: ["read", "preserve"] }, details: imageDetails }), required: ["kind", "location", "properties", "references", "support", "details"] };
@@ -104,6 +108,16 @@ export const rasterReplacementOperationContracts: Readonly<Record<string, { desc
     result: { oneOf: [object({ version: { const: 1 }, operation: { const: "images.replace" }, ok: { const: true },
       data: object({ ...mutationData.properties, changes: array(object({ kind: { const: "replace" }, before: location, after: location })) }),
       warnings: empty, errors: empty, affected: number, locations: array(location) }), object({ version: { const: 1 }, operation: { const: "images.replace" }, ok: { const: false },
+      data: { type: "null" }, warnings: empty, errors: array(diagnostic), affected: { const: 0 }, locations: empty })] }
+  }
+};
+export const imageLayoutOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
+  "images.set": {
+    description: "Edit admitted stored native picture layout and metadata; preserve media and owner-local relationships exactly.",
+    featureIds: ["F33"],
+    result: { oneOf: [object({ version: { const: 1 }, operation: { const: "images.set" }, ok: { const: true },
+      data: object({ ...mutationData.properties, changes: array(object({ kind: { const: "set" }, before: location, after: location })) }),
+      warnings: empty, errors: empty, affected: number, locations: array(location) }), object({ version: { const: 1 }, operation: { const: "images.set" }, ok: { const: false },
       data: { type: "null" }, warnings: empty, errors: array(diagnostic), affected: { const: 0 }, locations: empty })] }
   }
 };

@@ -126,3 +126,21 @@ it("reports stored anchor axes and nulls impossible opposing crop sums", async (
   const bytes = await fixture(carrier(`<wp:anchor><wp:positionH relativeFrom="page"><wp:posOffset>42</wp:posOffset></wp:positionH><wp:positionV relativeFrom="paragraph"><wp:align>top</wp:align></wp:positionV><a:srcRect l="60000" r="60000" t="0" b="0"/>${blip}</wp:anchor>`));
   expect((await inspectDocumentImages(bytes, { operation: "images.list" }, context())).items?.[0]?.details).toMatchObject({ horizontalPosition: { relativeFrom: "page", offsetEmu: 42, alignment: null }, verticalPosition: { relativeFrom: "paragraph", offsetEmu: null, alignment: "top" }, crop: null });
 });
+it("uses axis-specific alignment vocabularies and reads effective native layout fields", async () => {
+ const { layoutFixture, layoutContext } = await import("../tests/fixtures/image-layout.js");
+ const input = await layoutFixture({alter(files){const xml=new TextDecoder().decode(files.get("word/document.xml"));files.set("word/document.xml",new TextEncoder().encode(xml.replace('<wp:posOffset>-12</wp:posOffset>','<wp:align>top</wp:align>')));}});
+ const data=await inspectDocumentImages(input,{operation:"images.get",image:1},layoutContext);
+ expect(data.item!.details.horizontalPosition!.alignment).toBeNull();
+ expect(data.item!.details).toMatchObject({distances:{left:70,top:10},allowOverlap:true,behindText:false,lockAspect:true,wrapText:"bothSides"});
+});
+it("reads bounded native polygons and nulls incoherent locks and invalid axis alignment", async () => {
+ const { layoutFixture, layoutContext } = await import("../tests/fixtures/image-layout.js");
+ const input=await layoutFixture({alter(files){const xml=new TextDecoder().decode(files.get('word/document.xml'));files.set('word/document.xml',new TextEncoder().encode(xml.replace('<wp:wrapSquare wrapText="bothSides" distL="70"/>','<wp:wrapTight wrapText="largest"><wp:wrapPolygon edited="true"><wp:start x="-27273042329600" y="10"/><wp:lineTo x="27273042316900" y="0"/><wp:lineTo x="0" y="2"/></wp:wrapPolygon></wp:wrapTight>').replace('noChangeAspect="1" noCrop="1"','noChangeAspect="0" noCrop="1"').replace('<wp:align>top</wp:align>','<wp:align>left</wp:align>')));}});
+ const data=await inspectDocumentImages(input,{operation:'images.get',image:1},layoutContext);expect(data.item!.details).toMatchObject({wrapText:'largest',wrapPolygon:{start:{x:-27273042329600,y:10},lineTo:[{x:27273042316900,y:0},{x:0,y:2}]},lockAspect:null,distances:{left:30,top:10}});expect(data.item!.details.verticalPosition!.alignment).toBeNull();expect(data.warnings.length).toBeGreaterThan(0);
+});
+it('admits native signed-plus integers and collapsed ASCII boolean whitespace',async()=>{
+ const {layoutFixture,layoutContext}=await import('../tests/fixtures/image-layout.js');const input=await layoutFixture({alter(files){const xml=new TextDecoder().decode(files.get('word/document.xml'));files.set('word/document.xml',new TextEncoder().encode(xml.replace('relativeHeight="3"','relativeHeight="+003"').replace('allowOverlap="1"','allowOverlap=" true "')));}});const data=await inspectDocumentImages(input,{operation:'images.get',image:1},layoutContext);expect(data.item!.details).toMatchObject({zOrder:3,allowOverlap:true});
+});
+it('rejects DrawingML on/off boolean spellings without changing WML semantics',async()=>{
+ const {layoutFixture,layoutContext}=await import('../tests/fixtures/image-layout.js');const input=await layoutFixture({alter(files){const xml=new TextDecoder().decode(files.get('word/document.xml'));files.set('word/document.xml',new TextEncoder().encode(xml.replace('allowOverlap="1"','allowOverlap="on"').replace('noChangeAspect="1" noMove="1"','noChangeAspect="off" noMove="1"').replace('flipH="0"','flipH="off"')));}});const data=await inspectDocumentImages(input,{operation:'images.get',image:1},layoutContext);expect(data.item!.details).toMatchObject({allowOverlap:null,lockAspect:null,flipHorizontal:null});expect(data.warnings.length).toBeGreaterThan(0);
+});

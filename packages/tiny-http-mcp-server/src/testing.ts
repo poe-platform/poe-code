@@ -213,7 +213,8 @@ export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPa
 }
 
 export async function createHttpTestPairWithTinyClient(
-  server: HttpServer
+  server: HttpServer,
+  clientOptions: Pick<import("tiny-mcp-client").McpClientOptions, "protocolVersion"> = {}
 ): Promise<TinyHttpTestPair> {
   let tinyMcpClient: typeof import("tiny-mcp-client");
 
@@ -230,7 +231,8 @@ export async function createHttpTestPairWithTinyClient(
   const handle = await server.listenHttp({ port: 0 });
   const requests: TinyHttpRequestLogEntry[] = [];
   const client = new tinyMcpClient.McpClient({
-    clientInfo: { name: "tiny-http-test-client", version: "1.0.0" }
+    clientInfo: { name: "tiny-http-test-client", version: "1.0.0" },
+    ...clientOptions
   });
   const transport = new tinyMcpClient.HttpTransport({
     url: handle.url,

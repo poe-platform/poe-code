@@ -11,7 +11,11 @@ export {
 } from "tiny-stdio-mcp-server";
 export type {
   Server,
+  MessageRequestContext,
+  MessageSession,
+  MessageSessionContext,
   TypedSchema,
+  TypedOutputSchema,
   ImageContent,
   AudioContent,
   EmbeddedResource,
@@ -23,6 +27,8 @@ export type {
   ToolReturn,
   ServerOptions,
   ToolHandler,
+  HandlerRequestContext,
+  InputRequiredResult,
   ToolDefinition,
   Tool,
   ToolAnnotations,
@@ -48,6 +54,7 @@ export type {
   HandleResult,
   ContentItem,
   JSONSchema,
+  OutputSchema,
   JSONSchemaProperty,
   Transport,
   SDKTransport,
@@ -56,7 +63,8 @@ export type {
   JSONRPCError,
   JSONRPCMessage,
   JSONRPCNotification,
-  InitializeResult
+  InitializeResult,
+  DiscoverResult
 } from "tiny-stdio-mcp-server";
 
 export {
@@ -68,6 +76,7 @@ export type { CreateExpressOAuthHandlersOptions } from "./express-middleware.js"
 export { createHttpServer, createProtectedResourceMetadataDocument } from "./http-server.js";
 export type {
   HttpToolContext,
+  HttpRequestContext,
   HttpToolHandler,
   HttpAdditionalRequestHandler,
   HttpListenOptions,

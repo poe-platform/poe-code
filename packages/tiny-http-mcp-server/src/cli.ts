@@ -30,6 +30,7 @@ interface ParsedCliArgs {
   allowedHosts?: string[];
   allowedOrigins?: string[];
   maxRequestBytes?: number;
+  maxResponseBytes?: number;
   maxBatchSize?: number;
   maxSessions?: number;
   maxSessionsPerSubject?: number;
@@ -39,6 +40,7 @@ interface ParsedCliArgs {
   maxSseEventHistory?: number;
   sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
+  maxActiveRequests?: number;
   maxQueuedToolCalls?: number;
   trustedProxy: boolean;
   requestTimeoutMs?: number;
@@ -92,6 +94,8 @@ const HELP_TEXT = [
   "  --allowed-origin <url> Allowed CORS Origin value (repeatable)",
   "  --max-request-bytes <bytes>",
   "                        Maximum JSON request body size",
+  "  --max-response-bytes <bytes>",
+  "                        Maximum JSON body or SSE frame size (default: 16777216)",
   "  --max-batch-size <count>",
   "                        Maximum JSON-RPC batch member count",
   "  --max-sessions <count> Maximum active sessions (default: 128)",
@@ -101,13 +105,15 @@ const HELP_TEXT = [
   "  --max-streams-per-session <count>",
   "                        Maximum concurrent GET SSE streams per session",
   "  --max-stream-buffer-bytes <bytes>",
-  "                        Maximum buffered bytes per GET SSE stream (default: 1048576)",
+  "                        Maximum buffered bytes per SSE stream (default: 1048576)",
   "  --max-sse-event-history <count>",
   "                        Number of SSE events retained for Last-Event-ID replay",
   "  --sse-keep-alive-ms <ms>",
-  "                        GET SSE keepalive interval (default: 30000; 0 disables)",
+  "                        SSE keepalive interval (default: 30000; 0 disables)",
   "  --max-concurrent-tool-calls <count>",
   "                        Maximum concurrent tool calls across sessions (default: 4)",
+  "  --max-active-requests <count>",
+  "                        Maximum active requests across connections (default: 128)",
   "  --max-queued-tool-calls <count>",
   "                        Maximum waiting tool calls (default: 64; 0 disables waiting)",
   "  --trusted-proxy        Trust X-Forwarded-Proto and X-Forwarded-Host",
@@ -296,6 +302,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "allowed-host": { type: "string", multiple: true },
       "allowed-origin": { type: "string", multiple: true },
       "max-request-bytes": { type: "string" },
+      "max-response-bytes": { type: "string" },
       "max-batch-size": { type: "string" },
       "max-sessions": { type: "string" },
       "max-sessions-per-subject": { type: "string" },
@@ -305,6 +312,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "max-sse-event-history": { type: "string" },
       "sse-keep-alive-ms": { type: "string" },
       "max-concurrent-tool-calls": { type: "string" },
+      "max-active-requests": { type: "string" },
       "max-queued-tool-calls": { type: "string" },
       "trusted-proxy": { type: "boolean" },
       "request-timeout-ms": { type: "string" },
@@ -329,6 +337,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     1
   );
   const maxBatchSize = parseOptionalInteger(values["max-batch-size"], "--max-batch-size", 1);
+  const maxResponseBytes = parseOptionalInteger(values["max-response-bytes"], "--max-response-bytes", 1);
   const maxSessions = parseOptionalInteger(values["max-sessions"], "--max-sessions", 1);
   const maxSessionsPerSubject = parseOptionalInteger(
     values["max-sessions-per-subject"], "--max-sessions-per-subject", 1
@@ -360,6 +369,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     1
   );
   const maxQueuedToolCalls = parseOptionalInteger(values["max-queued-tool-calls"], "--max-queued-tool-calls", 0);
+  const maxActiveRequests = parseOptionalInteger(values["max-active-requests"], "--max-active-requests", 1);
   const requestTimeoutMs = parseOptionalInteger(
     values["request-timeout-ms"],
     "--request-timeout-ms",
@@ -397,6 +407,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
         }
       : {}),
     ...(maxRequestBytes === undefined ? {} : { maxRequestBytes }),
+    ...(maxResponseBytes === undefined ? {} : { maxResponseBytes }),
     ...(maxBatchSize === undefined ? {} : { maxBatchSize }),
     ...(maxSessions === undefined ? {} : { maxSessions }),
     ...(maxSessionsPerSubject === undefined ? {} : { maxSessionsPerSubject }),
@@ -406,6 +417,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(maxSseEventHistory === undefined ? {} : { maxSseEventHistory }),
     ...(sseKeepAliveMs === undefined ? {} : { sseKeepAliveMs }),
     ...(maxConcurrentToolCalls === undefined ? {} : { maxConcurrentToolCalls }),
+    ...(maxActiveRequests === undefined ? {} : { maxActiveRequests }),
     ...(maxQueuedToolCalls === undefined ? {} : { maxQueuedToolCalls }),
     trustedProxy: values["trusted-proxy"] ?? false,
     ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
@@ -573,6 +585,7 @@ export async function runCli(
       ...(options.maxRequestBytes === undefined
         ? {}
         : { maxRequestBytes: options.maxRequestBytes }),
+      ...(options.maxResponseBytes === undefined ? {} : { maxResponseBytes: options.maxResponseBytes }),
       ...(options.maxBatchSize === undefined ? {} : { maxBatchSize: options.maxBatchSize }),
       ...(options.maxSessions === undefined ? {} : { maxSessions: options.maxSessions }),
       ...(options.maxSessionsPerSubject === undefined ? {} : { maxSessionsPerSubject: options.maxSessionsPerSubject }),
@@ -591,6 +604,7 @@ export async function runCli(
         ? {}
         : { maxConcurrentToolCalls: options.maxConcurrentToolCalls }),
       ...(options.maxQueuedToolCalls === undefined ? {} : { maxQueuedToolCalls: options.maxQueuedToolCalls }),
+      ...(options.maxActiveRequests === undefined ? {} : { maxActiveRequests: options.maxActiveRequests }),
       ...(options.trustedProxy ? { trustedProxy: true } : {}),
       ...(oauth === undefined ? {} : { oauth })
     });

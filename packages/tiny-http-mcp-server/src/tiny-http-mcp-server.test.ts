@@ -1,7 +1,6 @@
 import "../vitest.setup.js";
 import http, { type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
-import { createRequire } from "node:module";
 import { Readable } from "node:stream";
 import express, { type ErrorRequestHandler, type Express, type RequestHandler } from "express";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
@@ -2565,16 +2564,6 @@ describe("createExpressMiddleware", () => {
 // ---------------------------------------------------------------------------
 
 describe("HttpServer integration", () => {
-  const require = createRequire(import.meta.url);
-  const tinyClientAvailable = (() => {
-    try {
-      require.resolve("tiny-mcp-client");
-      return true;
-    } catch {
-      return false;
-    }
-  })();
-
   const registeredCleanups = new Set<() => Promise<void>>();
 
   afterEach(async () => {
@@ -2854,11 +2843,9 @@ describe("HttpServer integration", () => {
     });
   });
 
-  const tinyDescribe = tinyClientAvailable ? describe : describe.skip;
-
-  tinyDescribe("tiny-mcp-client integration", () => {
+  describe("tiny-mcp-client integration", () => {
     it("I9 connects and initializes a tiny-mcp-client transport", async () => {
-      const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
+      const pair = await createHttpTestPairWithTinyClient(createTestMcpServer(), { protocolVersion: "2025-03-26" });
 
       trackCleanup(pair.cleanup);
 
@@ -2924,7 +2911,7 @@ describe("HttpServer integration", () => {
     });
 
     it("I13 sends DELETE when the tiny-mcp-client transport is disposed", async () => {
-      const pair = await createHttpTestPairWithTinyClient(createTestMcpServer());
+      const pair = await createHttpTestPairWithTinyClient(createTestMcpServer(), { protocolVersion: "2025-03-26" });
 
       trackCleanup(pair.cleanup);
 
@@ -3655,6 +3642,7 @@ describe("tiny-http-mcp-server CLI", () => {
       ["--max-batch-size", "1e3"],
       ["--max-sessions-per-subject", "1e3"],
       ["--max-queued-tool-calls", "1e3"],
+      ["--max-active-requests", "1e3"],
       ["--max-stream-buffer-bytes", "1e3"],
       ["--sse-keep-alive-ms", "1e3"],
       ["--request-timeout-ms", "0x100"]
@@ -3674,6 +3662,18 @@ describe("tiny-http-mcp-server CLI", () => {
       expect(createServer).not.toHaveBeenCalled();
       expect(output.stderr).toContain("must be an integer");
     }
+  });
+
+  it.each(["0", "-1"])("CLI rejects nonpositive active request limit %s", async (limit) => {
+    const createServer = vi.fn();
+    const output = createCapturedOutput();
+    expect(await runCli(["--max-active-requests", limit], {
+      createServer,
+      stdout: output.io.stdout,
+      stderr: output.io.stderr
+    })).toBe(1);
+    expect(createServer).not.toHaveBeenCalled();
+    expect(output.stderr).toContain("--max-active-requests");
   });
 
   it("exits with code 1 for blank repeatable OAuth flags", async () => {
@@ -3773,6 +3773,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "https://client.example.com/app",
         "--max-request-bytes",
         "1024",
+        "--max-response-bytes",
+        "4096",
         "--max-batch-size",
         "8",
         "--max-sessions",
@@ -3791,6 +3793,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "15000",
         "--max-concurrent-tool-calls",
         "4",
+        "--max-active-requests",
+        "32",
         "--max-queued-tool-calls",
         "6",
         "--trusted-proxy",
@@ -3816,6 +3820,7 @@ describe("tiny-http-mcp-server CLI", () => {
         allowedHosts: ["mcp.example.com"],
         allowedOrigins: ["https://client.example.com"],
         maxRequestBytes: 1024,
+        maxResponseBytes: 4096,
         maxBatchSize: 8,
         maxSessions: 100,
         maxSessionsPerSubject: 12,
@@ -3825,6 +3830,7 @@ describe("tiny-http-mcp-server CLI", () => {
         maxSseEventHistory: 10,
         sseKeepAliveMs: 15_000,
         maxConcurrentToolCalls: 4,
+        maxActiveRequests: 32,
         maxQueuedToolCalls: 6,
         trustedProxy: true
       })
@@ -3864,6 +3870,7 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(shortOutput.stdout).toContain("--max-stream-buffer-bytes");
     expect(shortOutput.stdout).toContain("--sse-keep-alive-ms");
     expect(shortOutput.stdout).toContain("--max-queued-tool-calls");
+    expect(shortOutput.stdout).toContain("--max-active-requests");
     expect(shortOutput.stdout).toContain("--trusted-proxy");
     expect(shortOutput.stdout).toContain("--request-timeout-ms");
     expect(shortOutput.stdout).toContain("--oauth-resource");
@@ -4485,6 +4492,7 @@ describe("Spec conformance", () => {
     const tracker = createToolChangeTracker();
     const client = new McpClient({
       clientInfo: { name: "tiny-conformance-client", version: "1.0.0" },
+      protocolVersion: "2025-03-26",
       onToolsChanged: () => {
         tracker.record();
       }

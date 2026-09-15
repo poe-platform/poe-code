@@ -31,3 +31,22 @@ it("replaces an oversized delta with its bounded tail and keeps later Unicode te
   expect(text).not.toContain("old text");
   expect(text.endsWith("LATEST RESULT\ncafé · é · 界\n")).toBe(true);
 });
+
+it.each([1, 2, 7, 257, 16_383])("keeps surrogate pairs intact across %s-code-unit deltas and truncation", (size) => {
+  const preview = createOutputPreviewBuffer();
+  const input = "👩‍💻 · 界 · é\n".repeat(2_000) + "LATEST RESULT\n";
+  for (let index = 0; index < input.length; index += size) preview.push(input.slice(index, index + size));
+  const text = preview.text();
+  expect(text.length).toBeLessThanOrEqual(MAX_OUTPUT_PREVIEW_CHARS);
+  expect(text).toContain("Output truncated");
+  expect(text.endsWith("LATEST RESULT\n")).toBe(true);
+  for (let index = 0; index < text.length; index++) {
+    const unit = text.charCodeAt(index);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      const next = text.charCodeAt(++index);
+      expect(next >= 0xdc00 && next <= 0xdfff).toBe(true);
+    } else {
+      expect(unit >= 0xdc00 && unit <= 0xdfff).toBe(false);
+    }
+  }
+});

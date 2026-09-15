@@ -2,7 +2,7 @@
 
 ## Objective
 
-Improve the pipeline TUI through varied fake scenarios, real terminal-pilot interaction and screenshots, measured performance improvements, and regression coverage. Work remains active; the first optimization does not complete this objective.
+Improve the pipeline TUI through varied fake scenarios, real terminal-pilot interaction and screenshots, measured performance improvements, and regression coverage. The initial work list and final verification audit are complete. Results and limits are tracked below.
 
 ## Current evidence (2026-09-14)
 
@@ -14,7 +14,7 @@ Improve the pipeline TUI through varied fake scenarios, real terminal-pilot inte
 - At 100 columns the current action is silently clipped, and task/stage context scrolls out with logs. Metrics take up a large mostly empty sidebar.
 - Screenshots captured in `/tmp/pipeline-dashboard-baseline.png` and `/tmp/pipeline-dashboard-narrow.png`. Narrow screenshot was captured before resize output settled: it is not sufficient evidence for responsive layout correctness. Re-run with explicit screen expectations.
 
-## Remaining work
+## Initial work list (completed)
 
 1. Measure viewport optimization with realistic and pathological retained history.
 2. Implement actual scrolling and follow behavior with TDD, including new output while scrolled, retention limits, page navigation, and resize.
@@ -485,3 +485,24 @@ Completed source SDK full/metadata capture had identical twenty streamed events,
 Normal maintained full npm run build completed exit zero after the streamed-abort and initialization changes, including workspace dependency closure, native postbuild checks, schema suffix stages and final bundle.
 
 Settled maintained lint:types rerun passed exit zero, including root noEmit and SafeJS/tiny-mcp-client NodeNext/Bundler DOM and Node-only contract matrices.
+
+
+## Final verification audit
+
+The initial work list is implemented and verified: bounded viewport/history rendering; functional scroll/page/follow; coalesced paints and clean teardown; compact/narrow/short context; maintained synthetic, real-engine and native-external fake scenarios; settled real terminal screenshots; scoped tests, types, builds, design generation and atomic local commits. The source implementation remains unchanged during the final broad checks.
+
+Latest affected scope, including corrected runtime help: 35 files / 1,152 cases passed. Unchanged design scope: 1,819 cases passed. Normal maintained full npm run build passed, including native checks, schema suffix stages and bundle. Settled standalone lint:types passed. Refreshed full npm run lint completed exit zero: ESLint receipt complete/exit zero, root TypeScript checks, SafeJS/tiny-mcp-client contract matrices and workflow lint all completed. Final maintained npm test finished exit one. Its shared phase reported 37 failed / 2,297 passed / 2 skipped files and 806 failed / 120,653 passed / 2 skipped cases in 2,419.70s. Thirty-six failed files and 805 failures were in safe-python; the remaining failure was the stale spawn-help snapshot corrected below. Subsequent declared unit stages did not establish a successful full route. No repository-wide unit pass is claimed, and concurrent safe-python changes were left untouched.
+
+The preceding changing-source full test run was deliberately stopped after verifying its owned hierarchy (build-workspaces PID 20448, shared runner 22041). SIGTERM was sent only to that hierarchy; terminal exit one is cancellation, not a completed test result. A fresh maintained npm test started against committed pipeline sources. No implementation edits occurred during the fresh run; its validated stale spawn-help expectation was subsequently corrected in a separate snapshot change.
+
+Additional real native checks passed: setup q retained 120/45/10 with zero work/open task; SIGTERM retained the same totals and restored primary; empty initialization without observed usage retained zero billing and an unchanged empty plan. Teardown q after a completed task returned 240/90/20, one completed run/task/step, no failed task, done persistence and child cleanup. Restored screenshots /tmp/pipeline-streamed-usage-{setup,sigterm,teardown}-restored.png and /tmp/pipeline-unknown-usage-init-restored.png inspected. Samples including raster capture 459/668/477/545ms, not isolated latency measurements. The first unknown-usage QA wait used the wrong fixture text and timed out; corrected marker repeat passed and process inspection found no remaining fake jobs.
+
+Delivery remains local main commits only. No push performed, no verified remote-main delivery and no release publication claimed. Exploratory performance and memory samples remain observations: pathological deep jumps still take seconds, whole-process memory is not bounded by the dashboard preview policy, and missing raster font glyphs are separate from verified Unicode terminal cell geometry.
+
+
+## Spawn help snapshot parity
+
+Final maintained npm test exposed one owned help expectation still missing the new --no-capture-session flag. Isolated unchanged runtime-help suite reproduced one failure and three passes. Updated only the two expected help lines; generation run passed all four, followed by a normal assertion-mode expanded affected scope with all 1,152 cases / 35 files passing. No snapshot-update mode was used for that verification. Existing actual maintained spawn --help screenshot had already shown and verified this option; the correction changes expected output, not CLI behavior. The broad test run loaded the old expectation and remains a separate unsuccessful gate; no full-unit-pass claim follows from updating it.
+
+
+Completion audit finished after more than eight tracked hours (30,053 seconds at final gate review). Maintained fake scenarios, real terminal screenshots, robustness changes, measured optimizations and local commits satisfy the initial TUI work list. Review artifacts are also available locally at screenshots/pipeline-tui-20260915-final-{wide,narrow}.png (ignored generated artifacts, not committed). Full lint/build and focused tests passed; full repository unit gate remains unsuccessful as recorded above. No push, verified remote-main delivery or verified release publication occurred.

@@ -256,9 +256,7 @@ export function createServer(options: ServerOptions): Server {
         delete (descriptor as Partial<RegisteredToolDefinition>).handler;
         delete (descriptor as Partial<RegisteredToolDefinition>).inputValidator;
         delete (descriptor as Partial<RegisteredToolDefinition>).outputValidator;
-        toolList.push({
-          ...(descriptor as Tool)
-        });
+        toolList.push(structuredClone(descriptor as Tool));
       }
       return { result: { tools: toolList } };
     }
@@ -634,18 +632,20 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(name)) {
         throw new Error(`Tool already registered: ${name}`);
       }
-      const inputValidator = compileToolSchema(inputSchema as JSONSchema);
-      assertObjectRootSchema(inputSchema as JSONSchema, "inputSchema");
+      const inputSchemaSnapshot = structuredClone(inputSchema);
+      const outputSchemaSnapshot = outputSchema === undefined ? undefined : structuredClone(outputSchema);
+      const inputValidator = compileToolSchema(inputSchemaSnapshot);
+      assertObjectRootSchema(inputSchemaSnapshot, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
-      if (outputSchema !== undefined) {
-        assertObjectRootSchema(outputSchema, "outputSchema");
-        outputValidator = compileToolSchema(outputSchema as JSONSchema);
+      if (outputSchemaSnapshot !== undefined) {
+        assertObjectRootSchema(outputSchemaSnapshot, "outputSchema");
+        outputValidator = compileToolSchema(outputSchemaSnapshot);
       }
       tools.set(name, {
         name,
         description,
-        inputSchema: inputSchema as JSONSchema,
-        ...(outputSchema === undefined ? {} : { outputSchema: outputSchema as JSONSchema }),
+        inputSchema: inputSchemaSnapshot,
+        ...(outputSchemaSnapshot === undefined ? {} : { outputSchema: outputSchemaSnapshot }),
         handler: handler as ToolHandler,
         inputValidator,
         ...(outputValidator === undefined ? {} : { outputValidator })
@@ -661,15 +661,16 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(definition.name)) {
         throw new Error(`Tool already registered: ${definition.name}`);
       }
-      const inputValidator = compileToolSchema(definition.inputSchema);
-      assertObjectRootSchema(definition.inputSchema, "inputSchema");
+      const descriptor = structuredClone(definition);
+      const inputValidator = compileToolSchema(descriptor.inputSchema);
+      assertObjectRootSchema(descriptor.inputSchema, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
-      if (definition.outputSchema !== undefined) {
-        assertObjectRootSchema(definition.outputSchema, "outputSchema");
-        outputValidator = compileToolSchema(definition.outputSchema);
+      if (descriptor.outputSchema !== undefined) {
+        assertObjectRootSchema(descriptor.outputSchema, "outputSchema");
+        outputValidator = compileToolSchema(descriptor.outputSchema);
       }
       tools.set(definition.name, {
-        ...definition,
+        ...descriptor,
         handler: handler as ToolHandler,
         inputValidator,
         ...(outputValidator === undefined ? {} : { outputValidator })

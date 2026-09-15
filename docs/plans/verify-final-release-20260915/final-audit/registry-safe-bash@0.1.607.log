@@ -1,0 +1,26 @@
+{
+  "version": "0.1.607",
+  "dist": {
+    "shasum": "14a922c504173cd868e0213517ace59cfd501dcd",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.607.tgz",
+    "fileCount": 1676,
+    "integrity": "sha512-LzOCTZAwWzDSqRF/SW1z50+oj373NIAcYGIoSibx2+eo1Rh3iLiyUVGlgrzQt001Ir17BVKNz1gjGe9CgWQs/A==",
+    "signatures": [
+      {
+        "sig": "MEUCIQC1ux+RynV322LoBBKa1h3T8UxbWAtn4luh7Rqb1I/RYgIgWfcRF3LRLXJcDQ9oDLnRCcZuZSuK/UgnFs2ZpQ0Zxa8=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEQCIFzdgIkvHkN/dzhHVhx5TDh8W/iQhVFp11/BWEwVz1gzAiA01DIVymTkC4VEL3rf9SyQ7TN2s25MeaenEoMo0eaPtg=="
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.607",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 28543838
+  }
+}

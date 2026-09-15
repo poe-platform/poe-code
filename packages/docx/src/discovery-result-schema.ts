@@ -43,6 +43,26 @@ const part = object({ name: string, contentType: string, bytes: number, sha256: 
 const reference = object({ owner: string, id: string, type: string, target: string, external: boolean });
 const location: DocxJsonSchema = object({ kind: string, token: string, value: { type: "object" }, positions: { type: "object" } });
 const resourcePartLocation = object({ kind: { const: "part" }, token: string, value: object({ version: { const: 1 }, sourceSha256: string, generation: number, part: string, story: string, path: { type: "array", maxItems: 0 }, range: { type: "null" } }), positions: object({}) });
+const locatedDiagnostic: DocxJsonSchema = { ...object({ code: string, message: string, location: string }), required: ["code", "message"] };
+const diagramIssue = object({ code: string, part: string, path: array(number), message: string });
+const diagramRole: DocxJsonSchema = { enum: ["data", "layout", "style", "color", "drawing"] };
+const diagramBinding = object({ role: diagramRole, attribute: string, relationshipId: nullableString,
+  reference: { oneOf: [reference, { type: "null" }] }, status: { enum: ["internal", "external", "missing-id", "missing-relationship", "wrong-relationship-type", "wrong-resource-type", "opaque"] },
+  target: { oneOf: [part, { type: "null" }] }, issues: array(diagramIssue) });
+const diagramDetails = object({ kind: { const: "diagrams" }, parts: array(part),
+  roles: array(object({ role: diagramRole, part: string, evidence: { enum: ["content-type", "relationship", "both"] },
+    root: { oneOf: [object({ namespace: string, localName: string }), { type: "null" }] }, status: { enum: ["matching", "opaque"] } })),
+  observations: array(object({ kind: { enum: ["relIds", "unknown-graphic", "extension"] }, part: string, path: array(number), namespace: string, localName: string,
+    uri: nullableString, active: boolean, bindings: array(diagramBinding), issues: array(diagramIssue) })), issues: array(diagramIssue) });
+const diagramRecord = object({ kind: { const: "diagrams" }, location: resourcePartLocation, name: string, properties: empty,
+  references: array(reference), support: { const: "preserve" }, details: diagramDetails });
+export const diagramOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
+  "diagrams.list": { description: "Inventory package-global physical diagram role parts and eligible opaque graphics observations, including orphan parts and inactive alternatives. Preserve-only snapshots retain inert bindings and graph references. No layout activation, rendering, external acquisition or semantic editing. Utility batch execution and live diagram models remain unsupported.",
+    featureIds: ["F38"], result: { oneOf: [
+      object({ version: { const: 1 }, operation: { const: "diagrams.list" }, ok: { const: true }, data: object({ items: array(diagramRecord) }), warnings: array(diagnostic), errors: empty, affected: { const: 0 }, locations: array(resourcePartLocation) }),
+      object({ version: { const: 1 }, operation: { const: "diagrams.list" }, ok: { const: false }, data: { type: "null" }, warnings: empty, errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: empty })
+    ] } }
+};
 const customXmlDetails = object({ kind: { const: "custom-xml" }, parts: array(part), root: { oneOf: [object({ namespace: string, localName: string }), { type: "null" }] }, storeItemId: nullableString, propertiesParts: strings, namespaces: array(object({ prefix: string, uri: string })), schemaReferences: strings });
 const glossaryDetails = object({ kind: { const: "glossary" }, parts: array(part), buildingBlocks: array(object({ path: array(number), name: nullableString, guid: nullableString, category: nullableString, gallery: nullableString, types: strings, behaviors: strings })) });
 const customXmlData = object({ items: array(object({ kind: { const: "custom-xml" }, location: resourcePartLocation, name: string, properties: empty, references: array(reference), support: { const: "preserve" }, details: customXmlDetails })) });
@@ -330,4 +350,4 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
   warnings: array(diagnostic), errors: empty, affected: ["controls.set", "controls.repeat", "controls.bind", "revisions.accept", "revisions.reject", "revisions.add", "notes.add", "notes.set", "notes.remove", "tables.merge", "tables.split", "tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
-}), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])]) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
+}), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: ["xml.set", "paragraphs.set"].includes(id as string) ? locatedDiagnostic : { type: "object" } }, affected: { const: 0 }, locations: ["xml.set", "paragraphs.set"].includes(id as string) ? array(location) : empty })] } }])]) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

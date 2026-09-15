@@ -1,3 +1,5 @@
+import { collectDiagramObservations } from "./diagram-observations.js";
+import { UnsupportedDiagramMutationError } from "./diagrams.js";
 import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
@@ -98,7 +100,11 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     const props = node.children.find(c => c.namespace === w && c.localName === "pPr");
     const originalProps = props ? xml.sourceXml(props) : "";
     if (request.operation === "paragraphs.set") {
-      if (opts.text !== undefined) assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
+      if (opts.text !== undefined) {
+        const observations = collectDiagramObservations(xml.root, dialect, before.value.part, budget);
+        if (observations.some(observation => before.value.path.every((index, i) => observation.path[i] === index))) throw new UnsupportedDiagramMutationError(before);
+        assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
+      }
       const properties = paragraphProperties(xml, node, opts, styleId);
       const original = xml.sourceXml(node);
       const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "")

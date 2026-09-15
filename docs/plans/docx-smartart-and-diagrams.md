@@ -1,8 +1,9 @@
 # DOCX SmartArt and diagram preservation — task 75
 
-Status: Sole wording independently approved and committed; original product TDD
-is active under explicit owned paths. No task75 QA operation is authorized. Task74 has verified local
-product/evidence delivery.
+Status: Corrected bounded original TypeScript candidate-v2 passes maintained
+scoped gates and independent product review. Original QA outcomes and screenshots
+pass independent QA review. Exact cleanup and final guarded root lint pass;
+local task75 product/evidence delivery remains pending. No task76 execution.
 
 Authority: docs/specs/docx.md is the sole format contract; office-cli.md and
 office-sdk.md govern shared behavior. This procedure creates no competing spec.
@@ -213,13 +214,73 @@ Approved sole SHA-256 is
 7e89e933e75fe5dbd8194a479a37536e4eb13decb3b2ee42b931672b0fd3a45d.
 Commit sole/research/this plan before reopening addition-guard product paths.
 
-## Prepared original QA campaign (conditional, not execution GO)
+Verified wording commit640ecf229011b136581e41cd7b7b42726e7342cf contains exactly
+sole/research/this plan; index and unrelated pipeline bytes remain exact. Domain
+addition correction now owns only diagrams.ts/test with canonical RED first;
+known-pair correction2paths stable. A third original reviewer RED in
+/tmp/docx75-reviewer-original-binding-location-v1.json shows existing relIds
+binding mutation is caught first by topology guard with ownerroot[] instead of
+original inline path. Finish current addition correction before separately
+reopening xml-parts.ts/test for canonical RED and minimal guard-order correction.
+Current sole wording already requires original observation location; no semantic
+scope expansion is authorized. Graph resource/metadata diagnostics retain root[].
+
+Correction receipts retain known-pair4 original failures /4 foreign controls and
+addition3 original failures /3 existing-observation controls separately. Addition
+test BufferSource type construction error is retained beside corrected owned-byte
+digest test. Domain canonical invocations used maintained exec sessions, without
+claiming independent external timeout supervisors; reviewer first known-pair RED
+is informal concrete evidence, bounded repeat is provisional GREEN. Maintained
+root renewed frozen checks establish externally supervised gate acceptance.
+
+Corrected candidate-v2 freezes25 product inputs /303 scoped entries /305 union in
+/tmp/docx75-root-candidate-freeze-v2.json, SHA-256
+18c5b7788456e1df458e21e72c7c23b5af1ff96f7a25d652d75b34ac8fca8aee;
+inventory SHA-256826cf131030e94f5f3e8f26573929b7c6784ce0eefa65a8bf5b4088fd5fc3ef7.
+Only6 explicitly reopened correction paths changed, remaining19 product inputs
+exact. All11 domain inputs stable; renewed focused153/153, lint and types pass.
+Root owns renewed selected build/full DOCX/package lint/public/literal gates;
+tracked_schema owns only read-only renewed actual21file Shell/maintained consumer
+typecheck and /tmp/docx75-schema-renewed-* receipts. Different revision_review
+owns independently bounded corrected originals/focused/actual Shell and candidate
+authentication; final approval requires root renewed maintained proof. QA withheld.
+
+Renewed root proof /tmp/docx75-root-maintained-proof-v3.json, SHA-256
+96664dd77ce21758925e5768b0e5da3a476a327248a8a75d05d8e84b1d5901b1,
+authenticates full DOCX2782/2782 across129files in128.177seconds; selected5builds,
+package lint/source/test types, portable2/2, exact literal108/108, actual Shell127/127
+across21files and maintained one-build26consumer typecheck all pass. Every final
+route has zero exit/no termination, authenticated complete separate captures and
+unchanged25/303/305bindings. Unit cap300seconds, other scope gates120seconds,
+64MiB output; original timeout and all three review REDs remain retained. Different
+reviewer focused188/188, actual Shell127/127 and eight original public correction /
+preservation probes pass; no-op missing-encoding construction is separately retained.
+Final independent approval remains prerequisite for original QA campaign GO.
+
+## Original QA campaign
 
 Read-only preparation /tmp/docx75-qa-preparation-v2.json authenticates corpus
 metadata and current public/terminal APIs. The23-record manifest/report does not
 establish an available separately sourced SmartArt example. Do not download or
 infer full real-document qualification. Independent product approval is required
 before root activates this procedure and assigns the following exact ownership.
+
+Corrected product approval now authenticates candidate-v2 and all original gates:
+/tmp/docx75-reviewer-final-product-approval-v2.json, SHA-256
+1a2076a1c6d3a48f7c076a49ce41e88b8bd4521da4e233c8560fadf2c7628534.
+Root activates only this prepared original campaign. Explicit ownership is granted
+to tracked_schema for the reduced QA JSON, exact27 ignored leaves and
+/tmp/docx75-qa-* receipts below. Product25 remains read-only; no task76, new input
+acquisition, Git action or cleanup is implied. Root/reviewer verify reduced findings
+and actual screenshots before separate exact cleanup GO.
+
+Additive approval-v3, /tmp/docx75-reviewer-final-product-approval-v3.json,
+SHA-256a76b47ed39c5c0b381fd4a3af1a7bc2d959cc2e15d7ce1dc561852771613258d,
+corrects approval-v2's domain-RED supervision wording. Canonical domain REDs are
+primary TDD evidence from exec sessions with bounded original fixtures, without
+separate external supervisors. Renewed root and independent externally supervised
+GREEN gates establish exact candidate acceptance. V2 bytes remain retained; no
+source/test rerun or changed approval scope. Use v3 as current approval authority.
 
 QA owner tracked_schema may then own docs/docx/smartart-and-diagrams-qa.json,
 /tmp/docx75-qa-* receipts and exclusive ignored tmp/docx75-diagrams-qa regular
@@ -270,3 +331,78 @@ revision_review independently verifies reduced QA and actual screenshots.
    review QA before root grants exact manifested cleanup; authenticate the complete
    leaf set before first unlink, retain empty directory and all older caches.
    Final guarded root lint and local delivery follow cleanup authentication.
+
+## Original QA observations awaiting independent review
+
+Exclusive ignored27-leaf manifest is /tmp/docx75-qa-owned-manifest-v1.json;
+directory dev16777234/ino370305570/mode0700 is admitted before writes. Both
+dialect inputs are authored technical memfs data, not a sourced SmartArt example.
+The campaign uses identical concrete diagramContext archive ceilings for SDK and
+normal Shell (131072 archive/total bytes,65536entry bytes,64members,32MiB archive
+retained) and unchanged document-budget defaults;1MiB/4MiB outer input/artifact
+caps do not imply full default archive admission. Other concrete fields remain in
+owned manifest/reduced evidence. No raised profile or retry after product failure.
+
+Initial authorship used CLI string length where public SDK requires typed length;
+retain construction failure with no written leaves, then typed correction. Read
+items/warnings/locations match both dialects and genuine virtual.sh output. Text
+and metadata edits produce matching SDK/Shell archive bytes and unchanged diagram
+graph, opaque carrier, unaffected member bytes/order. Text verifier first expected
+unchanged owner descriptor SHA after intended body change; retain verifier failure
+and corrected validation of unchanged output bytes. Image verifier first assumed
+resource filename/order invariant; existing image contract retires selected
+image-1.png and binds image-2.png. Matching SDK/Shell bytes retain seven unaffected
+nonmedia members /relative order and exact diagram graph/unknown observations,
+while applicable selected-media/content-type/image-binding effects are qualified.
+
+Three resource/raw-owner/paragraph refusals pass paired SDK/Shell precise existing
+Location/Diagnostic agreement, affected0, no SDK publication and unchanged source /
+sentinel destination. Root actually inspects actual help/read/selector-error PNGs:
+198384/153198/23488bytes,3605x1073/3605x871/1788x401, all within4MiB/8192.
+Fixed100-column unchanged hard wrapping is readable/complete without clipping;
+help/read identify physical preserve-only support and error rejects scope.
+/tmp/docx75-root-screenshot-inspection-v1.json and individual display-v1 watchdogs
+record acknowledgments17.919–17.922seconds within120seconds; opaque tools cannot
+be forcibly cancelled by the watchdog. Reduced QA and independent review precede
+any cleanup or final lint/delivery; task76 remains prohibited.
+
+Independent original QA approval is /tmp/docx75-reviewer-qa-final-approval-v1.json,
+SHA-256126b5e1f11e597c73e46f479fd5f60bcac850574805c6e511a16564d3afbcab4.
+It authenticates16invocations (13zero exits /3 retained construction/verifier
+failures), six reads, three paired edits, three paired refusals, nine independent
+archive comparisons and three actually inspected screenshots. Reviewer's initial
+two carrier-count comparer assertions are retained verifier-only failures; correct
+comparison counts two native/unknown a-prefix carriers, with separate picture
+prefix. Reviewer display timers are in-runtime Promise.race only; root's three
+external process-watchdog receipts provide qualified external display evidence.
+
+Root now grants tracked_schema exact owned cleanup for the27 regular leaves /
+552390bytes in /tmp/docx75-reviewer-qa-cleanup-eligible-v1.json, SHA-256
+e1cc97a1e1566ef290d106d68d2c03016ce7fdde51187821f3018bc07491b6f3.
+Authenticate complete directory/leaf-set/regular nonlink identity and bounded
+hashes before first unlink; delete only those exact leaves, retain empty directory
+and older caches. Reduced findings precede cleanup; append exact receipt/status
+without rewriting earlier captures. Root/different reviewer renew post-cleanup
+authentication, then final maintained guarded root lint under600s/64MiB/1GiB.
+
+Post-cleanup independent authentication is
+/tmp/docx75-reviewer-post-cleanup-authentication-v1.json, SHA-256
+cabaed989ae23afaf404b792484fcdc183f9f66fd55ab9f06c5a1a2d4ce27448.
+The full original66325byte reduced snapshot is retained and matches approved
+SHA7622aaa0c8a3bb6b40d956850914ee02f99fbe2fb12f0774faa943cd8af7c83a;
+deep semantic reversal proves final68454byte QA differs only cleanup/status/current
+retention metadata. Final reduced SHA is
+fce2ed8bec3b7bdc5396dcea01a055f8371a3d92df04921c03cb9cc5ca827c5f.
+Exact cleanup27leaves/552390bytes has receipt SHA
+1e6416b42c76981fa4123e2a824dd4d75f8006b8383083926ca5c6283b3aeaa8;
+empty original directory and all25/303/305product/index bindings remain exact.
+
+Final maintained guarded root ESLint passes in430.276seconds,12668subjects,
+zero errors /12warnings, all25 receipts /no gaps or unknown unprocessed descendants.
+Separate captures total5962961bytes within64MiB; existing1GiB heap and600second
+external ceiling preserved. Proof /tmp/docx75-root-final-lint-proof-v1.json,
+SHA-2561f6cd5818a4cd42fa6c5abb2c2210e92aa7f277d60d6b1bcab4a4a638e03c1c9,
+authenticates all25owned/303append-aware bindings after lint. Root delivery GO now
+permits exactly25frozen product paths plus this plan in an atomic local product
+commit, then reduced evidence /F38 and only task75status scalars separately.
+No push/release/task76 before local delivery authentication.

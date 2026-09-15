@@ -153,3 +153,51 @@ it.each(["/data/item.xml", "/data/properties.xml", "/word/document.xml"])("prese
   const before = await readArchive(source.bytes, context), after = await readArchive(new Uint8Array(fs.readFileSync("/output") as Buffer), context);
   for (const member of before.members) expect(after.members.find(candidate => candidate.name === member.name)!.bytes).toEqual(member.bytes);
 });
+
+it('diagram raw replacement rejects with a source-bound part location before publication',async()=>{
+ const {diagramFixture,diagramContext,diagramNamespace}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();let writes=0;
+ const replacement=new TextEncoder().encode('<d:dataModel xmlns:d="'+diagramNamespace+'" changed="yes"/>');
+ await expect(replaceDocumentXmlPart(input,replacement,{part:'/word/graphs/data.xml',output:'-'},{...diagramContext,encoding:{order:'input',compression:'store'},stdout:{async write(){writes++;}}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part:'/word/graphs/data.xml',path:[],generation:0}}});expect(writes).toBe(0);
+});
+it('raw diagram envelope mutation rejects at its original inline graphics path',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const bytes=await getDocumentXml(input,diagramContext,{part:'/word/document.xml',raw:true}) as Uint8Array;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('cx="200"','cx="400"'));
+ await expect(replaceDocumentXmlPart(input,replacement,{part:'/word/document.xml',dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part:'/word/document.xml'}}});
+});
+it('unrelated raw text leaf retains opaque diagram envelope unchanged',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const bytes=await getDocumentXml(input,diagramContext,{part:'/word/document.xml',raw:true}) as Uint8Array;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('>coast<','>long shore<'));
+ expect((await replaceDocumentXmlPart(input,replacement,{part:'/word/document.xml',dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).changed).toBe(true);
+});
+it('raw relocation of preserved diagram payload rejects with its original graphics location',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const bytes=await getDocumentXml(input,diagramContext,{part:'/word/document.xml',raw:true}) as Uint8Array;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('<w:drawing>','<w:t>other</w:t><w:drawing>'));
+ await expect(replaceDocumentXmlPart(input,replacement,{part:'/word/document.xml',dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part:'/word/document.xml'}}});
+});
+it('unchanged diagram resource XML remains a byte no-op',async()=>{const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const bytes=await getDocumentXml(input,diagramContext,{part:'/word/graphs/data.xml',raw:true}) as Uint8Array;const result=await replaceDocumentXmlPart(input,bytes,{part:'/word/graphs/data.xml',dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}});expect(result.changed).toBe(false);expect(result.changes).toEqual([]);});
+it('raw diagram owner relationships cannot rebind graph edges without a located rejection',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const part='/word/_rels/document.xml.rels';const bytes=await getDocumentXml(input,diagramContext,{part,raw:true}) as Uint8Array;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('Id="data"','Id="changed"'));
+ await expect(replaceDocumentXmlPart(input,replacement,{part,dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part,path:[]}}});
+});
+it('raw content-type changes to diagram graph roles carry the selected declaration location',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const part='/[Content_Types].xml';const bytes=await getDocumentXml(input,diagramContext,{part,raw:true}) as Uint8Array;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('drawingml.diagramData+xml','drawingml.diagramLayout+xml'));
+ await expect(replaceDocumentXmlPart(input,replacement,{part,dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part,path:[]}}});
+});
+it('unchanged diagram owner relationships remains a no-op',async()=>{const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();const part='/word/_rels/document.xml.rels';const bytes=await getDocumentXml(input,diagramContext,{part,raw:true}) as Uint8Array;expect((await replaceDocumentXmlPart(input,bytes,{part,dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).changed).toBe(false);});
+it('raw mutation of an opaque XML closure resource carries its selected part location',async()=>{
+ const {diagramFixture,diagramContext,diagramNamespace}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture({resources:[{name:'word/data.xml',type:'application/vnd.openxmlformats-officedocument.drawingml.diagramData+xml',bytes:'<d:dataModel xmlns:d="'+diagramNamespace+'"/>'},{name:'word/opaque.xml',type:'application/xml',bytes:'<x:opaque xmlns:x="urn:opaque" value="old"/>'}],relationships:[{owner:'/word/document.xml',id:'data',type:r+'/diagramData',target:'data.xml'},{owner:'/word/data.xml',id:'resource',type:r+'/custom',target:'opaque.xml'}]});
+ const replacement=new TextEncoder().encode('<x:opaque xmlns:x="urn:opaque" value="new"/>');await expect(replaceDocumentXmlPart(input,replacement,{part:'/word/opaque.xml',dryRun:true},{...diagramContext,encoding:{order:'input',compression:'store'}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part:'/word/opaque.xml',path:[]}}});
+});
+
+it('existing native diagram binding mutation reports its original relIds source location',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const {inspectDocumentDiagrams}=await import('./diagrams.js');const {decodeLocation}=await import('./location-token.js');
+ const input=await diagramFixture(),part='/word/document.xml',bytes=await getDocumentXml(input,diagramContext,{part,raw:true}) as Uint8Array;
+ const original=(await inspectDocumentDiagrams(input,{},diagramContext)).items.find(item=>item.name===part)!.details.observations.find(observation=>observation.kind==='relIds')!;
+ const replacement=new TextEncoder().encode(new TextDecoder().decode(bytes).replace('r:dm="data"','r:dm="layout"'));
+ const destination=Volume.fromJSON({'/preserved':Buffer.from([3,8,5])});let writes=0;let error:unknown;
+ try{await replaceDocumentXmlPart(input,replacement,{part,output:'-'},{...diagramContext,encoding:{order:'input',compression:'store'},stdout:{async write(chunk){writes++;destination.appendFileSync('/preserved',chunk);}}});}catch(cause){error=cause;}
+ expect(error).toMatchObject({code:'unsupported-edit',location:{kind:'part',value:{part,path:original.path,generation:0,range:null}}});
+ const token=decodeLocation((error as {location:{token:string}}).location.token);let node=parseDocumentXml(bytes).root;for(const index of token.path)node=node.children[index]!;expect(node.localName).toBe('relIds');expect(token.path).toEqual(original.path);expect(writes).toBe(0);expect(destination.readFileSync('/preserved')).toEqual(Buffer.from([3,8,5]));
+});

@@ -1,3 +1,5 @@
+import { diagramPartRoles } from "./diagrams.js";
+import { collectDiagramObservations } from "./diagram-observations.js";
 import { chartDefinitionParts } from "./charts.js";
 import { decodeChartContent } from "./chart-values.js";
 import { readPropertyParts } from "./property-values.js";
@@ -178,12 +180,16 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   if (unknownNamespaces.size) warnings.push({ code: "unvalidated-extensions", message: "Opaque extension content is inventoried without semantic validation." });
   const chartParts = chartDefinitionParts(graph, budget);
   const decodedCharts = chartParts.some(part => part.content_type.toLowerCase() === "application/vnd.openxmlformats-officedocument.drawingml.chart+xml" && roots.has(part.partname) && decodeChartContent(roots.get(part.partname)!, part.partname, budget).status === "decoded");
+  const diagramRoles = diagramPartRoles(graph, archive.dialect, budget);
+  const diagramObservations = [...roots].flatMap(([part, root]) => collectDiagramObservations(root, archive.dialect, part, budget));
+  const knownDiagrams = diagramRoles.size > 0 || diagramObservations.some(observation => observation.kind === "relIds");
   const detections: readonly [string, boolean, "read" | "preserve"][] = [
     ["F01", true, "read"], ["F02", true, "read"], ["F03", archive.kind === "dotx", "read"], ["F05", compatibility, "read"], ["F06", true, "read"],
     ["F19", counts.tables > 0, "read"], ["F21", relationships.some(r => r.type.endsWith("/hyperlink")), "read"], ["F22", counts.fields > 0, "read"],
     ["F24", counts.footnotes + counts.endnotes > 0, "read"], ["F25", counts.comments > 0, "read"], ["F26", annotations.some(a => a.kind !== "comment"), "read"],
     ["F27", annotations.some(a => ["moveFrom", "moveTo", "tblPrChange", "tcPrChange", "sectPrChange"].includes(a.kind)), "read"],
     ["F37", chartParts.length > 0, decodedCharts ? "read" : "preserve"],
+    ["F38", knownDiagrams, "preserve"],
     ["F28", counts.controls > 0, "read"], ["F30", propertyParts.length > 0, properties.length > 0 ? "read" : "preserve"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
     ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signed, "preserve"]
   ];
@@ -191,7 +197,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });
   const result: InspectionData = { fontResources, kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,
     contentTypes: { defaults: graph.defaults.map(d => ({ extension: d.extension, contentType: d.content_type })).sort((a, b) => compare(a.extension, b.extension)), overrides: graph.overrides.map(d => ({ name: d.partname, contentType: d.content_type })).sort((a, b) => compare(a.name, b.name)) },
-    stories, properties, counts, features: detections.map(([id, detected, level]) => ({ id, detected, level, subsets: [{ name: "inventory", level, reason: "Package inventory only; no editing or rendering claim." }] })),
+    stories, properties, counts, features: detections.map(([id, detected, level]) => ({ id, detected, level, subsets: id === "F38" ? [{ name: "inventory", level, reason: "Diagram resource inventory and preservation only; no layout generation." }, ...(diagramObservations.some(observation => observation.kind !== "relIds") ? [{ name: "opaque-graphics", level: "preserve" as const, reason: "Opaque physical graphics observations do not establish known diagram semantics." }] : [])] : [{ name: "inventory", level, reason: "Package inventory only; no editing or rendering claim." }] })),
     signed, protected: protection.some(p => p.enforced !== false), pages: { rendered: null, cachedBreaks },
     fonts: { references: [...fontNames].sort(compare), themeReferences: [...themeNames].sort(compare), embedded, installed: null },
     signatures: { parts: signatureParts.map(p => p.name), verified: null }, media, annotations, protection, warnings };

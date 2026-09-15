@@ -160,3 +160,4 @@ export { Image, type ImageModelContext, type ImageModelInput } from "./image-mod
 export { inspectDocumentShapes, editDocumentShapes, type ShapeRecord, type ShapeInspectionData, type ShapeEditRequest, type ShapeEditData, type ShapeEditContext } from "./shape-edit.js";
 export { inspectDocumentCharts, type ChartPart, type ChartBinding, type ChartExternalData, type ChartDetails, type ChartRecord, type ChartInspectionData } from "./charts.js";
 export type { ChartIssue, ChartPoint, ChartCache, ChartSource, ChartSeries } from "./chart-values.js";
+export { inspectDocumentDiagrams, UnsupportedDiagramMutationError, type DiagramRole, type DiagramPart, type DiagramIssue, type DiagramRoleEvidence, type DiagramBinding, type DiagramObservation, type DiagramDetails, type DiagramRecord, type DiagramInspectionData } from "./diagrams.js";

@@ -240,3 +240,8 @@ it('checks grouped box restrictions before unchanged paragraph formatting', asyn
  const {groupedNativeBox}=await import('../tests/fixtures/shapes.js');
  await expect(edit(groupedNativeBox(),'paragraphs.set',{scope:'text-boxes',paragraph:1,keepTogether:null})).rejects.toMatchObject({code:'unsupported-edit'});
 });
+
+it('destructive containing diagram paragraph rejects with its current paragraph location',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const input=await diagramFixture();let writes=0;
+ await expect(docx.editDocumentParagraphs(input,{operation:'paragraphs.set',options:{paragraph:1,text:'shore',output:'-'}},{...diagramContext,encoding:{order:'input',compression:'store'},stdout:{async write(){writes++;}}})).rejects.toMatchObject({code:'unsupported-edit',location:{kind:'paragraph',value:{part:'/word/document.xml',generation:0}}});expect(writes).toBe(0);
+});

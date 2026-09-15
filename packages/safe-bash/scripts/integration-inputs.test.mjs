@@ -2324,6 +2324,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/docx/svg-fallback.test.ts"));
   assert.ok(files.includes("tests/commands/docx/shapes.test.ts"));
   assert.ok(files.includes("tests/commands/docx/charts.test.ts"));
+  assert.ok(files.includes("tests/commands/docx/diagrams.test.ts"));
   assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/transitions.test.ts"));

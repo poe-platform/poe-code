@@ -4,6 +4,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
 import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
+import { diagramContext, diagramFixture, diagramCarrier } from "../packages/docx/tests/fixtures/diagrams.js";
 import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
 it("ships the optional document API and command with matching portable runtime and type routes", async () => {
@@ -59,6 +60,30 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.inspectDocumentShapes).toBeTypeOf("function");
   expect.soft(runtime.editDocumentShapes).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentCharts).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentDiagrams).toBeTypeOf("function");
+  if (runtime.inspectDocumentDiagrams) {
+    const opaqueCarrier = '<w:r><w:drawing><wp:inline><wp:extent cx="200" cy="300"/><wp:docPr id="2" name="Opaque resource"/><a:graphic><a:graphicData uri="urn:local:opaque-graphic"><stored:payload xmlns:stored="urn:local:stored-data"/></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
+    const diagramSource = await diagramFixture({ body: '<w:p><w:r><w:t>coast</w:t></w:r>' + diagramCarrier() + opaqueCarrier + '</w:p>' });
+    const diagramList = await runtime.inspectDocumentDiagrams(diagramSource, {}, diagramContext);
+    expect(diagramList.items).toHaveLength(5);
+    expect(diagramList.items.every((item: { support: string }) => item.support === "preserve")).toBe(true);
+    const owner = diagramList.items.find((item: { name: string }) => item.name === "/word/document.xml");
+    expect(owner.details.observations.map((observation: { kind: string }) => observation.kind)).toEqual(["relIds", "unknown-graphic"]);
+    expect(owner.details.observations[1].bindings).toEqual([]);
+    expect(owner.details.parts).toHaveLength(5);
+    const chunks: Uint8Array[] = [];
+    const edited = await runtime.replaceDocumentText(diagramSource, { find: "coast", with: "shore", first: true, output: "-" }, {
+      ...diagramContext, encoding: { order: "input", compression: "store" },
+      stdout: { async write(bytes: Uint8Array) { chunks.push(new Uint8Array(bytes)); } }
+    });
+    expect(edited.changed).toBe(true);
+    const before = await runtime.readDocumentArchive(diagramSource, diagramContext);
+    const after = await runtime.readDocumentArchive(new Uint8Array(Buffer.concat(chunks)), diagramContext);
+    expect(after.members.map((member: { name: string }) => member.name)).toEqual(before.members.map((member: { name: string }) => member.name));
+    for (const member of before.members) if (member.name !== "word/document.xml")
+      expect(after.members.find((candidate: { name: string }) => candidate.name === member.name).bytes).toEqual(member.bytes);
+    expect((await runtime.inspectDocumentDiagrams(new Uint8Array(Buffer.concat(chunks)), {}, diagramContext)).items.map((item: { name: string }) => item.name)).toEqual(diagramList.items.map((item: { name: string }) => item.name));
+  }
   if (runtime.inspectDocumentCharts) {
     const workbook = new Uint8Array([19, 23, 29]);
     const chartSource = await chartFixture({

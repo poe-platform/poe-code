@@ -1,0 +1,35 @@
+import {expect,it} from 'vitest';
+import {collectDiagramObservations} from './diagram-observations.js';
+import {parseDocumentXml} from './package-xml.js';
+import {DocumentBudget} from './budget.js';
+import {diagramCarrier,diagramNamespace,drawingNamespace} from '../tests/fixtures/diagrams.js';
+const w='http://schemas.openxmlformats.org/wordprocessingml/2006/main',a='http://schemas.openxmlformats.org/drawingml/2006/main',wp='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',r='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const read=(body:string)=>collectDiagramObservations(parseDocumentXml(new TextEncoder().encode('<w:document xmlns:w="'+w+'" xmlns:a="'+a+'" xmlns:wp="'+wp+'" xmlns:r="'+r+'"><w:body><w:p>'+body+'</w:p></w:body></w:document>')).root,'transitional','/word/document.xml',new DocumentBudget());
+it('observes native binding requests in fixed order and original paths',()=>{const result=read(diagramCarrier());expect(result).toHaveLength(1);expect(result[0]!).toMatchObject({kind:'relIds',uri:diagramNamespace,active:true});expect(result[0]!.requests.map(x=>[x.role,x.relationshipId])).toEqual([['data','data'],['layout','layout'],['style','style'],['color','color']]);});
+it.each(['urn:opaque',''])('unknown URI %s retains an owner path without inferred bindings',uri=>{const result=read(diagramCarrier(false,uri));expect(result).toHaveLength(1);expect(result[0]!).toMatchObject({kind:'unknown-graphic',uri:uri||null,requests:[]});});
+it('foreign wrappers and out-of-drawing labels confer no authority',()=>{expect(read('<d:relIds xmlns:d="'+diagramNamespace+'"/>')).toEqual([]);expect(read(diagramCarrier().replace('<a:graphic>','<x:payload xmlns:x="urn:opaque"><a:graphic>').replace('</a:graphic>','</a:graphic></x:payload>'))).toEqual([]);});
+it('observes diagramDrawing only with exact extension envelope and unqualified relId',()=>{const root=parseDocumentXml(new TextEncoder().encode('<d:dataModel xmlns:d="'+diagramNamespace+'" xmlns:a="'+a+'"><d:extLst><a:ext uri="'+drawingNamespace+'"><x:dataModelExt xmlns:x="'+drawingNamespace+'" relId="draw"/></a:ext></d:extLst></d:dataModel>')).root;const result=collectDiagramObservations(root,'transitional','/word/graphs/data.xml',new DocumentBudget());expect(result[0]!).toMatchObject({kind:'extension',uri:drawingNamespace,active:false,requests:[{role:'drawing',attribute:'relId',relationshipId:'draw'}]});});
+it('retains inactive native carriers without manufacturing projection reachability',()=>{const result=read('<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x" xmlns:x="urn:opaque">'+diagramCarrier()+'</mc:Choice><mc:Fallback>'+diagramCarrier(false,'urn:fallback')+'</mc:Fallback></mc:AlternateContent>');expect(result.map(x=>[x.kind,x.active])).toEqual([['relIds',false],['unknown-graphic',true]]);});
+it('observes direct unknown extension children and empty envelopes with envelope URI',()=>{const result=read(diagramCarrier().replace('<wp:docPr id="1" name="Original graph"/>','<wp:docPr id="1"><a:extLst><a:ext uri="urn:one"><x:item xmlns:x="urn:opaque" uri="wrong"/></a:ext><a:ext uri="urn:empty"/></a:extLst></wp:docPr>'));expect(result.filter(x=>x.kind==='extension').map(x=>[x.localName,x.uri])).toEqual([['item','urn:one'],['ext','urn:empty']]);});
+it('native diagram URI without an admitted relIds child remains opaque graphics evidence',()=>{const result=read(diagramCarrier().replace('<d:relIds xmlns:d="'+diagramNamespace+'" r:dm="data" r:lo="layout" r:qs="style" r:cs="color"/>','<x:payload xmlns:x="urn:opaque"/>'));expect(result).toHaveLength(1);expect(result[0]!.kind).toBe('unknown-graphic');expect(result[0]!.requests).toEqual([]);});
+it('transparent MCE wrappers do not create an extra unknown envelope for native relIds',()=>{const carrier=diagramCarrier().replace('<d:relIds','<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x" xmlns:x="urn:opaque"><x:item/></mc:Choice><mc:Fallback><d:relIds').replace('r:cs="color"/>','r:cs="color"/></mc:Fallback></mc:AlternateContent>');const result=read(carrier);expect(result).toHaveLength(1);expect(result[0]!.kind).toBe('relIds');});
+it('a familiar extension namespace in the wrong profile remains opaque evidence',()=>{const carrier=diagramCarrier().replace('<wp:docPr id="1" name="Original graph"/>','<wp:docPr id="1"><a:extLst><a:ext uri="urn:wrong"><s:svgBlip xmlns:s="http://schemas.microsoft.com/office/drawing/2016/SVG/main"/></a:ext></a:extLst></wp:docPr>');const result=read(carrier);expect(result.some(x=>x.kind==='extension'&&x.localName==='svgBlip')).toBe(true);});
+
+it.each([false,true])('public physical inventory recognizes exact shape expanded pairs in dialect %s',async strict=>{
+ const {inspectDocumentDiagrams}=await import('./diagrams.js');const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');
+ const native=strict?'http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing':wp;
+ const profiles=[{namespace:native,names:['wsp','wgp','grpSp','wpc']},{namespace:'http://schemas.microsoft.com/office/word/2010/wordprocessingShape',names:['wsp']},{namespace:'http://schemas.microsoft.com/office/word/2010/wordprocessingGroup',names:['wgp','grpSp']}];
+ for(const profile of profiles)for(const name of ['wsp','wgp','grpSp','wpc']){
+  const body='<w:p><w:r><w:drawing><wp:inline><wp:extent cx="200" cy="300"/><wp:docPr id="1" name="Original shape"/><a:graphic><a:graphicData uri="urn:original:unknown"><s:'+name+' xmlns:s="'+profile.namespace+'"/></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+  const input=await diagramFixture({strict,body,resources:[],relationships:[]});const data=await inspectDocumentDiagrams(input,{},diagramContext);
+  if(profile.names.includes(name))expect(data.items,profile.namespace+' '+name).toEqual([]);
+  else{expect(data.items,profile.namespace+' '+name).toHaveLength(1);expect(data.items[0]!).toMatchObject({support:'preserve',details:{roles:[],observations:[{kind:'unknown-graphic',uri:'urn:original:unknown',bindings:[]}]}});}
+ }
+});
+it.each(['wsp','wgp','grpSp','wpc'])('foreign %s expanded names remain opaque physical observations',name=>{
+ const carrier=diagramCarrier(false,'urn:original:unknown').replace('<d:relIds xmlns:d="'+diagramNamespace+'" r:dm="data" r:lo="layout" r:qs="style" r:cs="color"/>','<s:'+name+' xmlns:s="urn:original:foreign"/>');
+ expect(read(carrier)).toMatchObject([{kind:'unknown-graphic',uri:'urn:original:unknown',requests:[]}]);
+});
+it.each([['http://schemas.microsoft.com/office/word/2010/wordprocessingShape','wpc'],['http://schemas.microsoft.com/office/word/2010/wordprocessingGroup','wsp']])('direct observation rejects mismatched shape pair %s %s',(namespace,name)=>{
+ const carrier=diagramCarrier(false,'urn:original:unknown').replace('<d:relIds xmlns:d="'+diagramNamespace+'" r:dm="data" r:lo="layout" r:qs="style" r:cs="color"/>','<s:'+name+' xmlns:s="'+namespace+'"/>');expect(read(carrier)).toMatchObject([{kind:'unknown-graphic',requests:[]}]);
+});

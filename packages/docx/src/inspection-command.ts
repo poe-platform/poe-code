@@ -46,6 +46,8 @@ import { executeImageReplacementCommand } from "./image-replacement-command.js";
 import { executeImageLayoutCommand } from "./image-layout-command.js";
 import { executeShapesCommand } from "./shapes-command.js";
 import { executeChartsCommand } from "./charts-command.js";
+import { executeDiagramsCommand, serializeDiagramMutationFailure } from "./diagrams-command.js";
+import { UnsupportedDiagramMutationError } from "./diagrams.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -107,7 +109,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const imageLayoutOperation = invocation.operation === "images.set";
       const shapeOperation = ["shapes.list", "shapes.set"].includes(invocation.operation);
       const chartOperation = invocation.operation === "charts.list";
-      const packageResourceOperation = chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const diagramOperation = invocation.operation === "diagrams.list";
+      const packageResourceOperation = diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -138,7 +141,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = chartOperation ? await executeChartsCommand(invocation, bytes, request, context)
+          output = diagramOperation ? await executeDiagramsCommand(invocation, bytes, request, context)
+            : chartOperation ? await executeChartsCommand(invocation, bytes, request, context)
             : shapeOperation ? await executeShapesCommand(invocation, bytes, inputIdentity, request, context)
             : imageLayoutOperation ? await executeImageLayoutCommand(invocation, bytes, inputIdentity, request, context)
             : imageReplacementOperation ? await executeImageReplacementCommand(invocation, bytes, inputIdentity, request, context)
@@ -247,8 +251,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
         const imageFailure = invocation.operation === "images.extract" && error instanceof ImageCommandPublicationError ? error : undefined;
+        const diagramFailure = error instanceof UnsupportedDiagramMutationError ? error : undefined;
         if (imageFailure) imageReceipt = imageFailure.data;
-        output = imageFailure ? imageFailure.responseBytes : new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
+        output = imageFailure ? imageFailure.responseBytes : diagramFailure && invocation.options.json === true
+          ? serializeDiagramMutationFailure(invocation.operation, diagramFailure, code, message, budget)
+          : new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
         try { await request.stderr.write(imageFailure ? imageFailure.diagnosticBytes : new TextEncoder().encode(diagnostic.human)); }
         catch (cause) { return sinkFailure(cause); }
       } finally { await io.cleanup(); }

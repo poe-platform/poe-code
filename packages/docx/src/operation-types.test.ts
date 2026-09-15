@@ -1,6 +1,26 @@
 import { expectTypeOf, it } from "vitest";
-import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
+import { inspectDocumentDiagrams, type DiagramRole, type DiagramPart, type DiagramIssue, type DiagramRoleEvidence, type DiagramBinding, type DiagramObservation, type DiagramDetails, type DiagramRecord, type DiagramInspectionData, type DocxOperationArguments, type DocxBatchItem } from "./index.js";
+import type { ArchiveContext } from "./archive.js";
+it("exports original closed diagram types and the public async inspector", () => {
+  expectTypeOf(inspectDocumentDiagrams).parameters.toEqualTypeOf<[Uint8Array, DocxOperationArguments<"diagrams.list">, ArchiveContext]>();
+  expectTypeOf(inspectDocumentDiagrams).returns.toEqualTypeOf<Promise<DiagramInspectionData>>();
+  expectTypeOf<DiagramRole>().toEqualTypeOf<"data" | "layout" | "style" | "color" | "drawing">();
+  expectTypeOf<keyof DiagramPart>().toEqualTypeOf<"name" | "contentType" | "bytes" | "sha256">();
+  expectTypeOf<keyof DiagramIssue>().toEqualTypeOf<"code" | "part" | "path" | "message">();
+  expectTypeOf<keyof DiagramRoleEvidence>().toEqualTypeOf<"role" | "part" | "evidence" | "root" | "status">();
+  expectTypeOf<keyof DiagramBinding>().toEqualTypeOf<"role" | "attribute" | "relationshipId" | "reference" | "status" | "target" | "issues">();
+  expectTypeOf<keyof DiagramObservation>().toEqualTypeOf<"kind" | "part" | "path" | "namespace" | "localName" | "uri" | "active" | "bindings" | "issues">();
+  expectTypeOf<keyof DiagramDetails>().toEqualTypeOf<"kind" | "parts" | "roles" | "observations" | "issues">();
+  expectTypeOf<keyof DiagramRecord>().toEqualTypeOf<"kind" | "location" | "name" | "properties" | "references" | "support" | "details">();
+});
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps diagram options package-global in direct and declared batch types", () => {
+  expectTypeOf<keyof DocxOperationArguments<"diagrams.list">>().toEqualTypeOf<"json" | "limit">();
+  expectTypeOf<DocxBatchArgumentMap["diagrams.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
+  // @ts-expect-error Physical diagram inventory has no scoped selection.
+  const invalid: DocxBatchArgumentMap["diagrams.list"] = { scope: "body" };
+  expectTypeOf(invalid).toMatchTypeOf<DocxBatchArgumentMap["diagrams.list"]>();
+});
 it("keeps physical chart inventory options package-wide in direct and batch types", () => {
   expectTypeOf<keyof DocxOperationArguments<"charts.list">>().toEqualTypeOf<"json" | "limit">();
   expectTypeOf<DocxBatchArgumentMap["charts.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();

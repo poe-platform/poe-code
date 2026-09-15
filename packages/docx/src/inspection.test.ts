@@ -246,3 +246,8 @@ it('reports physical chart definitions as bounded F37 inventory without counting
  const opaque=await inspectDocument(await chartFixture({definitions:[{name:'word/charts/plot.xml',xml:chartSpace('<c:layout/>')}]}),chartContext);expect(opaque.features.find(f=>f.id==='F37')).toMatchObject({detected:true,level:'preserve'});
  const none=await inspectDocument(await chartFixture({definitions:[],resources:[{name:'word/charts/style.xml',type:'application/vnd.ms-office.chartstyle+xml',bytes:'<s:chartStyle xmlns:s="urn:original"/>'}]}),chartContext);expect(none.features.find(f=>f.id==='F37')).toMatchObject({detected:false,level:'preserve'});
 });
+
+it('detects F38 preserve inventory from original declared diagram roles',async()=>{
+ const {diagramFixture,diagramContext}=await import('../tests/fixtures/diagrams.js');const result=await inspectDocument(await diagramFixture(),diagramContext);expect(result.features.find(f=>f.id==='F38')).toMatchObject({detected:true,level:'preserve'});
+});
+it('unknown-only graphics stays a qualified opaque subset rather than known F38 detection',async()=>{const {diagramFixture,diagramCarrier,diagramContext}=await import('../tests/fixtures/diagrams.js');const data=await inspectDocument(await diagramFixture({body:'<w:p>'+diagramCarrier(false,'urn:opaque')+'</w:p>',resources:[],relationships:[]}),diagramContext);const feature=data.features.find(f=>f.id==='F38')!;expect(feature.detected).toBe(false);expect(feature.subsets.some(s=>s.name==='opaque-graphics'&&s.level==='preserve')).toBe(true);});

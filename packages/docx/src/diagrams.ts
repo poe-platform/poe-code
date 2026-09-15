@@ -1,0 +1,95 @@
+import {archiveSettings,InputTypeError,type ArchiveContext} from './archive.js';
+import {readDocumentArchive,type AdmittedDocumentArchive} from './admission.js';
+import {validateDocxInvocation} from './command.js';import type {DocxOperationArguments} from './operation-types.js';
+import {DocumentBudget} from './budget.js';import {documentDialects,type DocumentDialect} from './dialect.js';
+import {encodeLocation,type Location} from './location-token.js';import {parseDocumentXml,type XmlElement} from './package-xml.js';
+import type {DocumentPackage,PackagePart,PackageRelationship} from './package.js';import type {InspectionReference,InspectionWarning} from './inspection.js';
+import {collectDiagramObservations,type RawDiagramObservation} from './diagram-observations.js';import {measurePackageResourceSerialization} from './ancillary-resources.js';import {UnsupportedEditError} from './xml-write.js';
+export type DiagramRole='data'|'layout'|'style'|'color'|'drawing';
+export interface DiagramPart {readonly name:string;readonly contentType:string;readonly bytes:number;readonly sha256:string}
+export interface DiagramIssue {readonly code:string;readonly part:string;readonly path:readonly number[];readonly message:string}
+export interface DiagramRoleEvidence {readonly role:DiagramRole;readonly part:string;readonly evidence:'content-type'|'relationship'|'both';readonly root:{readonly namespace:string;readonly localName:string}|null;readonly status:'matching'|'opaque'}
+export interface DiagramBinding {readonly role:DiagramRole;readonly attribute:string;readonly relationshipId:string|null;readonly reference:InspectionReference|null;readonly status:'internal'|'external'|'missing-id'|'missing-relationship'|'wrong-relationship-type'|'wrong-resource-type'|'opaque';readonly target:DiagramPart|null;readonly issues:readonly DiagramIssue[]}
+export interface DiagramObservation {readonly kind:'relIds'|'unknown-graphic'|'extension';readonly part:string;readonly path:readonly number[];readonly namespace:string;readonly localName:string;readonly uri:string|null;readonly active:boolean;readonly bindings:readonly DiagramBinding[];readonly issues:readonly DiagramIssue[]}
+export interface DiagramDetails {readonly kind:'diagrams';readonly parts:readonly DiagramPart[];readonly roles:readonly DiagramRoleEvidence[];readonly observations:readonly DiagramObservation[];readonly issues:readonly DiagramIssue[]}
+export interface DiagramRecord {readonly kind:'diagrams';readonly location:Location<'part'>;readonly name:string;readonly properties:readonly [];readonly references:readonly InspectionReference[];readonly support:'preserve';readonly details:DiagramDetails}
+export interface DiagramInspectionData {readonly items:readonly DiagramRecord[];readonly warnings:readonly InspectionWarning[]}
+const drawingNamespace='http://schemas.microsoft.com/office/drawing/2008/diagram';
+const roles:readonly DiagramRole[]=['data','layout','style','color','drawing'];
+const roleConfig:Readonly<Record<DiagramRole,{readonly mime:string;readonly relationship:string;readonly root:string}>>={
+ data:{mime:'application/vnd.openxmlformats-officedocument.drawingml.diagramdata+xml',relationship:'diagramData',root:'dataModel'},layout:{mime:'application/vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml',relationship:'diagramLayout',root:'layoutDef'},style:{mime:'application/vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml',relationship:'diagramQuickStyle',root:'styleDef'},color:{mime:'application/vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml',relationship:'diagramColors',root:'colorsDef'},drawing:{mime:'application/vnd.ms-office.drawingml.diagramdrawing+xml',relationship:'http://schemas.microsoft.com/office/2007/relationships/diagramDrawing',root:'drawing'}};
+const compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
+const reltype=(role:DiagramRole,dialect:DocumentDialect)=>role==='drawing'?roleConfig[role].relationship:documentDialects[dialect].r+'/'+roleConfig[role].relationship;
+const xmlPart=(part:PackagePart)=>part.content_type.toLowerCase().endsWith('+xml')||['application/xml','text/xml'].includes(part.content_type.toLowerCase());
+function issue(code:string,part:string,path:readonly number[],message:string,budget:DocumentBudget):DiagramIssue{budget.charge('work',1);budget.charge('diagnosticBytes',code.length+part.length+message.length+64);budget.charge('retainedBytes',128+(code.length+part.length+message.length)*2+path.length*8);return{code,part,path,message};}
+/** Censuses metadata-declared physical roles independently of body reachability. */
+export function diagramPartRoles(graph:DocumentPackage,dialect:DocumentDialect,budget:DocumentBudget):ReadonlyMap<string,readonly {readonly role:DiagramRole;readonly evidence:DiagramRoleEvidence['evidence']}[]> {
+ const evidence=new Map<string,Map<DiagramRole,{mime:boolean;relationship:boolean}>>();
+ const add=(part:string,role:DiagramRole,kind:'mime'|'relationship')=>{let found=evidence.get(part);if(!found){found=new Map();evidence.set(part,found);budget.charge('retainedBytes',96+part.length*2);}let record=found.get(role);if(!record){record={mime:false,relationship:false};found.set(role,record);budget.charge('retainedBytes',64);}record[kind]=true;};
+ for(const part of graph.parts){budget.charge('work',roles.length);for(const role of roles)if(part.content_type.toLowerCase()===roleConfig[role].mime)add(part.partname,role,'mime');}
+ for(const owner of ['/',...graph.parts.filter(p=>!p.content_type.toLowerCase().endsWith('relationships+xml')).map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',roles.length);if(!edge.is_external)for(const role of roles)if(edge.reltype===reltype(role,dialect))add(edge.target_part.partname,role,'relationship');}
+ return new Map([...evidence].sort(([a],[b])=>compare(a,b)).map(([name,found])=>[name,roles.filter(r=>found.has(r)).map(role=>({role,evidence:found.get(role)!.mime?found.get(role)!.relationship?'both' as const:'content-type' as const:'relationship' as const}))]));
+}
+async function hash(bytes:Uint8Array,budget:DocumentBudget):Promise<string>{budget.charge('work',bytes.length);budget.charge('retainedBytes',bytes.length+128);const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new Uint8Array(bytes)));budget.check('work',0);return [...digest].map(b=>b.toString(16).padStart(2,'0')).join('');}
+function location(sourceSha256:string,part:string,path:readonly number[]):Location<'part'>{const value={version:1 as const,sourceSha256,generation:0,part,story:part,path,range:null};return{kind:'part',value,token:encodeLocation(value),positions:{}};}
+export async function diagramDiagnosticLocation(input:Uint8Array,part:string,path:readonly number[],budget:DocumentBudget):Promise<Location<'part'>>{return location(await hash(input,budget),part,[...path]);}
+export class UnsupportedDiagramMutationError extends UnsupportedEditError {
+ readonly locations:readonly Location[];
+ constructor(readonly location:Location){super('Unsupported graphics mutation cannot establish faithful preservation.');this.locations=[location];}
+}
+/** Inventories opaque physical resources and owner-local graphics observations, never diagram layout. */
+export async function inspectDocumentDiagrams(input:Uint8Array,options:DocxOperationArguments<'diagrams.list'>,context:ArchiveContext):Promise<DiagramInspectionData>{
+ const settings=archiveSettings(context),invocation=validateDocxInvocation({operation:'diagrams.list',inputs:['document'],options},settings.budget),opts=invocation.options as DocxOperationArguments<'diagrams.list'>;
+ const budget=settings.budget.lower(Object.fromEntries((opts.limit??[]).map(l=>[l.name,l.value])));
+ if(!(input instanceof Uint8Array))throw new InputTypeError('Expected archive bytes.');budget.check('compressedInput',input.length);budget.charge('work',input.length);budget.charge('retainedBytes',input.length);const owned=new Uint8Array(input);
+ const archive=await readDocumentArchive(owned,{...settings,budget}),graph=archive.package,sourceSha256=await hash(owned,budget),candidates=diagramPartRoles(graph,archive.dialect,budget),roots=new Map<string,XmlElement>(),observations=new Map<string,readonly RawDiagramObservation[]>(),descriptors=new Map<string,DiagramPart>();
+ const root=(part:PackagePart)=>{if(!xmlPart(part))return null;let value=roots.get(part.partname);if(!value){value=parseDocumentXml(part.bytes,{},budget).root;roots.set(part.partname,value);}return value;};
+ for(const part of graph.parts){await budget.checkpoint(1);const parsed=root(part);if(parsed){const found=collectDiagramObservations(parsed,archive.dialect,part.partname,budget);if(found.length)observations.set(part.partname,found);}}
+ const descriptor=async(part:PackagePart):Promise<DiagramPart>=>{let found=descriptors.get(part.partname);if(!found){found={name:part.partname,contentType:part.content_type,bytes:part.bytes.length,sha256:await hash(part.bytes,budget)};budget.charge('retainedBytes',256+(found.name.length+found.contentType.length)*2);descriptors.set(part.partname,found);}return found;};
+ const roleEvidence=(name:string):readonly DiagramRoleEvidence[]=>{const entries=candidates.get(name)??[],parsed=root(graph.getPart(name));return entries.map(entry=>{budget.charge('retainedBytes',128);return{...entry,part:name,root:parsed?{namespace:parsed.namespace,localName:parsed.localName}:null,status:entries.length===1&&parsed?.namespace===(entry.role==='drawing'?drawingNamespace:documentDialects[archive.dialect].dgm)&&parsed.localName===roleConfig[entry.role].root?'matching' as const:'opaque' as const};});};
+ const allEdges:{owner:string;edge:PackageRelationship}[]=[];for(const owner of ['/',...graph.parts.filter(p=>!p.content_type.toLowerCase().endsWith('relationships+xml')).map(p=>p.partname)])for(const edge of graph.relationships(owner)){budget.charge('work',1);budget.charge('retainedBytes',32);allEdges.push({owner,edge});}
+ const reference=(owner:string,edge:PackageRelationship):InspectionReference=>{budget.charge('retainedBytes',128+(owner.length+edge.rId.length+edge.reltype.length+edge.target_ref.length)*2);return{owner,id:edge.rId,type:edge.reltype,target:edge.target_ref,external:edge.is_external};};
+ const items:DiagramRecord[]=[];
+ for(const name of [...new Set([...candidates.keys(),...observations.keys()])].sort(compare)){
+  await budget.checkpoint(1);const entries=roleEvidence(name),issues:DiagramIssue[]=[],found:DiagramObservation[]=[],seeds=new Set<string>(candidates.has(name)?[name]:[]);
+  for(const entry of entries)if(entry.status==='opaque')issues.push(issue(entries.length>1?'conflicting-diagram-role':'opaque-diagram-root',name,[],'The declared diagram role has conflicting evidence or an unsupported root.',budget));
+  for(const observation of observations.get(name)??[]){const bindings:DiagramBinding[]=[];for(const request of observation.requests){const edge=request.relationshipId?graph.relationships(name).find(e=>e.rId===request.relationshipId):undefined;let status:DiagramBinding['status']='internal',target:DiagramPart|null=null;if(edge&&!edge.is_external){target=await descriptor(edge.target_part);seeds.add(edge.target_part.partname);}if(!request.relationshipId)status='missing-id';else if(!edge)status='missing-relationship';else if(edge.reltype!==reltype(request.role,archive.dialect))status='wrong-relationship-type';else if(edge.is_external)status='external';else if(edge.target_part.content_type.toLowerCase()!==roleConfig[request.role].mime)status='wrong-resource-type';else if(roleEvidence(edge.target_part.partname).find(e=>e.role===request.role)?.status!=='matching')status='opaque';const bindingIssues=status==='internal'?[]:[issue('diagram-binding-'+status,name,observation.path,'The stored resource binding is unresolved or outside its native role.',budget)];budget.charge('retainedBytes',192);bindings.push({role:request.role,attribute:request.attribute,relationshipId:request.relationshipId,reference:edge?reference(name,edge):null,status,target,issues:bindingIssues});}
+   const {requests:ignored,...metadata}=observation;found.push({...metadata,bindings});
+  }
+  const visited=new Set<string>(),pending=[...seeds];while(pending.length){await budget.checkpoint(1);const next=pending.pop()!;if(visited.has(next))continue;visited.add(next);budget.charge('retainedBytes',96);for(const edge of graph.relationships(next)){budget.charge('work',1);if(!edge.is_external&&!visited.has(edge.target_part.partname)){pending.push(edge.target_part.partname);budget.charge('retainedBytes',16);}}}
+  const parts:DiagramPart[]=[];for(const partname of [...new Set([name,...visited])].sort(compare))parts.push(await descriptor(graph.getPart(partname)));
+  const references:InspectionReference[]=[];for(const record of allEdges){budget.charge('work',1);if(visited.has(record.owner)||!record.edge.is_external&&record.edge.target_part.partname===name)references.push(reference(record.owner,record.edge));}references.sort((a,b)=>compare(a.owner,b.owner)||compare(a.id,b.id)||compare(a.type,b.type)||compare(a.target,b.target));
+  const loc=location(sourceSha256,name,[]);budget.charge('matches',1);budget.charge('retainedBytes',512+loc.token.length*2);items.push({kind:'diagrams',name,location:loc,properties:[],references,support:'preserve',details:{kind:'diagrams',parts,roles:entries,observations:found,issues}});
+ }
+ const warnings:InspectionWarning[]=items.length?[{code:'preserve-only-graphics',message:'Diagram and opaque graphics inventory is physical metadata only; layout and semantic editing are unsupported.'}]:[];
+ const data={items,warnings};const size=measurePackageResourceSerialization({version:1,operation:'diagrams.list',ok:true,data,warnings,errors:[],affected:0,locations:items.map(i=>i.location)},budget);budget.charge('retainedBytes',size);return data;
+}
+/** Refuses changed resource bytes or changed opaque graphics before publication. */
+export async function assertDiagramXmlReplacement(archive:AdmittedDocumentArchive,original:XmlElement,replacement:XmlElement,input:Uint8Array,part:string,budget:DocumentBudget):Promise<void>{
+ if(diagramPartRoles(archive.package,archive.dialect,budget).has(part))throw new UnsupportedDiagramMutationError(await diagramDiagnosticLocation(input,part,[],budget));
+ const before=collectDiagramObservations(original,archive.dialect,part,budget),after=collectDiagramObservations(replacement,archive.dialect,part,budget);
+ const payload=(root:XmlElement,observation:RawDiagramObservation)=>{let node=root,enclosing:XmlElement|undefined;for(const index of observation.path){node=node.children[index]!;if(node.namespace===documentDialects[archive.dialect].w&&node.localName==='drawing')enclosing=node;}return enclosing??node;};
+ const equal=(a:XmlElement,b:XmlElement):boolean=>{
+  budget.charge('work',1+a.attributes.length+b.attributes.length+a.content.length+b.content.length);
+  if(a.name!==b.name||a.namespace!==b.namespace||a.localName!==b.localName||a.attributes.length!==b.attributes.length||a.namespaces.size!==b.namespaces.size||a.content.length!==b.content.length)return false;
+  for(const [prefix,uri] of a.namespaces)if(b.namespaces.get(prefix)!==uri)return false;
+  for(let i=0;i<a.attributes.length;i++){const x=a.attributes[i]!,y=b.attributes[i]!;budget.charge('work',x.value.length+y.value.length);if(x.name!==y.name||x.namespace!==y.namespace||x.value!==y.value)return false;}
+  for(let i=0;i<a.content.length;i++){const x=a.content[i]!,y=b.content[i]!;if(x.kind!==y.kind)return false;if(x.kind==='element'&&y.kind==='element'){if(!equal(x,y))return false;}else if('text' in x&&'text' in y){budget.charge('work',x.text.length+y.text.length);if(x.text!==y.text||('target' in x&&'target' in y&&x.target!==y.target))return false;}else if(measurePackageResourceSerialization(x,budget)!==measurePackageResourceSerialization(y,budget)||JSON.stringify(x)!==JSON.stringify(y))return false;}
+  return true;
+ };
+ for(let i=0;i<Math.max(before.length,after.length);i++){const previous=before[i],next=after[i];if(!previous||!next||previous.path.length!==next.path.length||previous.path.some((index,i)=>index!==next.path[i])||!equal(payload(original,previous),payload(replacement,next)))throw new UnsupportedDiagramMutationError(await diagramDiagnosticLocation(input,part,previous?.path??[],budget));}
+}
+/** Protects role/binding topology and inert closure resources during explicit raw replacement. */
+export async function assertDiagramGraphReplacement(archive:AdmittedDocumentArchive,candidate:DocumentPackage,input:Uint8Array,part:string,budget:DocumentBudget):Promise<void>{
+ const snapshot=(graph:DocumentPackage)=>{
+  const declared=diagramPartRoles(graph,archive.dialect,budget),pending=[...declared.keys()],bindings=new Set<string>();
+  for(const owner of graph.parts){if(!xmlPart(owner))continue;const root=parseDocumentXml(owner.bytes,{},budget).root;for(const observation of collectDiagramObservations(root,archive.dialect,owner.partname,budget))for(const request of observation.requests){bindings.add(owner.partname+'\u0000'+(request.relationshipId??''));const edge=request.relationshipId?graph.relationships(owner.partname).find(e=>e.rId===request.relationshipId):undefined;if(edge&&!edge.is_external)pending.push(edge.target_part.partname);}}
+  const visited=new Set<string>();while(pending.length){budget.charge('work',1);const name=pending.pop()!;if(visited.has(name))continue;visited.add(name);budget.charge('retainedBytes',96);for(const edge of graph.relationships(name)){budget.charge('work',1);if(!edge.is_external&&!visited.has(edge.target_part.partname))pending.push(edge.target_part.partname);}}
+  const edges:readonly (readonly (string|boolean)[])[]=[...graph.parts.filter(p=>!p.content_type.toLowerCase().endsWith('relationships+xml')).map(p=>p.partname),'/'].flatMap(owner=>graph.relationships(owner).filter(edge=>visited.has(owner)||!edge.is_external&&visited.has(edge.target_part.partname)||bindings.has(owner+'\u0000'+edge.rId)).map(edge=>{budget.charge('work',1);return[owner,edge.rId,edge.reltype,edge.target_ref,edge.is_external] as const;})).sort((a,b)=>compare(a[0],b[0])||compare(a[1],b[1])||compare(a[2],b[2])||compare(a[3],b[3]));
+  const value={declared:[...declared],bindings:[...bindings].sort(compare),edges};const size=measurePackageResourceSerialization(value,budget);budget.charge('retainedBytes',size*2);return{visited,value:JSON.stringify(value)};
+ };
+ const before=snapshot(archive.package),after=snapshot(candidate);
+ let changed=before.value!==after.value;
+ for(const name of new Set([...before.visited,...after.visited])){budget.charge('work',1);let previous:PackagePart,next:PackagePart;try{previous=archive.package.getPart(name);next=candidate.getPart(name);}catch{changed=true;break;}budget.charge('work',previous.bytes.length+next.bytes.length);if(previous.content_type!==next.content_type||previous.bytes.length!==next.bytes.length||previous.bytes.some((byte,i)=>byte!==next.bytes[i])){changed=true;break;}}
+ if(changed)throw new UnsupportedDiagramMutationError(await diagramDiagnosticLocation(input,part,[],budget));
+}

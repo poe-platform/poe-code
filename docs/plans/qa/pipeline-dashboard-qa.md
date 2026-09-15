@@ -175,3 +175,7 @@ Launch the actual CLI with the isolated activity-timeout fake and wait for first
 ## Tabs over existing terminal cells
 
 In cursor-controls, verify the tab preservation rows retain ABCDEF  X, red ABCDEF before a plain X, and 界界AB  X. Compare native terminal-model output for ABCDEF\r\tX with dashboard visible output: tab advances to column eight and preserves crossed text. Repeat wide/narrow/short resizing, PageUp/F and q; capture and inspect. Executed at 100x40 -> 100x24 -> 50x16 -> 30x10 -> 100x40, all controls/frame checks passed and q exited zero. Wide /tmp/pipeline-tab-preservation-100x40.png inspected; parser regressions independently verify retained color styles. Raster CJK font fallback remains separate from the proven cell geometry.
+
+## Erase-line progress output
+
+In cursor-controls, verify Erase-line fixture shows progress 50% with one percent sign, CSI 1K retains the DE suffix after blanking through the cursor, and wide glyphs are cleared as complete cells at both erase boundaries. Repeat wide/narrow/short resizing, PageUp/F and q. Compare the same inputs with terminal-pilot's independent terminal model; unit cases verify default, explicit-zero and C1 controls plus retained suffix styles. Executed at 100x40 -> 100x24 -> 50x16 -> 30x10 -> 100x40 with q zero; wide /tmp/pipeline-erase-line-100x40.png inspected.

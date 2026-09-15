@@ -217,6 +217,33 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it.each(["\u001b[K", "\u001b[0K", "\u009bK"])("erases stale progress text with %j", (erase) => {
+    expect(parseAnsi(`progress 100%\rprogress 50%${erase}`)).toEqual([
+      { segments: [{ text: "progress 50%", style: {} }] }
+    ]);
+  });
+
+  it("erases through the cursor while retaining the line suffix", () => {
+    expect(parseAnsi("ABCDE\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "   DE", style: {} }] }
+    ]);
+  });
+
+  it("erases complete wide glyphs at either side of the cursor", () => {
+    expect(parseAnsi("界界\b\u001b[KX")).toEqual([
+      { segments: [{ text: "界 X", style: {} }] }
+    ]);
+    expect(parseAnsi("界界AB\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "    AB", style: {} }] }
+    ]);
+  });
+
+  it("retains the styles outside the erased range", () => {
+    expect(parseAnsi("\u001b[31mABCDE\u001b[0m\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "   ", style: {} }, { text: "DE", style: { fg: "red" } }] }
+    ]);
+  });
+
   it("erases the current line for CSI 2 K", () => {
     const result = parseAnsi("before\u001b[2Kafter");
     expect(result).toEqual([

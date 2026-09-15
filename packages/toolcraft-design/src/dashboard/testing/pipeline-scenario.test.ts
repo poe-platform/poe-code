@@ -48,6 +48,7 @@ it("provides a settled Unicode cursor and control-sequence scenario", async () =
   expect(output).toContain("👩‍💻\bX");
   expect(output).toContain("a\tB\rX");
   expect(output).toContain("Tab preservation fixture\nABCDEF\r\tX");
+  expect(output).toContain("progress 100%\rprogress 50%\u001b[K");
   expect(output).toContain("Visible long DCS result");
   expect(output).toContain("Visible multiline OSC result");
   expect(output).toContain("Visible long CSI result");

@@ -99,6 +99,8 @@ if (scenario === "empty") {
   append("tool", "\u001b[0;\u001b[32mVisible restarted CSI result\u001b[0m");
   append("tool", "Tab preservation fixture\nABCDEF\r\tX");
   append("tool", "\u001b[31mABCDEF\u001b[0m\r\tX\n界界AB\r\tX");
+  append("tool", "Erase-line fixture\nprogress 100%\rprogress 50%\u001b[K\nABCDE\rXX\u001b[1K");
+  append("tool", "界界\b\u001b[KX\n界界AB\rXX\u001b[1K");
   append("success", "Cursor control fixture ready");
 } else {
   for (let index = 0; index < 200; index += 1) {

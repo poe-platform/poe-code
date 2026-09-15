@@ -100,8 +100,17 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
         const sgr = applySgr(style, concealed, parseParams(params), base);
         style = sgr.style;
         concealed = sgr.concealed;
-      } else if (finalByte === "K" && parseParams(params)[0] === 2) {
-        cells = [];
+      } else if (finalByte === "K") {
+        const mode = parseParams(params)[0];
+        if (mode === 0) {
+          clearCell(column);
+          cells.length = Math.min(cells.length, column);
+        } else if (mode === 1) {
+          const end = Math.min(column, cells.length - 1);
+          for (let position = 0; position <= end; position += 1) clearCell(position);
+        } else if (mode === 2) {
+          cells = [];
+        }
       }
 
       index = cursor + 1;

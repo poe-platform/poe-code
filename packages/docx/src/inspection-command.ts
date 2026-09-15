@@ -1,3 +1,5 @@
+import { executeObjectsCommand, ObjectCommandPublicationError } from "./objects-command.js";
+import { ObjectExtractionCancellationError, type ObjectExtractionData } from "./objects.js";
 import { inspectDocumentRevisions } from "./revisions.js";
 import { executeRevisionEditCommand } from "./revision-edit-command.js";
 import { executeRevisionDecisionCommand } from "./revision-decisions-command.js";
@@ -58,7 +60,7 @@ export interface DocxInspectionCommandRequest extends DocxCommandRequest {
 }
 export interface DocxInspectionCommandResult {
   readonly exitCode: number;
-  readonly extraction?: ImageExtractionData;
+  readonly extraction?: ImageExtractionData | ObjectExtractionData;
 }
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
@@ -83,13 +85,14 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
-      let imageReceipt: ImageExtractionData | undefined;
+      let imageReceipt: ImageExtractionData | ObjectExtractionData | undefined;
       const sinkFailure = (cause: unknown): DocxInspectionCommandResult => {
         if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: 3 }; }
         const extraction = { ...imageReceipt, complete: false };
         if (request.signal.aborted || cause instanceof CancellationError) {
           const published = [...extraction.entries.filter(entry => entry.published).map(entry => ({ path: entry.path, bytes: entry.bytes })), ...(extraction.manifest.published ? [{ path: extraction.manifest.path, bytes: extraction.manifest.bytes }] : [])];
-          throw new ImageExtractionCancellationError(cause instanceof CancellationError ? cause : new CancellationError("Image output cancelled.", { cause }), extraction, published);
+          const ErrorType = invocation.operation === "objects.extract" ? ObjectExtractionCancellationError : ImageExtractionCancellationError;
+          throw new ErrorType(cause instanceof CancellationError ? cause : new CancellationError("Resource output cancelled.", { cause }), extraction, published);
         }
         return { exitCode: 3, extraction };
       };
@@ -105,6 +108,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const listOperation = ["lists.add", "lists.set"].includes(invocation.operation);
       const storyOperation = ["headers.list", "headers.get", "headers.set", "headers.remove", "footers.list", "footers.get", "footers.set", "footers.remove"].includes(invocation.operation);
       const propertyOperation = ["properties.list", "properties.get", "properties.set", "properties.remove"].includes(invocation.operation);
+      const objectOperation = ["objects.list", "objects.extract"].includes(invocation.operation);
       const imageOperation = ["images.list", "images.get", "images.extract"].includes(invocation.operation);
       const imageInsertionOperation = invocation.operation === "images.add";
       const imageReplacementOperation = invocation.operation === "images.replace";
@@ -114,7 +118,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const diagramOperation = invocation.operation === "diagrams.list";
       const equationOperation = ["equations.list", "equations.add", "equations.replace"].includes(invocation.operation);
       const equationEditOperation = equationOperation && invocation.operation !== "equations.list";
-      const packageResourceOperation = equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const packageResourceOperation = objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -129,7 +133,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if ((equationEditOperation || invocation.operation === "images.extract" || imageInsertionOperation || imageReplacementOperation || imageLayoutOperation) && input !== "-" && request.filesystem.lstat) {
+        if ((equationEditOperation || ["images.extract", "objects.extract"].includes(invocation.operation) || imageInsertionOperation || imageReplacementOperation || imageLayoutOperation) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -145,7 +149,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = equationOperation ? await executeEquationsCommand(invocation, bytes, inputIdentity, request, context, io)
+          output = objectOperation ? await executeObjectsCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
+            : equationOperation ? await executeEquationsCommand(invocation, bytes, inputIdentity, request, context, io)
             : diagramOperation ? await executeDiagramsCommand(invocation, bytes, request, context)
             : chartOperation ? await executeChartsCommand(invocation, bytes, request, context)
             : shapeOperation ? await executeShapesCommand(invocation, bytes, inputIdentity, request, context)
@@ -247,7 +252,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         }
         }
       } catch (error) {
-        if (invocation.operation === "images.extract" && error instanceof ImageExtractionCancellationError) throw error;
+        if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
         request.signal.throwIfAborted();
         if (error instanceof CancellationError) throw error;
         if (writingDiagnostics) return { exitCode: 3 };
@@ -255,7 +260,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
-        const imageFailure = invocation.operation === "images.extract" && error instanceof ImageCommandPublicationError ? error : undefined;
+        const imageFailure = ["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageCommandPublicationError || error instanceof ObjectCommandPublicationError) ? error : undefined;
         const locatedFailure = error instanceof UnsupportedDiagramMutationError || error instanceof UnsupportedEquationMutationError ? error : undefined;
         if (imageFailure) imageReceipt = imageFailure.data;
         output = imageFailure ? imageFailure.responseBytes : locatedFailure && invocation.options.json === true

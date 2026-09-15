@@ -119,6 +119,14 @@ Tracked creation, acceptance/rejection, revision batches and live owners remain
 pending. This supersedes the earlier text-read limitation on property history
 only for the supported direct snapshots.
 
+The bounded [inert object milestone](../plans/docx-inert-objects.md) implements
+`objects.list` and `objects.extract`: OLE/package bindings, shared owner and preview
+metadata, exact VFS payload extraction and redacted security reports. Object
+inventory without selectors is package-global; explicit story/owner selectors
+narrow stored occurrences. Embedded binaries remain opaque and previews remain
+preserved. This does not implement live owners, object batches, activation or
+whole-public-API coverage.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong

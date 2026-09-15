@@ -199,3 +199,13 @@ and timestamps from model values and document-generation identity. It does not
 promote `CoreProperties.revision` or any text/traversal, inherited, collection,
 enum/helper or public underscore-prefixed model member. Tracked creation,
 accept/reject and later tasks remain pending; the pinned inventory is unchanged.
+
+The bounded [inert object utility record](../plans/docx-inert-objects.md) adds
+objects.list/extract with exact async byte/VFS mappings, redacted external targets,
+unknown embedded macro/protection state, original workbook/preview graphs and
+truthful extraction receipts. This resolves the earlier unimplemented utility
+status only for the verified F40 subset. No dedicated live embedding owner occurs
+in the pin; inherited Part/XmlPart and Package/OpcPackage members, inline-shape
+enums, collections, helpers and public underscore-prefixed members retain their
+existing explicit dispositions. Historical source/test evidence and documentation
+errors are preserved; later tasks and whole-model coverage remain pending.

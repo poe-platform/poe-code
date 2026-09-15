@@ -198,3 +198,13 @@ boundaries. New source/docs evidence must add or correct rows. Detailed target
 signatures, transitive errors, feature-to-command coverage, original test
 adaptation, product behavior, screenshots and corpus cleanup remain later tasks.
 No `implemented` disposition or parity claim is justified by this inventory.
+
+The bounded [inert object utility record](../plans/docx-inert-objects.md) adds
+objects.list/extract with exact async byte/VFS mappings, redacted external targets,
+unknown embedded macro/protection state, original workbook/preview graphs and
+truthful extraction receipts. This resolves the earlier unimplemented utility
+status only for the verified F40 subset. No dedicated live embedding owner occurs
+in the pin; inherited Part/XmlPart and Package/OpcPackage members, inline-shape
+enums, collections, helpers and public underscore-prefixed members retain their
+existing explicit dispositions. Historical source/test evidence and documentation
+errors are preserved; later tasks and whole-model coverage remain pending.

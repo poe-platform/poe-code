@@ -10452,7 +10452,22 @@
       "operationIds": ["objects.list", "objects.extract"],
       "tests": ["feature.F40"],
       "implemented": false,
-      "sdkRows": []
+      "sdkRows": [],
+      "boundedUtility": {
+        "status": "bounded-implemented",
+        "operations": [
+          "objects.list",
+          "objects.extract"
+        ],
+        "evidence": "../plans/docx-inert-objects.md",
+        "tests": [
+          "packages/docx/src/objects.test.ts",
+          "packages/docx/src/objects-command.test.ts",
+          "packages/docx/src/object-operation-contract.test.ts",
+          "packages/safe-bash/tests/commands/docx/objects.test.ts"
+        ],
+        "limitations": "Opaque embedded binaries; no activation, linked fetch, live owners or model batches. Historical full-contract status remains separate."
+      }
     },
     {
       "id": "F41",
@@ -21401,6 +21416,21 @@
         "fields": {},
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedUtility": {
+        "status": "bounded-implemented",
+        "operations": [
+          "objects.list",
+          "objects.extract"
+        ],
+        "evidence": "../plans/docx-inert-objects.md",
+        "tests": [
+          "packages/docx/src/objects.test.ts",
+          "packages/docx/src/objects-command.test.ts",
+          "packages/docx/src/object-operation-contract.test.ts",
+          "packages/safe-bash/tests/commands/docx/objects.test.ts"
+        ],
+        "limitations": "Opaque embedded binaries; no activation, linked fetch, live owners or model batches. Historical full-contract status remains separate."
       }
     },
     "signatures.list": {
@@ -22171,6 +22201,21 @@
         "fields": {},
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedUtility": {
+        "status": "bounded-implemented",
+        "operations": [
+          "objects.list",
+          "objects.extract"
+        ],
+        "evidence": "../plans/docx-inert-objects.md",
+        "tests": [
+          "packages/docx/src/objects.test.ts",
+          "packages/docx/src/objects-command.test.ts",
+          "packages/docx/src/object-operation-contract.test.ts",
+          "packages/safe-bash/tests/commands/docx/objects.test.ts"
+        ],
+        "limitations": "Opaque embedded binaries; no activation, linked fetch, live owners or model batches. Historical full-contract status remains separate."
       }
     },
     "signatures.remove": {

@@ -10,6 +10,7 @@ import {
   type OAuthClientProviderOptions,
 } from "mcp-oauth";
 import type { Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
+import { encodeHeaderValue } from "tiny-stdio-mcp-server/headers";
 import {
   OAuthMetadataDiscovery,
   parseBearerWwwAuthenticateHeader,
@@ -2620,11 +2621,18 @@ export class HttpTransport implements McpTransport {
   }
 
   private async sendPost(line: string): Promise<void> {
-    const hasSessionId = this.sessionId !== undefined;
+    const parsed = parseJsonRpcMessage(line);
+    const message =
+      parsed.type === "request" || parsed.type === "notification" ? parsed.message : undefined;
+    const metadata = isObjectRecord(message?.params) ? message.params._meta : undefined;
+    const modern =
+      isObjectRecord(metadata) &&
+      typeof metadata["io.modelcontextprotocol/protocolVersion"] === "string";
+    const hasSessionId = !modern && this.sessionId !== undefined;
     const response = await this.fetchWithOAuthRetry({
       method: "POST",
-      createHeaders: () => this.createPostHeaders(),
-      body: line,
+      createHeaders: () => this.createPostHeaders(message, modern),
+      body: line
     });
 
     if (this.disposed) {
@@ -2638,23 +2646,58 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
-    await this.throwForPostHttpError(response);
+    if (
+      await this.throwForPostHttpError(
+        response,
+        modern && parsed.type === "request" ? parsed.message : undefined
+      )
+    )
+      return;
     if (this.disposed) {
       await response.body?.cancel();
       return;
     }
-    this.captureSessionId(response);
-    this.maybeOpenGetSseStream();
+    if (!modern) {
+      this.captureSessionId(response);
+      this.maybeOpenGetSseStream();
+    }
     void this.forwardResponseMessages(response).catch((error) => {
       this.dispose(error instanceof Error ? error : new Error(String(error)));
     });
   }
 
-  private async createPostHeaders(): Promise<Headers> {
+  private async createPostHeaders(
+    message?: JsonRpcRequest | JsonRpcNotification,
+    modern = false
+  ): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Accept", "application/json, text/event-stream");
     headers.set("Content-Type", "application/json");
-    if (this.sessionId !== undefined) {
+    if (
+      modern &&
+      message !== undefined &&
+      isObjectRecord(message.params) &&
+      isObjectRecord(message.params._meta)
+    ) {
+      headers.delete("Mcp-Session-Id");
+      headers.delete("Last-Event-ID");
+      headers.set(
+        "MCP-Protocol-Version",
+        message.params._meta["io.modelcontextprotocol/protocolVersion"] as string
+      );
+      if ("id" in message) {
+        headers.set("Mcp-Method", message.method);
+        const name = message.method === "resources/read" ? message.params.uri : message.params.name;
+        if (
+          (message.method === "tools/call" ||
+            message.method === "resources/read" ||
+            message.method === "prompts/get") &&
+          typeof name === "string"
+        )
+          headers.set("Mcp-Name", encodeHeaderValue(name));
+        else headers.delete("Mcp-Name");
+      }
+    } else if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
       headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
@@ -2777,16 +2820,31 @@ export class HttpTransport implements McpTransport {
     return;
   }
 
-  private async throwForPostHttpError(response: Response): Promise<void> {
+  private async throwForPostHttpError(
+    response: Response,
+    request?: JsonRpcRequest
+  ): Promise<boolean> {
     if (response.status < 400) {
-      return;
+      return false;
     }
 
     const responseBody = (await response.text()).trim();
+    if (request !== undefined && responseBody.length > 0) {
+      const parsed = parseJsonRpcMessage(responseBody);
+      if (
+        parsed.type === "response" &&
+        "error" in parsed.message &&
+        parsed.message.id === request.id
+      ) {
+        this.writeReadableLine(responseBody);
+        return true;
+      }
+    }
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
-    const message = responseBody.length === 0
-      ? `HTTP transport POST failed (${statusDescriptor})`
-      : `HTTP transport POST failed (${statusDescriptor}): ${responseBody}`;
+    const message =
+      responseBody.length === 0
+        ? `HTTP transport POST failed (${statusDescriptor})`
+        : `HTTP transport POST failed (${statusDescriptor}): ${responseBody}`;
     throw new Error(message);
   }
 

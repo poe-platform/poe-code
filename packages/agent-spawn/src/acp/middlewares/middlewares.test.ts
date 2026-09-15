@@ -38,6 +38,27 @@ function createContext(overrides: Partial<SpawnContext> = {}): SpawnContext {
 }
 
 describe("acp/middlewares/sessionCapture", () => {
+  it("captures a large live text burst within the interactive latency budget", async () => {
+    const ctx = createContext();
+    const text = "response word ".repeat(20);
+    ctx.eventStream = (async function* () {
+      for (let index = 0; index < 8_000; index++) yield { event: "agent_message", text } as AcpEvent;
+    })();
+    await sessionCapture(ctx, async () => {});
+    const startedAt = performance.now();
+    let count = 0;
+    for await (const event of ctx.eventStream!) {
+      count++;
+      if (count === 1) expect(ctx.sessionResult?.output).toBe(text);
+      expect(event.event).toBe("agent_message");
+    }
+    expect(performance.now() - startedAt).toBeLessThan(1_000);
+    expect(count).toBe(8_000);
+    expect(ctx.sessionResult?.messages).toHaveLength(count);
+    expect(ctx.sessionResult?.output.length).toBe(count * text.length + count - 1);
+    expect(ctx.sessionResult?.output.endsWith("\n" + text)).toBe(true);
+  });
+
   it("accumulates events and builds sessionResult while preserving event stream", async () => {
     const sourceEvents: AcpEvent[] = [
       { event: "session_start", threadId: "thread-123" },

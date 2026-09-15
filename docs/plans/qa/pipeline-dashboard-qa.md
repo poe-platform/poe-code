@@ -105,3 +105,7 @@ Exercise runPoeCommand with an in-memory fake execution environment yielding 1,0
 ### Tiny terminal recovery
 
 Launch the maintained Unicode/ANSI fixture at 100x24, then resize successively to 40x10, 20x6, 10x5, 5x3, 2x2, and 1x1. Capture and inspect each terminal screen. Expect whole q Quit at ten columns, q at five, intact borders wherever geometry permits, and no crash at one cell. Resize back to 100x24 and verify the full Unicode/ANSI frame recovers, including normalized carriage-return progress and tab columns. Press q and verify exit 0/restored primary screen. Verified locally after footer fix; unsupported font glyphs still use placeholders in raster screenshots.
+
+### Session aggregation and sustained live history
+
+Feed sessionCapture 8,000 fake text events of 280 characters each, consuming its wrapped stream. Verify live first-message output, unchanged complete messages, final output length 2,247,999, and elapsed time comfortably within one second. Local measured improvement: 2,231ms to 10ms. Then launch actual CLI with external fake burst mode, hold PageUp history for twenty seconds, verify held log area stays unchanged, resize to 50x16, press F, inspect a current-response screenshot, and quit. Verify exit 130, open task, zero completed usage, stopped child, and primary-screen restoration. Avoid treating the tsx launcher RSS alone as whole-process memory.

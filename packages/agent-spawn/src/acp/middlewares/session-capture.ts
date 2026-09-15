@@ -30,7 +30,7 @@ function updateSessionFromEvent(
     }
 
     ctx.sessionResult.messages.push(text);
-    ctx.sessionResult.output = ctx.sessionResult.messages.join("\n");
+    ctx.sessionResult.output += (ctx.sessionResult.messages.length > 1 ? "\n" : "") + text;
     return;
   }
 

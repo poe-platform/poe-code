@@ -721,3 +721,15 @@ zip-format.test.ts:568: indexed Buffer mutation was possibly undefined under
 noUncheckedIndexedAccess. Corrected the known allocated-byte access without
 changing the corruption scenario. All 132 format tests pass; source/test
 historical type verification must be repeated after integrating this correction.
+
+## Basic help argument behavior
+
+Native Unix Zip captures validate h/help/hel, quiet groups, immediate success
+before later unsupported arguments, earlier argument errors, negation/value
+rejection and literal termination. Eight new success cases failed before the
+change. Added basic usage as a parser information result; no filesystem access
+is needed. Fourteen memory tests include denied filesystem methods and ZIPOPT
+ordering. All 809 focused ZIP/unzip tests, scoped ESLint and virtual-bash
+production build closure pass. Inspected /tmp/zip-help-cli.png for aligned,
+readable usage and supported options. Extended help, version, license and
+show-options behavior remain separate open requirements.

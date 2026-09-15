@@ -3,7 +3,7 @@ export class ZipFailure extends Error {
 }
 
 const longOptions: Readonly<Record<string, string>> = {
-  "recurse-paths": "r", quiet: "q", "junk-paths": "j", paths: "p", "no-dir-entries": "D",
+  "recurse-paths": "r", quiet: "q", "junk-paths": "j", paths: "p", help: "h", "no-dir-entries": "D",
   symlinks: "y", test: "T", "names-stdin": "@", update: "u", freshen: "f", filesync: "FS", "archive-comment": "z", "entry-comments": "c", "latest-time": "o", move: "m", "to-crlf": "l",
   delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
@@ -17,7 +17,7 @@ const reservedOptions = [
   "adjust-sfx", "temp-path", "display-bytes", "display-counts",
   "display-dots", "display-globaldots", "dot-size", "display-usize", "display-volume",
   "difference-archive", "encrypt", "fix", "fixfix", "fifo",
-  "grow", "help", "more-help", "junk-sfx",
+  "grow", "more-help", "junk-sfx",
   "DOS-names", "from-crlf", "logfile-path", "log-append", "log-info",
   "license",
   "password", "regex", "split-size", "split-pause",

@@ -278,3 +278,16 @@ nonnegation. Scoped ESLint passed. Independent native/actual virtual stdout
 archive comparison confirms identical selected names and payloads for single
 and double-star patterns. Filesystem operand glob expansion and recursive-pattern
 mode remain open, alongside streaming and other option/format areas.
+
+## Recursive-pattern selection
+
+Native Unix Zip does not expand quoted filesystem operands; validated existing
+status-12 behavior rather than introducing nonnative glob expansion. Native -R
+scans current directory and matches trailing path components. Implemented the
+public Info-ZIP fileio.c filter algorithm: R and i must both match, x wins.
+Source: https://github.com/LuaDist/zip/blob/master/fileio.c (filter).
+472 focused ZIP/unzip tests pass, including basename and path-tail patterns,
+hidden files, directory names, aliases, ws interaction, include/exclude priority,
+-r/R conflicts, absent patterns and no-match nonpublication. Native captures
+validate these results. Scoped lint passed. Remaining argument, diagnostic,
+streaming and format areas remain open.

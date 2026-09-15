@@ -96,19 +96,25 @@ function tokenize(pattern: string, noWild: boolean, stopAtDirectories: boolean):
 export class Selection {
   private work = 0;
   private readonly patterns: readonly Token[][];
+  private readonly tailComponents: readonly number[];
+  private readonly emptyTailMatch: readonly boolean[];
   readonly matched = new Set<number>();
-  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal, private readonly options: { noWild?: boolean; stopAtDirectories?: boolean } = {}) {
+  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal, private readonly options: { noWild?: boolean; stopAtDirectories?: boolean; trailingComponents?: boolean } = {}) {
     this.patterns = patterns.map(pattern => tokenize(pattern, options.noWild === true, options.stopAtDirectories === true));
+    this.tailComponents = patterns.map(pattern => pattern.split("/").length);
+    this.emptyTailMatch = patterns.map(pattern => !options.noWild && (pattern === "*" || options.stopAtDirectories === true && pattern === "**"));
   }
   private step(): void {
     if (++this.work > this.limits.maxPatternSteps) fail("pattern work limit exceeded");
   }
   async matches(name: string, firstMatchOnly = false): Promise<boolean> {
     if (!this.patterns.length) return true;
-    const characters = Array.from(name);
+    const fullCharacters = Array.from(name);
     let selected = false;
     for (let pattern = 0; pattern < this.patterns.length; pattern++) {
       this.step();
+      const characters = this.options.trailingComponents ? Array.from(name.split("/").slice(-this.tailComponents[pattern]!).join("/")) : fullCharacters;
+      if (this.options.trailingComponents && !characters.length && !this.emptyTailMatch[pattern]) continue;
       let states = new Uint8Array(characters.length + 1);
       states[0] = 1;
       for (const token of this.patterns[pattern]!) {

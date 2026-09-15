@@ -8,7 +8,7 @@ const longOptions: Readonly<Record<string, string>> = {
   delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
   "compress-5": "5", "compress-6": "6", "compress-7": "7", "compress-8": "8",
-  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd", "no-wild": "nw", "wild-stop-dirs": "ws",
+  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd", "no-wild": "nw", "wild-stop-dirs": "ws", "recurse-patterns": "R",
 };
 
 // Include unimplemented Unix options when resolving abbreviations: a partial
@@ -20,7 +20,7 @@ const reservedOptions = [
   "grow", "help", "more-help", "junk-sfx",
   "DOS-names", "to-crlf", "from-crlf", "logfile-path", "log-append", "log-info",
   "license", "move", "must-match", "latest-time", "output-file",
-  "paths", "password", "recurse-patterns", "regex", "split-size", "split-pause",
+  "paths", "password", "regex", "split-size", "split-pause",
   "split-verbose", "split-bell", "show-command", "show-debug", "show-files",
   "show-options", "from-date", "before-date", "unzip-command", "copy-entries",
   "verbose", "version", "archive-comment",

@@ -232,6 +232,13 @@ literally; `?` retains wildcard behavior, matching the native Unix build.
 These controls apply to include, exclude and archive-delete patterns and
 are not negatable. Default UnZip pattern behavior is unchanged.
 
+`-R` / `--recurse-patterns` scans the current directory recursively and treats
+operands as selection patterns. Each pattern tests the same number of trailing
+path components as it contains; explicit include patterns must also match and
+exclusions take precedence. Hidden files participate. `-R` requires patterns
+and cannot be combined with `-r`. Quoted filesystem globs without `-R` are
+literal operands, matching native Unix Zip.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

@@ -1202,3 +1202,36 @@ test("zip wildcard directory control applies to exclusion patterns", async () =>
   assert.equal(archive.entries.some(entry => entry.name === "top.txt"), false);
   assert.equal(archive.entries.some(entry => entry.name === "folder/nested.txt"), true);
 });
+
+for (const [options, patterns, expected] of [
+  [["-R"], ["*.txt"], [".hidden.txt", "folder/sub/three.txt", "folder/two.txt", "other/folder/four.txt", "one.txt"]],
+  [["--recurse-patterns"], ["folder/*.txt"], ["folder/two.txt", "other/folder/four.txt"]],
+  [["-R"], ["folder/**.txt"], ["folder/two.txt", "other/folder/four.txt"]],
+  [["-Rws"], ["*.txt"], [".hidden.txt", "folder/sub/three.txt", "folder/two.txt", "other/folder/four.txt", "one.txt"]],
+  [["-R"], ["folder/"], ["folder/", "other/folder/"]],
+  [["-R"], ["*.txt", "-i", "folder/*"], ["folder/sub/three.txt", "folder/two.txt"]],
+  [["-R"], ["*.txt", "-x", "folder/*"], [".hidden.txt", "one.txt", "other/folder/four.txt"]],
+] as const) {
+  test(`zip recursive-pattern selection ${options.join(" ")} ${patterns.join(" ")}`, async () => {
+    const fs = await fixture();
+    await fs.mkdir("/work/folder/sub", { recursive: true });
+    await fs.mkdir("/work/other/folder", { recursive: true });
+    for (const name of [".hidden.txt", "one.txt", "folder/two.txt", "folder/sub/three.txt", "other/folder/four.txt"]) await fs.writeFile(`/work/${name}`, Buffer.from("x"));
+    const result = await execute("zip", fs, ["-q", ...options, "recursive.zip", ...patterns]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/recursive.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name).sort(), [...expected].sort());
+  });
+}
+for (const options of [["-R"], ["-rR", "*.txt"], ["-Rr", "*.txt"]]) {
+  test(`zip rejects incomplete or conflicting recursive-pattern invocation ${options.join(" ")}`, async () => {
+    const result = await execute("zip", await fixture(), ["-q", options[0]!, "recursive.zip", ...options.slice(1)]);
+    assert.equal(result.exitCode, 16);
+  });
+}
+test("zip recursive patterns with no matches leave archive unpublished", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qR", "recursive.zip", "*.absent"]);
+  assert.equal(result.exitCode, 12);
+  await assert.rejects(fs.stat("/work/recursive.zip"), { code: "ENOENT" });
+});

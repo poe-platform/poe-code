@@ -15,6 +15,7 @@ interface ZipOptions {
   readonly action: "add" | "delete" | "update" | "freshen";
   readonly archive: string;
   readonly recursive: boolean;
+  readonly recursivePatterns: boolean;
   readonly noWild: boolean;
   readonly stopAtDirectories: boolean;
   readonly quiet: boolean;
@@ -58,6 +59,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let archive: string | undefined;
   let action: ZipOptions["action"] = "add";
   let recursive = false;
+  let recursivePatterns = false;
   let noWild = false;
   let stopAtDirectories = false;
   let quiet = false;
@@ -87,7 +89,11 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
-        if (flag === "r") recursive = true;
+        if (flag === "r" || flag === "R") {
+          if (flag === "r") recursive = true;
+          else recursivePatterns = true;
+          if (recursive && recursivePatterns) throw new ZipFailure(16, "Invalid command arguments", "do not specify both -r and -R");
+        }
         else if (flag === "f" && argument[offset + 1] === "d") {
           if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option fd is not negatable");
           descriptors = true;
@@ -203,7 +209,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { action, archive, recursive, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
+  return { action, archive, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -282,6 +289,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
   const deleted = new Set<string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+  const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
@@ -340,7 +348,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
     if (directory && name && !name.endsWith("/")) name += "/";
-    const included = await filterName(name, selection, parsed.includes.length);
+    const included = await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     const prior = old.get(name);
@@ -369,7 +377,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink });
       }
     }
-    if (directory && parsed.recursive) {
+    if (directory && (parsed.recursive || parsed.recursivePatterns)) {
       if (ancestors.some(ancestor => ancestor.path === canonical || sameIdentity(ancestor.stat, stat))) fail(`directory cycle while archiving: ${source}`);
       ancestors.push({ path: canonical, stat });
       try {
@@ -386,8 +394,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (parsed.action === "delete") {
     if (!parsed.quiet && parsed.recursive) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
     if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
-    const operands = new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
-    if (parsed.operands.length) {
+    const operands = new Selection(parsed.recursivePatterns ? [] : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+    if (parsed.operands.length && !parsed.recursivePatterns) {
       for (const entry of archive.entries) {
         if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length)) deleted.add(entry.name);
       }
@@ -399,10 +407,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
   } else {
     const operands = parsed.operands.length || parsed.action === "add" ? parsed.operands : archive.entries.map(entry => entry.name);
-    for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
+    if (parsed.recursivePatterns) await visit(".", "", 0);
+    else for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
   }
   if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
-  if (!selected.size && !deleted.size && (parsed.action === "delete" || !parsed.includes.length)) {
+  if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.recursivePatterns || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${context.args.slice(0, parsed.firstOperand).join(" ")} . -i ${context.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;

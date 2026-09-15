@@ -9,6 +9,28 @@ import type { FileSystem, InvocationCleanup } from "../../src/contracts/index.js
 import { archiveBytes, binary, compressed, execute, fixture, members, readOnlyArchive } from "./zip-standard-flags.helpers.js";
 import { readZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
+import { deflateRawSync } from "node:zlib";
+
+for (let level = 0; level <= 9; level++) {
+  test(`zip -q${level} applies the requested compression level`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, [`-q${level}`, "output.zip", "folder/data"]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    const entry = archive.entries[0]!;
+    assert.equal(entry.method, level === 0 ? 0 : 8);
+    assert.deepEqual(Buffer.from(entry.data), level === 0 ? compressed : deflateRawSync(compressed, { level }));
+    assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, compressed);
+  });
+}
+
+test("zip uses the last compression level even after operands", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-9", "output.zip", "folder/data", "-0"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries[0]!.method, 0);
+});
 
 for (const { args, names } of [
   { args: ["-qr", "output.zip", "folder", "binary", "-x", "folder/*"], names: ["binary"] },

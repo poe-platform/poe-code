@@ -324,7 +324,7 @@ export async function* decodeZipEntry(entry: ZipEntry, limits: ArchiveLimits, si
   } finally { await reader.close(); }
 }
 
-export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean }, limits: ArchiveLimits, signal: AbortSignal): Promise<ZipEntry> {
+export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: { modified: Date; mode: number; directory: boolean; symlink: boolean }, limits: ArchiveLimits, signal: AbortSignal, level = 6): Promise<ZipEntry> {
   const chunkSize = admit(limits, signal);
   const entry: ZipEntry = { name, data: bytes, size: bytes.length, method: 0, crc32: 0, ...attributes, modified: new Date(attributes.modified.getTime()) };
   entryBounds(entry, limits);
@@ -334,10 +334,10 @@ export async function makeZipEntry(name: string, bytes: Uint8Array, attributes: 
   }
   const reader = new CodecReader((async function* () { yield bytes; })(), signal);
   try {
-    if (bytes.length && !entry.directory && !entry.symlink) {
+    if (level !== 0 && bytes.length && !entry.directory && !entry.symlink) {
       const chunks: Uint8Array[] = [];
       let length = 0;
-      for await (const chunk of codec(reader, { mode: "deflate-raw", chunkSize }, signal)) {
+      for await (const chunk of codec(reader, { mode: "deflate-raw", chunkSize, level }, signal)) {
         length += chunk.length;
         if (length >= bytes.length) break;
         chunks.push(new Uint8Array(chunk));

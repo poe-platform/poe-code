@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+`zip [-r] [-q] [-j] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
 creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
@@ -23,6 +23,12 @@ status. Commands use only the supplied virtual filesystem: no native executable,
 implicit filesystem access or network fallback.
 
 ## Quiet creation and byte streaming
+
+`-0` stores files without compression; `-1` through `-9` select DEFLATE effort,
+from fastest to maximum compression. The default is `-6`. The last level wins,
+including flags after operands and grouped flags such as `-q9r`. Files that do
+not compress smaller remain stored. Compression levels do not promise identical
+archive bytes to Info-ZIP.
 
 `zip -j` stores files by basename, discarding their directory paths and omitting
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for

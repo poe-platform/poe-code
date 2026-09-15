@@ -16,6 +16,7 @@ interface ZipOptions {
   readonly junkPaths: boolean;
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
+  readonly level: number;
   readonly operands: readonly string[];
   readonly firstOperand: number;
 }
@@ -46,6 +47,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   let recursive = false;
   let quiet = false;
   let junkPaths = false;
+  let level = 6;
   let literal = false;
   let firstOperand = -1;
   const operands: string[] = [];
@@ -63,6 +65,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
         if (flag === "r") recursive = true;
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
+        else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
         else if (flag === "i" || flag === "x") {
           const patterns = flag === "i" ? includes : excludes;
           const before = patterns.length;
@@ -91,11 +94,11 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       operands.push(argument);
     }
   }
-  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] ARCHIVE FILES...");
+  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]");
   if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
-  return { archive, recursive, quiet, junkPaths, includes, excludes, operands, firstOperand };
+  return { archive, recursive, quiet, junkPaths, includes, excludes, level, operands, firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -194,7 +197,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         const current = await scope.operation(() => context.fs.stat(path, { signal: context.signal }));
         const currentPath = await scope.operation(() => context.fs.realpath(path, { signal: context.signal }));
         if (currentPath !== canonical || !unchanged(stat, current)) fail(`source changed while reading: ${source}`);
-        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink: false }, limits, context.signal);
+        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink: false }, limits, context.signal, parsed.level);
         if ([".z", ".zip", ".zoo", ".arc", ".lzh", ".arj"].some(suffix => name.toLowerCase().endsWith(suffix))) entry = { ...entry, method: 0, data: bytes };
         const prior = old.get(name);
         if (prior?.comment) entry = { ...entry, comment: prior.comment };

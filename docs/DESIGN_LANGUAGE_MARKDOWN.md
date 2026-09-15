@@ -67,10 +67,19 @@ renderNotice({ level: "info", text: "Working" }, 40);
 ```
 
 ```markdown
+Recent activity
+  Run tests
+  Finish
+▾ ● Pipeline
+  ▾ ✓ Tests · 20ms
+▾ Tools
+  │ Read source
 ● Upload 75%
 ● Agent working …
 2 ms ▁▄▂█▅▄▂▁
 ▲ Retrying; output remains focused
+g Toggle group
+Focus: palette
 ```
 
 ## Layout Patterns

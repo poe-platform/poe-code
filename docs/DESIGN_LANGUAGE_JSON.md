@@ -67,10 +67,19 @@ renderNotice({ level: "info", text: "Working" }, 40);
 ```
 
 ```json
+{"type":"primitive","text":"Recent activity"}
+{"type":"primitive","text":"  Run tests"}
+{"type":"primitive","text":"  Finish"}
+{"type":"primitive","text":"▾ ● Pipeline"}
+{"type":"primitive","text":"  ▾ ✓ Tests · 20ms"}
+{"type":"primitive","text":"▾ Tools"}
+{"type":"primitive","text":"  │ Read source"}
 {"type":"primitive","text":"● Upload 75%"}
 {"type":"primitive","text":"● Agent working …"}
 {"type":"primitive","text":"2 ms ▁▄▂█▅▄▂▁"}
 {"type":"primitive","text":"▲ Retrying; output remains focused"}
+{"type":"primitive","text":"g Toggle group"}
+{"type":"primitive","text":"Focus: palette"}
 ```
 
 ## Layout Patterns

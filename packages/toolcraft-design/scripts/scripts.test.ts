@@ -91,6 +91,17 @@ describe("design-system demo script", () => {
   });
 });
 
+it("demonstrates all shared interaction primitives", async () => {
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  await runDemo(["primitives"]);
+  const rendered = output.mock.calls.map(([line]) => String(line)).join("\n");
+  expect(rendered).toContain("Pipeline");
+  expect(rendered).toContain("Tools");
+  expect(rendered).toContain("Recent activity");
+  expect(rendered).toContain("Toggle group");
+  expect(rendered).toContain("Focus: palette");
+});
+
 describe("generate-docs", () => {
   it("lists the current demo types in the no-argument usage output", () => {
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -103,6 +114,7 @@ describe("generate-docs", () => {
       expect(output).toContain("layout-expanded");
       expect(output).toContain("table");
       expect(output).toContain("table-markdown");
+      expect(output).toContain("primitives");
       expect(output).toContain("markdown");
       expect(output).toContain("markdown-minimal");
     });

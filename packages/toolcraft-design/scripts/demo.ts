@@ -24,7 +24,7 @@ import {
   getTheme,
   resolveOutputFormat,
   resetOutputFormatCache,
-  dashboard, createMetric, renderProgressGroup, renderNotice
+  dashboard, createMetric, renderProgressGroup, renderNotice, createViewport, createTaskTree, renderTaskRows, createEventGroups, renderEventGroupRows, createCommandRegistry, createOverlayManager
 } from "../src/index.js";
 import { getMarkdownDemo, type MarkdownDemoName } from "../src/terminal-markdown/demo-content.js";
 
@@ -330,7 +330,7 @@ export async function main(argv = process.argv.slice(2), context: DemoContext = 
     );
     process.stderr.write("       resolved, errorResolved, spinner, layout, layout-expanded,\n");
     process.stderr.write(
-      "       table, table-markdown, dashboard, markdown, markdown-minimal, markdown-blocks, markdown-file\n"
+      "       table, table-markdown, dashboard, primitives, markdown, markdown-minimal, markdown-blocks, markdown-file\n"
     );
     process.exitCode = 1;
     return;
@@ -393,7 +393,21 @@ export async function main(argv = process.argv.slice(2), context: DemoContext = 
     case "primitives": {
       const metric = createMetric({ capacity: 8, unit: "ms" });
       [2, 4, 3, 7, 5, 4, 3, 2].forEach(value => metric.push(value));
-      const lines = [...renderProgressGroup([{ label: "Upload", completed: 3, total: 4 }, { label: "Agent working" }], 60), metric.render(60), renderNotice({ level: "warning", text: "Retrying; output remains focused" }, 60)];
+      const viewport = createViewport<{ id: string; text: string }>({ capacity: 2 });
+      ["Read source", "Run tests", "Finish"].forEach((value, i) => viewport.append({ id: String(i), text: value }));
+      const tree = createTaskTree();
+      tree.upsert({ id: "run", label: "Pipeline", status: "running" });
+      tree.upsert({ id: "test", parentId: "run", label: "Tests", status: "success", durationMs: 20 });
+      const groups = createEventGroups({ capacity: 2, children: 3 });
+      groups.append("Tools", { id: "read", text: "Read source" }); groups.toggle("Tools");
+      const registry = createCommandRegistry([{ id: "group", label: "Toggle group", keys: ["g"], run: () => groups.toggle("Tools") }]);
+      const overlays = createOverlayManager("output"); overlays.open("palette");
+      const lines = ["Recent activity", ...viewport.items().map(item => `  ${item.text}`),
+        ...renderTaskRows(tree.rows(0, 4), 60), ...renderEventGroupRows(groups.rows(0, 4), 60),
+        ...renderProgressGroup([{ label: "Upload", completed: 3, total: 4 }, { label: "Agent working" }], 60),
+        metric.render(60), renderNotice({ level: "warning", text: "Retrying; output remains focused" }, 60),
+        ...registry.list().map(command => `${command.keys.join("/")} ${command.label}`), `Focus: ${overlays.focus()}`];
+      overlays.dispose();
       const format = resolveOutputFormat();
       for (const line of lines) {
         console.log(format === "json" ? JSON.stringify({ type: "primitive", text: line }) : line);

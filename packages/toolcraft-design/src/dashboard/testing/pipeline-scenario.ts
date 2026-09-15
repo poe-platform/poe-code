@@ -29,7 +29,7 @@ dashboard.onCommand((command) => {
 process.once("SIGINT", shutdown);
 process.once("SIGTERM", shutdown);
 dashboard.start();
-dashboard.updateStats({
+if (scenario !== "empty") dashboard.updateStats({
   status: "running",
   iterationsLabel: "Tasks",
   iterations: 1,
@@ -39,9 +39,17 @@ dashboard.updateStats({
   currentAction: "Improve streaming output (implement)"
 });
 append("info", "Config · codex · model-example · docs/plans/fake-pipeline.md");
-append("status", "Task 2/8 · Improve streaming output (implement)");
+if (scenario !== "empty") append("status", "Task 2/8 · Improve streaming output (implement)");
 if (scenario === "empty") {
-  dashboard.updateStats({ status: "done", iterations: 0, currentAction: "Nothing to run" });
+  dashboard.updateStats({
+    status: "done",
+    iterationsLabel: "Tasks",
+    iterations: 0,
+    tokensIn: 0,
+    tokensOut: 0,
+    elapsedMs: 0,
+    currentAction: "Nothing to run"
+  });
   append("info", "All tasks are already complete.");
 } else if (scenario === "oversized") {
   append("tool", "output word ".repeat(50000) + "LATEST RESULT");

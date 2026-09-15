@@ -96,3 +96,7 @@ Two failing shared-helper regressions reproduced unbounded accumulation before t
 Maintained design tests passed 1,730 cases; maintained design lint/typecheck and selected workspace build passed. Pipeline/shared/experiment-ralph consumer tests passed 250 cases. A 1,000-chunk, 1,200,013-character local benchmark measured original unbounded helper about 96ms versus bounded helper about 46ms; emitted output fell to 16,384 characters while preserving LATEST RESULT. This bounds retained preview state, not the incoming chunk or full persistent logs.
 
 Added newline-free fake terminal scenario using the actual package line buffer. Terminal-pilot verified latest text, PageUp truncation notice, F follow, and q exit 0 (single observed 16ms). Marker screenshot visually inspected. Remaining root CLI/external spawn integration, accurate synthetic empty state, pathological terminal sequences, and completion audit remain open.
+
+## Honest empty fake scenario
+
+A failing fixture regression proved an empty run displayed 24,000 input tokens, 7,000 output tokens, 65 seconds, and an illustrative active task log. Empty now initializes only done/zero-usage/no-work state and emits no task execution log. The fixture regression, fixture ESLint, and package typecheck passed. Five PTY scenarios repeated at 100x24 and 50x16, all q exits 0; streaming held history/follow passed. Empty screenshots inspected. The wide capture occurred before deferred output repaint, so the settled narrow capture establishes the no-work log text; both establish zero displayed usage.

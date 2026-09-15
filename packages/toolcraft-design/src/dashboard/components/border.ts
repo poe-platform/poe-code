@@ -1,5 +1,6 @@
 import { ScreenBuffer } from "../buffer.js";
 import { plainTerminalText } from "../ansi.js";
+import { displayWidth, truncateToWidth } from "../terminal-width.js";
 import type { DashboardLayout } from "../layout.js";
 import type { CellStyle } from "../types.js";
 
@@ -187,12 +188,8 @@ function renderTopSegment(width: number, title?: string): string {
     return "─".repeat(width);
   }
 
-  const content = `─ ${title} `;
-  if (content.length >= width) {
-    return content.slice(0, width);
-  }
-
-  return `${content}${"─".repeat(width - content.length)}`;
+  const content = truncateToWidth(`─ ${title} `, width);
+  return `${content}${"─".repeat(width - displayWidth(content))}`;
 }
 
 function hasInteriorRows(top: number, bottom: number): boolean {

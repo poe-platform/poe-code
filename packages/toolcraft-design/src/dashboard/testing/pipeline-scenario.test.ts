@@ -64,3 +64,11 @@ it("provides terminal-string labels for clipping and fitting QA", async () => {
   expect(dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n")).toContain("Label control fixture ready");
   expect(dashboard.updateStats).toHaveBeenCalledWith(expect.objectContaining({ iterationsLabel: expect.stringContaining("HIDDEN_") }));
 });
+
+it("provides settled Unicode heading QA", async () => {
+  vi.useFakeTimers();
+  vi.spyOn(process, "once").mockReturnValue(process);
+  vi.spyOn(process, "argv", "get").mockReturnValue(["node", "fixture", "unicode-title"]);
+  await import("./pipeline-scenario.js");
+  expect(dashboard.appendOutput.mock.calls.map(([item]) => item.text).join("\n")).toContain("Unicode heading fixture ready");
+});

@@ -60,6 +60,15 @@ it("removes terminal strings before clipping a border title", () => {
   expect(top.endsWith("┐")).toBe(true);
 });
 
+it.each(["界界", "👩‍💻", "é", "界".repeat(100)])("aligns border junctions for Unicode title %s", (title) => {
+  const layout = computeDashboardLayout({ totalWidth: 80, totalHeight: 24, rightPaneWidth: 24 });
+  const buffer = new ScreenBuffer(80, 24);
+  renderBorder(buffer, layout, { leftTitle: title, rightTitle: title, style: {} });
+  expect(buffer.get(0, 0).ch).toBe("┌");
+  expect(buffer.get(layout.divider.x, 0).ch).toBe("┬");
+  expect(buffer.get(79, 0).ch).toBe("┐");
+});
+
 it("fits footer hints using their visible text", () => {
   const buffer = new ScreenBuffer(20, 1);
   renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
@@ -504,7 +513,7 @@ describe("renderBorder", () => {
       style: { fg: "yellow" }
     });
 
-    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ┐");
+    expect(readRow(buffer, 0)).toBe("┌─ ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHI…┐");
   });
 
   it("preserves top and bottom junctions when the divider touches the outer frame", () => {

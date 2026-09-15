@@ -6,8 +6,8 @@ import type { OutputItemKind } from "../types.js";
 const scenario = process.argv[2] ?? "streaming";
 const labelControl = scenario === "label-controls" ? "\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007" : "";
 const dashboard = createDashboard({
-  title: `Pipeline · ${scenario}${labelControl}`,
-  statsTitle: `Run${labelControl}`,
+  title: scenario === "unicode-title" ? "Pipeline · 界界 · 👩‍💻 · é · ".repeat(3) : `Pipeline · ${scenario}${labelControl}`,
+  statsTitle: scenario === "unicode-title" ? "Run · 界界 · 👩‍💻 · é" : `Run${labelControl}`,
   rightPaneWidth: 32,
   hints: [
     { key: "q", label: `Quit${labelControl}` },
@@ -78,6 +78,8 @@ if (scenario === "empty") {
   append("success", "Unicode and ANSI fixture ready");
 } else if (scenario === "label-controls") {
   append("success", "Label control fixture ready");
+} else if (scenario === "unicode-title") {
+  append("success", "Unicode heading fixture ready");
 } else if (scenario === "cursor-controls") {
   append("tool", "\u001b[32m界界\rA\u001b[0m\n😀\bX\n👩‍💻\bX\né\bX\na\tB\rX");
   append("tool", "\u001b]52;c;HIDDEN_OSC_PAYLOAD\u0007Visible OSC result");

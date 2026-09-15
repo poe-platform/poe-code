@@ -1,0 +1,1661 @@
+{
+  "version": 1,
+  "date": "2026-09-15",
+  "task": "cross-format-cli-conformance",
+  "conformance": "partial",
+  "laterTasksStarted": false,
+  "productionFilesChanged": [],
+  "publicAdapters": [
+    "virtual-bash/commands/docx",
+    "virtual-bash/commands/pptx"
+  ],
+  "publicEngines": [
+    "docx.createDocxInspectionCommandEngine",
+    "pptx.createPptxCommandEngine"
+  ],
+  "sourceRuntime": "Original memfs unit tests through public exports; Vitest resolves workspace exports to current sources. Built discovery additionally checked after both selected maintained workspace closures passed.",
+  "sources": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "39b73324f5e174ee3070f8537ff78c6cfe9222a8eb7f2a6697924903adbe07e9"
+    },
+    {
+      "path": "packages/safe-bash/AGENTS.md",
+      "sha256": "3773e8ad6e34ee43cde327addc37cd9ac2ce3822b254d2f3c08dcd3fe82e71fe"
+    },
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "3c70e7b9f600f0bef7aa321405cf482559831783eb38b061a7ad60472e918136"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+    },
+    {
+      "path": "docs/docx/upstream-api-audit.md",
+      "sha256": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    },
+    {
+      "path": "docs/docx/upstream-test-audit.md",
+      "sha256": "d2ff2eee9bc2ff1bffde3973773891b63ce7db243083b022d5159106c7619a77"
+    },
+    {
+      "path": "docs/docx/upstream-test-inventory.json",
+      "sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+    },
+    {
+      "path": "docs/docx/upstream-api-reconciliation.md",
+      "sha256": "8c6765bbc3a98a6214de329ad6aa18fdc98c4d3a1739bea2128c773358ca51ab"
+    },
+    {
+      "path": "packages/docx/src/command.ts",
+      "sha256": "42fcff935cee79ebccb94340eaee0b3f39662151bbf37791f33a0e898be48325"
+    },
+    {
+      "path": "packages/docx/src/inspection-command.ts",
+      "sha256": "f185c77e364801a599553ad49ed8b98f17581cb00728a86f46ede4b05f6ec124"
+    },
+    {
+      "path": "packages/pptx/src/command-engine.ts",
+      "sha256": "fda809ac1a9ef3ff8aa6b7da02681098c267b2d34e2bc9b5e43beef350a85092"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/docx/index.ts",
+      "sha256": "11148ad5dcb2f4f78dc287b3f0b9985e0b99394b1c65d16110c30985806c5de2"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/pptx/index.ts",
+      "sha256": "37cf4f8e2d7fc7f35ce3c9d3cdd71c13831c284620cedaeaf9707dea76061e18"
+    },
+    {
+      "path": "packages/docx/tests/cross-format-cli.test.ts",
+      "sha256": "267e141d8063348231bc69c275fa5fc4f3848804044e1ece00558d0ae9e4fe03"
+    },
+    {
+      "path": "output/docx-cross-format-cli-qa/help.png",
+      "sha256": "c47870c3fd6bb84b37437bad2b6105f463dd3280bdfc4604aa41c5f8e12542c5"
+    },
+    {
+      "path": "output/docx-cross-format-cli-qa/error.png",
+      "sha256": "66f0086868d43773c65b9099ce44c5a85de7fe76a9f4e8b3d56b97a16baf1d60"
+    }
+  ],
+  "research": {
+    "apiRecords": 920,
+    "documentationResolutions": 23,
+    "unitCases": 1609,
+    "bddCases": 650,
+    "inventoryStatusesChanged": false,
+    "wholeApiCoverageClaimed": false
+  },
+  "schemaComparison": [
+    {
+      "operation": "create",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "author",
+          "content",
+          "dialect",
+          "dryRun",
+          "force",
+          "json",
+          "kind",
+          "limit",
+          "output",
+          "template",
+          "timestamp"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "author",
+          "dialect",
+          "dryRun",
+          "force",
+          "height",
+          "json",
+          "kind",
+          "limit",
+          "output",
+          "properties",
+          "slides",
+          "template",
+          "timestamp",
+          "width"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "author",
+        "dialect",
+        "dryRun",
+        "force",
+        "json",
+        "kind",
+        "limit",
+        "output",
+        "template",
+        "timestamp"
+      ],
+      "docxOnlyOptions": [
+        "content"
+      ],
+      "pptxOnlyOptions": [
+        "height",
+        "properties",
+        "slides",
+        "width"
+      ]
+    },
+    {
+      "operation": "inspect",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "field",
+          "image",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "all",
+          "json",
+          "part",
+          "scope",
+          "select",
+          "shape",
+          "slide"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "scope",
+        "select",
+        "shape"
+      ],
+      "docxOnlyOptions": [
+        "bookmark",
+        "cell",
+        "comment",
+        "control",
+        "field",
+        "image",
+        "limit",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "table"
+      ],
+      "pptxOnlyOptions": [
+        "all",
+        "part",
+        "slide"
+      ]
+    },
+    {
+      "operation": "validate",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit",
+          "profile"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": false,
+        "options": [],
+        "required": []
+      },
+      "commonOptions": [],
+      "docxOnlyOptions": [
+        "json",
+        "limit",
+        "profile"
+      ],
+      "pptxOnlyOptions": []
+    },
+    {
+      "operation": "text.get",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "field",
+          "image",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table",
+          "view"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit",
+          "scope",
+          "select",
+          "shape",
+          "slide"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "scope",
+        "select",
+        "shape"
+      ],
+      "docxOnlyOptions": [
+        "bookmark",
+        "cell",
+        "comment",
+        "control",
+        "field",
+        "image",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "table",
+        "view"
+      ],
+      "pptxOnlyOptions": [
+        "slide"
+      ]
+    },
+    {
+      "operation": "text.replace",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "all",
+          "allowEmpty",
+          "author",
+          "bold",
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "dryRun",
+          "field",
+          "find",
+          "first",
+          "force",
+          "image",
+          "inPlace",
+          "italic",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "occurrence",
+          "output",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table",
+          "timestamp",
+          "trackChanges",
+          "view",
+          "with"
+        ],
+        "required": [
+          "find",
+          "with"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "all",
+          "allowEmpty",
+          "dryRun",
+          "find",
+          "first",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "occurrence",
+          "output",
+          "scope",
+          "select",
+          "shape",
+          "slide",
+          "style",
+          "with"
+        ],
+        "required": [
+          "find",
+          "with"
+        ]
+      },
+      "commonOptions": [
+        "all",
+        "allowEmpty",
+        "dryRun",
+        "find",
+        "first",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "occurrence",
+        "output",
+        "scope",
+        "select",
+        "shape",
+        "with"
+      ],
+      "docxOnlyOptions": [
+        "author",
+        "bold",
+        "bookmark",
+        "cell",
+        "comment",
+        "control",
+        "field",
+        "image",
+        "italic",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "table",
+        "timestamp",
+        "trackChanges",
+        "view"
+      ],
+      "pptxOnlyOptions": [
+        "slide",
+        "style"
+      ]
+    },
+    {
+      "operation": "xml.get",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit",
+          "part",
+          "pretty",
+          "raw"
+        ],
+        "required": [
+          "part"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit",
+          "part",
+          "pretty",
+          "scope",
+          "select"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "part",
+        "pretty"
+      ],
+      "docxOnlyOptions": [
+        "raw"
+      ],
+      "pptxOnlyOptions": [
+        "scope",
+        "select"
+      ]
+    },
+    {
+      "operation": "xml.set",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "dryRun",
+          "file",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output",
+          "part"
+        ],
+        "required": [
+          "part",
+          "file"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "dryRun",
+          "file",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output",
+          "part",
+          "scope",
+          "select"
+        ],
+        "required": [
+          "file"
+        ]
+      },
+      "commonOptions": [
+        "dryRun",
+        "file",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "output",
+        "part"
+      ],
+      "docxOnlyOptions": [
+        "allowEmpty"
+      ],
+      "pptxOnlyOptions": [
+        "scope",
+        "select"
+      ]
+    },
+    {
+      "operation": "template.apply",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "data",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output"
+        ],
+        "required": [
+          "data"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "dataFile",
+          "dataJson",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "dryRun",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "output"
+      ],
+      "docxOnlyOptions": [
+        "allowEmpty",
+        "data"
+      ],
+      "pptxOnlyOptions": [
+        "dataFile",
+        "dataJson"
+      ]
+    },
+    {
+      "operation": "batch",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "author",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "operations",
+          "output",
+          "timestamp",
+          "version"
+        ],
+        "required": [
+          "version",
+          "operations"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "opsFile",
+          "opsJson",
+          "output"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "dryRun",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "output"
+      ],
+      "docxOnlyOptions": [
+        "author",
+        "operations",
+        "timestamp",
+        "version"
+      ],
+      "pptxOnlyOptions": [
+        "opsFile",
+        "opsJson"
+      ]
+    },
+    {
+      "operation": "diff",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit",
+          "mode",
+          "scope"
+        ],
+        "required": [
+          "scope"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit",
+          "mode"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "mode"
+      ],
+      "docxOnlyOptions": [
+        "scope"
+      ],
+      "pptxOnlyOptions": []
+    },
+    {
+      "operation": "extract",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "allowPartialOutput",
+          "force",
+          "json",
+          "limit",
+          "outputDir",
+          "pretty",
+          "selection"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "allowPartialOutput",
+          "force",
+          "json",
+          "limit",
+          "outputDir",
+          "parts"
+        ],
+        "required": [
+          "outputDir"
+        ]
+      },
+      "commonOptions": [
+        "allowPartialOutput",
+        "force",
+        "json",
+        "limit",
+        "outputDir"
+      ],
+      "docxOnlyOptions": [
+        "pretty",
+        "selection"
+      ],
+      "pptxOnlyOptions": [
+        "parts"
+      ]
+    },
+    {
+      "operation": "pack",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "dryRun",
+          "force",
+          "json",
+          "kind",
+          "limit",
+          "output"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "author",
+          "dryRun",
+          "force",
+          "json",
+          "kind",
+          "limit",
+          "manifest",
+          "output",
+          "timestamp"
+        ],
+        "required": [
+          "manifest"
+        ]
+      },
+      "commonOptions": [
+        "dryRun",
+        "force",
+        "json",
+        "kind",
+        "limit",
+        "output"
+      ],
+      "docxOnlyOptions": [],
+      "pptxOnlyOptions": [
+        "author",
+        "manifest",
+        "timestamp"
+      ]
+    },
+    {
+      "operation": "sanitize",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output",
+          "remove",
+          "revisionPolicy"
+        ],
+        "required": [
+          "remove"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "all",
+          "allowEmpty",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "output",
+          "remove"
+        ],
+        "required": [
+          "remove"
+        ]
+      },
+      "commonOptions": [
+        "allowEmpty",
+        "dryRun",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "output",
+        "remove"
+      ],
+      "docxOnlyOptions": [
+        "revisionPolicy"
+      ],
+      "pptxOnlyOptions": [
+        "all"
+      ]
+    },
+    {
+      "operation": "images.list",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "field",
+          "image",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table",
+          "unique"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "image",
+          "json",
+          "limit",
+          "scope",
+          "select",
+          "slide",
+          "unique"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "image",
+        "json",
+        "limit",
+        "scope",
+        "select",
+        "unique"
+      ],
+      "docxOnlyOptions": [
+        "bookmark",
+        "cell",
+        "comment",
+        "control",
+        "field",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "shape",
+        "table"
+      ],
+      "pptxOnlyOptions": [
+        "slide"
+      ]
+    },
+    {
+      "operation": "images.add",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "alt",
+          "cell",
+          "comment",
+          "decorative",
+          "dryRun",
+          "fallback",
+          "file",
+          "fit",
+          "force",
+          "height",
+          "inPlace",
+          "json",
+          "limit",
+          "note",
+          "output",
+          "paragraph",
+          "placement",
+          "scope",
+          "section",
+          "select",
+          "table",
+          "width"
+        ],
+        "required": [
+          "file"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "altText",
+          "contentType",
+          "dryRun",
+          "file",
+          "fit",
+          "force",
+          "height",
+          "inPlace",
+          "json",
+          "left",
+          "limit",
+          "output",
+          "placeholder",
+          "slide",
+          "top",
+          "width"
+        ],
+        "required": [
+          "slide",
+          "file"
+        ]
+      },
+      "commonOptions": [
+        "dryRun",
+        "file",
+        "fit",
+        "force",
+        "height",
+        "inPlace",
+        "json",
+        "limit",
+        "output",
+        "width"
+      ],
+      "docxOnlyOptions": [
+        "allowEmpty",
+        "alt",
+        "cell",
+        "comment",
+        "decorative",
+        "fallback",
+        "note",
+        "paragraph",
+        "placement",
+        "scope",
+        "section",
+        "select",
+        "table"
+      ],
+      "pptxOnlyOptions": [
+        "altText",
+        "contentType",
+        "left",
+        "placeholder",
+        "slide",
+        "top"
+      ]
+    },
+    {
+      "operation": "images.replace",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "cell",
+          "comment",
+          "dryRun",
+          "fallback",
+          "file",
+          "fit",
+          "force",
+          "height",
+          "image",
+          "inPlace",
+          "json",
+          "limit",
+          "note",
+          "output",
+          "paragraph",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shared",
+          "table",
+          "width"
+        ],
+        "required": [
+          "file"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "all",
+          "allowEmpty",
+          "altText",
+          "contentType",
+          "dryRun",
+          "file",
+          "force",
+          "image",
+          "inPlace",
+          "json",
+          "limit",
+          "output",
+          "preserveAltText",
+          "preserveCrop",
+          "preserveGeometry",
+          "scope",
+          "select",
+          "shared",
+          "slide"
+        ],
+        "required": [
+          "file"
+        ]
+      },
+      "commonOptions": [
+        "allowEmpty",
+        "dryRun",
+        "file",
+        "force",
+        "image",
+        "inPlace",
+        "json",
+        "limit",
+        "output",
+        "scope",
+        "select",
+        "shared"
+      ],
+      "docxOnlyOptions": [
+        "cell",
+        "comment",
+        "fallback",
+        "fit",
+        "height",
+        "note",
+        "paragraph",
+        "run",
+        "section",
+        "table",
+        "width"
+      ],
+      "pptxOnlyOptions": [
+        "all",
+        "altText",
+        "contentType",
+        "preserveAltText",
+        "preserveCrop",
+        "preserveGeometry",
+        "slide"
+      ]
+    },
+    {
+      "operation": "images.extract",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "allowPartialOutput",
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "field",
+          "force",
+          "image",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "outputDir",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "allowPartialOutput",
+          "dryRun",
+          "force",
+          "image",
+          "json",
+          "limit",
+          "outputDir",
+          "scope",
+          "select",
+          "sha256",
+          "slide",
+          "unique"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "allowPartialOutput",
+        "force",
+        "image",
+        "json",
+        "limit",
+        "outputDir",
+        "scope",
+        "select"
+      ],
+      "docxOnlyOptions": [
+        "bookmark",
+        "cell",
+        "comment",
+        "control",
+        "field",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "shape",
+        "table"
+      ],
+      "pptxOnlyOptions": [
+        "dryRun",
+        "sha256",
+        "slide",
+        "unique"
+      ]
+    },
+    {
+      "operation": "tables.list",
+      "docx": {
+        "declared": true,
+        "support": "reject",
+        "options": [
+          "bookmark",
+          "cell",
+          "comment",
+          "control",
+          "field",
+          "image",
+          "json",
+          "limit",
+          "link",
+          "note",
+          "paragraph",
+          "revision",
+          "run",
+          "scope",
+          "section",
+          "select",
+          "shape",
+          "table"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "cell",
+          "json",
+          "limit",
+          "scope",
+          "select",
+          "slide",
+          "table"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "cell",
+        "json",
+        "limit",
+        "scope",
+        "select",
+        "table"
+      ],
+      "docxOnlyOptions": [
+        "bookmark",
+        "comment",
+        "control",
+        "field",
+        "image",
+        "link",
+        "note",
+        "paragraph",
+        "revision",
+        "run",
+        "section",
+        "shape"
+      ],
+      "pptxOnlyOptions": [
+        "slide"
+      ]
+    },
+    {
+      "operation": "properties.list",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit",
+          "name",
+          "scope"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "limit"
+      ],
+      "docxOnlyOptions": [],
+      "pptxOnlyOptions": [
+        "name",
+        "scope"
+      ]
+    },
+    {
+      "operation": "properties.get",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit",
+          "name"
+        ],
+        "required": [
+          "name"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit",
+          "name",
+          "scope"
+        ],
+        "required": [
+          "name"
+        ]
+      },
+      "commonOptions": [
+        "json",
+        "limit",
+        "name"
+      ],
+      "docxOnlyOptions": [],
+      "pptxOnlyOptions": [
+        "scope"
+      ]
+    },
+    {
+      "operation": "properties.set",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "name",
+          "output",
+          "type",
+          "value"
+        ],
+        "required": [
+          "name",
+          "value"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "name",
+          "output",
+          "scope",
+          "type",
+          "value"
+        ],
+        "required": [
+          "name",
+          "value"
+        ]
+      },
+      "commonOptions": [
+        "dryRun",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "name",
+        "output",
+        "type",
+        "value"
+      ],
+      "docxOnlyOptions": [
+        "allowEmpty"
+      ],
+      "pptxOnlyOptions": [
+        "scope"
+      ]
+    },
+    {
+      "operation": "properties.remove",
+      "docx": {
+        "declared": true,
+        "support": "edit",
+        "options": [
+          "allowEmpty",
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "name",
+          "output"
+        ],
+        "required": [
+          "name"
+        ]
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "dryRun",
+          "force",
+          "inPlace",
+          "json",
+          "limit",
+          "name",
+          "output",
+          "scope"
+        ],
+        "required": [
+          "name"
+        ]
+      },
+      "commonOptions": [
+        "dryRun",
+        "force",
+        "inPlace",
+        "json",
+        "limit",
+        "name",
+        "output"
+      ],
+      "docxOnlyOptions": [
+        "allowEmpty"
+      ],
+      "pptxOnlyOptions": [
+        "scope"
+      ]
+    },
+    {
+      "operation": "schema",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "operation"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": false,
+        "options": [],
+        "required": []
+      },
+      "commonOptions": [],
+      "docxOnlyOptions": [
+        "json",
+        "operation"
+      ],
+      "pptxOnlyOptions": []
+    },
+    {
+      "operation": "capabilities",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "limit"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": true,
+        "options": [
+          "json",
+          "limit"
+        ],
+        "required": []
+      },
+      "commonOptions": [
+        "json",
+        "limit"
+      ],
+      "docxOnlyOptions": [],
+      "pptxOnlyOptions": []
+    },
+    {
+      "operation": "help",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json",
+          "operation"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": false,
+        "options": [],
+        "required": []
+      },
+      "commonOptions": [],
+      "docxOnlyOptions": [
+        "json",
+        "operation"
+      ],
+      "pptxOnlyOptions": []
+    },
+    {
+      "operation": "version",
+      "docx": {
+        "declared": true,
+        "support": "read",
+        "options": [
+          "json"
+        ],
+        "required": []
+      },
+      "pptx": {
+        "declared": false,
+        "options": [],
+        "required": []
+      },
+      "commonOptions": [],
+      "docxOnlyOptions": [
+        "json"
+      ],
+      "pptxOnlyOptions": []
+    }
+  ],
+  "rejectedSpellings": [
+    {
+      "args": [
+        "image",
+        "list",
+        "/input",
+        "--json"
+      ],
+      "docx": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "docx: Unknown document command path.\n",
+        "reads": 0
+      },
+      "pptx": {
+        "exitCode": 2,
+        "stdout": "{\"version\":1,\"operation\":\"inspect\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"invalid-value\",\"message\":\"Unsupported operation.\",\"context\":{\"phase\":\"usage\"}}],\"affected\":0,\"locations\":[]}\n",
+        "stderr": "",
+        "reads": 0
+      }
+    },
+    {
+      "args": [
+        "table",
+        "list",
+        "/input",
+        "--json"
+      ],
+      "docx": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "docx: Unknown document command path.\n",
+        "reads": 0
+      },
+      "pptx": {
+        "exitCode": 2,
+        "stdout": "{\"version\":1,\"operation\":\"inspect\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"invalid-value\",\"message\":\"Unsupported operation.\",\"context\":{\"phase\":\"usage\"}}],\"affected\":0,\"locations\":[]}\n",
+        "stderr": "",
+        "reads": 0
+      }
+    },
+    {
+      "args": [
+        "metadata",
+        "list",
+        "/input",
+        "--json"
+      ],
+      "docx": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "docx: Unknown document command path.\n",
+        "reads": 0
+      },
+      "pptx": {
+        "exitCode": 2,
+        "stdout": "{\"version\":1,\"operation\":\"inspect\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"invalid-value\",\"message\":\"Unsupported operation.\",\"context\":{\"phase\":\"usage\"}}],\"affected\":0,\"locations\":[]}\n",
+        "stderr": "",
+        "reads": 0
+      }
+    },
+    {
+      "args": [
+        "replace",
+        "/input",
+        "--json"
+      ],
+      "docx": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "docx: Unknown document command path.\n",
+        "reads": 0
+      },
+      "pptx": {
+        "exitCode": 2,
+        "stdout": "{\"version\":1,\"operation\":\"inspect\",\"ok\":false,\"data\":null,\"warnings\":[],\"errors\":[{\"code\":\"invalid-value\",\"message\":\"Unsupported operation.\",\"context\":{\"phase\":\"usage\"}}],\"affected\":0,\"locations\":[]}\n",
+        "stderr": "",
+        "reads": 0
+      }
+    }
+  ],
+  "pending": [
+    {
+      "case": "docx tables list",
+      "observed": "Declared reject support; public adapter returns 1/unsupported-profile."
+    },
+    {
+      "case": "pptx validate",
+      "observed": "No declared operation schema; public adapter returns 2/invalid-value."
+    },
+    {
+      "case": "docx bare diff",
+      "observed": "DOCX format specification requires scope; adapter returns 2/usage. Shared common diff recipe cannot run identically."
+    },
+    {
+      "case": "docx cancellation exit",
+      "observed": "During an injected input cancellation, the engine rejects AbortError instead of resolving an exitCode 130 result. External shell cancellation also rejects, which is a separate shell API boundary."
+    },
+    {
+      "case": "rejected-path JSON transport",
+      "observed": "DOCX rejected spellings return 2 with no JSON stdout; PPTX returns 2 with an inspect-labelled JSON failure. Alias rejection succeeds; identical failure envelope transport is not established."
+    },
+    {
+      "case": "shared discovery schema register",
+      "observed": "PPTX schema omits help/schema/version although these discovery paths execute; capabilities is declared. See exact schema comparison."
+    },
+    {
+      "case": "PPTX targeted text replacement help",
+      "observed": "Actual help text replace prints the entire command overview; inspected screenshot retained as disposable QA."
+    }
+  ],
+  "redGreen": {
+    "initial": "34 cases: 29 passed, 5 failed. Tables, validation, explicit-scope drift reproduced; shell external-cancellation harness corrected separately.",
+    "schemaHarnessCorrection": "DOCX result schema uses oneOf envelope branches; original assertion incorrectly accessed only top-level properties. No production correction.",
+    "finalFocused": "52 cases: 48 passing, 4 explicitly skipped pending cases. Maintained full checks recorded separately in Markdown."
+  },
+  "disposableQa": {
+    "downloadedInputsUsed": 0,
+    "referenceRuntimeUsed": false,
+    "originalTestsDependOnQaOutputs": false,
+    "screenshotsCommitted": false
+  },
+  "delivery": {
+    "push": false,
+    "release": false
+  },
+  "cancellation": [
+    {
+      "format": "docx",
+      "operation": "inspect",
+      "outcome": "rejected",
+      "name": "AbortError",
+      "code": 20,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "format": "docx",
+      "operation": "diff",
+      "outcome": "rejected",
+      "name": "AbortError",
+      "code": 20,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "format": "pptx",
+      "operation": "inspect",
+      "outcome": "resolved",
+      "exitCode": 130,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "format": "pptx",
+      "operation": "diff",
+      "outcome": "resolved",
+      "exitCode": 130,
+      "stdout": "{\"version\":1,\"operation\":\"diff\",\"ok\":false,\"data\":null,\"affected\":0,\"locations\":[],\"warnings\":[],\"errors\":[{\"code\":\"cancelled\",\"message\":\"Comparison cancelled.\",\"context\":{\"phase\":\"admit\"}}]}\n",
+      "stderr": ""
+    }
+  ]
+}

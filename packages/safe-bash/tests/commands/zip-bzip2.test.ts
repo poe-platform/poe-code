@@ -31,6 +31,15 @@ test("unzip accepts independent Python BZIP2 archive", async () => {
   assert.deepEqual(result.stdout, payload);
 });
 
+test("zip progress identifies BZIP2 compression and its actual savings", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-Zbzip2", "out.zip", "folder/data"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const entry = (await readZipArchive(await fs.readFile("/work/out.zip"), settings({}), new AbortController().signal)).entries[0]!;
+  const percent = Math.round((1 - entry.data.length / entry.size) * 100);
+  assert.ok(result.stdout.toString().includes(`(bzipped ${percent}%)`), result.stdout.toString());
+});
+
 for (const trailing of [Uint8Array.of(0), Uint8Array.of(1, 2)]) {
   test(`BZIP2 entry refuses trailing compressed bytes ${trailing}`, async () => {
     const signal = new AbortController().signal;

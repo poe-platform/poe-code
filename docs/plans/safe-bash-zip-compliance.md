@@ -684,3 +684,13 @@ unproven until the normal build runs in the delivery checkout. Full session
 9534 terminated: 2265 passed files, one callable-parity timeout, two skipped
 files; the exact callable-parity file rerun passed all 21 cases in 2.65s. A
 full maintained rerun is required, rather than treating that rerun as the gate.
+
+## BZIP2 progress diagnostic
+
+Inspected the maintained CLI screenshot and found method 12 was reported as
+stored 0% despite valid compression. Added a failing memory test for exact
+method/savings and matched public zipup.c bzipped wording. All 786 focused
+ZIP/unzip tests pass. Inspected /tmp/zip-bzip2-cli-fixed.png: bzipped 97%,
+integrity OK, exit 0. Delivery checkout ff2b7d4c0 is running normal build,
+consumer typecheck, full unit and lint in session 18440; this diagnostic
+follow-up is not yet included in that checkout or remote main.

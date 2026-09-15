@@ -441,3 +441,16 @@ Archive-comment scoped release 35016686051 succeeded. Entry-comment release
 it with admitted owned byte storage and a failing ownership regression test.
 639 focused ZIP/unzip tests and scoped lint pass. Automatic large-byte ZIP64,
 line conversion, move/timestamps, streaming and other format/grammar areas stay open.
+
+## Comment selection independent of payload dates
+
+Native Unix Zip and public zip.c's comadd mark=2 path establish that source date
+exclusions do not remove existing members from comment selection. Existing
+directory members also retain comment selection under D. Five initially failing
+memory cases establish the mismatch: from/before/empty date ranges, continued
+include/exclude priority and existing directories. Separated name/comment
+selection from payload dates and directory omission without reading skipped
+payloads. Stdin members receive the same existing-comment selection treatment.
+644 focused ZIP/unzip tests and scoped lint pass. Native captures remain manual;
+unit tests use memory filesystems. Remaining formats, streaming, line conversion,
+move/timestamps and grammar requirements are still open.

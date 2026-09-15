@@ -125,3 +125,27 @@ test("zip comment cursor owns unread bytes when host reuses an input chunk", asy
     assert.deepEqual(Buffer.from((await cursor.readLine())!), Buffer.from("two\n"));
   } finally { await cursor.iterator.return?.(); }
 });
+
+for (const dates of [["-t", "2030-01-01"], ["-tt", "1980-01-01"], ["-t", "2030-01-01", "-tt", "1980-01-01"]]) {
+  test(`zip entry comments ignore source date exclusions ${dates} while preserving payloads`, async () => {
+    const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }]));
+    const result = await execute("zip", fs, ["-quc", "sample.zip", ...dates], {}, { stdin: toByteSource("comment\n") });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual((await comments(fs, "/work/sample.zip")).entries, [["binary", "comment"]]);
+    assert.equal((await execute("unzip", fs, ["-p", "sample.zip"])).stdout.toString(), "old");
+  });
+}
+
+test("zip date-excluded comments still obey include and exclude name selection", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }, { name: "folder/data", body: Buffer.from("kept") }]));
+  const result = await execute("zip", fs, ["-quc", "sample.zip", "-t", "2030-01-01", "-i", "*", "@", "-x", "folder/*"], {}, { stdin: toByteSource("comment\n") });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual((await comments(fs, "/work/sample.zip")).entries, [["binary", "comment"], ["folder/data", ""]]);
+});
+
+test("zip entry comments retain existing directory selection under -D", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "folder/", body: Buffer.alloc(0) }, { name: "binary", body: Buffer.from("old") }]));
+  const result = await execute("zip", fs, ["-qucD", "sample.zip"], {}, { stdin: toByteSource("directory\nfile\n") });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual((await comments(fs, "/work/sample.zip")).entries, [["folder/", "directory"], ["binary", "file"]]);
+});

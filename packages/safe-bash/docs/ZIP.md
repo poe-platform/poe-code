@@ -119,6 +119,10 @@ share one bounded stdin cursor. Comment lines split at 65,535 bytes like native
 `fgets`. Changed Unicode-comment extras are removed to avoid stale CRCs. Raw
 non-UTF8 comments clear the UTF-8 flag; required Unicode-path metadata preserves
 Unicode filenames when that flag is cleared.
+Source date exclusions apply to payload replacement, while selected existing
+members can still receive comments. Include/exclude name filters continue to
+apply. `-D` omits new directory entries without preventing comments on existing
+directory members.
 
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.

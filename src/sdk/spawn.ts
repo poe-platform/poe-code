@@ -374,15 +374,14 @@ export function spawn(
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
-        const threadId = middlewareContext.threadId ?? final.threadId;
-        const usage = final.usage ?? getCapturedUsage(middlewareContext.usage);
 
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          ...(threadId ? { threadId } : {}),
-          ...(usage ? { usage } : {}),
+          // The child may finish before a buffered event stream is consumed.
+          get threadId() { return middlewareContext.threadId ?? final.threadId; },
+          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
           ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
           ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
           ...(middlewareContext.sessionResult

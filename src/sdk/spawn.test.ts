@@ -3,6 +3,8 @@ import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
+import { sessionCapture as captureSession } from "../../packages/agent-spawn/src/acp/middlewares/session-capture.js";
+import { usageCapture as captureUsage } from "../../packages/agent-spawn/src/acp/middlewares/usage-capture.js";
 
 const applyMiddlewaresMock = vi.hoisted(() => vi.fn());
 const sessionCaptureMock = vi.hoisted(() => vi.fn());
@@ -522,6 +524,30 @@ describe("SDK spawn()", () => {
         resumeThreadId: "ses_existing"
       })
     );
+  });
+
+  it("retains metadata captured when a held stream is consumed after the child completes", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    vi.mocked(spawnStreaming).mockReturnValue({
+      events: (async function* () {
+        yield { event: "session_start", threadId: "held-thread" };
+        yield { event: "agent_message", text: "delivered after done" };
+        yield { event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      await captureSession(ctx, async () => {});
+      await captureUsage(ctx, async () => {});
+    });
+    const { events, result } = spawn("codex", "test prompt");
+    const final = await result;
+    expect(final.usage).toBeUndefined();
+    expect(final.threadId).toBeUndefined();
+    await collectEvents(events);
+    expect(final.usage).toEqual({ inputTokens: 120, outputTokens: 45, cachedTokens: 10 });
+    expect(final.threadId).toBe("held-thread");
+    expect(final.sessionResult?.output).toBe("delivered after done");
   });
 
   it("falls back to middleware-captured usage in the streaming path", async () => {

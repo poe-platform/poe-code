@@ -318,3 +318,9 @@ Full unit process remains live and has reported 630 failure records: 628 safe-py
 ## Repository lint admission capacity
 
 The full maintained lint route concretely exhausted its 12,000-subject default. Increased only that bounded default to 20,000; byte, metadata, directory and provenance protections remain unchanged. All 279 maintained lint guard tests passed, including custom subject-cap rejection. The refreshed full route admitted and linted 14,063 subjects with zero diagnostics, but exited 2 with 58 filesystem-identity gaps caused by a directory changing during traversal. This is incomplete lint evidence, not a pass; the guard correctly rejected inconsistent snapshots.
+
+## Metadata after held event delivery
+
+A failing SDK regression awaited child completion before consuming its exported stream and lost subsequently captured usage/thread metadata. Streaming result fields now read captured metadata when accessed, preserving independent child completion and avoiding a consumer/result deadlock. The regression uses actual session and usage middleware and verifies the same result gains thread, output and 120/45/10 usage after consumption. All 161 SDK/pipeline CLI tests, touched-file lint and maintained lint:types passed.
+
+Actual source CLI with an immediate 60,000-message completion finished exit zero, done task, correct 120/45/10 totals, no child and restored terminal. Early q in the same scenario exited 130 in 78ms, retained the open task/zero usage and left no child. The normal run's six-second observation includes event processing and is not quit latency. No remote delivery or release performed.

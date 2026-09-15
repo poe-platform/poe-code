@@ -142,6 +142,14 @@ JavaScript-specific mappings are explicit: async loading/saving/input admission;
 
 Every public member needs a row recording target signature/defaults/return/side effects/exception behavior, CLI route and independent original tests, including members without upstream tests. Unsupported public behavior blocks whole-API claims. Source project identities stay in plans/research and required legal notices, never product code/comments/tests/fixtures/output.
 
+The [exhaustive discovery milestone](schema-capability-discovery.md) now exposes
+all actual operation declarations and all feature IDs. Every command-register
+feature/API row and public-API-map row links to [executed discovery evidence](discovery-coverage.json).
+That evidence verifies schema/help accessibility and conservative capability
+reporting only. It does not execute a pending member, erase unsupported public
+owners or promote historical model/test dispositions. Later adaptation and model
+completion tasks remain pending.
+
 ## Command ergonomics
 
 [The common CLI contract](../specs/office-cli.md) provides consistent plural resources, text replace, flags, simple scoped selectors, structured results, diff exit behavior, schema/capabilities and direct common operations. CLI operation options remain consistently camelCase in JSON; that operation surface is separate from retained object-model method spelling. Both invoke the same domain behavior.

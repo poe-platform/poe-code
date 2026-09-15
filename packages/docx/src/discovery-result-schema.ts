@@ -15,7 +15,8 @@ function result(operation: string, data: DocxJsonSchema): DocxJsonSchema {
 export function discoveryFailureSchema(operation: string): DocxJsonSchema {
   return object({ version: { const: 1 }, operation: { const: operation }, ok: { const: false }, data: { type: "null" },
     warnings: empty, errors: { type: "array", minItems: 1, items: object({
-      code: { enum: ["usage", "limit-exceeded", "source-failure", "sink-failure", "cancelled"] }, message: string
+      code: { enum: ["usage", "limit-exceeded", "source-failure", "sink-failure", "cancelled", "unsupported-profile",
+        ...(operation === "capabilities" ? ["invalid-container", "invalid-xml", "invalid-package", "permission"] : [])] }, message: string
     }) }, affected: { const: 0 }, locations: empty });
 }
 
@@ -27,8 +28,8 @@ export const discoveryResultSchemas = {
     id: string, path: strings, input: { type: "object" }, result: { type: "object" }, featureIds: strings,
     support: { enum: ["edit", "read", "preserve", "reject"] }
   }) } })),
-  capabilities: result("capabilities", object({ features: { type: "array", items: object({ id: string, level: { enum: ["read", "edit", "preserve", "reject"] }, subsets: { type: "array", items: object({ name: string, level: { enum: ["read", "edit", "preserve", "reject"] }, reason: string }) }, detected: { type: "null" } }) }, host: object({
-    read: { const: false }, atomicReplace: { const: false }, transactions: { const: false }, binaryStdout: { const: true }
+  capabilities: result("capabilities", object({ input: { oneOf: [{ type: "null" }, object({ signed: { type: "boolean" }, protected: { type: "boolean" }, unsupportedNamespaces: strings, unsupportedOperations: strings })] }, features: { type: "array", items: object({ id: string, level: { enum: ["read", "edit", "preserve", "reject"] }, subsets: { type: "array", items: object({ name: string, level: { enum: ["read", "edit", "preserve", "reject"] }, reason: string }) }, detected: { oneOf: [{ type: "boolean" }, { type: "null" }] } }) }, host: object({
+    read: { type: "boolean" }, atomicReplace: { type: "boolean" }, transactions: { type: "boolean" }, binaryStdout: { const: true }
   }), validationProfiles: { type: "array", items: { type: "object" } }, limits: { type: "array", items: object({ name: string, ceiling: { type: "integer", minimum: 0 } }) } })),
   version: result("version", object({ name: { const: "docx" }, version: string, schemaVersion: { const: 1 } }))
 };
@@ -84,7 +85,7 @@ const fontResources = object({
   availability: { type: "null" }, licensing: { type: "null" }, embeddedFontMutation: { const: "unsupported" }
 });
 const inspectionData = object({
-  fontResources,
+  unsupportedNamespaces: strings, fontResources,
   kind: { enum: ["docx", "dotx"] }, dialect: { enum: ["strict", "transitional"] }, parts: array(part), relationships: array(reference),
   contentTypes: object({ defaults: array(object({ extension: string, contentType: string })), overrides: array(object({ name: string, contentType: string })) }),
   stories: array(object({ kind: string, location, properties: array(property), references: array(reference), support: { const: "read" } })), properties: array(property),

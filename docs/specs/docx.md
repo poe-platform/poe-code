@@ -352,6 +352,15 @@ Both tools use ordinary exit statuses 0/1/2/3/4/130 as defined by the shared
 contract. For `diff`, 0 means equal, 1 means different, 2 means comparison trouble,
 and 130 means cancellation. A successful difference is not an SDK exception.
 
+The [exhaustive discovery milestone](../docx/schema-capability-discovery.md)
+exposes every actual operation declaration, including unsupported typed public
+owners, through root schema/help and scoped discovery. No-input capabilities
+classifies all F01–F50 and leaves feature presence unknown. Input capabilities is
+a read-only admitted-byte inspection, reporting signed/protected constraints,
+unknown namespace URIs and unsupported declared operations. Recognition or an
+absent known tag does not establish support for an affected edit. Register
+crosslinks distinguish executed discovery from separately pending model behavior.
+
 ### 6.1 Lexical grammar
 
 This section defines product choices, not requirements imposed by the file

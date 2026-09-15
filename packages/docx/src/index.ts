@@ -100,7 +100,7 @@ export {
   type DocxCommandRequest, type DocxCommandEngineResult
 } from "./command.js";
 export { resolveDocxSelection } from "./simple-selection.js";
-export { getDocxDiscovery, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";
+export { getDocxDiscovery, inspectDocxCapabilities, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";
 export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
 export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest, type DocxInspectionCommandResult } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";

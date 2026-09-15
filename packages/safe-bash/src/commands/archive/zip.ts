@@ -361,7 +361,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const bytes = await collectBytes(scope.input(input), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
     archive = await readZipArchive(bytes, limits, context.signal);
-    if (parsed.latestTime) originalBytes = bytes;
+    if (parsed.latestTime || parsed.test) originalBytes = bytes;
     const current = await scope.stat(input);
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
@@ -559,12 +559,12 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   const changed = selected.size > 0 || deleted.size > 0;
   let exitCode = 0;
-  if (!selected.size && !((editComment || editEntries) && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) {
+  if (!selected.size && !((editComment || editEntries || parsed.test) && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) {
     if (!parsed.latestTime || !archive.entries.length) return undefined;
     exitCode = 12;
   }
   if (parsed.latestTime && !changed && !archive.entries.length && parsed.archive !== "-") throw new ZipFailure(13, "Missing or empty zip file", parsed.archive);
-  if (!selected.size && !deleted.size && !((editComment || editEntries || parsed.latestTime) && archive.entries.length) && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
+  if (!selected.size && !deleted.size && !((editComment || editEntries || parsed.latestTime || parsed.test) && archive.entries.length) && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${parsed.args.slice(0, parsed.firstOperand).join(" ")} . -i ${parsed.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
@@ -623,18 +623,15 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
   if (!publication) return { kind: "stream" as const, archive: { entries, comment }, progress };
+  let latestWarning: string | undefined;
   if (parsed.latestTime) {
     const mtimeMs = await zipLatestTime(entries, context.signal);
-    if (mtimeMs === undefined) queue(entries.length
+    if (mtimeMs === undefined) latestWarning = entries.length
       ? "\tzip warning: zip file has only directories, can't make it as old as latest entry\n"
-      : "\tzip warning: zip file is empty, can't make it as old as latest entry\n");
+      : "\tzip warning: zip file is empty, can't make it as old as latest entry\n";
     else publication = { ...publication, mtimeMs };
-    if (mtimeMs === undefined && !changed && originalBytes && !editComment && !editEntries) {
-      for (const message of progress) await budget.output(message);
-      return { kind: "current" as const, exitCode };
-    }
   }
-  const bytes = parsed.latestTime && originalBytes && !changed && !editComment && !editEntries ? originalBytes
+  const bytes = originalBytes && !changed && !editComment && !editEntries ? originalBytes
     : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
   if (parsed.test && parsed.archive !== "-") {
     for (const message of progress) await budget.output(message);
@@ -658,6 +655,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (!parsed.quiet) {
       queue(`test of ${parsed.archive} OK\n`);
     }
+  }
+  if (latestWarning !== undefined) queue(latestWarning);
+  if (!changed && originalBytes && !editComment && !editEntries && (parsed.output === undefined || parsed.action === "copy" && parsed.test) && (latestWarning !== undefined || parsed.test && !parsed.latestTime)) {
+    for (const message of progress) await budget.output(message);
+    return { kind: "current" as const, exitCode };
   }
   return { kind: "file" as const, publication, bytes, progress, exitCode };
 }

@@ -84,3 +84,18 @@ was inspected. A cache-busted index import in the existing REPL still retained
 its baseline dependency modules and was discarded as post-fix verification.
 Maintained DOCX tests passed 177 files, 3,435 tests with four skips.
 Final execution accounting is in the [receipt](../docx/office-cli-execution-20260915.md).
+
+## Ambiguous selection recovery
+
+The inspected built Q35 error exposed only `ambiguous-selection`. A third
+original case in `command-recovery-guidance.test.ts` failed before code because
+no inspection/reselection action was present. The generic bounded diagnostic now
+advises inspecting the input and choosing an unambiguous owner or location. It
+does not suggest force, substitute a coordinate or change selector semantics.
+The original merged B2 failure remains the raw baseline receipt.
+
+Focused recovery/grammar/inspection checks passed 72 tests. Scoped lint and the
+selected maintained build closure passed. A fresh built engine with the original
+merged input through explicit stdin retained exit 1, null data and zero effects,
+and emitted recovery guidance; its maintained renderer screenshot was inspected.
+Maintained DOCX suite passed 177 files, 3,436 tests with four skips.

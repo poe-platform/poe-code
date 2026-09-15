@@ -30,3 +30,11 @@ it("identifies an invalid scope and its help route without echoing data or dispa
   expect(text).not.toContain("private coastal text");
   expect(diagnostics.map(bytes => new TextDecoder().decode(bytes)).join("")).toContain("docx help text get");
 });
+
+it("guides ambiguous selections without suggesting force or arbitrary coordinates", () => {
+  const diagnostic = commandDiagnostic("Document operation failed: ambiguous-selection", "ambiguous-selection", 1024);
+  expect(diagnostic.message).toContain("Inspect the input");
+  expect(diagnostic.message).toContain("unambiguous owner or location");
+  expect(diagnostic.message).not.toContain("force");
+  expect(new TextEncoder().encode(commandDiagnostic("Document operation failed: ambiguous-selection", "ambiguous-selection", 48).human).length).toBeLessThanOrEqual(48);
+});

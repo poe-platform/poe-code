@@ -748,3 +748,20 @@ Unzip directory creation and supported directory metadata restoration also
 require `atomicDirectoryMetadata`. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
 corresponding mutation; they must not fall back to check-then-rename or
 check-then-delete operations.
+
+
+## Atomic conditional entry removal
+
+`atomicEntryRemoval: true` requires `removeEntryConditional(path, options)`.
+It atomically checks the parent directory's scoped identity and the final entry's
+scoped identity, type and revision before removal. It supports regular files,
+symlinks and empty directories and never follows the final symlink or recursively
+removes children. Nonempty directories reject `ENOTEMPTY`. Replaced entries or
+parents and stale revisions reject `EAGAIN`; missing identity/revision guarantees
+reject `ENOTSUP`. Current permissions and provider mutation restrictions apply.
+Pre-commit cancellation prevents removal. Root and terminal-dot entries cannot be
+removed. The operation is independent of `atomicFileMutation`, whose existing
+regular-file-only interface is unchanged. Memory implements the operation; scoped,
+mount and device views enforce the advertised capability and mutation boundaries.
+Read-only and quota views neither expose nor advertise the operation. Retained
+cleanup does not gain this general source-removal operation.

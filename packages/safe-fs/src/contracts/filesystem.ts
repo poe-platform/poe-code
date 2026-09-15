@@ -58,6 +58,7 @@ export interface FileSystemCapabilities {
   readonly atomicRename?: boolean;
   readonly atomicFileStaging?: boolean;
   readonly atomicFileMutation?: boolean;
+  readonly atomicEntryRemoval?: boolean;
   readonly atomicDirectoryMetadata?: boolean;
   readonly atomicRenameNoReplace?: boolean;
   readonly snapshotRmdir?: boolean;
@@ -174,10 +175,12 @@ export interface ConditionalWriteFileOptions extends FsOptions {
   readonly mode?: number;
 }
 
-export interface ConditionalRemoveFileOptions extends FsOptions {
+export interface ConditionalRemoveEntryOptions extends FsOptions {
   readonly parent: FileStat;
   readonly expected: FileStat;
 }
+
+export type ConditionalRemoveFileOptions = ConditionalRemoveEntryOptions;
 
 export interface FileStagingEntry {
   readonly path: string;
@@ -216,6 +219,7 @@ export interface PrepareDirectoryOptions extends FsOptions {
 
 export interface FileSystem {
   writeFileConditional?(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat>;
+  removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
   removeFileConditional?(path: string, options: ConditionalRemoveFileOptions): Promise<void>;
   readonly capabilities: FileSystemCapabilities;
   prepareDirectory?(path: string, options: PrepareDirectoryOptions): Promise<FileStat>;

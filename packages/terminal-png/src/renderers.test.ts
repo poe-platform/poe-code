@@ -397,6 +397,24 @@ describe("renderSvg", () => {
     expect(svg).toContain('width="76.83"');
   });
 
+  it.each(["界", "👩‍💻", "🇺🇸"])("places text after %s at its terminal column", (glyph) => {
+    const svg = renderSvg([createRun({ text: glyph + "│" })], { window: false, padding: 0 });
+    expect(svg.includes('x="16.83">│</tspan>')).toBe(true);
+  });
+
+  it("preserves terminal columns across a styled wide glyph and a tab", () => {
+    const svg = renderSvg([
+      createRun({ text: "界", bold: true }),
+      createRun({ text: "\t│" })
+    ], { window: false, padding: 0 });
+    expect(svg.includes('x="67.30">│</tspan>')).toBe(true);
+  });
+
+  it("keeps ordinary text on the same cell grid as positioned Unicode spans", () => {
+    const svg = renderSvg([createRun({ text: "AB│" })], { window: false, padding: 0 });
+    expect(svg.includes('x="0.00 8.41 16.83">AB│</tspan>')).toBe(true);
+  });
+
   it("measures emoji as 2 cells wide", () => {
     const svg = renderSvg([createRun({ text: "🎉" })], { window: false });
 

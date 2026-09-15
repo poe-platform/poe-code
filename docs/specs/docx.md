@@ -1220,6 +1220,31 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   Shared false replacement clones/rebinds the selected occurrence. Shared true
   changes all references to the selected resource and reports all owners; a resize
   combined with shared replacement rejects because layout is occurrence-local.
+  The bounded raster replacement profile admits PNG/JPEG/GIF/BMP/TIFF bytes for
+  a selected unambiguous embedded raster drawing. It MUST reject any linked
+  carrier, including an embedded carrier with a competing external link,
+  missing, unsupported or alternate/fallback-bearing carriers before replacement
+  input acquisition; SVG/fallback replacement remains a separate unsupported
+  profile, not an implicit conversion or detachment. Supplying fallback to this
+  raster profile MUST reject. Image replacement does not accept all-selection.
+  A Location identifies a physical drawing in its owner part; when that story
+  has multiple section appearances, one-appearance replacement MUST reject as
+  ambiguous unless explicit shared intent authorizes all affected appearances.
+  Occurrence replacement MUST allocate a distinct media part and owner-local
+  relationship, rebinding only the selected drawing even when another drawing
+  uses the same relationship ID. Shared replacement identifies the resolved
+  internal resource, never its filename, extension, hash or relationship ID alone.
+  A format change MUST leave each affected target with coherent byte signature,
+  canonical format suffix and content type, and preserve all incoming references
+  when rebinding the shared resource. Resource retirement MUST census every
+  package relationship, including unreachable owners; relationship retirement
+  MUST preserve references in inactive or opaque XML branches. Content-type
+  overrides are removed only with their retired part; unrelated declarations
+  and resources MUST remain unchanged. Default replacement preserves crop and
+  extents. One explicit dimension scales the replacement's native physical ratio;
+  two explicit dimensions set both extents. Explicit contain/cover/stretch requires
+  both dimensions; cover replaces crop with centered crop, contain/stretch clears
+  crop. Anchor, wrapping, transforms and alt metadata remain unchanged otherwise.
   Decorative true with nonempty alt conflicts. Shapes set edits supported text
   boxes only. Charts/diagrams/fonts/custom-XML/glossary expose inventory/preserve,
   not invented semantic editing commands. Equations add/replace require one

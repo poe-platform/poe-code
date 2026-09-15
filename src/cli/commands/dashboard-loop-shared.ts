@@ -24,7 +24,7 @@ export function formatDashboardTimestamp(timestamp: number): string {
   return `[${hours}:${minutes}:${seconds}]`;
 }
 
-export { createDashboardLineBuffer } from "toolcraft-design";
+export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "toolcraft-design";
 
 export function registerDashboardQuitCommands(options: DashboardQuitCommandOptions): void {
   let forceQuitting = false;

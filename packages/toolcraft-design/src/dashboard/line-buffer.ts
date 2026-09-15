@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   limitOutputPreview,
   MAX_OUTPUT_PREVIEW_CHARS,
@@ -9,11 +10,16 @@ import { createTerminalStringFilter } from "./terminal-strings.js";
 export function createDashboardLineBuffer(emit: (line: string) => void): {
   push(chunk: string): void;
   flush(): void;
+  preview(): string;
 } {
   let pending = "";
   let omitted = false;
   const strings = createTerminalStringFilter();
   return {
+    preview(): string {
+      const line = pending.endsWith("\r") ? pending.slice(0, -1) : pending;
+      return (omitted ? OUTPUT_TRUNCATION_NOTICE : "") + line;
+    },
     push(chunk): void {
       const text = pending + strings.push(chunk);
       let start = 0;
@@ -38,5 +44,30 @@ export function createDashboardLineBuffer(emit: (line: string) => void): {
       pending = "";
       omitted = false;
     }
+  };
+}
+
+export function createStreamingDashboardLineBuffer(emit: (line: string, id: string) => void): {
+  push(chunk: string): void;
+  flush(): void;
+} {
+  let id = randomUUID();
+  let lastPreview = "";
+  const lines = createDashboardLineBuffer(line => {
+    emit(line, id);
+    id = randomUUID();
+    lastPreview = "";
+  });
+  return {
+    push(chunk): void {
+      if (chunk.length === 0) return;
+      lines.push(chunk);
+      const preview = lines.preview();
+      if (preview.length > 0 && preview !== lastPreview) {
+        lastPreview = preview;
+        emit(preview, id);
+      }
+    },
+    flush: lines.flush
   };
 }

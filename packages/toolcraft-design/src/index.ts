@@ -90,6 +90,7 @@ export * as dashboard from "./dashboard/index.js";
 export {
   createDashboard,
   createDashboardLineBuffer,
+  createStreamingDashboardLineBuffer,
   shouldUseInteractiveDashboard
 } from "./dashboard/index.js";
 export type { Dashboard, DashboardOptions } from "./dashboard/index.js";

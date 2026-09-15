@@ -78,7 +78,7 @@ import {
   validateResolvedPromptVars
 } from "@poe-code/pipeline";
 import {
-  createDashboardLineBuffer,
+  createStreamingDashboardLineBuffer,
   formatDashboardDuration,
   formatDashboardTimestamp,
   registerDashboardQuitCommands,
@@ -423,11 +423,11 @@ function createPipelineDashboardRunAgent(options: {
     const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
     let lastError: unknown;
     for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
-      const toolBuffer = createDashboardLineBuffer((line) => {
-        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+      const toolBuffer = createStreamingDashboardLineBuffer((line, id) => {
+        options.appendOutput("tool", `[${options.activeStage()}] ${line}`, id);
       });
-      const errorBuffer = createDashboardLineBuffer((line) => {
-        options.appendOutput("error", `[${options.activeStage()}] ${line}`);
+      const errorBuffer = createStreamingDashboardLineBuffer((line, id) => {
+        options.appendOutput("error", `[${options.activeStage()}] ${line}`, id);
       });
       let sawStdout = false;
       let sawStderr = false;

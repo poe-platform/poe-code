@@ -1835,8 +1835,12 @@ describe("pipeline run command", () => {
 
     vi.mocked(sdkSpawn).mockImplementationOnce((_agent, input) => {
       input.tee?.stdout?.write("Inspecting repo");
+      if (agent !== "codex") {
+        expect(dashboardMock.appendOutput.mock.calls.some(([item]) => item.text.includes("Inspecting repo"))).toBe(true);
+      }
       input.tee?.stdout?.write("...\nsecond line\npartial");
       input.tee?.stderr?.write("Tool warning\npartial stderr");
+      expect(dashboardMock.appendOutput.mock.calls.some(([item]) => item.text.includes("partial stderr"))).toBe(true);
 
       return {
         events: (async function* () {

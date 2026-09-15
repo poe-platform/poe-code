@@ -27,6 +27,7 @@ function tri(value: unknown): asserts value is boolean | null { if (value !== nu
 function nullableInteger(value: unknown): asserts value is number | null { if (value !== null && (!Number.isSafeInteger(value) || (value as number) < 0)) throw new RangeError("Expected a nonnegative safe integer or null."); }
 
 class StyleStore {
+  revision = 0;
   readonly tokens: number[];
   readonly latentTokens: number[];
   nextLatentToken: number;
@@ -52,7 +53,12 @@ class StyleStore {
   }
   change(action: (xml: DocumentXmlEditor) => void): void {
     this.writable();
-    const xml = this.editor(); try { action(xml); this.source = new TextDecoder().decode(xml.serialize()); } finally { this.cachedEditor = undefined; }
+    const xml = this.editor(); try {
+      action(xml);
+      const source = new TextDecoder().decode(xml.serialize());
+      if (source !== this.source) this.revision++;
+      this.source = source;
+    } finally { this.cachedEditor = undefined; }
   }
   add(markup: string): number {
     this.change(xml => xml.insertChildren(xml.root, markup));
@@ -63,6 +69,9 @@ class StyleStore {
     this.tokens.splice(this.tokens.indexOf(token), 1);
   }
 }
+
+/** Internal mutation state for batch accounting; not part of the public barrel. */
+export const styleModelMutations = new WeakMap<Styles, { readonly revision: number }>();
 
 /** Read-only part metadata with owned byte snapshots; edits use the live model. */
 export class StylePartView {
@@ -289,11 +298,15 @@ export async function openDocumentStyleModel(input: Uint8Array | undefined, cont
   if (edges.length > 1 || edges[0]?.is_external) throw new RangeError("Expected one internal styles part.");
   let archive: DocumentArchive = admitted;
   let part = edges[0]?.target_part.name;
+  const createdStylesPart = part === undefined;
   if (!part) { const result = addDocumentStylesPart(admitted, admitted, "", settings.budget); archive = result.archive; part = result.name; }
   const stylesPart = part;
   const store = new StyleStore(new TextDecoder().decode(archive.members.find(m => m.name === stylesPart)!.bytes), settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart);
+  store.revision = createdStylesPart ? 1 : 0;
+  const styles = new Styles(store);
+  styleModelMutations.set(styles, store);
   const snapshot = (): DocumentArchive => ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: new TextEncoder().encode(store.source) } : m) });
-  return { styles: new Styles(store), get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
+  return { styles, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
     assertDocumentEditable(admitted, settings);
     await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, stdout: sink, encoding: { order: "input", compression: "store" } });
   }, async publish(options: PublicationOptions, publication: PublicationContext) {

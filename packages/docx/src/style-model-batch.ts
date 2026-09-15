@@ -7,7 +7,7 @@ import { UnsupportedProfileError } from "./package-xml.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxBatch } from "./command.js";
 import { docxOperationSchemas } from "./operation-schema.js";
-import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, openDocumentStyleModel, StylePartView } from "./styles-model.js";
+import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, openDocumentStyleModel, StylePartView, styleModelMutations } from "./styles-model.js";
 import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from "./formatting-model.js";
 import { styleModelBatchOperations, styleModelBatchActions, styleModelBatchBootstrap } from "./style-model-batch-operations.js";
 export { styleModelBatchOperations } from "./style-model-batch-operations.js";
@@ -22,6 +22,8 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];
   let affected = 0;
+  let revision = styleModelMutations.get(model.styles)!.revision;
+  let pendingStylesCreation = revision !== 0;
   const xmlHandles = new WeakSet<object>();
   const isModel = (value: unknown): value is object => value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof StylePartView || typeof value === "object" && value !== null && xmlHandles.has(value);
   const type = (value: object): string => xmlHandles.has(value) ? "XmlElementView" : value instanceof StylePartView ? "XmlPartView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
@@ -79,10 +81,13 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   for (const item of batch.operations) {
     await settings.budget.checkpoint();
     let value: unknown;
+    let createdStylesPart = false;
     if (item.operation === styleModelBatchBootstrap) {
       const receiver = item.receiver;
       if (!(receiver?.resultHandle === "document" && Object.keys(receiver).length === 1) && (receiver?.id !== "document" || receiver.type !== "DocumentModel" || receiver.owner !== "document" || receiver.revision !== 0)) throw new DocxUsageError("The root receiver must be this document's initial handle.");
       value = model.styles;
+      createdStylesPart = pendingStylesCreation;
+      pendingStylesCreation = false;
     } else {
       const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
       const imageAction = imageBatchActions.get(item.operation);
@@ -91,7 +96,9 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
     if (docxOperationSchemas[item.operation]!.valueType === "XmlElementView" && value && typeof value === "object") xmlHandles.add(value);
     if (item.resultHandle) named.set(item.resultHandle, value);
     results.push({ operation: item.operation, value: encode(value) });
-    if (docxOperationSchemas[item.operation]!.mutates) affected++;
+    const nextRevision = styleModelMutations.get(model.styles)!.revision;
+    if (docxOperationSchemas[item.operation]!.mutates && (!item.operation.endsWith(".get") || createdStylesPart || nextRevision !== revision)) affected++;
+    revision = nextRevision;
   }
   return { save: model.save, publish: model.publish, warnings: model.warnings, results: Object.freeze(results), affected };
 }

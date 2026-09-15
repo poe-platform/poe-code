@@ -1,0 +1,8 @@
+PASS poe-code
+PASS poe-code/safejs
+PASS poe-code/safe-js
+PASS poe-code/safejs/core
+PASS poe-code/safe-js/core
+PASS poe-code/safe-fs
+PASS poe-code/safe-bash
+PASS isolated tree; engine declarations recorded

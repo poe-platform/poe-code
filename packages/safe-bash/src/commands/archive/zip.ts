@@ -380,7 +380,6 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const commentNames = new Set<string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
-  let archiveOperandMatches: Set<string> | undefined;
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
@@ -440,8 +439,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (typeof error !== "object" || error === null || !("code" in error)) throw error;
       if (parsed.mustMatch && error.code === "EACCES") throw new ZipFailure(18, "File not found or no read permission", source);
       if (error.code !== "ENOENT") throw error;
-      if (!storedName && !old.has(name)) {
-        const pattern = new Selection([memberName(source, limits)], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+      if (!storedName) {
+        const operandName = memberName(source, limits);
+        const pattern = new Selection([parsed.junkPaths ? operandName.slice(operandName.lastIndexOf("/") + 1) : operandName], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
         let matched = false;
         for (const entry of archive.entries) {
           if (await pattern.matches(entry.name, true)) {
@@ -452,20 +452,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         if (matched) return;
       }
       if (parsed.entryComments && old.has(name) && await filterName(name, selection, parsed.includes.length)) commentNames.add(name);
-      if (parsed.mustMatch && !old.has(name)) {
-        if (!archiveOperandMatches) {
-          const fallback = new Selection(parsed.operands.map(operand => {
-            const pattern = memberName(operand, limits);
-            return parsed.junkPaths ? pattern.slice(pattern.lastIndexOf("/") + 1) : pattern;
-          }), limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
-          for (const entry of archive.entries) await fallback.matches(entry.name);
-          archiveOperandMatches = new Set([...fallback.matched].map(index => parsed.operands[index]!));
-        }
-        if (archiveOperandMatches.has(source)) return;
+      if (parsed.mustMatch && !storedName) {
         if (!parsed.quiet) await budget.output(`\tzip warning: name not matched: ${source}\n`);
         throw new ZipFailure(18, "File not found or no read permission", source);
       }
-      if (!parsed.quiet && !old.has(name)) await budget.output(`\tzip warning: name not matched: ${source}\n`);
+      if (!parsed.quiet && !storedName) await budget.output(`\tzip warning: name not matched: ${source}\n`);
       return;
     }
     checkPath(canonical, limits);

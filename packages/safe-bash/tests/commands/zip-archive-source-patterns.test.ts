@@ -88,3 +88,21 @@ test("zip existing literal wildcard filename takes precedence over archive patte
   assert.equal((await execute("unzip", fs, ["-p", "sample.zip", "folder/a.txt"])).stdout.toString(), "old");
   assert.equal((await execute("unzip", fs, ["-p", "sample.zip", "folder/\\*.txt"])).stdout.toString(), "literal");
 });
+
+for (const operand of ["missing/*.txt", "missing/a.txt"]) {
+  test(`zip junk-path archive fallback matches basename and rereads stored source ${operand}`, async () => {
+    const fs = await fixture(await archiveBytes([{ name: "a.txt", body: Buffer.from("old") }]));
+    await fs.writeFile("/work/a.txt", Buffer.from("updated"));
+    const result = await execute("zip", fs, ["-qjMM", "sample.zip", operand]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await execute("unzip", fs, ["-p", "sample.zip", "a.txt"])).stdout.toString(), "updated");
+  });
+}
+
+test("zip junk-path strict fallback rejects unmatched basename despite archived full path", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "missing/a.txt", body: Buffer.from("old") }]));
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-qjMM", "sample.zip", "missing/a.txt"]);
+  assert.equal(result.exitCode, 18, result.stderr);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});

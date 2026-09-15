@@ -561,3 +561,18 @@ Native UnZip and Python verify exact updated payload and preserved stored paths
 in /tmp/safe-bash-zip-archive-source-patterns.zip. Conversion scoped release
 35021106947 failed at SafeFS publication on version 0.1.627 collision; build
 checks succeeded. Text-attribute scoped release 35021462848 remains live.
+
+## Junk-path source fallback normalization
+
+Public Unix procname/ex2in and native captures establish that j strips the
+missing operand's path before archive-name matching. Matched source reads still
+use stored names. Three failing memory cases validate wildcard/exact basename
+rereads and strict rejection when only the unstripped archive path exists.
+Normalize the fallback pattern, keep stored-name inspections, remove the obsolete
+must-match-only matcher and distinguish absent matched sources from unmatched
+operands. 734 focused ZIP/unzip tests and scoped lint pass. Remaining major
+operations, reverse conversion, source streaming, formats and grammar remain open.
+Move requires conditional deletion of source entries after publication; current
+removeFileConditional only supports regular files, so symlink/directory ownership
+needs contract work before full move support. No unchecked destructive fallback
+was introduced. Live scoped/root releases remain monitored separately.

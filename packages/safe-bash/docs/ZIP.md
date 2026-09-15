@@ -185,7 +185,8 @@ text and temporary filenames are not reproduced by this implementation.
 
 When a source operand does not exist, ZIP matches it against existing archive
 names and rereads matching sources using their stored names. `-nw` and `-ws`
-control this fallback; `-j` retains the matched archive names. A directory matched
+control this fallback; `-j` matches the operand basename while retaining the
+matched archive names for source rereads and archive updates. A directory matched
 this way does not discover new children with `-r`. Existing literal filenames
 containing wildcard characters take precedence. Quoted wildcards do not expand
 against new filesystem sources in the Unix profile.

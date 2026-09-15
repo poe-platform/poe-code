@@ -18,7 +18,7 @@ emit({
 });
 let count = 0;
 let timer;
-if (scenario === "finite-burst") {
+if (scenario === "finite-burst" || scenario === "finite-burst-immediate") {
   timer = setTimeout(() => {
     for (let index = 0; index < 60_000; index++) {
       emit({ type: "item.completed", item: { id: `message-${index}`, type: "agent_message", text: `Burst response ${index}\n` } });
@@ -26,9 +26,18 @@ if (scenario === "finite-burst") {
     emit({ type: "item.completed", item: { id: "latest", type: "agent_message", text: "LATEST BURST RESULT\n" } });
     timer = setTimeout(() => {
       emit({ type: "turn.completed", usage: { input_tokens: 120, output_tokens: 45, cached_input_tokens: 10 } });
-    }, 90_000);
+    }, scenario === "finite-burst-immediate" ? 0 : 90_000);
   }, 500);
 } else timer = setInterval(() => {
+  if (scenario === "tool-burst") {
+    for (let index = 0; index < 20; index++) {
+      const id = `tool-${count}`;
+      const command = `fake noisy tool ${count++}`;
+      emit({ type: "item.started", item: { id, type: "command_execution", command } });
+      emit({ type: "item.completed", item: { id, type: "command_execution", command, exit_code: 0 } });
+    }
+    return;
+  }
   const text = scenario === "oversized"
     ? "output word ".repeat(1000)
     : scenario === "unicode"
@@ -45,7 +54,7 @@ if (scenario === "finite-burst") {
     emit({ type: "item.completed", item: { id: "latest", type: "agent_message", text: "LATEST RESULT\n" } });
     emit({ type: "turn.completed", usage: { input_tokens: 120, output_tokens: 45, cached_input_tokens: 10 } });
   }
-}, scenario === "burst" ? 10 : 100);
+}, scenario === "burst" ? 10 : scenario === "tool-burst" ? 50 : 100);
 process.on("SIGTERM", () => {
   clearInterval(timer);
   process.stderr.write("FAKE_CHILD_TERMINATED\n");

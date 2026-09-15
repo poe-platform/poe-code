@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] [-D] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+`zip [-r] [-q] [-j] [-D] [-y] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
 creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
@@ -47,6 +47,13 @@ publishing changes to the archive.
 `-D` omits newly selected directory entries while still traversing directories
 with `-r`. Existing directory members remain in an updated archive. Selecting
 only a directory without recursion produces `Nothing to do!` and status 12.
+
+`-y` stores symbolic links as their target bytes with Unix symlink metadata,
+including broken links and links to directories. It does not traverse link
+targets, so recursive cycles through links are preserved as links. Without `-y`,
+sources are dereferenced. Link reads require the filesystem's `readlink` operation
+and are checked for source replacement before publication. Storing an escaping
+target does not authorize its extraction; extraction path checks remain enabled.
 
 `-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
 `?`, bracket classes and backslash escapes; `*` can span directories. Quote

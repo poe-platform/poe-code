@@ -12,6 +12,53 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip -y stores live and broken links as target bytes and Unix symlink modes", async () => {
+  const fs = await fixture();
+  await fs.symlink!("binary", "/work/link");
+  await fs.symlink!("missing", "/work/broken");
+  const result = await execute("zip", fs, ["-qy", "output.zip", "link", "broken"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => ({ name: entry.name, symlink: entry.symlink, method: entry.method, data: Buffer.from(entry.data) })), [
+    { name: "link", symlink: true, method: 0, data: Buffer.from("binary") },
+    { name: "broken", symlink: true, method: 0, data: Buffer.from("missing") },
+  ]);
+  assert.equal(archive.entries[0]!.mode, (await fs.lstat("/work/link")).mode);
+});
+
+test("zip -ryj stores directory-cycle and escaping links without traversing targets", async () => {
+  const fs = await fixture();
+  await fs.symlink!(".", "/work/folder/cycle");
+  await fs.symlink!("/outside", "/work/folder/outside");
+  const result = await execute("zip", fs, ["-qryj", "output.zip", "folder"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["cycle", "data", "outside"]);
+  assert.equal(archive.entries.find(entry => entry.name === "cycle")!.symlink, true);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip", "outside"])).stdout, Buffer.from("/outside"));
+});
+
+test("zip -y detects replacement of a symlink while reading and preserves the archive", async () => {
+  const fs = await fixture();
+  await fs.symlink!("binary", "/work/link");
+  const before = await fs.readFile("/work/sample.zip");
+  const readlink = fs.readlink!.bind(fs);
+  let changed = false;
+  Object.defineProperty(fs, "readlink", { value: async (path: string) => {
+    const target = await readlink(path);
+    if (!changed && path === "/work/link") {
+      changed = true;
+      await fs.rm(path);
+      await fs.symlink!("folder", path);
+    }
+    return target;
+  } });
+  const result = await execute("zip", fs, ["-qy", "sample.zip", "link"]);
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /source changed while reading/u);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
 test("zip -rD omits directory entries while traversing unmatched parents", async () => {
   const fs = await fixture();
   await fs.mkdir("/work/folder/empty");

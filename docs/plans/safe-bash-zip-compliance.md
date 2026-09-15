@@ -68,3 +68,13 @@ and existing archive directory members. Three memory cases cover recursive
 selection through unmatched parents, retained old directories and the nonrecursive
 directory-only status 12. Manual native Zip 3.0 observations confirm those effects
 and the empty-inclusion behavior when the included directory is omitted.
+
+## Symlink storage
+
+`-y` selects symlink metadata and reads target bytes without resolving the final
+link. Initial and post-read snapshots resolve only its parent and check backing
+identity, type, size and times before publication. Three memory cases verify live
+and broken targets, stored mode/payload, recursion with cycles and escaping targets,
+`-j` flattening and replacement detection preserving an old archive. Manual Zip 3.0
+captures confirm symlink storage and recursion effects. Default dereferencing and
+extraction confinement remain part of regression acceptance.

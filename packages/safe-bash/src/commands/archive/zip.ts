@@ -15,6 +15,7 @@ interface ZipOptions {
   readonly quiet: boolean;
   readonly junkPaths: boolean;
   readonly omitDirectories: boolean;
+  readonly storeLinks: boolean;
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
@@ -50,6 +51,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let quiet = false;
   let junkPaths = false;
   let omitDirectories = false;
+  let storeLinks = false;
   let level = 6;
   let stdinNames = false;
   let literal = false;
@@ -70,6 +72,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
         else if (flag === "D") omitDirectories = true;
+        else if (flag === "y") storeLinks = true;
         else if (flag === "@") stdinNames = true;
         else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
         else if (flag === "i" || flag === "x") {
@@ -125,7 +128,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { archive, recursive, quiet, junkPaths, omitDirectories, includes, excludes, level, operands: [...names, ...operands], firstOperand };
+  return { archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, includes, excludes, level, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -143,6 +146,21 @@ function unchanged(before: FileStat, after: FileStat): boolean {
   return before.type === after.type && before.size === after.size && before.mode === after.mode
     && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs
     && before.nlink === after.nlink && (!hasIdentity(before) || sameIdentity(before, after));
+}
+
+async function inspectSource(scope: ZipScope, path: string, storeLinks: boolean): Promise<{ canonical: string; stat: FileStat }> {
+  const { fs, signal } = scope.context;
+  if (storeLinks) {
+    const stat = await scope.operation(() => fs.lstat(path, { signal }));
+    if (stat.type === "symlink") {
+      const parent = await scope.operation(() => fs.realpath(dirname(path), { signal }));
+      const canonical = `${parent === "/" ? "" : parent}/${path.slice(path.lastIndexOf("/") + 1)}`;
+      return { canonical, stat };
+    }
+  }
+  const canonical = await scope.operation(() => fs.realpath(path, { signal }));
+  const stat = await scope.operation(() => fs.stat(path, { signal }));
+  return { canonical, stat };
 }
 
 async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
@@ -183,8 +201,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     let canonical: string;
     let stat: FileStat;
     try {
-      canonical = await scope.operation(() => context.fs.realpath(path, { signal: context.signal }));
-      stat = await scope.operation(() => context.fs.stat(path, { signal: context.signal }));
+      ({ canonical, stat } = await inspectSource(scope, path, parsed.storeLinks));
     } catch (error) {
       context.signal.throwIfAborted();
       if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
@@ -193,7 +210,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     checkPath(canonical, limits);
     if (canonical === output || (existing && sameIdentity(existing, stat))) return;
-    if (stat.type !== "file" && stat.type !== "directory") {
+    const symlink = parsed.storeLinks && stat.type === "symlink";
+    if (stat.type !== "file" && stat.type !== "directory" && !symlink) {
       if (!parsed.quiet) await budget.output(`\tzip warning: ignoring special file: ${source}\n`);
       return;
     }
@@ -219,12 +237,18 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       }
       if (!previous) {
         await budget.member(directory ? 0 : stat.size);
-        const bytes = directory ? new Uint8Array() : await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal });
+        let bytes: Uint8Array;
+        if (directory) bytes = new Uint8Array();
+        else if (symlink) {
+          if (!context.fs.readlink) fail("filesystem does not support reading symbolic links");
+          const target = await scope.operation(() => context.fs.readlink!(path, { signal: context.signal }));
+          if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
+          bytes = Buffer.from(target);
+        } else bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal });
         if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
-        const current = await scope.operation(() => context.fs.stat(path, { signal: context.signal }));
-        const currentPath = await scope.operation(() => context.fs.realpath(path, { signal: context.signal }));
-        if (currentPath !== canonical || !unchanged(stat, current)) fail(`source changed while reading: ${source}`);
-        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink: false }, limits, context.signal, parsed.level);
+        const current = await inspectSource(scope, path, parsed.storeLinks);
+        if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
+        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, limits, context.signal, parsed.level);
         if ([".z", ".zip", ".zoo", ".arc", ".lzh", ".arj"].some(suffix => name.toLowerCase().endsWith(suffix))) entry = { ...entry, method: 0, data: bytes };
         const prior = old.get(name);
         if (prior?.comment) entry = { ...entry, comment: prior.comment };

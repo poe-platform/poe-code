@@ -38,9 +38,9 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
     const acceptable = operation === "images.add" ? ["story", "cell", "paragraph"]
       : text ? ["story", "paragraph", "run", "table", "cell"]
       : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
-      : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
+      : ["runs.set", "runs.remove"].includes(operation) && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];
-    if (!text && !["runs.set", "runs.add", "paragraphs.add", "tables.add", "bookmarks.add", "comments.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
+    if (!text && !["runs.set", "runs.remove", "paragraphs.remove", "runs.add", "paragraphs.add", "tables.add", "bookmarks.add", "comments.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");
     if (!acceptable.includes(location.kind)) throw new SelectionError("missing-selection");
     if ((resource === "headers" || resource === "footers") &&
       !document.list("story", { scope: resource }).some(story => story.token === location.token))

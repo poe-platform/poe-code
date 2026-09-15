@@ -62,6 +62,14 @@ merge/split, covered-coordinate write intent and row deletion through spans.
 Its exact JS/security mappings preserve all live table, inherited, enum,
 collection and public underscore-prefixed obligations as separately pending.
 
+The [bounded content-removal record](../plans/docx-range-and-structure-removal.md)
+adds paragraphs.remove, runs.remove and tables.remove with explicit scalar
+endpoints, marker inclusion and reference rejection/retention policies. Its exact
+JS/security mapping distinguishes utility deletion from Paragraph.clear and
+Run.clear. It preserves their live return/formatting obligations and all inherited,
+collection, enum/helper and public underscore-prefixed inventory rows. The pinned
+inventory remains historical; later tasks and whole-model coverage remain pending.
+
 ## Sources and baseline
 
 The [bounded settings/protection record](../plans/docx-settings-protection.md)

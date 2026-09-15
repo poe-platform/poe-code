@@ -166,3 +166,5 @@ export { inspectDocumentEquations, addDocumentEquation, replaceDocumentEquation,
 
 export { inspectDocumentObjects, extractDocumentObjects, ObjectExtractionPublicationError, ObjectExtractionCancellationError, type ObjectResource, type ObjectBindingStatus, type ObjectPreview, type ObjectDetails, type ObjectRecord, type ObjectInspectionData, type ObjectExtractionManifestV1, type ObjectExtractionData, type ObjectExtractionContext } from "./objects.js";
 export { inspectDocumentSignatures, stripDocumentSignatures, type SignatureListData, type SignatureMutationData, type SignatureMutationContext } from "./signatures.js";
+
+export { removeDocumentContent, type ContentRemovalOperation, type ContentRemovalRequest, type ContentRemovalData } from "./removal.js";

@@ -203,3 +203,16 @@ Verification: 394 focused ZIP/unzip tests passed, including signed/unsigned
 64-bit descriptor mutations. Scoped ESLint passed. Both valid native captures
 were transcoded through the actual reader/writer; native UnZip integrity checks
 returned 0 for both resulting classic archives.
+
+## Forced/default stdin ZIP64 output
+
+Native Zip captures confirm default stdin ZIP64, -fz and --force-zip64 force,
+-fz- and --force-zip64- disable, and last-switch precedence. Added ZIP64 local
+and central size/offset tags, 64-bit end records and locators, and signed 64-bit
+stdout descriptors. Forced output stays under existing archive/member budgets.
+412 focused ZIP/unzip tests pass, including Unicode names, empty/compressible
+bodies, comments, mixed-width members, descriptor forms, overflow and switching.
+Native UnZip integrity checks and Python zipfile verify exact Unicode member
+payload and archive comments for output with and without descriptors.
+Incremental serialization, automatic large-archive/count escalation and the
+remaining option/format areas are still open.

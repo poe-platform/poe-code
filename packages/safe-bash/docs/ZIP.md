@@ -72,7 +72,11 @@ when it expands a small or empty file. Storage mode remains available with `-0`
 or `-Z store`. `-T` is ignored with a nonquiet advisory warning on stdout archives.
 Archive update/freshen/delete actions on stdout are rejected with status 16.
 The bounded candidate is prepared before stdout writes begin; incremental
-serialization and native stdin ZIP64 records remain implementation work.
+serialization remains implementation work. Stdin members use ZIP64 records by
+default. `-fz` / `--force-zip64` forces ZIP64 for every member; `-fz-` /
+`--force-zip64-` disables forced/default stdin ZIP64. Repeated switches use the
+last value. Both file and stdout ZIP64 output include valid end records and
+locators; stdout uses signed 64-bit descriptors for ZIP64 members.
 
 `-u` updates existing members only when the source has a newer whole-second
 modification time, and adds new members. `-f` freshens only existing newer members.
@@ -208,8 +212,8 @@ process is invoked to implement shell-local timezone changes.
 The bounded format profile supports ordinary single-disk ZIP records with stored
 or raw-DEFLATE payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
 modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
-single-disk ZIP64 input records. ZIP64 sizes and offsets must be safely representable
-and within configured limits. Archive updates emit classic ZIP records and remove
+single-disk ZIP64 input and output records. ZIP64 sizes and offsets must be safely representable
+and within configured limits. Archive updates normally emit classic ZIP records and remove
 obsolete ZIP64 size tags while preserving unrelated metadata. It rejects
 encryption, unsupported compression methods, split archives, self-extracting
 prefixes, unreferenced records and trailing bytes rather than guessing their

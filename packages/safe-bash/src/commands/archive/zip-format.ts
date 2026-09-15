@@ -1,4 +1,4 @@
-import { zip64Directory, zip64Fields, stripZip64 } from "./zip/zip64.js";
+import { zip64Directory, zip64Fields, stripZip64, zip64Extra, writeZip64End } from "./zip/zip64.js";
 import { type ByteSource } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
@@ -14,6 +14,7 @@ export interface ZipEntry {
   mode: number;
   directory: boolean;
   symlink: boolean;
+  zip64?: boolean;
   rawName?: Uint8Array;
   localName?: Uint8Array;
   comment?: Uint8Array;
@@ -384,14 +385,15 @@ function timestampExtra(modified: Date): Uint8Array {
 
 interface EncodedEntry {
   entry: ZipEntry; rawName: Uint8Array; localExtra: Uint8Array; centralExtra: Uint8Array;
-  comment: Uint8Array; flags: number; date: number; time: number; offset: number;
+  comment: Uint8Array; wide: boolean; flags: number; date: number; time: number; offset: number;
 }
 
-export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false): Promise<Uint8Array> {
+export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false): Promise<Uint8Array> {
   const chunkSize = admit(limits, signal);
   number(archive.entries.length, Math.min(limits.maxMembers, 65534), "member");
   number(archive.comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
-  let length = 22 + archive.comment.length;
+  const wideArchive = forceZip64 || archive.entries.some(entry => entry.zip64);
+  let length = 22 + archive.comment.length + (wideArchive ? 76 : 0);
   let localLength = 0;
   let total = 0;
   const encoded: EncodedEntry[] = [];
@@ -409,10 +411,11 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     if (flags & 0x800) text(comment);
     const originalLocalExtra = entry.localExtra ?? timestampExtra(entry.modified);
     extras(originalLocalExtra, rawName, comment, false, limits);
-    const localExtra = stripZip64(originalLocalExtra);
+    const wide = forceZip64 || entry.zip64 === true;
+    const localExtra = wide ? zip64Extra([descriptor ? 0 : entry.size, descriptor ? 0 : entry.data.length], stripZip64(originalLocalExtra)) : stripZip64(originalLocalExtra);
     const originalCentralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
     extras(originalCentralExtra, rawName, comment, true, limits);
-    const centralExtra = stripZip64(originalCentralExtra);
+    const centralExtra = wide ? zip64Extra([entry.size, entry.data.length, localLength], stripZip64(originalCentralExtra)) : stripZip64(originalCentralExtra);
     const localMetadata = extras(localExtra, rawName, comment, false, limits);
     const centralMetadata = extras(centralExtra, rawName, comment, true, limits);
     if (nameFrom(rawName, flags, centralMetadata, limits) !== entry.name || localMetadata.name !== undefined && nameFrom(rawName, flags, localMetadata, limits) !== entry.name || entry.localName && !equal(rawName, entry.localName)) fail("ZIP retained filename metadata mismatch");
@@ -434,9 +437,9 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
       const mode = unixMode || (entry.directory ? 0o040755 : 0o100644);
       if (mode !== entry.mode || Boolean(entry.externalAttributes & 16) && !entry.directory) fail("ZIP retained file attributes mismatch");
     }
-    encoded.push({ entry, rawName, flags, localExtra, centralExtra, comment, date, time, offset: localLength });
-    localLength += 30 + rawName.length + localExtra.length + entry.data.length + (descriptor ? 16 : 0);
-    length += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length + entry.data.length + (descriptor ? 16 : 0);
+    encoded.push({ entry, rawName, wide, flags, localExtra, centralExtra, comment, date, time, offset: localLength });
+    localLength += 30 + rawName.length + localExtra.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
+    length += 76 + 2 * rawName.length + localExtra.length + centralExtra.length + comment.length + entry.data.length + (descriptor ? wide ? 24 : 16 : 0);
     number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
   }
   number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
@@ -445,8 +448,8 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
   let central = localLength;
   for (const item of encoded) {
     await yieldTurn(signal);
-    const { entry, rawName, flags, localExtra, centralExtra, comment, date, time, offset } = item;
-    const version = entry.method === 8 || flags & 8 ? 20 : 10;
+    const { entry, rawName, wide, flags, localExtra, centralExtra, comment, date, time, offset } = item;
+    const version = wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
     view.setUint32(offset, 0x04034b50, true);
     view.setUint16(offset + 4, version, true);
     view.setUint16(offset + 6, flags, true);
@@ -454,8 +457,8 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     view.setUint16(offset + 10, time, true);
     view.setUint16(offset + 12, date, true);
     view.setUint32(offset + 14, flags & 8 ? 0 : entry.crc32, true);
-    view.setUint32(offset + 18, flags & 8 ? 0 : entry.data.length, true);
-    view.setUint32(offset + 22, flags & 8 ? 0 : entry.size, true);
+    view.setUint32(offset + 18, wide ? 0xffffffff : flags & 8 ? 0 : entry.data.length, true);
+    view.setUint32(offset + 22, wide ? 0xffffffff : flags & 8 ? 0 : entry.size, true);
     view.setUint16(offset + 26, rawName.length, true);
     view.setUint16(offset + 28, localExtra.length, true);
     bytes.set(rawName, offset + 30);
@@ -465,8 +468,13 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
       const descriptor = offset + 30 + rawName.length + localExtra.length + entry.data.length;
       view.setUint32(descriptor, 0x08074b50, true);
       view.setUint32(descriptor + 4, entry.crc32, true);
-      view.setUint32(descriptor + 8, entry.data.length, true);
-      view.setUint32(descriptor + 12, entry.size, true);
+      if (wide) {
+        view.setBigUint64(descriptor + 8, BigInt(entry.data.length), true);
+        view.setBigUint64(descriptor + 16, BigInt(entry.size), true);
+      } else {
+        view.setUint32(descriptor + 8, entry.data.length, true);
+        view.setUint32(descriptor + 12, entry.size, true);
+      }
     }
     view.setUint32(central, 0x02014b50, true);
     view.setUint16(central + 4, entry.versionMadeBy ?? 0x31e, true);
@@ -476,25 +484,27 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     view.setUint16(central + 12, time, true);
     view.setUint16(central + 14, date, true);
     view.setUint32(central + 16, entry.crc32, true);
-    view.setUint32(central + 20, entry.data.length, true);
-    view.setUint32(central + 24, entry.size, true);
+    view.setUint32(central + 20, wide ? 0xffffffff : entry.data.length, true);
+    view.setUint32(central + 24, wide ? 0xffffffff : entry.size, true);
     view.setUint16(central + 28, rawName.length, true);
     view.setUint16(central + 30, centralExtra.length, true);
     view.setUint16(central + 32, comment.length, true);
     view.setUint16(central + 36, entry.internalAttributes ?? 0, true);
     const mode = entry.mode & 0o170000 ? entry.mode : entry.mode | (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000);
     view.setUint32(central + 38, entry.externalAttributes ?? (mode * 65536 + (entry.directory ? 16 : 0)), true);
-    view.setUint32(central + 42, offset, true);
+    view.setUint32(central + 42, wide ? 0xffffffff : offset, true);
     bytes.set(rawName, central + 46);
     bytes.set(centralExtra, central + 46 + rawName.length);
     bytes.set(comment, central + 46 + rawName.length + centralExtra.length);
     central += 46 + rawName.length + centralExtra.length + comment.length;
   }
+  const centralSize = central - localLength;
+  if (wideArchive) central = writeZip64End(view, central, encoded.length, centralSize, localLength);
   view.setUint32(central, 0x06054b50, true);
   view.setUint16(central + 8, encoded.length, true);
   view.setUint16(central + 10, encoded.length, true);
-  view.setUint32(central + 12, central - localLength, true);
-  view.setUint32(central + 16, localLength, true);
+  view.setUint32(central + 12, centralSize, true);
+  view.setUint32(central + 16, wideArchive ? 0xffffffff : localLength, true);
   view.setUint16(central + 20, archive.comment.length, true);
   bytes.set(archive.comment, central + 22);
   signal.throwIfAborted();

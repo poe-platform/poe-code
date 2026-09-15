@@ -71,3 +71,29 @@ export function stripZip64(bytes: Uint8Array): Uint8Array {
   for (const field of retained) { result.set(field, offset); offset += field.length; }
   return result;
 }
+
+export function zip64Extra(values: readonly number[], retained: Uint8Array): Uint8Array {
+  if (retained.length + 4 + values.length * 8 > 65535) fail("ZIP64 extra field limit exceeded");
+  const bytes = new Uint8Array(4 + values.length * 8 + retained.length);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(0, 1, true);
+  view.setUint16(2, values.length * 8, true);
+  values.forEach((value, index) => view.setBigUint64(4 + index * 8, BigInt(value), true));
+  bytes.set(retained, 4 + values.length * 8);
+  return bytes;
+}
+
+export function writeZip64End(view: DataView, offset: number, count: number, size: number, start: number): number {
+  view.setUint32(offset, 0x06064b50, true);
+  view.setBigUint64(offset + 4, 44n, true);
+  view.setUint16(offset + 12, 0x32d, true);
+  view.setUint16(offset + 14, 45, true);
+  view.setBigUint64(offset + 24, BigInt(count), true);
+  view.setBigUint64(offset + 32, BigInt(count), true);
+  view.setBigUint64(offset + 40, BigInt(size), true);
+  view.setBigUint64(offset + 48, BigInt(start), true);
+  view.setUint32(offset + 56, 0x07064b50, true);
+  view.setBigUint64(offset + 64, BigInt(offset), true);
+  view.setUint32(offset + 72, 1, true);
+  return offset + 76;
+}

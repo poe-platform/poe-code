@@ -998,3 +998,24 @@ test("zip -q still charges file output and preserves an existing archive when th
     assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["binary", "folder", "sample.zip"]);
   } finally { await shell.dispose(); }
 });
+
+for (const option of ["-fz", "--force-zip64", "--force-zip64-"]) {
+  test(`zip supports ZIP64 switch ${option}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-q", option, "forced.zip", "binary"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const bytes = Buffer.from(await fs.readFile("/work/forced.zip"));
+    assert.equal(bytes.readUInt16LE(4), option.endsWith("-") ? 10 : 45);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "forced.zip"])).stdout, binary);
+  });
+}
+test("zip stdin uses ZIP64 by default and disabling restores classic records", async () => {
+  for (const options of [[], ["-fz-"], ["-fz", "-fz-"], ["-fz-", "-fz"]]) {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-q", ...options, "stdin.zip", "-"], {}, { stdin: toByteSource(binary) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const bytes = Buffer.from(await fs.readFile("/work/stdin.zip"));
+    assert.equal(bytes.readUInt16LE(4), options.at(-1) === "-fz-" ? 10 : 45);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "stdin.zip"])).stdout, binary);
+  }
+});

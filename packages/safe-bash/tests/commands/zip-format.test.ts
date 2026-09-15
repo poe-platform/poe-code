@@ -570,3 +570,38 @@ for (const signed of [false, true]) {
     }
   });
 }
+
+for (const descriptors of [false, true]) {
+  for (const force of [false, true]) {
+    for (const body of [new Uint8Array(), text.encode("a"), text.encode("compressible".repeat(500))]) {
+      test(`ZIP64 output round-trip descriptors=${descriptors} force=${force} size=${body.length}`, async () => {
+        const entry = await makeZipEntry("日本語.txt", body, attributes, limits, signal);
+        entry.zip64 = !force;
+        const bytes = await writeZipArchive({ entries: [entry], comment: text.encode("comment") }, limits, signal, descriptors, force);
+        const archive = await readZipArchive(bytes, limits, signal);
+        assert.deepEqual(archive.comment, text.encode("comment"));
+        assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), body);
+        assert.equal(new DataView(bytes.buffer).getUint16(4, true), 45);
+        await assert.rejects(writeZipArchive({ entries: [entry], comment: text.encode("comment") }, { ...limits, maxArchiveBytes: bytes.length - 1 }, signal, descriptors, force));
+      });
+    }
+  }
+}
+test("ZIP64 output supports forced empty archives and mixed classic/ZIP64 entries", async () => {
+  const empty = await writeZipArchive({ entries: [], comment: new Uint8Array() }, limits, signal, false, true);
+  assert.equal(empty.length, 98);
+  assert.equal((await readZipArchive(empty, limits, signal)).entries.length, 0);
+  const entries = await Promise.all(["classic", "wide"].map(name => makeZipEntry(name, text.encode(name), attributes, limits, signal)));
+  entries[1]!.zip64 = true;
+  for (const descriptors of [false, true]) {
+    const bytes = await writeZipArchive({ entries, comment: new Uint8Array() }, limits, signal, descriptors);
+    const restored = await readZipArchive(bytes, limits, signal);
+    assert.deepEqual(restored.entries.map(entry => entry.name), ["classic", "wide"]);
+    assert.deepEqual(restored.entries.map(entry => entry.data), entries.map(entry => entry.data));
+  }
+});
+test("ZIP64 writer rejects extra metadata overflow before emission", async () => {
+  const entry = await makeZipEntry("wide", text.encode("payload"), attributes, limits, signal);
+  entry.localExtra = extra(0xcafe, new Uint8Array(65520));
+  await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPaxBytes: 65535 }, signal, false, true), /extra field limit/);
+});

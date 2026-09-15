@@ -746,3 +746,23 @@ ESLint and virtual-bash production build closure pass. Inspected
 Delivery session 46504 remains live on the prior basic-help main checkout.
 Remote main advanced to 71837fa14110e3c17aa3a99f32a23059a6363afb; integrate it
 after the live gate before verifying final delivery. No new push in this turn.
+
+## Traditional encryption byte-stream prerequisite
+
+PKWARE APPNOTE 6.1 specifies per-member key initialization, raw CRC register
+updates, modulo-32-bit multiplication and plaintext-driven updates. Native Zip
+-0 -P captures with test/tiger/UTF-8 passwords were independently extracted and
+verified by Python zipfile; fixtures include their decrypted 12-byte headers.
+Added a bounded cooperative ZipCrypto transform with per-stream keys, input
+retirement and output ownership. Twenty-eight memory tests cover native
+encryption/decryption vectors, 1/7/65536-byte input chunks, interleaving,
+backpressure, cancellation, pre-abort, retirement and source failure. A native
+150000-byte ciphertext SHA256 verifies 65535/65536/65537/150012-byte input
+boundaries independently. Shared the existing ZIP CRC table instead of
+duplicating it. All 848 focused ZIP/unzip tests pass after this extraction;
+scoped lint and the final production closure build pass. No runtime
+dependency added. This does not yet enable encrypted ZIP commands: password
+arguments, 12-byte header checks, encrypted STORE size accounting, descriptor
+check bytes, secure header generation and copy/update behavior remain open.
+Delivery session 46504 has passed source and 26 consumer typecheck groups and
+is still executing the full maintained unit gate on its earlier checkout.

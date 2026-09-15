@@ -74,20 +74,33 @@ function tokenize(pattern: string, noWild: boolean, stopAtDirectories: boolean):
       const negative = characters[index + 1] === "!" || characters[index + 1] === "^";
       if (negative) index++;
       const ranges: [number, number][] = [];
-      let closed = false;
-      while (++index < characters.length) {
-        let first = characters[index]!;
-        if (first === "]") { closed = true; break; }
-        if (first === "\\") first = characters[++index] ?? "";
-        let last = first;
-        if (characters[index + 1] === "-" && characters[index + 2] && characters[index + 2] !== "]") {
-          index += 2;
-          last = characters[index]!;
-          if (last === "\\") last = characters[++index] ?? "";
-        }
-        ranges.push([first.codePointAt(0) ?? -1, last.codePointAt(0) ?? -1]);
+      const start = index + 1;
+      let closing = start;
+      let escaped = false;
+      for (; closing < characters.length; closing++) {
+        const current = characters[closing];
+        if (escaped) escaped = false;
+        else if (current === "\\") escaped = true;
+        else if (current === "]") break;
       }
-      tokens.push(closed ? { kind: "class", ranges, negative } : { kind: "never" });
+      // Info-ZIP recmatch defers a character followed by '-' and uses the
+      // immediately preceding character for each range. Chained and trailing
+      // hyphens therefore differ from conventional glob character classes.
+      let first: number | undefined;
+      escaped = characters[start] === "-";
+      for (let position = start; position < closing; position++) {
+        const current = characters[position]!;
+        if (!escaped && current === "\\") escaped = true;
+        else if (!escaped && current === "-") first = characters[position - 1]!.codePointAt(0);
+        else {
+          const last = current.codePointAt(0)!;
+          if (characters[position + 1] !== "-") ranges.push([first ?? last, last]);
+          first = undefined;
+          escaped = false;
+        }
+      }
+      index = closing;
+      tokens.push(closing < characters.length ? { kind: "class", ranges, negative } : { kind: "never" });
     } else tokens.push({ kind: "literal", value: character });
   }
   return tokens;

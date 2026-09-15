@@ -368,3 +368,16 @@ recursive omitted directories, flattened collisions, resource rejection and
 DOS two-second boundaries. Manual native captures were isolated from unit tests.
 Reference: https://github.com/LuaDist/zip/blob/master/zip.c
 Remaining line conversion, comments, formats, streaming and grammar stay open.
+
+## Native character-class range grammar
+
+Public Info-ZIP util.c recmatch and independent Zip 3.0/UnZip 6.0 captures
+confirm trailing hyphens produce no range ([a-], [a-b-]) and chained ranges
+use the immediately preceding character ([a-b-c] matches b through c). Fixed
+shared tokenization while retaining leading/escaped hyphens, escaped closing
+brackets, negative and empty classes and malformed-class rejection. Four initially
+failing cases establish the prior mismatch. Fourteen memory tests cover the
+grammar and actual ZIP deletion/UnZip payload selection with native statuses.
+Reference: https://github.com/LuaDist/zip/blob/master/util.c
+This closes the validated range mismatch; other matcher grammar and compliance
+areas remain open.

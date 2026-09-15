@@ -18,7 +18,12 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
+import {
+  getSpawnConfig,
+  renderAcpEvent,
+  type AcpEvent,
+  type AcpMiddleware
+} from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import { installSkillFile, type SkillInstallOutcome } from "./install-skill-file.js";
@@ -484,6 +489,8 @@ function createPipelineDashboardRunAgent(options: {
   middlewares?: AcpMiddleware[];
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
+    const spawnConfig = getSpawnConfig(input.agent);
+    const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
     const toolBuffer = createDashboardLineBuffer((line) => {
       options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
     });
@@ -509,6 +516,7 @@ function createPipelineDashboardRunAgent(options: {
           tee: {
             stdout: {
               write(chunk: string) {
+                if (protocolStdout) return;
                 sawStdout = true;
                 toolBuffer.push(chunk);
               }

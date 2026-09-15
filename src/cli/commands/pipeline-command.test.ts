@@ -1812,7 +1812,7 @@ describe("pipeline run command", () => {
     }
   });
 
-  it("streams child-agent stdout and stderr into the dashboard via tee", async () => {
+  it.each(["poe-agent", "codex"])("renders %s output without duplicating event protocol rows", async (agent) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1825,7 +1825,9 @@ describe("pipeline run command", () => {
       input.tee?.stderr?.write("Tool warning\npartial stderr");
 
       return {
-        events: (async function* () {})(),
+        events: (async function* () {
+          if (agent === "codex") yield { event: "agent_message" as const, text: "Rendered response" };
+        })(),
         result: Promise.resolve({
           stdout: "",
           stderr: "",
@@ -1850,7 +1852,7 @@ describe("pipeline run command", () => {
       });
 
       await options.runAgent?.({
-        agent: "codex",
+        agent,
         prompt: "Inspect the repo",
         mode: "yolo",
         cwd,
@@ -1920,7 +1922,7 @@ describe("pipeline run command", () => {
     );
 
     expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith(
-      "codex",
+      agent,
       expect.objectContaining({
         prompt: "Inspect the repo",
         cwd,
@@ -1936,24 +1938,29 @@ describe("pipeline run command", () => {
     );
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
-    expect(
-      outputs.some(
-        (item) =>
-          item.kind === "tool" &&
-          item.text.includes("[auth-hardening:implement] Inspecting repo...")
-      )
-    ).toBe(true);
-    expect(
-      outputs.some(
-        (item) =>
-          item.kind === "tool" && item.text.includes("[auth-hardening:implement] second line")
-      )
-    ).toBe(true);
-    expect(
-      outputs.some(
-        (item) => item.kind === "tool" && item.text.includes("[auth-hardening:implement] partial")
-      )
-    ).toBe(true);
+    if (agent === "codex") {
+      expect(outputs.some((item) => item.text.includes("Inspecting repo"))).toBe(false);
+      expect(outputs.filter((item) => item.text.includes("Rendered response"))).toHaveLength(1);
+    } else {
+      expect(
+        outputs.some(
+          (item) =>
+            item.kind === "tool" &&
+            item.text.includes("[auth-hardening:implement] Inspecting repo...")
+        )
+      ).toBe(true);
+      expect(
+        outputs.some(
+          (item) =>
+            item.kind === "tool" && item.text.includes("[auth-hardening:implement] second line")
+        )
+      ).toBe(true);
+      expect(
+        outputs.some(
+          (item) => item.kind === "tool" && item.text.includes("[auth-hardening:implement] partial")
+        )
+      ).toBe(true);
+    }
     expect(
       outputs.some(
         (item) =>
@@ -2012,7 +2019,7 @@ describe("pipeline run command", () => {
       });
 
       await options.runAgent?.({
-        agent: "codex",
+        agent: "poe-agent",
         prompt: "Inspect the repo",
         mode: "yolo",
         cwd,

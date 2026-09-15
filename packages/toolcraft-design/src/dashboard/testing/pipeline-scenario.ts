@@ -42,6 +42,8 @@ append("status", "Task 2/8 · Improve streaming output (implement)");
 if (scenario === "empty") {
   dashboard.updateStats({ status: "done", iterations: 0, currentAction: "Nothing to run" });
   append("info", "All tasks are already complete.");
+} else if (scenario === "oversized") {
+  append("tool", "output word ".repeat(50000) + "LATEST RESULT");
 } else if (scenario === "execution-error") {
   append("error", "Fake execution threw before producing a task result");
   dashboard.updateStats({ status: "error", currentAction: undefined });

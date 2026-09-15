@@ -6,7 +6,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
-import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
+import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
@@ -406,7 +406,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
   if (!entries.length) queue("\tzip warning: zip file empty\n");
-  const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal, parsed.archive === "-", parsed.zip64 === true);
+  if (parsed.archive === "-") return { kind: "stream" as const, archive: { entries, comment: archive.comment }, progress };
+  const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal, false, parsed.zip64 === true);
   if (parsed.test && parsed.archive !== "-") {
     for (const message of progress) await budget.output(message);
     progress.length = 0;
@@ -430,7 +431,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       queue(`test of ${parsed.archive} OK\n`);
     }
   }
-  return { publication, bytes, progress };
+  return { kind: "file" as const, publication, bytes, progress };
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
@@ -445,15 +446,19 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };
-      const publication = prepared.publication;
-      if (publication) {
+      if (prepared.kind === "file") {
+        const publication = prepared.publication;
+        if (!publication) fail("ZIP missing file publication");
         await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, { ...publication, bytes: prepared.bytes })));
         for (const message of prepared.progress) await budget.output(message);
       } else {
         for (const message of prepared.progress) await budget.output(message);
         const output = createOutputOperation(context, context.stdout);
-        try { await writeBytes(output.output, prepared.bytes, output.signal); }
-        finally { await output.close(); }
+        try {
+          for await (const chunk of streamZipArchive(prepared.archive, limits, output.signal, true, parsed.zip64 === true)) {
+            await writeBytes(output.output, chunk, output.signal);
+          }
+        } finally { await output.close(); }
       }
       return { exitCode: 0 };
     } catch (error) {

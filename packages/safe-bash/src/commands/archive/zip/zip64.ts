@@ -83,7 +83,7 @@ export function zip64Extra(values: readonly number[], retained: Uint8Array): Uin
   return bytes;
 }
 
-export function writeZip64End(view: DataView, offset: number, count: number, size: number, start: number): number {
+export function writeZip64End(view: DataView, offset: number, count: number, size: number, start: number, recordOffset = offset): number {
   view.setUint32(offset, 0x06064b50, true);
   view.setBigUint64(offset + 4, 44n, true);
   view.setUint16(offset + 12, 0x32d, true);
@@ -93,7 +93,7 @@ export function writeZip64End(view: DataView, offset: number, count: number, siz
   view.setBigUint64(offset + 40, BigInt(size), true);
   view.setBigUint64(offset + 48, BigInt(start), true);
   view.setUint32(offset + 56, 0x07064b50, true);
-  view.setBigUint64(offset + 64, BigInt(offset), true);
+  view.setBigUint64(offset + 64, BigInt(recordOffset), true);
   view.setUint32(offset + 72, 1, true);
   return offset + 76;
 }

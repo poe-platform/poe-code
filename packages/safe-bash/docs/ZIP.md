@@ -71,8 +71,12 @@ Stream archives use signed data descriptors; default DEFLATE is retained even
 when it expands a small or empty file. Storage mode remains available with `-0`
 or `-Z store`. `-T` is ignored with a nonquiet advisory warning on stdout archives.
 Archive update/freshen/delete actions on stdout are rejected with status 16.
-The bounded candidate is prepared before stdout writes begin; incremental
-serialization remains implementation work. Stdin members use ZIP64 records by
+Sources are selected and compressed before stdout begins. Archive serialization
+then emits bounded records and payload chunks, waiting for each stdout write;
+it does not allocate a second complete archive buffer for stdout. Complete
+metadata admission precedes the first archive chunk. Source collection and
+compression still retain member payloads; end-to-end input streaming remains
+implementation work. Stdin members use ZIP64 records by
 default. `-fz` / `--force-zip64` forces ZIP64 for every member; `-fz-` /
 `--force-zip64-` disables forced/default stdin ZIP64. Repeated switches use the
 last value. Both file and stdout ZIP64 output include valid end records and

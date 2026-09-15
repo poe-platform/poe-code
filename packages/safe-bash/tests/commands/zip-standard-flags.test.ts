@@ -1019,3 +1019,38 @@ test("zip stdin uses ZIP64 by default and disabling restores classic records", a
     assert.deepEqual((await execute("unzip", fs, ["-p", "stdin.zip"])).stdout, binary);
   }
 });
+
+test("zip stdout streams bounded chunks and waits for sink backpressure", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/large", Uint8Array.from({ length: 4096 }, (_, index) => index % 251));
+  const chunks: Uint8Array[] = [];
+  let release!: () => void;
+  let admitted!: () => void;
+  const first = new Promise<void>(resolve => { admitted = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const pending = execute("zip", fs, ["-q0", "-", "large"], { limits: { chunkSize: 512 } }, { stdout: { async write(chunk) {
+    chunks.push(new Uint8Array(chunk));
+    assert.ok(chunk.length <= 512);
+    if (chunks.length === 1) { admitted(); await held; }
+  } } });
+  await first;
+  await setImmediate();
+  assert.equal(chunks.length, 1);
+  release();
+  const result = await pending;
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(chunks.length > 8);
+  const archive = await readZipArchive(Buffer.concat(chunks), settings({}), new AbortController().signal);
+  assert.equal(archive.entries[0]!.size, 4096);
+});
+test("zip stdout sink rejection stops subsequent stream writes", async () => {
+  const fs = await fixture();
+  let writes = 0;
+  const result = await execute("zip", fs, ["-q0", "-", "binary"], {}, { stdout: { async write() {
+    writes++;
+    throw new Error("closed sink");
+  } } });
+  assert.equal(result.exitCode, 2);
+  assert.equal(writes, 1);
+  assert.equal(result.stderr, "zip: internal error\n");
+});

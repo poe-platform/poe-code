@@ -216,3 +216,20 @@ Native UnZip integrity checks and Python zipfile verify exact Unicode member
 payload and archive comments for output with and without descriptors.
 Incremental serialization, automatic large-archive/count escalation and the
 remaining option/format areas are still open.
+
+## Incremental record serialization
+
+Replaced the whole-archive serializer with a shared bounded async byte iterator.
+Local records, payload slices, signed descriptors, central records and end records
+are emitted in wire order. File publication collects this iterator; stdout
+consumes it directly under the owned output operation signal and backpressure.
+Complete metadata validation precedes the first archive chunk. Every emitted
+chunk owns its bytes and is bounded by configured chunkSize.
+418 focused ZIP/unzip tests pass, covering wire round trips, mixed ZIP64, large
+metadata/comments, complete pre-output admission, mid-stream cancellation,
+backpressure and sink rejection. Scoped lint passed. Actual stdout command
+emitted five writes; native UnZip integrity and Python exact-payload checks passed.
+Built-package type checking was not executed because required dist prerequisites
+are missing. Source collection/compression still buffers member payloads; true
+end-to-end input streaming, large-archive escalation and remaining format/options
+remain open.

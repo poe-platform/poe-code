@@ -1,5 +1,5 @@
 import { zip64Directory, zip64Fields, stripZip64, zip64Extra, writeZip64End } from "./zip/zip64.js";
-import { type ByteSource } from "../../contracts/index.js";
+import { collectBytes, type ByteSource } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
 import { fail, text, type ArchiveLimits } from "./internal.js";
@@ -388,7 +388,7 @@ interface EncodedEntry {
   comment: Uint8Array; wide: boolean; flags: number; date: number; time: number; offset: number;
 }
 
-export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false): Promise<Uint8Array> {
+export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false): ByteSource {
   const chunkSize = admit(limits, signal);
   number(archive.entries.length, Math.min(limits.maxMembers, 65534), "member");
   number(archive.comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
@@ -443,12 +443,12 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
   }
   number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
-  const bytes = new Uint8Array(length);
-  const view = new DataView(bytes.buffer);
-  let central = localLength;
   for (const item of encoded) {
     await yieldTurn(signal);
-    const { entry, rawName, wide, flags, localExtra, centralExtra, comment, date, time, offset } = item;
+    const { entry, rawName, wide, flags, localExtra, date, time } = item;
+    const offset = 0;
+    const bytes = new Uint8Array(30 + rawName.length + localExtra.length);
+    const view = new DataView(bytes.buffer);
     const version = wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
     view.setUint32(offset, 0x04034b50, true);
     view.setUint16(offset + 4, version, true);
@@ -463,9 +463,12 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     view.setUint16(offset + 28, localExtra.length, true);
     bytes.set(rawName, offset + 30);
     bytes.set(localExtra, offset + 30 + rawName.length);
-    await copyBytes(entry.data, bytes, offset + 30 + rawName.length + localExtra.length, chunkSize, signal);
+    yield* wireChunks(bytes, chunkSize, signal);
+    yield* wireChunks(entry.data, chunkSize, signal);
     if (flags & 8) {
-      const descriptor = offset + 30 + rawName.length + localExtra.length + entry.data.length;
+      const descriptor = 0;
+      const bytes = new Uint8Array(wide ? 24 : 16);
+      const view = new DataView(bytes.buffer);
       view.setUint32(descriptor, 0x08074b50, true);
       view.setUint32(descriptor + 4, entry.crc32, true);
       if (wide) {
@@ -475,7 +478,17 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
         view.setUint32(descriptor + 8, entry.data.length, true);
         view.setUint32(descriptor + 12, entry.size, true);
       }
+      yield* wireChunks(bytes, chunkSize, signal);
     }
+  }
+  let centralSize = 0;
+  for (const item of encoded) {
+    await yieldTurn(signal);
+    const { entry, rawName, wide, flags, centralExtra, comment, date, time, offset } = item;
+    const version = wide ? 45 : entry.method === 8 || flags & 8 ? 20 : 10;
+    const central = 0;
+    const bytes = new Uint8Array(46 + rawName.length + centralExtra.length + comment.length);
+    const view = new DataView(bytes.buffer);
     view.setUint32(central, 0x02014b50, true);
     view.setUint16(central + 4, entry.versionMadeBy ?? 0x31e, true);
     view.setUint16(central + 6, version, true);
@@ -496,10 +509,12 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     bytes.set(rawName, central + 46);
     bytes.set(centralExtra, central + 46 + rawName.length);
     bytes.set(comment, central + 46 + rawName.length + centralExtra.length);
-    central += 46 + rawName.length + centralExtra.length + comment.length;
+    centralSize += bytes.length;
+    yield* wireChunks(bytes, chunkSize, signal);
   }
-  const centralSize = central - localLength;
-  if (wideArchive) central = writeZip64End(view, central, encoded.length, centralSize, localLength);
+  const bytes = new Uint8Array((wideArchive ? 76 : 0) + 22 + archive.comment.length);
+  const view = new DataView(bytes.buffer);
+  const central = wideArchive ? writeZip64End(view, 0, encoded.length, centralSize, localLength, localLength + centralSize) : 0;
   view.setUint32(central, 0x06054b50, true);
   view.setUint16(central + 8, encoded.length, true);
   view.setUint16(central + 10, encoded.length, true);
@@ -507,6 +522,16 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
   view.setUint32(central + 16, wideArchive ? 0xffffffff : localLength, true);
   view.setUint16(central + 20, archive.comment.length, true);
   bytes.set(archive.comment, central + 22);
-  signal.throwIfAborted();
-  return bytes;
+  yield* wireChunks(bytes, chunkSize, signal);
+}
+
+async function* wireChunks(bytes: Uint8Array, chunkSize: number, signal: AbortSignal): ByteSource {
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    await yieldTurn(signal);
+    yield new Uint8Array(bytes.subarray(offset, Math.min(bytes.length, offset + chunkSize)));
+  }
+}
+
+export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false): Promise<Uint8Array> {
+  return collectBytes(streamZipArchive(archive, limits, signal, descriptors, forceZip64), { maxBytes: limits.maxArchiveBytes, signal });
 }

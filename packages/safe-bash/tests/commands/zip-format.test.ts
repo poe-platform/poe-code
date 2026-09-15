@@ -7,7 +7,7 @@ import { collectBytes, isPathWithin, resolvePath } from "../../src/contracts/ind
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { DEFAULT_ARCHIVE_LIMITS as limits } from "../../src/commands/archive/internal.js";
 import { zip64Fields, stripZip64 } from "../../src/commands/archive/zip/zip64.js";
-import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive } from "../../src/commands/archive/zip-format.js";
+import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive } from "../../src/commands/archive/zip-format.js";
 
 const signal = new AbortController().signal;
 const text = new TextEncoder();
@@ -604,4 +604,52 @@ test("ZIP64 writer rejects extra metadata overflow before emission", async () =>
   const entry = await makeZipEntry("wide", text.encode("payload"), attributes, limits, signal);
   entry.localExtra = extra(0xcafe, new Uint8Array(65520));
   await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPaxBytes: 65535 }, signal, false, true), /extra field limit/);
+});
+
+
+test("ZIP stream emits bounded records and payload slices in wire order", async () => {
+  const body = Uint8Array.from({ length: 4096 }, (_, index) => index % 251);
+  const entry = await makeZipEntry("large", body, attributes, limits, signal, 0);
+  for (const wide of [false, true]) {
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of streamZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, chunkSize: 512 }, signal, true, wide)) {
+      assert.ok(chunk.length <= 512);
+      chunks.push(chunk);
+    }
+    assert.ok(chunks.length > 8);
+    assert.deepEqual(Buffer.concat(chunks), Buffer.from(await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal, true, wide)));
+    const restored = await readZipArchive(Buffer.concat(chunks), limits, signal);
+    assert.deepEqual(await collectBytes(decodeZipEntry(restored.entries[0]!, limits, signal), collectOptions), body);
+  }
+});
+test("ZIP stream checks complete metadata before yielding any archive bytes", async () => {
+  const valid = await makeZipEntry("valid", text.encode("body"), attributes, limits, signal);
+  const invalid = { ...valid, name: "../escape" };
+  const iterator = streamZipArchive({ entries: [valid, invalid], comment: new Uint8Array() }, limits, signal)[Symbol.asyncIterator]();
+  await assert.rejects(iterator.next(), /unsafe/);
+});
+test("ZIP stream cancellation between chunks stops serialization", async () => {
+  const entry = await makeZipEntry("file", new Uint8Array(2048), attributes, limits, signal, 0);
+  const controller = new AbortController();
+  const iterator = streamZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, chunkSize: 512 }, controller.signal)[Symbol.asyncIterator]();
+  assert.equal((await iterator.next()).done, false);
+  const reason = new Error("stop serialization");
+  controller.abort(reason);
+  await assert.rejects(iterator.next(), error => error === reason);
+});
+
+test("ZIP stream bounds large metadata and comment chunks without corrupting extras", async () => {
+  const entry = await makeZipEntry("metadata", text.encode("data"), attributes, limits, signal);
+  entry.localExtra = extra(0xcafe, new Uint8Array(2000));
+  entry.centralExtra = extra(0xbeef, new Uint8Array(3000));
+  // Preserve mtime with DOS-only metadata at exact even-second resolution.
+  const comment = text.encode("c".repeat(4000));
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of streamZipArchive({ entries: [entry], comment }, { ...limits, chunkSize: 512 }, signal, true, true)) {
+    assert.ok(chunk.length <= 512);
+    chunks.push(chunk);
+  }
+  const archive = await readZipArchive(Buffer.concat(chunks), limits, signal);
+  assert.deepEqual(archive.comment, comment);
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), text.encode("data"));
 });

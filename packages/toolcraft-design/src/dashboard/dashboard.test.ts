@@ -1,5 +1,5 @@
 import { PassThrough } from "node:stream";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
@@ -1500,6 +1500,33 @@ describe("createDashboard", () => {
 
       dashboard.destroy();
     });
+  });
+
+  it("coalesces output bursts and cancels pending repaint on destroy", () => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout();
+        const dashboard = createDashboard({ stdin, stdout });
+        dashboard.start();
+        const write = vi.spyOn(stdout, "write");
+        for (let index = 0; index < 100; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `burst ${index}`, ts: index });
+        }
+        expect(write).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(16);
+        expect(write).toHaveBeenCalledTimes(1);
+        expect(renderTerminalOutput(stdout.output, 80, 24).join("\n")).toContain("burst 99");
+        dashboard.appendOutput({ kind: "info", text: "pending repaint", ts: 100 });
+        dashboard.destroy();
+        const restored = stdout.output;
+        vi.runAllTimers();
+        expect(stdout.output).toBe(restored);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("redraws only within the new terminal bounds after shrinking", () => {

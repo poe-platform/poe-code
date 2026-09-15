@@ -58,6 +58,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   let destroyed = false;
   let scrollOffset = 0;
   let heldOutput: OutputItem[] | undefined;
+  let renderTimer: ReturnType<typeof setTimeout> | undefined;
 
   function appendOutput(item: OutputItem): void {
     if (destroyed) {
@@ -97,8 +98,15 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     render();
 
     const activeStore = getStore();
+    let previousStats = activeStore.getState().stats;
     unsubscribeStore = activeStore.onChange(() => {
-      render();
+      const stats = activeStore.getState().stats;
+      if (stats !== previousStats) {
+        previousStats = stats;
+        render();
+      } else if (heldOutput === undefined && renderTimer === undefined) {
+        renderTimer = setTimeout(render, 16);
+      }
     });
     unsubscribeKeypress = driver.onKeypress((event) => {
       const command = resolveCommand(event);
@@ -146,6 +154,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   }
 
   function stop(): void {
+    clearTimeout(renderTimer);
+    renderTimer = undefined;
     unsubscribeStore?.();
     unsubscribeKeypress?.();
     unsubscribeResize?.();
@@ -189,6 +199,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   }
 
   function render(): void {
+    clearTimeout(renderTimer);
+    renderTimer = undefined;
     if (driver === undefined) {
       return;
     }

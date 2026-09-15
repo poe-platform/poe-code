@@ -328,6 +328,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
   let eventsDone = false;
   let eventsAbandoned = false;
   let eventStreamError: unknown;
+  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
   const ctx: SpawnContext = {
     sessionId: "unknown",
     agent: agentId,
@@ -355,7 +356,8 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
         ctx.sessionId = threadId;
       }
     }
-    ctx.events.push(event);
+    // Middleware can inspect completed history; direct streams need only unread events.
+    if (hasMiddlewares) ctx.events.push(event);
     accumulateUsage(ctx, event);
     if (eventsAbandoned) return;
     const waiter = waiters.shift();
@@ -441,7 +443,6 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     }
   })();
 
-  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
   let resolveMiddlewaresApplied: (() => void) | undefined;
   const middlewaresApplied = hasMiddlewares
     ? new Promise<void>((resolve) => {

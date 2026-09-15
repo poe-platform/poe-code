@@ -121,6 +121,22 @@ export const imageLayoutOperationContracts: Readonly<Record<string, { descriptio
       data: { type: "null" }, warnings: empty, errors: array(diagnostic), affected: { const: 0 }, locations: empty })] }
   }
 };
+const shapeDetails = object({ representation: { enum: ["native", "office", "vml"] }, kind: { enum: ["shape", "group"] },
+  containingGroup: { oneOf: [location, { type: "null" }] }, textBoxStories: array(location), ownerPart: string,
+  sectionReferences: array(object({ section: number, variant: { enum: ["default", "first", "even"] }, story: string, part: string })),
+  editSupport: { enum: ["supported", "unsupported"] }, refusalReasons: strings, watermarkEvidence: strings });
+const shapeRecord: DocxJsonSchema = { ...object({ kind: { const: "shape" }, location, name: string, properties: empty,
+  references: array(reference), support: { enum: ["edit", "preserve"] }, details: shapeDetails }),
+  required: ["kind", "location", "properties", "references", "support", "details"] };
+export const shapeOperationContracts = Object.fromEntries([
+  ["shapes.list", "Inventory active native, Office and VML shapes and groups in story order, retaining carrier hierarchy, text-box story owners and physical section references. Stored watermark-like evidence is not rendering or visibility. Inactive MCE alternatives remain preservation evidence.", object({ items: array(shapeRecord) })],
+  ["shapes.set", "Replace the whole text of an admitted simple ungrouped text box, preserving paragraph properties and shape geometry while replacing run formatting. Explicit shape/token/all selection; nested, linked, opaque and shared-header edits reject. Utility batch and geometry models remain unsupported.", mutationData]
+].map(([id, description, data]) => [id, { description, featureIds: ["F36"], result: { oneOf: [
+  object({ version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
+    warnings: id === "shapes.list" ? array(diagnostic) : empty, errors: empty, affected: id === "shapes.list" ? { const: 0 } : number, locations: array(location) }),
+  object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" },
+    warnings: empty, errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: empty })
+] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
 export const rasterInsertionOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
   "images.add": {
     description: "Insert admitted PNG/JPEG or static safe SVG with an explicit validated PNG/JPEG/GIF/BMP/TIFF fallback inline into one paragraph or a new trailing container paragraph; no rasterization or rendering is performed.",

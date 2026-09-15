@@ -106,3 +106,12 @@ it("retains bidi controls, empty blocks, hidden styles and active compatibility 
   controller.abort();
   await expect(extractDocumentText(bytes, { ...textContext, signal: controller.signal })).rejects.toMatchObject({ code: "cancelled" });
 });
+
+it.each([false,true])('reads native body namespace without leaking into owner story %s',async strict=>{
+ const {box}=await import('../tests/fixtures/shapes.js');
+ const input=await textFixture(box(undefined,'native',strict),{},strict);
+ const document=await openDocumentLocations(input,textContext);
+ expect(document.text({scope:'text-boxes'}).text).toBe('coast');
+ expect(document.text({scope:'body'}).text).toBe('');
+ expect(document.list('paragraph',{scope:'body'})).toHaveLength(1);
+});

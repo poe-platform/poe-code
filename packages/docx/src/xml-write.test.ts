@@ -241,3 +241,13 @@ it.each(["valid", "strict", "template"] as const)("retains every admitted %s pac
   xml.setText(text, "Spare keys");
   expect(editor.dirtyParts).toEqual([]);
 });
+
+it('admits only bounded native shape text content through opaque envelopes', () => {
+ const xml = `<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:r><w:drawing><s:wsp xmlns:s="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><s:spPr/><s:txbx><w:txbxContent><w:p><w:r><w:t>coast</w:t></w:r></w:p></w:txbxContent></s:txbx><s:bodyPr/></s:wsp></w:drawing></w:r></w:p>`;
+ const editor = new DocumentXmlEditor(new TextEncoder().encode(xml));
+ const shape = editor.root.children[0]!.children[0]!.children[0]!;
+ const body = shape.children[1]!.children[0]!;
+ editor.replaceElement(body.children[0]!.children[0]!.children[0]!, '<w:t>shore</w:t>');
+ expect(new TextDecoder().decode(editor.serialize())).toBe(xml.replace('coast','shore'));
+ expect(() => editor.replaceElement(shape.children[0]!, '<s:spPr/>')).toThrow();
+});

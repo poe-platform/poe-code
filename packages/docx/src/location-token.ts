@@ -10,7 +10,7 @@ export interface LocationPayload {
   readonly path: readonly number[];
   readonly range: Readonly<{ start: number; end: number }> | null;
 }
-export type LocationKind = "section" | "part" | "story" | "paragraph" | "run" | "table" | "cell" | "image" | "link" | "bookmark" | "field" | "annotation" | "control";
+export type LocationKind = "section" | "part" | "story" | "paragraph" | "run" | "table" | "cell" | "image" | "shape" | "link" | "bookmark" | "field" | "annotation" | "control";
 export interface LocationPositions {
   readonly section?: number;
   readonly paragraph?: number;
@@ -18,6 +18,7 @@ export interface LocationPositions {
   readonly table?: number;
   readonly cell?: string;
   readonly image?: number;
+  readonly shape?: number;
   readonly link?: number;
   readonly bookmark?: number;
   readonly field?: number;
@@ -38,6 +39,7 @@ export type RunLocation = Location<"run">;
 export type TableLocation = Location<"table">;
 export type CellLocation = Location<"cell">;
 export type ImageLocation = Location<"image">;
+export type ShapeLocation = Location<"shape">;
 export type AnnotationLocation = Location<"annotation">;
 
 export class SelectionError extends Error {

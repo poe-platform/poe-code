@@ -7,6 +7,7 @@ import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { SelectionError, type LocationKind, type LocationPositions } from "./location-token.js";
 import { tableRows } from "./table-rows.js";
+import { collectShapeCarriers, type ShapeCarrier } from "./shape-carriers.js";
 
 export type DocumentScope = "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories";
 export const documentScopes: readonly DocumentScope[] = Object.freeze([
@@ -26,6 +27,7 @@ export interface LocationEntry {
   positions: LocationPositions;
   scope?: DocumentScope;
   node?: XmlElement;
+  wordNamespace?: string;
 }
 export function pathContains(parent: readonly number[], child: readonly number[]): boolean {
   return parent.length <= child.length && parent.every((n, i) => child[i] === n);
@@ -63,6 +65,8 @@ export class LocationIndex {
   readonly entries: LocationEntry[] = [];
   readonly references: StoryReference[] = [];
   readonly imageTargets = new Map<XmlElement, string>();
+  readonly shapeCarriers = new Map<XmlElement, ShapeCarrier>();
+  readonly shapeBodies = new Map<XmlElement, readonly XmlElement[]>();
   readonly byAddress = new Map<string, LocationEntry[]>();
   readonly children = new Map<XmlElement, readonly XmlElement[]>();
   readonly #paths = new Map<XmlElement, readonly number[]>();
@@ -77,6 +81,8 @@ export class LocationIndex {
     const graph = new DocumentPackage(archive, limits, budget);
     const roots = new Map<string, XmlElement>();
     const branches = new Map<XmlElement, XmlElement | undefined>();
+    const bodyRoots = new Set<XmlElement>();
+    const bodyWords = new Map<XmlElement, string>();
     const contentTypes = archive.members.find(member => member.name.toLowerCase() === "[content_types].xml")!;
     const parts = [...graph.parts, { ...contentTypes, partname: "/[Content_Types].xml", content_type: "application/xml" }];
     for (const part of parts.sort((a, b) => a.partname < b.partname ? -1 : a.partname > b.partname ? 1 : 0)) {
@@ -105,6 +111,15 @@ export class LocationIndex {
         const compatibility = new MarkupCompatibility(root, documentCompatibilityProfile, budget);
         for (const branch of compatibility.branches) branches.set(branch.alternateContent, branch.selected);
         effective(compatibility.content);
+        const census = collectShapeCarriers(root, dialect, budget, branches);
+        for (const body of census.bodyRoots) { budget.charge("retainedBytes", 32); bodyRoots.add(body); }
+        for (const carrier of census.carriers) {
+          budget.charge("retainedBytes", 96 + carrier.bodies.length * 32);
+          budget.charge("work", 1 + carrier.bodies.length);
+          this.shapeCarriers.set(carrier.node, carrier);
+          this.shapeBodies.set(carrier.node, carrier.bodies.map(body => body.node));
+          for (const body of carrier.bodies) bodyWords.set(body.node, body.wordNamespace);
+        }
         const nativeCarriers = new Map<XmlElement, XmlElement[]>();
         // Native image carriers remain inert read locations; namespace recognition
         // here never changes compatibility branch selection or text understanding.
@@ -123,7 +138,15 @@ export class LocationIndex {
             this.children.set(node, []);
             return;
           }
-          if (node.namespace === w && node.localName === "txbxContent" && !this.children.has(node) && owner) {
+          if (this.shapeCarriers.has(node) && !this.children.has(node)) {
+            this.children.set(node, []);
+            if (owner) this.children.set(owner, [...this.children.get(owner) ?? [], node]);
+          }
+          if (bodyWords.has(node) && !this.children.has(node) && owner) {
+            effective(new MarkupCompatibility(node, documentCompatibilityProfile, budget).content);
+            this.children.set(owner, [...this.children.get(owner) ?? [], node]);
+          }
+          if (!bodyRoots.has(node) && node.namespace === w && node.localName === "txbxContent" && !this.children.has(node) && owner) {
             effective(new MarkupCompatibility(node, documentCompatibilityProfile, budget).content);
             this.children.set(owner, [...this.children.get(owner) ?? [], node]);
           }
@@ -157,14 +180,14 @@ export class LocationIndex {
       const id = part + "#" + suffix;
       if (seen.has(id)) return;
       seen.add(id);
-      this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions });
+      this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions, ...(bodyWords.has(node) ? { wordNamespace: bodyWords.get(node)! } : {}) });
       const entryStart = this.entries.length;
-      const counts = { paragraph: 0, table: 0, image: 0, run: 0, link: 0, bookmark: 0, field: 0, control: 0 };
+      const counts = { paragraph: 0, table: 0, image: 0, shape: 0, run: 0, link: 0, bookmark: 0, field: 0, control: 0 };
       let bodySection = 1;
       const visit = (current: XmlElement, inherited: LocationPositions) => {
         budget.charge("work", 1);
-        if (current !== node && current.namespace === w && current.localName === "txbxContent") {
-          pendingBoxes.push({ node: current, part });
+        if (current !== node && (bodyRoots.has(current) || current.namespace === w && current.localName === "txbxContent")) {
+          if (bodyWords.has(current) || !bodyRoots.has(current)) pendingBoxes.push({ node: current, part });
           return;
         }
         if (scope === "body" && current !== node) inherited = { ...inherited, section: bodySection };
@@ -185,6 +208,7 @@ export class LocationIndex {
           (current.namespace === "urn:schemas-microsoft-com:vml" && current.localName === "imagedata")) {
           kind = "image"; pos = { ...inherited, image: ++counts.image };
         }
+        if (this.shapeCarriers.has(current)) { kind = "shape"; pos = { ...inherited, shape: ++counts.shape }; }
         if (kind === "bookmark") this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: inherited });
         if (kind) this.#add({ kind, part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: pos });
         for (const child of this.children.get(current) ?? []) visit(child, pos);
@@ -201,7 +225,7 @@ export class LocationIndex {
       const ownerPositions = new Map(owners.map(e => [e.node, e.positions]));
       const inventory = (current: XmlElement, inherited: LocationPositions) => {
         budget.charge("work", 1);
-        if (current !== node && current.namespace === w && current.localName === "txbxContent") return;
+        if (current !== node && (bodyRoots.has(current) || current.namespace === w && current.localName === "txbxContent")) return;
         const positions = ownerPositions.get(current) ?? inherited;
         if (revisionInfo(current) && !indexed.has(current)) this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions });
         if (branches.has(current)) {
@@ -224,6 +248,7 @@ export class LocationIndex {
     story(main, body, "body", "body");
     const walk = (node: XmlElement): XmlElement[] => {
       budget.charge("work", 1);
+      if (bodyRoots.has(node) || node.namespace === w && node.localName === "txbxContent") return [];
       return [node, ...(this.children.get(node) ?? []).flatMap(walk)];
     };
     const sections = walk(body).filter(n => n.namespace === w && n.localName === "sectPr");

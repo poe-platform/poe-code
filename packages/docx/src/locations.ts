@@ -8,6 +8,9 @@ import { closedRecord, decodeLocation, encodeLocation, safeOrdinal, SelectionErr
 import { readTextSegments, type TextData } from "./text-traversal.js";
 import type { TextOptions } from "./text.js";
 import { resolveDocxSelection } from "./simple-selection.js";
+import type { XmlElement } from "./package-xml.js";
+import { UnsupportedEditError } from "./xml-write.js";
+import type { ShapeCarrier } from "./shape-carriers.js";
 
 export interface LocationQuery { readonly scope?: DocumentScope; readonly owner?: string; readonly section?: number; readonly variant?: "default" | "first" | "even"; }
 export interface MatchOptions {
@@ -106,6 +109,26 @@ class DocumentLocations {
     return this.#location(this.#entry(value, kind), value.range) as Location<K>;
   }
 
+  shapeStory(token: string): Location<"story"> {
+    const value = decodeLocation(token);
+    const shape = this.#entry(value, "shape");
+    if (value.range !== null) throw new InvalidValueError("A shape owner requires a whole occurrence token.");
+    const bodies = this.list("story", { owner: token });
+    if (bodies.length > 1 || !bodies.length && (this.#index.shapeCarriers.get(shape.node!)?.refusalReasons.length ?? 0) > 0)
+      throw new UnsupportedEditError("The shape has no unambiguous supported text body.");
+    if (!bodies[0]) throw new SelectionError("missing-selection");
+    return bodies[0];
+  }
+
+  shapeCarrier(token: string): ShapeCarrier {
+    const value = decodeLocation(token);
+    const entry = this.#entry(value, "shape");
+    if (value.range !== null) throw new InvalidValueError("A shape requires a whole occurrence token.");
+    const carrier = this.#index.shapeCarriers.get(entry.node!);
+    if (!carrier) throw new SelectionError("missing-selection");
+    return carrier;
+  }
+
   list<K extends LocationKind>(kind: K, query: LocationQuery = {}): readonly Location<K>[] {
     closedRecord(query, ["scope", "owner", "section", "variant"]);
     if (query.section !== undefined) safeOrdinal(query.section);
@@ -115,15 +138,19 @@ class DocumentLocations {
       throw new InvalidValueError("Story variants require header or footer scope.");
     if (query.section !== undefined && (kind === "part" || query.scope !== undefined && !["body", "headers", "footers", "all-stories"].includes(query.scope)))
       throw new InvalidValueError("Section selection requires body, header or footer scope.");
-    if (!["section", "part", "story", "paragraph", "run", "table", "cell", "image", "link", "bookmark", "field", "annotation", "control"].includes(kind))
+    if (!["section", "part", "story", "paragraph", "run", "table", "cell", "image", "shape", "link", "bookmark", "field", "annotation", "control"].includes(kind))
       throw new InvalidValueError("Unknown location kind.");
     if (query.scope !== undefined && (!documentScopes.includes(query.scope) || kind === "part"))
       throw new InvalidValueError("Unknown or inapplicable story scope.");
     if (query.owner !== undefined && (query.scope !== undefined || query.section !== undefined || query.variant !== undefined)) throw new InvalidValueError("An owner token cannot be combined with scope.");
     const owner = query.owner === undefined ? undefined : decodeLocation(query.owner);
+    let shapeStories: readonly XmlElement[] | undefined;
     if (owner) {
       if (owner.range) throw new InvalidValueError("A resource owner cannot be a text range.");
       const entry = this.#entry(owner);
+      if (kind === "shape" && !["story", "table", "cell", "paragraph", "run"].includes(entry.kind))
+        throw new InvalidValueError("Shape occurrences require an admitted story, table, cell, paragraph or run owner; sections use an explicit numeric query.");
+      if (kind === "story" && entry.kind === "shape") shapeStories = this.#index.shapeBodies.get(entry.node!) ?? [];
       if (kind === "part" || (kind === "run" && entry.kind !== "paragraph") ||
         (kind === "cell" && entry.kind !== "table") ||
         (["paragraph", "table"].includes(kind) && !["story", "cell"].includes(entry.kind)))
@@ -135,17 +162,23 @@ class DocumentLocations {
       (query.variant === undefined || ref.variant === query.variant)).map(ref => ref.story));
     this.#budget.charge("work", this.#index.references.length);
     const result: Location<K>[] = [];
+    const shapeOrdinals = new Map<string, number>();
     for (const entry of this.#index.entries) {
       this.#budget.charge("work", 1);
       if (entry.kind !== kind) continue;
-      if (owner ? entry.part !== owner.part || entry.story !== owner.story || !pathContains(owner.path, entry.path)
+      if (owner ? entry.part !== owner.part || (shapeStories ? !shapeStories.includes(entry.node!) : entry.story !== owner.story || !pathContains(owner.path, entry.path))
         : kind !== "part" && scope !== "all-stories" && entry.scope !== scope) continue;
       if (query.section !== undefined || query.variant !== undefined) {
         const storyScoped = entry.scope === "headers" || entry.scope === "footers";
         if (storyScoped ? !referencedStories.has(entry.story) : query.section !== undefined && entry.positions.section !== query.section) continue;
       }
       this.#budget.check("matches", result.length + 1);
-      const position = ["paragraph", "run", "table", "image", "link", "bookmark", "field", "control"].includes(kind) ? { [kind]: result.length + 1 } : {};
+      const shapeOrdinal = kind === "shape" ? (shapeOrdinals.get(entry.story) ?? 0) + 1 : undefined;
+      if (shapeOrdinal !== undefined) {
+        if (!shapeOrdinals.has(entry.story)) this.#budget.charge("retainedBytes", 32);
+        shapeOrdinals.set(entry.story, shapeOrdinal);
+      }
+      const position = shapeOrdinal !== undefined ? { shape: shapeOrdinal } : ["paragraph", "run", "table", "image", "link", "bookmark", "field", "control"].includes(kind) ? { [kind]: result.length + 1 } : {};
       result.push(this.#location({ ...entry, positions: { ...entry.positions, ...position, ...(query.section !== undefined ? { section: query.section } : {}) } }) as Location<K>);
     }
     return Object.freeze(result);
@@ -154,7 +187,17 @@ class DocumentLocations {
   at<K extends LocationKind>(kind: K, position: number, query: LocationQuery = {}): Location<K> {
     safeOrdinal(position);
     if (kind === "run" && query.owner === undefined) throw new InvalidValueError("Run positions require a paragraph owner.");
-    const result = this.list(kind, query)[position - 1];
+    const listed = this.list(kind, query);
+    if (kind === "shape") {
+      const candidates = listed.filter(location => location.positions.shape === position);
+      if (candidates.length > 1) {
+        this.#budget.charge("diagnosticBytes", candidates.reduce((sum, location) => sum + location.token.length, 0));
+        throw new SelectionError("ambiguous-selection", candidates.map(location => location.token));
+      }
+      if (!candidates[0]) throw new SelectionError("missing-selection");
+      return candidates[0];
+    }
+    const result = listed[position - 1];
     if (!result) throw new SelectionError("missing-selection");
     return result;
   }

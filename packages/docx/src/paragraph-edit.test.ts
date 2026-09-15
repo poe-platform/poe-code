@@ -235,3 +235,8 @@ it.each([0, 1, 9])("adds heading level %s through paragraph edits with a materia
   });
   expect((await docx.inspectDocumentStyles(new Uint8Array(volume.readFileSync("/out") as Buffer), {}, textContext)).styles).toHaveLength(1);
 });
+
+it('checks grouped box restrictions before unchanged paragraph formatting', async () => {
+ const {groupedNativeBox}=await import('../tests/fixtures/shapes.js');
+ await expect(edit(groupedNativeBox(),'paragraphs.set',{scope:'text-boxes',paragraph:1,keepTogether:null})).rejects.toMatchObject({code:'unsupported-edit'});
+});

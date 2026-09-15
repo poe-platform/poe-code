@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", comments: "story", text: "paragraph", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
+  headers: "story", footers: "story", comments: "story", text: "paragraph", shapes: "shape", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -22,7 +22,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
     : inserting && ["runs", "links", "bookmarks", "comments", "fields", "toc", "captions"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
-  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
+  if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "shape" && ["text", "shapes"].includes(resource)) && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;
   const text = resource === "text";
@@ -33,7 +33,8 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   };
   let selected: readonly Location[];
   if (typeof options.select === "string") {
-    const location = document.resolve<LocationKind>(options.select, resource === "bookmarks" ? inserting ? "paragraph" : "bookmark" : undefined);
+    let location = document.resolve<LocationKind>(options.select, resource === "bookmarks" ? inserting ? "paragraph" : "bookmark" : undefined);
+    if (text && location.kind === "shape") location = document.shapeStory(location.token);
     const acceptable = operation === "images.add" ? ["story", "cell", "paragraph"]
       : text ? ["story", "paragraph", "run", "table", "cell"]
       : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
@@ -56,11 +57,12 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
         throw new InvalidValueError("Note selection requires an explicit footnotes or endnotes scope.");
       owner = document.at("story", (options.comment ?? options.note) as number, { scope });
     }
-    for (const kind of ["table", "cell", "paragraph", "run", "image", "link", "bookmark", "field"] as const) {
+    for (const kind of ["table", "cell", "paragraph", "run", "image", "shape", "link", "bookmark", "field"] as const) {
       if (options[kind] === undefined || kind === "bookmark" && resource === "links") continue;
       if (kind === "cell") owner = document.cell(owner!.token, options.cell as string);
       else owner = document.at(kind, options[kind] as number, owner ? { owner: owner.token } : query);
     }
+    if (text && owner?.kind === "shape") owner = document.shapeStory(owner.token);
     if (owner) {
       if (text || inserting || owner.kind === targetKind || resource === "tables" && owner.kind === "cell") selected = [owner];
       else selected = document.list(targetKind, { owner: owner.token });

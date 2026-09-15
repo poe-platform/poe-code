@@ -126,3 +126,8 @@ it("rejects partial formatting of text containing comments without publishing", 
   })).rejects.toMatchObject({ code: "unsupported-edit" });
   expect(volume.readFileSync("/output", "utf8")).toBe("unchanged");
 });
+
+it('checks grouped box restrictions before unchanged run formatting', async () => {
+ const {groupedNativeBox}=await import('../tests/fixtures/shapes.js');
+ await expect(format(groupedNativeBox(),{scope:'text-boxes',paragraph:1,run:1,bold:true})).rejects.toMatchObject({code:'unsupported-edit'});
+});

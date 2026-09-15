@@ -1,6 +1,12 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps shape utility transports limited to applicable owners and plain text assignment", () => {
+  type Invalid = "image" | "link" | "control" | "revision" | "field" | "bookmark" | "shared" | "width" | "height";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"shapes.list">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["shapes.set"], Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<DocxOperationArguments<"shapes.set">["text"]>().toEqualTypeOf<string>();
+});
 it("keeps native layout SDK fields semantic, optional and axis-specific", () => {
   expectTypeOf<DocxOperationArguments<"images.set">["allowOverlap"]>().toEqualTypeOf<boolean | undefined>();
   expectTypeOf<DocxOperationArguments<"images.set">["verticalRelativeFrom"]>().toEqualTypeOf<"page" | "margin" | "paragraph" | "line" | "topMargin" | "bottomMargin" | "insideMargin" | "outsideMargin" | undefined>();

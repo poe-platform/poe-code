@@ -201,3 +201,27 @@ it("admits the complete JSON result including its transport newline", async () =
   await expect(docx.replaceDocumentText(input, { ...options, limit: [{ name: "serializedOutput", value: new TextEncoder().encode(envelope).length - 1 }] }, context))
     .rejects.toMatchObject({ code: "limit-exceeded" });
 });
+
+it('refuses affected grouped native text boxes even for unchanged replacement', async () => {
+ const wp='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing';
+ const body=`<w:p><w:r><w:drawing><s:wgp xmlns:s="${wp}"><s:wsp><s:spPr/><s:txbx><s:txbxContent><w:p><w:r><w:t>coast</w:t></w:r></w:p></s:txbxContent></s:txbx><s:bodyPr/></s:wsp></s:wgp></w:drawing></w:r></w:p>`;
+ await expect(replace(body,{scope:'text-boxes',with:'coast'})).rejects.toMatchObject({code:'unsupported-edit'});
+});
+
+it.each(['office','vml','native'] as const)('preserves formatting in simple %s shape replacements',async kind=>{
+ const {box}=await import('../tests/fixtures/shapes.js');
+ const result=await replace(box('<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>coast</w:t></w:r></w:p>',kind),{scope:'text-boxes'});
+ expect((await docx.extractDocumentText(result.bytes,textContext,{scope:'text-boxes'})).text).toBe('shore');
+ expect(result.xml).toContain('<w:rPr><w:b/></w:rPr>');
+ if(kind==='vml')expect(result.xml).toContain('width:10pt;height:20pt');
+ else expect(result.xml).toContain('<s:spPr/>');
+});
+it.each([false,true])('does not guard unrelated grouped boxes in body text replacement sameparagraph=%s',async same=>{
+ const {groupedNativeBox}=await import('../tests/fixtures/shapes.js');
+ const drawing=groupedNativeBox();
+ const body=same?drawing.replace('<w:r><w:drawing>','<w:r><w:t>coast</w:t></w:r><w:r><w:drawing>'):paragraph('coast')+drawing;
+ const result=await replace(body,{scope:'body'});
+ expect(result.data.changed).toBe(true);
+ expect(result.xml).toContain('<w:t>coast</w:t></w:r></w:p></s:txbxContent>');
+ expect((await docx.extractDocumentText(result.bytes,textContext,{scope:'body'})).text).toBe(same?'shore':'shore\n');
+});

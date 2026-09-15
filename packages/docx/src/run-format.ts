@@ -112,6 +112,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     let node = xml.root, parent = node;
     const ancestors = [node];
     for (const index of target.run.value.path) { parent = node; node = node.children[index]!; ancestors.push(node); }
+    xml.assertShapeEditAllowed(node);
     selectedNodes.set(node, target.location);
     if (ancestors.some(n => n.namespace === node.namespace && (["moveFrom", "moveTo", "del"].includes(n.localName) || ["p", "r"].includes(n.localName) && n.children.some(p => p.localName === n.localName + "Pr" && p.children.some(c => c.localName === p.localName + "Change")))))
       throw new UnsupportedEditError("Complex or deleted revision runs cannot be formatted.");

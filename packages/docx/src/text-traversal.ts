@@ -88,7 +88,7 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
     const targets = selected.filter(target => target.value.story === story.story);
     if (!targets.length) continue;
     const fields: boolean[] = [];
-    const w = story.node!.namespace;
+    const w = story.wordNamespace ?? story.node!.namespace;
     const included = (entry: LocationEntry) => {
       budget.charge("work", targets.length * (entry.path.length + 1));
       return targets.some(target => pathContains(target.value.path, entry.path));
@@ -118,7 +118,7 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
       budget.charge("work", 1);
       const entry = byNode.get(node);
       let state = entry?.story === story.story ? { ...inherited, entry } : inherited;
-      if (node.namespace !== w) return [];
+      if (node.namespace !== w && node !== story.node) return [];
       const name = node.localName;
       const info = revisionInfo(node);
       if (info?.support === "opaque") return [];

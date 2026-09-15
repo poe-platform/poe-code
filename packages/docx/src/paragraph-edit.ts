@@ -94,6 +94,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     for (const index of before.value.path) { parent = node; node = node.children[index]!; ancestors.push(node); }
     if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || n.children.some(c => c.namespace === w && c.localName === "pPr" && c.children.some(p => p.namespace === w && p.localName === "pPrChange")))))
       throw new UnsupportedEditError("Tracked paragraph edits require explicit revision operations.");
+    xml.assertShapeEditAllowed(node);
     const props = node.children.find(c => c.namespace === w && c.localName === "pPr");
     const originalProps = props ? xml.sourceXml(props) : "";
     if (request.operation === "paragraphs.set") {

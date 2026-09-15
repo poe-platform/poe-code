@@ -55,6 +55,30 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.insertDocumentImage).toBeTypeOf("function");
   expect.soft(runtime.replaceDocumentImage).toBeTypeOf("function");
   expect.soft(runtime.setDocumentImageLayout).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentShapes).toBeTypeOf("function");
+  expect.soft(runtime.editDocumentShapes).toBeTypeOf("function");
+  if (runtime.inspectDocumentShapes && runtime.editDocumentShapes) {
+    const shapeBody = '<w:p><w:r><w:pict><v:shape xmlns:v="urn:schemas-microsoft-com:vml" id="coastal-box" style="width:10pt;height:20pt"><v:textbox><w:txbxContent><w:p><w:r><w:t>Draft coastal note</w:t></w:r></w:p></w:txbxContent></v:textbox></v:shape></w:pict></w:r></w:p>';
+    const shapeSource = await textFixture(shapeBody);
+    const shapeList = await runtime.inspectDocumentShapes(shapeSource, {}, textContext);
+    expect(shapeList.items).toHaveLength(1);
+    expect(shapeList.items[0].location.kind).toBe("shape");
+    const shapeChunks: Uint8Array[] = [];
+    const shapeResult = await runtime.editDocumentShapes(shapeSource, {
+      operation: "shapes.set", options: { shape: 1, text: "Final coastal note", output: "-" }
+    }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes: Uint8Array) { shapeChunks.push(new Uint8Array(bytes)); } } });
+    expect(shapeResult.changed).toBe(true);
+    expect(shapeResult.changes).toHaveLength(1);
+    const shapeOutput = new Uint8Array(Buffer.concat(shapeChunks));
+    const shapeLocations = await runtime.openDocumentLocations(shapeOutput, textContext);
+    expect(shapeLocations.text({ scope: "text-boxes" }).text).toBe("Final coastal note");
+    const shapeArchive = await runtime.readDocumentArchive(shapeOutput, textContext);
+    const shapeXml = new TextDecoder().decode(shapeArchive.members.find((member: { name: string }) => member.name === "word/document.xml").bytes);
+    expect(shapeXml).toContain('id="coastal-box" style="width:10pt;height:20pt"');
+    const originalArchive = await runtime.readDocumentArchive(shapeSource, textContext);
+    for (const member of originalArchive.members) if (member.name !== "word/document.xml")
+      expect(shapeArchive.members.find((candidate: { name: string }) => candidate.name === member.name).bytes).toEqual(member.bytes);
+  }
   if (runtime.insertDocumentImage && runtime.replaceDocumentImage) {
     const chunks: Uint8Array[] = [];
     const source = rasterPng(3, 5), replacement = rasterPng(7, 2);

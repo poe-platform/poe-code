@@ -28,6 +28,21 @@ async function fixture(change?: (files: Map<string, string>) => void) {
   return sdk.openDocumentLocations(new Uint8Array(fs.readFileSync("/document") as Uint8Array), context);
 }
 const parse = (...args: string[]) => sdk.parseDocxArguments(args.map(arg => new TextEncoder().encode(arg)));
+it("refuses part and image tokens as direct shape collection owners", async () => {
+  const document = await fixture();
+  for (const owner of [document.list("part")[0]!, document.list("image")[0]!])
+    expect(() => document.list("shape", { owner: owner.token })).toThrowError(expect.objectContaining({ code: "usage" }));
+});
+it("selects a shape occurrence and resolves its unique admitted text-box story for text", async () => {
+  const document = await fixture(files => files.set("word/document.xml", `<w:document xmlns:w="${w}" xmlns:r="${r}"><w:body><w:p><w:r><w:drawing><wp:wsp xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><wp:txbx><wp:txbxContent>${p("Inside")}</wp:txbxContent></wp:txbx></wp:wsp></w:drawing></w:r></w:p><w:sectPr/></w:body></w:document>`));
+  const shape = document.at("shape", 1);
+  expect(sdk.resolveDocxSelection(document, { operation: "shapes.list", inputs: ["in"], options: { shape: 1 } })[0]!.token).toBe(shape.token);
+  const text = sdk.resolveDocxSelection(document, { operation: "text.get", inputs: ["in"], options: { shape: 1 } });
+  expect(text).toHaveLength(1); expect(text[0]!.kind).toBe("story");
+  expect(text[0]!.value.story).not.toBe(shape.value.story);
+  expect(sdk.resolveDocxSelection(document, { operation: "text.get", inputs: ["in"], options: { select: shape.token } })[0]!.token).toBe(text[0]!.token);
+  expect(() => sdk.resolveDocxSelection(document, { operation: "shapes.list", inputs: ["in"], options: { select: document.at("paragraph", 1).token } })).toThrowError(expect.objectContaining({ code: "missing-selection" }));
+});
 it("selects the unique body for image insertion without choosing an existing paragraph", async () => {
   const document = await fixture();
   const selected = sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--dry-run"));

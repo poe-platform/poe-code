@@ -8,6 +8,8 @@ import {
 import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfile, hasCompatibilityMarkup, type CompatibilityProfile, type ExpandedXmlName } from "./compatibility.js";
 import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
+import { collectShapeCarriers, type ShapeCarrierCensus } from "./shape-carriers.js";
+
 type Token = XmlContent | XmlAttribute;
 interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean }
 
@@ -129,6 +131,8 @@ export class DocumentXmlEditor {
   readonly #namespaces = new Map<ReadonlyMap<string, string>, Map<string, string>>();
   readonly #elements = new Set<XmlElement>();
   readonly #dialect: DocumentDialect | undefined;
+  #shapes: ShapeCarrierCensus | undefined;
+  readonly #boxViews = new Map<XmlElement, MarkupCompatibility>();
 
   constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
     this.#budget = budget;
@@ -170,6 +174,47 @@ export class DocumentXmlEditor {
     return [...new Set([...this.#patches.keys()].map(token => this.#spans.get(token)!.owner))];
   }
 
+  /** Every affected native box must admit the operation, even before a no-op edit. */
+  assertShapeEditAllowed(node: XmlElement): void {
+    if (!this.#dialect) return;
+    const span = this.#spans.get(node);
+    if (!span) unsupported();
+    for (const carrier of this.#shapeCensus().rawCarriers) {
+      for (const body of this.#shapeCensus().bodyRoots) {
+        const bodySpan = this.#spans.get(body)!;
+        const carrierSpan = this.#spans.get(carrier.node)!;
+        if (!(carrierSpan.start <= bodySpan.start && bodySpan.end <= carrierSpan.end)) continue;
+        if (span.start <= bodySpan.start && bodySpan.end <= span.end || bodySpan.start <= span.start && span.end <= bodySpan.end) {
+          if (!carrier.active || carrier.refusalReasons.length || !carrier.bodies.some(b => b.node === body)) unsupported();
+        }
+      }
+    }
+  }
+
+  #shapeCensus(): ShapeCarrierCensus {
+    return this.#shapes ??= collectShapeCarriers(this.root, this.#dialect!, this.#budget,
+      new Map(this.compatibility.branches.map(branch => [branch.alternateContent, branch.selected])));
+  }
+
+  #canEdit(token: Token): boolean {
+    if (this.compatibility.canEdit(token)) return true;
+    if (!this.#dialect) return false;
+    const span = this.#spans.get(token);
+    if (!span) return false;
+    for (const carrier of this.#shapeCensus().carriers) {
+      if (carrier.refusalReasons.length) continue;
+      for (const body of carrier.bodies) {
+        const boundary = this.#spans.get(body.node)!;
+        if (boundary.contentStart! <= span.start && span.end <= boundary.contentEnd!) {
+          let view = this.#boxViews.get(body.node);
+          if (!view) { view = new MarkupCompatibility(body.node, this.#profile, this.#budget); this.#boxViews.set(body.node, view); }
+          return view.canEdit(token);
+        }
+      }
+    }
+    return false;
+  }
+
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
   sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map(), contentOnly = false): string {
     if (!this.#elements.has(node)) unsupported();
@@ -197,10 +242,11 @@ export class DocumentXmlEditor {
   replaceElement(node: XmlElement, xml: string): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
     if (!this.#elements.has(node) || node === this.root || this.#patches.has(node)) unsupported();
+    this.assertShapeEditAllowed(node);
     const check = (element: XmlElement): void => {
       this.#budget.charge("work", 1);
-      if (this.#guardCompatibility && (!this.compatibility.canEdit(element) ||
-        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.compatibility.canEdit(attribute)))) unsupported();
+      if (this.#guardCompatibility && (!this.#canEdit(element) ||
+        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)))) unsupported();
       for (const child of element.children) check(child);
     };
     check(node);
@@ -221,7 +267,8 @@ export class DocumentXmlEditor {
   replaceScalarText(node: XmlElement, text: string): void {
     if (typeof text !== "string") throw new InputTypeError("Expected an XML text string.");
     if (!this.#elements.has(node) || this.#patches.has(node) || node.content.some(token => token.kind !== "text" && token.kind !== "cdata")) unsupported();
-    if (this.#guardCompatibility && (!this.compatibility.canEdit(node) || node.content.some(token => !this.compatibility.canEdit(token)))) unsupported();
+    if (this.#guardCompatibility && (!this.#canEdit(node) || node.content.some(token => !this.#canEdit(token)))) unsupported();
+    this.assertShapeEditAllowed(node);
     if (node.text === text) return;
     const span = this.#spans.get(node)!;
     const maximum = span.end - span.start + text.length * 6 + node.name.length + 3;
@@ -240,7 +287,8 @@ export class DocumentXmlEditor {
   insertChildren(parent: XmlElement, xml: string, before?: XmlElement): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
     if (!this.#elements.has(parent) || (before && !parent.children.includes(before))) unsupported();
-    if (this.#guardCompatibility && !this.compatibility.canEdit(parent)) unsupported();
+    if (this.#guardCompatibility && !this.#canEdit(parent)) unsupported();
+    this.assertShapeEditAllowed(parent);
     const span = this.#spans.get(parent)!;
     const offset = before ? this.#spans.get(before)!.start : span.contentEnd!;
     const prefix = this.#source.slice(span.start, offset);
@@ -294,7 +342,10 @@ export class DocumentXmlEditor {
         (point >= 0x10000 && point <= 0x10ffff)))
         throw new InvalidXmlError("Invalid XML character in replacement value.");
     }
-    if (value !== original && this.#guardCompatibility && !this.compatibility.canEdit(token)) unsupported();
+    if (value !== original && this.#guardCompatibility && !this.#canEdit(token)) unsupported();
+    const owner = this.#spans.get(token)!.owner;
+    const element = owner.kind === "element" ? owner : [...this.#elements].find(n => n.content.includes(owner));
+    if (element) this.assertShapeEditAllowed(element);
     const before = new Map(this.#patches);
     if (value === original) this.#patches.delete(token);
     else {

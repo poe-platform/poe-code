@@ -68,7 +68,7 @@ export {
   encodeLocation, decodeLocation, SelectionError,
   type LocationPayload, type LocationKind, type LocationPositions, type Location,
   type PartLocation, type StoryLocation, type ParagraphLocation, type RunLocation,
-  type TableLocation, type CellLocation, type ImageLocation, type AnnotationLocation
+  type TableLocation, type CellLocation, type ImageLocation, type ShapeLocation, type AnnotationLocation
 } from "./location-token.js";
 export { documentScopes, type DocumentScope, type StoryReference } from "./location-index.js";
 export {
@@ -156,3 +156,5 @@ export { insertDocumentImage, type ImageInsertionRequest, type ImageInsertionDat
 export { replaceDocumentImage, type ImageReplacementRequest, type ImageReplacementData, type ImageReplacementContext } from "./image-replacement.js";
 export { setDocumentImageLayout, type ImageLayoutRequest, type ImageLayoutData, type ImageLayoutContext } from "./image-layout.js";
 export { Image, type ImageModelContext, type ImageModelInput } from "./image-model.js";
+
+export { inspectDocumentShapes, editDocumentShapes, type ShapeRecord, type ShapeInspectionData, type ShapeEditRequest, type ShapeEditData, type ShapeEditContext } from "./shape-edit.js";

@@ -1,0 +1,4946 @@
+{
+  "schemaVersion": 1,
+  "measuredDate": "2026-09-15",
+  "machine": {
+    "model": "Mac17,9",
+    "cpu": "Apple M5 Pro",
+    "memoryBytes": 25769803776,
+    "architecture": "arm64",
+    "os": "macOS 26.4.1 (25E253)",
+    "runtime": "Node.js v22.23.2",
+    "v8": "12.4.254.21-node.56"
+  },
+  "units": {
+    "ms": "monotonic wall milliseconds",
+    "memory": "bytes",
+    "maxRssKiB": "OS process high-water RSS in KiB",
+    "usage": "cumulative conservative resource debits, not observed memory"
+  },
+  "limitations": [
+    "One campaign; other development/QA processes competed. Not controlled throughput guarantees.",
+    "Stage memory snapshots and 10 ms timer samples miss synchronous temporary peaks. maxRSS is process-lifetime, not reset per stage.",
+    "Initial failed 4096-run trial did not retain elapsed/memory/counter observations; historical nulls are preserved. A separate retry records these metrics and zero sink writes."
+  ],
+  "failedMatchControl": {
+    "runs": 4096,
+    "host": {
+      "retainedBytes": 17179869184,
+      "work": 68719476736,
+      "xmlNodes": 50000000
+    },
+    "outcome": "limit-exceeded",
+    "resource": "retainedBytes",
+    "wallMs": null,
+    "memory": null,
+    "usage": null,
+    "publication": "no sink write reached before replacement failure"
+  },
+  "corpusHashes": [
+    {
+      "file": "circular-economy.docx",
+      "bytes": 8320866,
+      "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "housing-supply-interim.docx",
+      "bytes": 6360759,
+      "sha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim.docx",
+      "bytes": 6009233,
+      "sha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim-appendixb.docx",
+      "bytes": 101772,
+      "sha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim-appendixc.docx",
+      "bytes": 187689,
+      "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim-appendixd.docx",
+      "bytes": 273146,
+      "sha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim-appendixe.docx",
+      "bytes": 157148,
+      "sha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "gst-reforms-interim-sp1.docx",
+      "bytes": 264839,
+      "sha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "ministry-for-the-environment-annual-report-2024-2025.docx",
+      "bytes": 10219701,
+      "sha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "our-atmosphere-and-climate-2023.docx",
+      "bytes": 5425219,
+      "sha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "scotland-annual-progress-report-2026-template-v1.docx",
+      "bytes": 157858,
+      "sha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "our-future-rm-system-developing-the-npf.docx",
+      "bytes": 21125727,
+      "sha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "new-zealands-second-emissions-reduction-plan-discussion-document.docx",
+      "bytes": 13582467,
+      "sha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "national-climate-change-risk-assessment-main-report.docx",
+      "bytes": 7275939,
+      "sha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "mental-health-review.docx",
+      "bytes": 9290427,
+      "sha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "nz-ghg-inventory-2025-vol-1.docx",
+      "bytes": 20543015,
+      "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "nz-ghg-inventory-2025-vol-2.docx",
+      "bytes": 7944279,
+      "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "wales-race-equality-response-images.docx",
+      "bytes": 20568111,
+      "sha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "unchangedFromAcquisition": true
+    },
+    {
+      "file": "wales-citizen-voice-easy-read.docx",
+      "bytes": 4409375,
+      "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "unchangedFromAcquisition": true
+    }
+  ],
+  "receipts": {
+    "default-corpus": {
+      "limits": {
+        "compressedInput": 67108864,
+        "expandedPackage": 268435456,
+        "zipEntries": 10000,
+        "xmlPartBytes": 33554432,
+        "xmlNodes": 2000000,
+        "xmlDepth": 256,
+        "embeddedMediaBytes": 67108864,
+        "retainedBytes": 536870912,
+        "serializedOutput": 268435456,
+        "batchOperations": 1000,
+        "matches": 100000,
+        "insertedNodes": 1000000,
+        "tableCells": 100000,
+        "tableRows": 10000,
+        "tableColumns": 1024,
+        "diagnosticBytes": 65536,
+        "work": 536870912
+      },
+      "records": [
+        {
+          "file": "circular-economy.docx",
+          "bytes": 8320866,
+          "ms": 650.2876669999999,
+          "before": {
+            "rss": 180109312,
+            "heapTotal": 59162624,
+            "heapUsed": 38621648,
+            "external": 19951886,
+            "arrayBuffers": 16971798
+          },
+          "after": {
+            "rss": 183992320,
+            "heapTotal": 63799296,
+            "heapUsed": 28360640,
+            "external": 27418580,
+            "arrayBuffers": 24978288
+          },
+          "maxRssKiB": 185968,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 8320866,
+            "expandedPackage": 13664151,
+            "zipEntries": 193,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 47144223,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 66566928
+          }
+        },
+        {
+          "file": "gst-reforms-interim-appendixb.docx",
+          "bytes": 101772,
+          "ms": 1300.0249159999998,
+          "before": {
+            "rss": 184074240,
+            "heapTotal": 63799296,
+            "heapUsed": 28405368,
+            "external": 27622124,
+            "arrayBuffers": 25181832
+          },
+          "after": {
+            "rss": 237748224,
+            "heapTotal": 92061696,
+            "heapUsed": 72531448,
+            "external": 3719244,
+            "arrayBuffers": 1278952
+          },
+          "maxRssKiB": 232176,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 101772,
+            "expandedPackage": 615485,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 36783,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 14004237,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 49323841
+          }
+        },
+        {
+          "file": "gst-reforms-interim-appendixc.docx",
+          "bytes": 187689,
+          "ms": 2957.9165829999997,
+          "before": {
+            "rss": 237748224,
+            "heapTotal": 92061696,
+            "heapUsed": 72571720,
+            "external": 4094622,
+            "arrayBuffers": 1654330
+          },
+          "after": {
+            "rss": 299237376,
+            "heapTotal": 149798912,
+            "heapUsed": 127671144,
+            "external": 5811160,
+            "arrayBuffers": 3370868
+          },
+          "maxRssKiB": 292224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 187689,
+            "expandedPackage": 1611090,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 101108,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 36055254,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 129207501
+          }
+        },
+        {
+          "file": "gst-reforms-interim-appendixd.docx",
+          "bytes": 273146,
+          "ms": 1539.50025,
+          "before": {
+            "rss": 299253760,
+            "heapTotal": 149798912,
+            "heapUsed": 127712704,
+            "external": 6357452,
+            "arrayBuffers": 3917160
+          },
+          "after": {
+            "rss": 256311296,
+            "heapTotal": 174309376,
+            "heapUsed": 147866992,
+            "external": 9056882,
+            "arrayBuffers": 6616590
+          },
+          "maxRssKiB": 294288,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 273146,
+            "expandedPackage": 2065103,
+            "zipEntries": 50,
+            "xmlPartBytes": 0,
+            "xmlNodes": 47402,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 19158535,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 145792974
+          }
+        },
+        {
+          "file": "gst-reforms-interim-appendixe.docx",
+          "bytes": 157148,
+          "ms": 910.8348329999999,
+          "before": {
+            "rss": 257589248,
+            "heapTotal": 174309376,
+            "heapUsed": 147878992,
+            "external": 9371178,
+            "arrayBuffers": 6930886
+          },
+          "after": {
+            "rss": 227016704,
+            "heapTotal": 85065728,
+            "heapUsed": 49230728,
+            "external": 4026294,
+            "arrayBuffers": 1589844
+          },
+          "maxRssKiB": 294288,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 157148,
+            "expandedPackage": 845030,
+            "zipEntries": 52,
+            "xmlPartBytes": 0,
+            "xmlNodes": 21208,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 9818406,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 61564677
+          }
+        },
+        {
+          "file": "gst-reforms-interim-sp1.docx",
+          "bytes": 264839,
+          "ms": 2106.773833000001,
+          "before": {
+            "rss": 227033088,
+            "heapTotal": 85065728,
+            "heapUsed": 49272600,
+            "external": 4555972,
+            "arrayBuffers": 2119522
+          },
+          "after": {
+            "rss": 242237440,
+            "heapTotal": 133906432,
+            "heapUsed": 111396176,
+            "external": 7256644,
+            "arrayBuffers": 4820194
+          },
+          "maxRssKiB": 294288,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 264839,
+            "expandedPackage": 1689005,
+            "zipEntries": 51,
+            "xmlPartBytes": 0,
+            "xmlNodes": 74108,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 26274889,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 127185601
+          }
+        },
+        {
+          "file": "gst-reforms-interim.docx",
+          "bytes": 6009233,
+          "ms": 500.328125,
+          "before": {
+            "rss": 254361600,
+            "heapTotal": 133906432,
+            "heapUsed": 111416664,
+            "external": 19275110,
+            "arrayBuffers": 16838660
+          },
+          "after": {
+            "rss": 248037376,
+            "heapTotal": 83689472,
+            "heapUsed": 27357080,
+            "external": 20483931,
+            "arrayBuffers": 18047481
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 6009233,
+            "expandedPackage": 11614886,
+            "zipEntries": 161,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 35848426,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 48073864
+          }
+        },
+        {
+          "file": "housing-supply-interim.docx",
+          "bytes": 6360759,
+          "ms": 469.43212499999936,
+          "before": {
+            "rss": 260734976,
+            "heapTotal": 83689472,
+            "heapUsed": 27403872,
+            "external": 33205449,
+            "arrayBuffers": 30768999
+          },
+          "after": {
+            "rss": 271171584,
+            "heapTotal": 83689472,
+            "heapUsed": 29174624,
+            "external": 45918471,
+            "arrayBuffers": 43482021
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 6360759,
+            "expandedPackage": 9201080,
+            "zipEntries": 141,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 34840724,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 50886072
+          }
+        },
+        {
+          "file": "mental-health-review.docx",
+          "bytes": 9290427,
+          "ms": 554.2440000000006,
+          "before": {
+            "rss": 289783808,
+            "heapTotal": 83689472,
+            "heapUsed": 25723048,
+            "external": 64499325,
+            "arrayBuffers": 42979362
+          },
+          "after": {
+            "rss": 266371072,
+            "heapTotal": 83689472,
+            "heapUsed": 27728536,
+            "external": 48336098,
+            "arrayBuffers": 45899648
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 9290427,
+            "expandedPackage": 16460416,
+            "zipEntries": 160,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 53818732,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 74323416
+          }
+        },
+        {
+          "file": "ministry-for-the-environment-annual-report-2024-2025.docx",
+          "bytes": 10219701,
+          "ms": 378.2333749999998,
+          "before": {
+            "rss": 286949376,
+            "heapTotal": 83689472,
+            "heapUsed": 27779288,
+            "external": 68775500,
+            "arrayBuffers": 66339050
+          },
+          "after": {
+            "rss": 267894784,
+            "heapTotal": 83689472,
+            "heapUsed": 26940432,
+            "external": 60418876,
+            "arrayBuffers": 57982426
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 10219701,
+            "expandedPackage": 15131385,
+            "zipEntries": 85,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 56206797,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 81757608
+          }
+        },
+        {
+          "file": "national-climate-change-risk-assessment-main-report.docx",
+          "bytes": 7275939,
+          "ms": 256.2450829999998,
+          "before": {
+            "rss": 267714560,
+            "heapTotal": 83689472,
+            "heapUsed": 25767952,
+            "external": 74970754,
+            "arrayBuffers": 52099755
+          },
+          "after": {
+            "rss": 235405312,
+            "heapTotal": 83689472,
+            "heapUsed": 26516184,
+            "external": 69085257,
+            "arrayBuffers": 66648807
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 7275939,
+            "expandedPackage": 10032410,
+            "zipEntries": 49,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 39332774,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 58207512
+          }
+        },
+        {
+          "file": "new-zealands-second-emissions-reduction-plan-discussion-document.docx",
+          "bytes": 13582467,
+          "ms": 502.8980840000004,
+          "before": {
+            "rss": 277266432,
+            "heapTotal": 83689472,
+            "heapUsed": 25871032,
+            "external": 96250191,
+            "arrayBuffers": 71988750
+          },
+          "after": {
+            "rss": 242860032,
+            "heapTotal": 64815104,
+            "heapUsed": 26838152,
+            "external": 43207485,
+            "arrayBuffers": 40771035
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 13582467,
+            "expandedPackage": 18053669,
+            "zipEntries": 95,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 72580145,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 108659736
+          }
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-1.docx",
+          "bytes": 20543015,
+          "ms": 727.4378749999996,
+          "before": {
+            "rss": 284098560,
+            "heapTotal": 64815104,
+            "heapUsed": 25690256,
+            "external": 84287653,
+            "arrayBuffers": 81851203
+          },
+          "after": {
+            "rss": 217366528,
+            "heapTotal": 64815104,
+            "heapUsed": 26062528,
+            "external": 64075947,
+            "arrayBuffers": 61639497
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 20543015,
+            "expandedPackage": 32484313,
+            "zipEntries": 156,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 114852981,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 164344120
+          }
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-2.docx",
+          "bytes": 7944279,
+          "ms": 509.2282920000016,
+          "before": {
+            "rss": 224198656,
+            "heapTotal": 64815104,
+            "heapUsed": 26106896,
+            "external": 79964505,
+            "arrayBuffers": 77528055
+          },
+          "after": {
+            "rss": 210321408,
+            "heapTotal": 65339392,
+            "heapUsed": 27582472,
+            "external": 26291039,
+            "arrayBuffers": 23854589
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 79751165,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 63554232
+          }
+        },
+        {
+          "file": "our-atmosphere-and-climate-2023.docx",
+          "bytes": 5425219,
+          "ms": 4584.274833000001,
+          "before": {
+            "rss": 217858048,
+            "heapTotal": 65339392,
+            "heapUsed": 27614680,
+            "external": 37141477,
+            "arrayBuffers": 34705027
+          },
+          "after": {
+            "rss": 121716736,
+            "heapTotal": 154894336,
+            "heapUsed": 131450208,
+            "external": 17377764,
+            "arrayBuffers": 14941314
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 5425219,
+            "expandedPackage": 7389924,
+            "zipEntries": 60,
+            "xmlPartBytes": 0,
+            "xmlNodes": 136276,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 65099920,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 527160552
+          }
+        },
+        {
+          "file": "our-future-rm-system-developing-the-npf.docx",
+          "bytes": 21125727,
+          "ms": 569.0322919999999,
+          "before": {
+            "rss": 165822464,
+            "heapTotal": 154894336,
+            "heapUsed": 131484128,
+            "external": 59629218,
+            "arrayBuffers": 57192768
+          },
+          "after": {
+            "rss": 193888256,
+            "heapTotal": 155942912,
+            "heapUsed": 119674312,
+            "external": 80719837,
+            "arrayBuffers": 78283387
+          },
+          "maxRssKiB": 294288,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 21125727,
+            "expandedPackage": 21952702,
+            "zipEntries": 51,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 106652218,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 169005816
+          }
+        },
+        {
+          "file": "scotland-annual-progress-report-2026-template-v1.docx",
+          "bytes": 157858,
+          "ms": 194.05549999999857,
+          "before": {
+            "rss": 194265088,
+            "heapTotal": 155942912,
+            "heapUsed": 119701832,
+            "external": 81035553,
+            "arrayBuffers": 78599103
+          },
+          "after": {
+            "rss": 218955776,
+            "heapTotal": 66912256,
+            "heapUsed": 30584864,
+            "external": 10790314,
+            "arrayBuffers": 8353864
+          },
+          "maxRssKiB": 294288,
+          "outcome": "invalid-package: Invalid document OPC container.",
+          "usage": {
+            "compressedInput": 157858,
+            "expandedPackage": 1514707,
+            "zipEntries": 40,
+            "xmlPartBytes": 0,
+            "xmlNodes": 431,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2665243,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 98308068
+          }
+        },
+        {
+          "file": "wales-citizen-voice-easy-read.docx",
+          "bytes": 4409375,
+          "ms": 5340.667958000002,
+          "before": {
+            "rss": 223444992,
+            "heapTotal": 66912256,
+            "heapUsed": 30618768,
+            "external": 19609064,
+            "arrayBuffers": 17172614
+          },
+          "after": {
+            "rss": 253820928,
+            "heapTotal": 165920768,
+            "heapUsed": 142905968,
+            "external": 14694357,
+            "arrayBuffers": 12257907
+          },
+          "maxRssKiB": 294288,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 4409375,
+            "expandedPackage": 5404034,
+            "zipEntries": 155,
+            "xmlPartBytes": 0,
+            "xmlNodes": 26133,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 65174622,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 432422733
+          }
+        },
+        {
+          "file": "wales-race-equality-response-images.docx",
+          "bytes": 20568111,
+          "ms": 634.1370830000014,
+          "before": {
+            "rss": 295010304,
+            "heapTotal": 165920768,
+            "heapUsed": 142942864,
+            "external": 55830579,
+            "arrayBuffers": 53394129
+          },
+          "after": {
+            "rss": 306724864,
+            "heapTotal": 167837696,
+            "heapUsed": 131952304,
+            "external": 76392661,
+            "arrayBuffers": 73956211
+          },
+          "maxRssKiB": 299536,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 20568111,
+            "expandedPackage": 21203981,
+            "zipEntries": 103,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 103673033,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 164544888
+          }
+        }
+      ]
+    },
+    "raised-corpus": {
+      "host": {
+        "xmlPartBytes": 134217728,
+        "expandedPackage": 536870912,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "records": [
+        {
+          "file": "gst-reforms-interim-appendixc.docx",
+          "stage": "archive",
+          "ms": 180.11116700000002,
+          "before": {
+            "rss": 164446208,
+            "heapTotal": 61440000,
+            "heapUsed": 24997120,
+            "external": 2842797,
+            "arrayBuffers": 402524
+          },
+          "after": {
+            "rss": 175734784,
+            "heapTotal": 61964288,
+            "heapUsed": 28039680,
+            "external": 6947920,
+            "arrayBuffers": 4507607
+          },
+          "maxRssKiB": 171616,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 187689,
+            "expandedPackage": 1611090,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2558454,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 104611272
+          },
+          "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b"
+        },
+        {
+          "file": "gst-reforms-interim-appendixc.docx",
+          "stage": "admission",
+          "ms": 2824.682583,
+          "before": {
+            "rss": 175734784,
+            "heapTotal": 61964288,
+            "heapUsed": 28082816,
+            "external": 6947920,
+            "arrayBuffers": 4507607
+          },
+          "after": {
+            "rss": 236060672,
+            "heapTotal": 112082944,
+            "heapUsed": 87860160,
+            "external": 4704944,
+            "arrayBuffers": 2264631
+          },
+          "maxRssKiB": 230528,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 187689,
+            "expandedPackage": 1611090,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 101108,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 36055254,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 129207501
+          },
+          "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b"
+        },
+        {
+          "file": "gst-reforms-interim-appendixc.docx",
+          "stage": "validation",
+          "ms": 741.7382909999997,
+          "before": {
+            "rss": 236077056,
+            "heapTotal": 112082944,
+            "heapUsed": 87896128,
+            "external": 4704944,
+            "arrayBuffers": 2264631
+          },
+          "after": {
+            "rss": 355975168,
+            "heapTotal": 219103232,
+            "heapUsed": 187181008,
+            "external": 6176807,
+            "arrayBuffers": 3736494
+          },
+          "maxRssKiB": 347632,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 187689,
+            "expandedPackage": 1611090,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 235077,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 83160374,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 172169275
+          },
+          "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b"
+        },
+        {
+          "file": "gst-reforms-interim-appendixc.docx",
+          "stage": "serialize",
+          "ms": 1089.1124999999993,
+          "before": {
+            "rss": 355991552,
+            "heapTotal": 219103232,
+            "heapUsed": 187217368,
+            "external": 6176807,
+            "arrayBuffers": 3736494
+          },
+          "after": {
+            "rss": 387448832,
+            "heapTotal": 343097344,
+            "heapUsed": 309226976,
+            "external": 36946135,
+            "arrayBuffers": 34505822
+          },
+          "maxRssKiB": 461504,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 187689,
+            "expandedPackage": 1611090,
+            "zipEntries": 41,
+            "xmlPartBytes": 0,
+            "xmlNodes": 369046,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 140213638,
+            "serializedOutput": 175213,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 318279897
+          },
+          "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-1.docx",
+          "stage": "archive",
+          "ms": 1492.8140830000002,
+          "before": {
+            "rss": 414220288,
+            "heapTotal": 114245632,
+            "heapUsed": 58332032,
+            "external": 45542133,
+            "arrayBuffers": 43101820
+          },
+          "after": {
+            "rss": 462798848,
+            "heapTotal": 64028672,
+            "heapUsed": 26752016,
+            "external": 83394714,
+            "arrayBuffers": 80958243
+          },
+          "maxRssKiB": 461504,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20543015,
+            "expandedPackage": 32484313,
+            "zipEntries": 156,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 114852981,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 2243340152
+          },
+          "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-1.docx",
+          "stage": "admission",
+          "ms": 21115.602125,
+          "before": {
+            "rss": 462798848,
+            "heapTotal": 64028672,
+            "heapUsed": 26795184,
+            "external": 83394714,
+            "arrayBuffers": 80958243
+          },
+          "after": {
+            "rss": 696352768,
+            "heapTotal": 445071360,
+            "heapUsed": 412696400,
+            "external": 55658849,
+            "arrayBuffers": 53222378
+          },
+          "maxRssKiB": 680176,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20543015,
+            "expandedPackage": 32484313,
+            "zipEntries": 156,
+            "xmlPartBytes": 0,
+            "xmlNodes": 776183,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 372113173,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 2426090949
+          },
+          "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-1.docx",
+          "stage": "validation",
+          "ms": 4857.940416999998,
+          "before": {
+            "rss": 696467456,
+            "heapTotal": 445071360,
+            "heapUsed": 412755096,
+            "external": 55658849,
+            "arrayBuffers": 53222378
+          },
+          "after": {
+            "rss": 1364836352,
+            "heapTotal": 800915456,
+            "heapUsed": 758223768,
+            "external": 55493121,
+            "arrayBuffers": 53056650
+          },
+          "maxRssKiB": 1386640,
+          "outcome": "invalid-package: [{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[127]/next[3]\",\"message\":\"Style relationship has incompatible types.\"},{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[178]/next[3]\",\"message\":\"Style relationship has incompatible types.\"},{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[179]/next[3]\",\"message\":\"Style relationship has incompatible types.\"}]",
+          "usage": {
+            "compressedInput": 20543015,
+            "expandedPackage": 32484313,
+            "zipEntries": 156,
+            "xmlPartBytes": 0,
+            "xmlNodes": 1582695,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 698985733,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 1428,
+            "work": 2898023203
+          },
+          "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-2.docx",
+          "stage": "archive",
+          "ms": 1648.8925000000017,
+          "before": {
+            "rss": 1321385984,
+            "heapTotal": 319979520,
+            "heapUsed": 267430096,
+            "external": 91924694,
+            "arrayBuffers": 89488223
+          },
+          "after": {
+            "rss": 1379188736,
+            "heapTotal": 64290816,
+            "heapUsed": 27010544,
+            "external": 73765419,
+            "arrayBuffers": 71328948
+          },
+          "maxRssKiB": 1386640,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 79751165,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3121310456
+          },
+          "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-2.docx",
+          "stage": "admission",
+          "ms": 105164.768458,
+          "before": {
+            "rss": 1379188736,
+            "heapTotal": 64290816,
+            "heapUsed": 27058008,
+            "external": 73765419,
+            "arrayBuffers": 71328948
+          },
+          "after": {
+            "rss": 1342636032,
+            "heapTotal": 1384792064,
+            "heapUsed": 1335097192,
+            "external": 58188328,
+            "arrayBuffers": 55751857
+          },
+          "maxRssKiB": 1387088,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 3083167,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 961403389,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3735357325
+          },
+          "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e"
+        },
+        {
+          "file": "nz-ghg-inventory-2025-vol-2.docx",
+          "stage": "validation",
+          "ms": 68510.82008300003,
+          "before": {
+            "rss": 1342849024,
+            "heapTotal": 1384792064,
+            "heapUsed": 1335160384,
+            "external": 58188328,
+            "arrayBuffers": 55751857
+          },
+          "after": {
+            "rss": 1433124864,
+            "heapTotal": 2696085504,
+            "heapUsed": 2624081488,
+            "external": 58187513,
+            "arrayBuffers": 55751042
+          },
+          "maxRssKiB": 1890080,
+          "outcome": "invalid-package: [{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[117]/next[3]\",\"message\":\"Style relationship has incompatible types.\"},{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[161]/next[3]\",\"message\":\"Style relationship has incompatible types.\"},{\"code\":\"style-next-type\",\"part\":\"/word/styles.xml\",\"location\":\"/styles[1]/style[162]/next[3]\",\"message\":\"Style relationship has incompatible types.\"}]",
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 6200597,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2076900093,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 5581,
+            "work": 4825866449
+          },
+          "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e"
+        }
+      ]
+    },
+    "annex-defaults": {
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "records": [
+        {
+          "profile": "default",
+          "route": "sdk",
+          "ms": 448.22249999999997,
+          "error": {
+            "code": "limit-exceeded",
+            "message": "Document work limit exceeded."
+          },
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 79751165,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 63554232
+          },
+          "memory": {
+            "rss": 216285184,
+            "heapTotal": 68239360,
+            "heapUsed": 32408072,
+            "external": 26292524,
+            "arrayBuffers": 23852272
+          },
+          "maxRssKiB": 211216
+        },
+        {
+          "profile": "default",
+          "route": "shell",
+          "ms": 2842.395334,
+          "exitCode": 4,
+          "error": [
+            {
+              "code": "limit-exceeded",
+              "message": "Document operation failed: limit-exceeded"
+            }
+          ],
+          "memory": {
+            "rss": 243204096,
+            "heapTotal": 69025792,
+            "heapUsed": 33694744,
+            "external": 50134383,
+            "arrayBuffers": 47694091
+          },
+          "maxRssKiB": 237504
+        },
+        {
+          "profile": "work-only",
+          "route": "sdk",
+          "ms": 1639.2306249999997,
+          "error": {
+            "code": "limit-exceeded",
+            "message": "Document admission retained byte budget exceeded."
+          },
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 79751165,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3121310456
+          },
+          "memory": {
+            "rss": 330416128,
+            "heapTotal": 70074368,
+            "heapUsed": 31140600,
+            "external": 73765591,
+            "arrayBuffers": 71329141
+          },
+          "maxRssKiB": 322672
+        },
+        {
+          "profile": "work-only",
+          "route": "shell",
+          "ms": 3930.392708999999,
+          "exitCode": 4,
+          "error": [
+            {
+              "code": "limit-exceeded",
+              "message": "Document operation failed: limit-exceeded"
+            }
+          ],
+          "memory": {
+            "rss": 312279040,
+            "heapTotal": 70074368,
+            "heapUsed": 31318280,
+            "external": 92059619,
+            "arrayBuffers": 89623169
+          },
+          "maxRssKiB": 322976
+        },
+        {
+          "profile": "work-retained",
+          "route": "sdk",
+          "ms": 1689.1185840000016,
+          "error": {
+            "code": "limit-exceeded",
+            "message": "XML byte or work limit exceeded."
+          },
+          "usage": {
+            "compressedInput": 7944279,
+            "expandedPackage": 47777441,
+            "zipEntries": 131,
+            "xmlPartBytes": 0,
+            "xmlNodes": 931,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 80469293,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3121534673
+          },
+          "memory": {
+            "rss": 355008512,
+            "heapTotal": 70336512,
+            "heapUsed": 43727880,
+            "external": 58224184,
+            "arrayBuffers": 55787734
+          },
+          "maxRssKiB": 346688
+        },
+        {
+          "profile": "work-retained",
+          "route": "shell",
+          "ms": 4156.803416999999,
+          "exitCode": 4,
+          "error": [
+            {
+              "code": "limit-exceeded",
+              "message": "Document operation failed: limit-exceeded"
+            }
+          ],
+          "memory": {
+            "rss": 364855296,
+            "heapTotal": 70860800,
+            "heapUsed": 41448712,
+            "external": 82065862,
+            "arrayBuffers": 79629412
+          },
+          "maxRssKiB": 356304
+        }
+      ],
+      "sourceSha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "sourcePreserved": true
+    },
+    "generated-metrics": {
+      "host": {
+        "compressedInput": 67108864,
+        "expandedPackage": 536870912,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "fixtures": [
+        {
+          "id": "text-1",
+          "kind": "text",
+          "n": 1048576,
+          "xmlBytes": 1048785,
+          "inputBytes": 1050484,
+          "inputSha256": "55c717fa6ca6ac85cd0c0d007e266d0d7a166d27c69635a7dca895de3ed5807f"
+        },
+        {
+          "id": "text-2",
+          "kind": "text",
+          "n": 2097152,
+          "xmlBytes": 2097361,
+          "inputBytes": 2099060,
+          "inputSha256": "f7dfb67577b3d8e60a95c9480a008bf9b5e7563d9bb11a400509e82c6be14dbc"
+        },
+        {
+          "id": "text-4",
+          "kind": "text",
+          "n": 4194304,
+          "xmlBytes": 4194513,
+          "inputBytes": 4196212,
+          "inputSha256": "de0a380aeb7c5159577aa86180f72a0fc172d2f5c8c1f3db95e81cd33fc6d174"
+        },
+        {
+          "id": "dense-1",
+          "kind": "dense",
+          "n": 1000,
+          "xmlBytes": 53176,
+          "inputBytes": 54875,
+          "inputSha256": "3507931c22d26d0af76c8265bc7808d000f7b0a09227ce1ef8004d88ce4728b0"
+        },
+        {
+          "id": "dense-2",
+          "kind": "dense",
+          "n": 2000,
+          "xmlBytes": 106176,
+          "inputBytes": 107875,
+          "inputSha256": "a3ee2e965580f8c39789eb6137f35d93f23fab60aa31237464268e8e0bb74dd4"
+        },
+        {
+          "id": "dense-4",
+          "kind": "dense",
+          "n": 4000,
+          "xmlBytes": 212176,
+          "inputBytes": 213875,
+          "inputSha256": "af3e20414c4fe02e26940e5e3ba05faddcd12f30babc31f56f254e21a1728b6a"
+        },
+        {
+          "id": "large-text",
+          "kind": "text",
+          "n": 41943040,
+          "xmlBytes": 41943249,
+          "inputBytes": 41944948,
+          "inputSha256": "0f68074179dfba4e07a0ba1be0feaf966b7d059850469cd28dca34efc5f7b34a",
+          "outputSha256": "0f68074179dfba4e07a0ba1be0feaf966b7d059850469cd28dca34efc5f7b34a",
+          "sdkSha256": "e007d2deef2a59e0f5254528506fe8a56d791ff49e94b693463bdc3a49a8a1e8"
+        }
+      ],
+      "records": [
+        {
+          "id": "text-1",
+          "stage": "fixture-store",
+          "ms": 107.79754099999991,
+          "before": {
+            "rss": 195788800,
+            "heapTotal": 71417856,
+            "heapUsed": 35899136,
+            "external": 3542280,
+            "arrayBuffers": 1102007
+          },
+          "after": {
+            "rss": 204701696,
+            "heapTotal": 71417856,
+            "heapUsed": 44720592,
+            "external": 12994888,
+            "arrayBuffers": 10554575
+          },
+          "peakRss": 204701696,
+          "peakHeap": 44720592,
+          "maxRssKiB": 199904,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 5966518,
+            "serializedOutput": 1052486,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 67455098
+          }
+        },
+        {
+          "id": "text-1",
+          "stage": "archive-read",
+          "ms": 101.8397500000001,
+          "before": {
+            "rss": 204718080,
+            "heapTotal": 71417856,
+            "heapUsed": 44778376,
+            "external": 12994888,
+            "arrayBuffers": 10554575
+          },
+          "after": {
+            "rss": 207929344,
+            "heapTotal": 71680000,
+            "heapUsed": 45110240,
+            "external": 17195438,
+            "arrayBuffers": 14755125
+          },
+          "peakRss": 207929344,
+          "peakHeap": 45110240,
+          "maxRssKiB": 203056,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1050484,
+            "expandedPackage": 1049902,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 5448446,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 75597600
+          }
+        },
+        {
+          "id": "text-1",
+          "stage": "public-admission",
+          "ms": 1951.402875,
+          "before": {
+            "rss": 207929344,
+            "heapTotal": 71680000,
+            "heapUsed": 45120488,
+            "external": 17195438,
+            "arrayBuffers": 14755125
+          },
+          "after": {
+            "rss": 264060928,
+            "heapTotal": 97845248,
+            "heapUsed": 69910736,
+            "external": 11923974,
+            "arrayBuffers": 9483661
+          },
+          "peakRss": 264060928,
+          "peakHeap": 73218232,
+          "maxRssKiB": 257872,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1050484,
+            "expandedPackage": 1049902,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 44,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 22252094,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 89241368
+          }
+        },
+        {
+          "id": "text-1",
+          "stage": "validation",
+          "ms": 148.91075,
+          "before": {
+            "rss": 264060928,
+            "heapTotal": 97845248,
+            "heapUsed": 69919504,
+            "external": 11923974,
+            "arrayBuffers": 9483661
+          },
+          "after": {
+            "rss": 305692672,
+            "heapTotal": 132431872,
+            "heapUsed": 106850216,
+            "external": 12973165,
+            "arrayBuffers": 10532852
+          },
+          "peakRss": 305692672,
+          "peakHeap": 106850216,
+          "maxRssKiB": 298528,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1050484,
+            "expandedPackage": 1049902,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 120,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 39073710,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 111291684
+          }
+        },
+        {
+          "id": "text-2",
+          "stage": "fixture-store",
+          "ms": 189.88258300000007,
+          "before": {
+            "rss": 307511296,
+            "heapTotal": 77742080,
+            "heapUsed": 40451904,
+            "external": 7741487,
+            "arrayBuffers": 5301174
+          },
+          "after": {
+            "rss": 320421888,
+            "heapTotal": 77742080,
+            "heapUsed": 40860888,
+            "external": 26631239,
+            "arrayBuffers": 24190926
+          },
+          "peakRss": 320421888,
+          "peakHeap": 40860888,
+          "maxRssKiB": 312912,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 11209398,
+            "serializedOutput": 2101062,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 134563962
+          }
+        },
+        {
+          "id": "text-2",
+          "stage": "archive-read",
+          "ms": 154.86524999999983,
+          "before": {
+            "rss": 320421888,
+            "heapTotal": 77742080,
+            "heapUsed": 40902392,
+            "external": 26631239,
+            "arrayBuffers": 24190926
+          },
+          "after": {
+            "rss": 321470464,
+            "heapTotal": 72187904,
+            "heapUsed": 33917192,
+            "external": 15059884,
+            "arrayBuffers": 12619571
+          },
+          "peakRss": 323518464,
+          "peakHeap": 40998768,
+          "maxRssKiB": 316464,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2099060,
+            "expandedPackage": 2098478,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 10691326,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 151095072
+          }
+        },
+        {
+          "id": "text-2",
+          "stage": "public-admission",
+          "ms": 3858.6780420000005,
+          "before": {
+            "rss": 321470464,
+            "heapTotal": 72187904,
+            "heapUsed": 33963304,
+            "external": 15059884,
+            "arrayBuffers": 12619571
+          },
+          "after": {
+            "rss": 245825536,
+            "heapTotal": 137183232,
+            "heapUsed": 113022888,
+            "external": 10861342,
+            "arrayBuffers": 8421029
+          },
+          "peakRss": 324435968,
+          "peakHeap": 113022888,
+          "maxRssKiB": 316848,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2099060,
+            "expandedPackage": 2098478,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 44,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 44272190,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 178370328
+          }
+        },
+        {
+          "id": "text-2",
+          "stage": "validation",
+          "ms": 287.61133299999983,
+          "before": {
+            "rss": 245891072,
+            "heapTotal": 137183232,
+            "heapUsed": 113067184,
+            "external": 10861342,
+            "arrayBuffers": 8421029
+          },
+          "after": {
+            "rss": 314966016,
+            "heapTotal": 148471808,
+            "heapUsed": 107570640,
+            "external": 10861545,
+            "arrayBuffers": 8421232
+          },
+          "peakRss": 314966016,
+          "peakHeap": 113067184,
+          "maxRssKiB": 316848,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2099060,
+            "expandedPackage": 2098478,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 120,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 77871022,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 222440740
+          }
+        },
+        {
+          "id": "text-4",
+          "stage": "fixture-store",
+          "ms": 344.7259589999994,
+          "before": {
+            "rss": 324321280,
+            "heapTotal": 82722816,
+            "heapUsed": 46560200,
+            "external": 12984367,
+            "arrayBuffers": 10544054
+          },
+          "after": {
+            "rss": 346079232,
+            "heapTotal": 78512128,
+            "heapUsed": 40302136,
+            "external": 50748487,
+            "arrayBuffers": 35703676
+          },
+          "peakRss": 346079232,
+          "peakHeap": 47101616,
+          "maxRssKiB": 337968,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 21695158,
+            "serializedOutput": 4198214,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 268781690
+          }
+        },
+        {
+          "id": "text-4",
+          "stage": "archive-read",
+          "ms": 234.28758300000118,
+          "before": {
+            "rss": 346079232,
+            "heapTotal": 78774272,
+            "heapUsed": 40382592,
+            "external": 50748487,
+            "arrayBuffers": 35703676
+          },
+          "after": {
+            "rss": 344850432,
+            "heapTotal": 74022912,
+            "heapUsed": 36224432,
+            "external": 27643066,
+            "arrayBuffers": 25202753
+          },
+          "peakRss": 346079232,
+          "peakHeap": 40382592,
+          "maxRssKiB": 338000,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 4196212,
+            "expandedPackage": 4195630,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 21177086,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 302090016
+          }
+        },
+        {
+          "id": "text-4",
+          "stage": "public-admission",
+          "ms": 7558.699417000002,
+          "before": {
+            "rss": 344850432,
+            "heapTotal": 74022912,
+            "heapUsed": 36258264,
+            "external": 27643066,
+            "arrayBuffers": 25202753
+          },
+          "after": {
+            "rss": 65142784,
+            "heapTotal": 213204992,
+            "heapUsed": 186014256,
+            "external": 19249950,
+            "arrayBuffers": 16809637
+          },
+          "peakRss": 349044736,
+          "peakHeap": 186014256,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 4196212,
+            "expandedPackage": 4195630,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 44,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 88312382,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 356628248
+          }
+        },
+        {
+          "id": "text-4",
+          "stage": "validation",
+          "ms": 523.531583,
+          "before": {
+            "rss": 67600384,
+            "heapTotal": 213204992,
+            "heapUsed": 186064688,
+            "external": 19249950,
+            "arrayBuffers": 16809637
+          },
+          "after": {
+            "rss": 290701312,
+            "heapTotal": 353435648,
+            "heapUsed": 318241672,
+            "external": 23444869,
+            "arrayBuffers": 21004556
+          },
+          "peakRss": 290701312,
+          "peakHeap": 318241672,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 4196212,
+            "expandedPackage": 4195630,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 120,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 155465646,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 444738852
+          }
+        },
+        {
+          "id": "dense-1",
+          "stage": "fixture-store",
+          "ms": 27.51966700000048,
+          "before": {
+            "rss": 303054848,
+            "heapTotal": 80330752,
+            "heapUsed": 41415016,
+            "external": 15130644,
+            "arrayBuffers": 12694173
+          },
+          "after": {
+            "rss": 303169536,
+            "heapTotal": 80330752,
+            "heapUsed": 41575592,
+            "external": 15622731,
+            "arrayBuffers": 13186260
+          },
+          "peakRss": 303169536,
+          "peakHeap": 41575592,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 988473,
+            "serializedOutput": 56877,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3736122
+          }
+        },
+        {
+          "id": "dense-1",
+          "stage": "archive-read",
+          "ms": 43.76345799999763,
+          "before": {
+            "rss": 303185920,
+            "heapTotal": 80330752,
+            "heapUsed": 41603528,
+            "external": 15622731,
+            "arrayBuffers": 13186260
+          },
+          "after": {
+            "rss": 299073536,
+            "heapTotal": 80330752,
+            "heapUsed": 41742712,
+            "external": 15840845,
+            "arrayBuffers": 13404374
+          },
+          "peakRss": 303185920,
+          "peakHeap": 41742712,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 54875,
+            "expandedPackage": 54293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 470401,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3913752
+          }
+        },
+        {
+          "id": "dense-1",
+          "stage": "public-admission",
+          "ms": 162.570291,
+          "before": {
+            "rss": 299073536,
+            "heapTotal": 80330752,
+            "heapUsed": 41769064,
+            "external": 15840845,
+            "arrayBuffers": 13404374
+          },
+          "after": {
+            "rss": 305233920,
+            "heapTotal": 80330752,
+            "heapUsed": 48605392,
+            "external": 15492551,
+            "arrayBuffers": 13056080
+          },
+          "peakRss": 305233920,
+          "peakHeap": 51224728,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 54875,
+            "expandedPackage": 54293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 4040,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1344305,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 4582635
+          }
+        },
+        {
+          "id": "dense-1",
+          "stage": "validation",
+          "ms": 46.99808299999859,
+          "before": {
+            "rss": 305430528,
+            "heapTotal": 80330752,
+            "heapUsed": 48654032,
+            "external": 15492551,
+            "arrayBuffers": 13056080
+          },
+          "after": {
+            "rss": 309788672,
+            "heapTotal": 80855040,
+            "heapUsed": 50896248,
+            "external": 15492754,
+            "arrayBuffers": 13056080
+          },
+          "peakRss": 309788672,
+          "peakHeap": 50896248,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 54875,
+            "expandedPackage": 54293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 8112,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2236177,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 5700187
+          }
+        },
+        {
+          "id": "dense-2",
+          "stage": "fixture-store",
+          "ms": 32.83845899999869,
+          "before": {
+            "rss": 302989312,
+            "heapTotal": 73695232,
+            "heapUsed": 38178784,
+            "external": 2759633,
+            "arrayBuffers": 323162
+          },
+          "after": {
+            "rss": 302989312,
+            "heapTotal": 73695232,
+            "heapUsed": 38345136,
+            "external": 3728720,
+            "arrayBuffers": 1292249
+          },
+          "peakRss": 302989312,
+          "peakHeap": 38345136,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1253473,
+            "serializedOutput": 109877,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7128122
+          }
+        },
+        {
+          "id": "dense-2",
+          "stage": "archive-read",
+          "ms": 48.543000000001484,
+          "before": {
+            "rss": 302989312,
+            "heapTotal": 73695232,
+            "heapUsed": 38377864,
+            "external": 3728720,
+            "arrayBuffers": 1292249
+          },
+          "after": {
+            "rss": 302989312,
+            "heapTotal": 73695232,
+            "heapUsed": 38622328,
+            "external": 4158834,
+            "arrayBuffers": 1722363
+          },
+          "peakRss": 302989312,
+          "peakHeap": 38622328,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 107875,
+            "expandedPackage": 107293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 735401,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7729752
+          }
+        },
+        {
+          "id": "dense-2",
+          "stage": "public-admission",
+          "ms": 293.69287500000064,
+          "before": {
+            "rss": 302989312,
+            "heapTotal": 73695232,
+            "heapUsed": 38654312,
+            "external": 4158834,
+            "arrayBuffers": 1722363
+          },
+          "after": {
+            "rss": 293470208,
+            "heapTotal": 76447744,
+            "heapUsed": 43012032,
+            "external": 3492540,
+            "arrayBuffers": 1056069
+          },
+          "peakRss": 302989312,
+          "peakHeap": 50625016,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 107875,
+            "expandedPackage": 107293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 8040,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2457305,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 9055635
+          }
+        },
+        {
+          "id": "dense-2",
+          "stage": "validation",
+          "ms": 81.36554199999955,
+          "before": {
+            "rss": 293470208,
+            "heapTotal": 76447744,
+            "heapUsed": 43042096,
+            "external": 3492540,
+            "arrayBuffers": 1056069
+          },
+          "after": {
+            "rss": 300351488,
+            "heapTotal": 83705856,
+            "heapUsed": 59340288,
+            "external": 3598716,
+            "arrayBuffers": 1162245
+          },
+          "peakRss": 300351488,
+          "peakHeap": 59340288,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 107875,
+            "expandedPackage": 107293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 16112,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 4197177,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 11261187
+          }
+        },
+        {
+          "id": "dense-4",
+          "stage": "fixture-store",
+          "ms": 40.85491700000057,
+          "before": {
+            "rss": 303480832,
+            "heapTotal": 81788928,
+            "heapUsed": 41348648,
+            "external": 3024633,
+            "arrayBuffers": 588162
+          },
+          "after": {
+            "rss": 303693824,
+            "heapTotal": 81788928,
+            "heapUsed": 41671856,
+            "external": 4947720,
+            "arrayBuffers": 2511249
+          },
+          "peakRss": 303693824,
+          "peakHeap": 41671856,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1783473,
+            "serializedOutput": 215877,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 13912122
+          }
+        },
+        {
+          "id": "dense-4",
+          "stage": "archive-read",
+          "ms": 56.34675000000061,
+          "before": {
+            "rss": 303693824,
+            "heapTotal": 81788928,
+            "heapUsed": 41709816,
+            "external": 4947720,
+            "arrayBuffers": 2511249
+          },
+          "after": {
+            "rss": 303841280,
+            "heapTotal": 81788928,
+            "heapUsed": 41954936,
+            "external": 5801834,
+            "arrayBuffers": 3365363
+          },
+          "peakRss": 303841280,
+          "peakHeap": 41954936,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 213875,
+            "expandedPackage": 213293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1265401,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 15361752
+          }
+        },
+        {
+          "id": "dense-4",
+          "stage": "public-admission",
+          "ms": 451.8954169999997,
+          "before": {
+            "rss": 303841280,
+            "heapTotal": 81788928,
+            "heapUsed": 41992032,
+            "external": 5801834,
+            "arrayBuffers": 3365363
+          },
+          "after": {
+            "rss": 311181312,
+            "heapTotal": 84934656,
+            "heapUsed": 57320464,
+            "external": 4499540,
+            "arrayBuffers": 2063069
+          },
+          "peakRss": 311181312,
+          "peakHeap": 57320464,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 213875,
+            "expandedPackage": 213293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 16040,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 4683305,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 18001635
+          }
+        },
+        {
+          "id": "dense-4",
+          "stage": "validation",
+          "ms": 146.10266599999886,
+          "before": {
+            "rss": 311181312,
+            "heapTotal": 84934656,
+            "heapUsed": 57355896,
+            "external": 4499540,
+            "arrayBuffers": 2063069
+          },
+          "after": {
+            "rss": 316555264,
+            "heapTotal": 99319808,
+            "heapUsed": 78062432,
+            "external": 4711716,
+            "arrayBuffers": 2275245
+          },
+          "peakRss": 316555264,
+          "peakHeap": 78062432,
+          "maxRssKiB": 340864,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 213875,
+            "expandedPackage": 213293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 32112,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 8119177,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 22383187
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "fixture-store",
+          "ms": 3334.8156659999986,
+          "before": {
+            "rss": 440336384,
+            "heapTotal": 167280640,
+            "heapUsed": 121452288,
+            "external": 45055312,
+            "arrayBuffers": 42618841
+          },
+          "after": {
+            "rss": 439402496,
+            "heapTotal": 111460352,
+            "heapUsed": 72797552,
+            "external": 303418750,
+            "arrayBuffers": 300982279
+          },
+          "peakRss": 501104640,
+          "peakHeap": 121452288,
+          "maxRssKiB": 489360,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 210438838,
+            "serializedOutput": 41946950,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 2684700794
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "archive-read",
+          "ms": 2151.368542,
+          "before": {
+            "rss": 439566336,
+            "heapTotal": 111460352,
+            "heapUsed": 72846880,
+            "external": 303418750,
+            "arrayBuffers": 300982279
+          },
+          "after": {
+            "rss": 249430016,
+            "heapTotal": 111460352,
+            "heapUsed": 73212712,
+            "external": 180531545,
+            "arrayBuffers": 178095074
+          },
+          "peakRss": 490389504,
+          "peakHeap": 74127280,
+          "maxRssKiB": 489360,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 209920766,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3019999008
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "public-admission",
+          "ms": 92691.118042,
+          "before": {
+            "rss": 249593856,
+            "heapTotal": 111460352,
+            "heapUsed": 73259960,
+            "external": 180531545,
+            "arrayBuffers": 178095074
+          },
+          "after": {
+            "rss": 140099584,
+            "heapTotal": 1531035648,
+            "heapUsed": 1477138728,
+            "external": 170241052,
+            "arrayBuffers": 167804581
+          },
+          "peakRss": 783384576,
+          "peakHeap": 1486093832,
+          "maxRssKiB": 769568,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 44,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 881035838,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3565270808
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "validation",
+          "ms": 11118.392041999992,
+          "before": {
+            "rss": 143409152,
+            "heapTotal": 1531035648,
+            "heapUsed": 1477186320,
+            "external": 170241052,
+            "arrayBuffers": 167804581
+          },
+          "after": {
+            "rss": 990658560,
+            "heapTotal": 1572306944,
+            "heapUsed": 1527569272,
+            "external": 170241255,
+            "arrayBuffers": 167804784
+          },
+          "peakRss": 990658560,
+          "peakHeap": 1527569272,
+          "maxRssKiB": 1309712,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 120,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1552168878,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 4446104868
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "validated-store",
+          "ms": 17653.229583000008,
+          "before": {
+            "rss": 990003200,
+            "heapTotal": 1572306944,
+            "heapUsed": 1527646048,
+            "external": 170241255,
+            "arrayBuffers": 167804784
+          },
+          "after": {
+            "rss": 255705088,
+            "heapTotal": 120913920,
+            "heapUsed": 114897072,
+            "external": 386980384,
+            "arrayBuffers": 384543913
+          },
+          "peakRss": 1064927232,
+          "peakHeap": 1527646048,
+          "maxRssKiB": 1371344,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 196,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2433223848,
+            "serializedOutput": 41944948,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 8011383008
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "reopen",
+          "ms": 69591.64037499999,
+          "before": {
+            "rss": 256344064,
+            "heapTotal": 120913920,
+            "heapUsed": 114953512,
+            "external": 386980384,
+            "arrayBuffers": 384543913
+          },
+          "after": {
+            "rss": 212172800,
+            "heapTotal": 203522048,
+            "heapUsed": 198902600,
+            "external": 254130366,
+            "arrayBuffers": 251693895
+          },
+          "peakRss": 1575731200,
+          "peakHeap": 1528364272,
+          "maxRssKiB": 1538800,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 44,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 881035838,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3565270808
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "sdk-text-replace",
+          "ms": 171656.643125,
+          "before": {
+            "rss": 296435712,
+            "heapTotal": 203522048,
+            "heapUsed": 199001864,
+            "external": 254130366,
+            "arrayBuffers": 251693895
+          },
+          "after": {
+            "rss": 331055104,
+            "heapTotal": 319160320,
+            "heapUsed": 283239072,
+            "external": 680937162,
+            "arrayBuffers": 678482348
+          },
+          "peakRss": 1466449920,
+          "peakHeap": 1682001448,
+          "maxRssKiB": 2088080,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41944948,
+            "expandedPackage": 41944366,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 745,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 15561814409,
+            "serializedOutput": 41945039,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 15771047392
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "sdk-edit-verification",
+          "ms": 79001.7575,
+          "before": {
+            "rss": 415432704,
+            "heapTotal": 319160320,
+            "heapUsed": 283161800,
+            "external": 764827240,
+            "arrayBuffers": 762372426
+          },
+          "after": {
+            "rss": 1358086144,
+            "heapTotal": 1656127488,
+            "heapUsed": 1598636248,
+            "external": 463875552,
+            "arrayBuffers": 461420738
+          },
+          "peakRss": 1461682176,
+          "peakHeap": 1598636248,
+          "maxRssKiB": 2088080,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 41945039,
+            "expandedPackage": 41944457,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 193,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2349148861,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 4781686646
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "shell-text-replace",
+          "ms": 30002.355917000037,
+          "before": {
+            "rss": 1358266368,
+            "heapTotal": 1656127488,
+            "heapUsed": 1598744488,
+            "external": 463875552,
+            "arrayBuffers": 461420738
+          },
+          "after": {
+            "rss": 499826688,
+            "heapTotal": 596164608,
+            "heapUsed": 565013056,
+            "external": 505817827,
+            "arrayBuffers": 503363045
+          },
+          "peakRss": 1569734656,
+          "peakHeap": 1598744488,
+          "maxRssKiB": 2088080,
+          "outcome": "undefined: Shell limit exceeded: maxWallClockMs"
+        }
+      ]
+    },
+    "binary-metrics": {
+      "host": {
+        "compressedInput": 134217728,
+        "expandedPackage": 536870912,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 134217728,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "fixtures": [
+        {
+          "id": "original-binary-20",
+          "inputBytes": 20973851,
+          "payloadBytes": 20971520,
+          "inputSha256": "9e093fb86c827842eb9ecc2b883d7267d659e42280360f2bdca638c217becea5",
+          "outputSha256": "9e093fb86c827842eb9ecc2b883d7267d659e42280360f2bdca638c217becea5",
+          "sdkSha256": "056cde0802829128b58e38c0fea3d0dcf18554a3f2a23ee255873ae571260527",
+          "defaultExitCode": 4,
+          "largeExitCode": 0,
+          "shellSha256": "056cde0802829128b58e38c0fea3d0dcf18554a3f2a23ee255873ae571260527",
+          "inputPreserved": true
+        },
+        {
+          "id": "original-binary-100",
+          "inputBytes": 104859931,
+          "payloadBytes": 104857600,
+          "inputSha256": "dd76a1b291e8a5abea40832dba943cf9581873687425c335ed73de9203594cbd",
+          "outputSha256": "dd76a1b291e8a5abea40832dba943cf9581873687425c335ed73de9203594cbd",
+          "sdkSha256": "a56d0c45be0839c76d3db5852bdefe6721be5965fadfc1b2e1e0df0306aaa2ad",
+          "defaultExitCode": 4
+        }
+      ],
+      "records": [
+        {
+          "id": "original-binary-20",
+          "stage": "fixture-store",
+          "ms": 1493.3321250000001,
+          "before": {
+            "rss": 213745664,
+            "heapTotal": 68501504,
+            "heapUsed": 34200472,
+            "external": 23467644,
+            "arrayBuffers": 21027371
+          },
+          "after": {
+            "rss": 318652416,
+            "heapTotal": 69025792,
+            "heapUsed": 31363656,
+            "external": 170649211,
+            "arrayBuffers": 168208898
+          },
+          "peakRss": 318652416,
+          "peakHeap": 39826024,
+          "maxRssKiB": 311184,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2140,
+            "expandedPackage": 1558,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 197,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 105593479,
+            "serializedOutput": 20975991,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 55,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1342569500
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "default-sdk",
+          "ms": 446.9522499999998,
+          "outcome": "limit-exceeded: Document work limit exceeded.",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 105065155,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 167790808
+          },
+          "memory": {
+            "rss": 348651520,
+            "heapTotal": 68763648,
+            "heapUsed": 30962480,
+            "external": 86361892,
+            "arrayBuffers": 83921579
+          },
+          "maxRssKiB": 340480
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "public-admission",
+          "ms": 967.4884999999999,
+          "before": {
+            "rss": 348667904,
+            "heapTotal": 68763648,
+            "heapUsed": 30996528,
+            "external": 86361892,
+            "arrayBuffers": 83921579
+          },
+          "after": {
+            "rss": 354189312,
+            "heapTotal": 68763648,
+            "heapUsed": 30628536,
+            "external": 106544984,
+            "arrayBuffers": 83923397
+          },
+          "peakRss": 354189312,
+          "peakHeap": 31744880,
+          "maxRssKiB": 345888,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 105097555,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1510088783
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "validation",
+          "ms": 4.208125000000109,
+          "before": {
+            "rss": 354205696,
+            "heapTotal": 68763648,
+            "heapUsed": 30669176,
+            "external": 106544984,
+            "arrayBuffers": 83923397
+          },
+          "after": {
+            "rss": 354451456,
+            "heapTotal": 68763648,
+            "heapUsed": 31849984,
+            "external": 86362673,
+            "arrayBuffers": 83926202
+          },
+          "peakRss": 354451456,
+          "peakHeap": 31849984,
+          "maxRssKiB": 346144,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 151,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 105149155,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1677899346
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "validated-store",
+          "ms": 1452.0302080000001,
+          "before": {
+            "rss": 354451456,
+            "heapTotal": 68763648,
+            "heapUsed": 31859448,
+            "external": 86362673,
+            "arrayBuffers": 83926202
+          },
+          "after": {
+            "rss": 384630784,
+            "heapTotal": 69025792,
+            "heapUsed": 30447760,
+            "external": 212526827,
+            "arrayBuffers": 210090356
+          },
+          "peakRss": 384630784,
+          "peakHeap": 33182816,
+          "maxRssKiB": 375616,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 244,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 210267326,
+            "serializedOutput": 20973851,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3187996725
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "reopen",
+          "ms": 1030.6656670000002,
+          "before": {
+            "rss": 384630784,
+            "heapTotal": 69025792,
+            "heapUsed": 30499344,
+            "external": 212526827,
+            "arrayBuffers": 210090356
+          },
+          "after": {
+            "rss": 331104256,
+            "heapTotal": 69025792,
+            "heapUsed": 30794968,
+            "external": 140234442,
+            "arrayBuffers": 125870391
+          },
+          "peakRss": 384663552,
+          "peakHeap": 31577784,
+          "maxRssKiB": 375648,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 105097555,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1510088783
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "sdk-text-replace",
+          "ms": 2525.5105840000006,
+          "before": {
+            "rss": 333709312,
+            "heapTotal": 69025792,
+            "heapUsed": 30862368,
+            "external": 140234442,
+            "arrayBuffers": 125870391
+          },
+          "after": {
+            "rss": 484163584,
+            "heapTotal": 69287936,
+            "heapUsed": 31293968,
+            "external": 339043498,
+            "arrayBuffers": 336588684
+          },
+          "peakRss": 484163584,
+          "peakHeap": 33151464,
+          "maxRssKiB": 472816,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973851,
+            "expandedPackage": 20973143,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 961,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 420466749,
+            "serializedOutput": 20973921,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3691568022
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "sdk-edit-verification",
+          "ms": 1099.4287080000013,
+          "before": {
+            "rss": 526172160,
+            "heapTotal": 69287936,
+            "heapUsed": 31227224,
+            "external": 380991340,
+            "arrayBuffers": 378536526
+          },
+          "after": {
+            "rss": 521453568,
+            "heapTotal": 69025792,
+            "heapUsed": 33504824,
+            "external": 254174485,
+            "arrayBuffers": 251719671
+          },
+          "peakRss": 547225600,
+          "peakHeap": 33504824,
+          "maxRssKiB": 535248,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973921,
+            "expandedPackage": 20973213,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 238,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 168131255,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1740852615
+          }
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "shell-default",
+          "ms": 6947.768917000001,
+          "before": {
+            "rss": 521519104,
+            "heapTotal": 69025792,
+            "heapUsed": 33607408,
+            "external": 254174485,
+            "arrayBuffers": 251719671
+          },
+          "after": {
+            "rss": 209485824,
+            "heapTotal": 69550080,
+            "heapUsed": 32625456,
+            "external": 254174734,
+            "arrayBuffers": 251719952
+          },
+          "peakRss": 522305536,
+          "peakHeap": 39989576,
+          "maxRssKiB": 535248,
+          "outcome": "ok",
+          "commandExitCode": 4
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "shell-large",
+          "ms": 11578.863583000002,
+          "before": {
+            "rss": 209600512,
+            "heapTotal": 69550080,
+            "heapUsed": 32704824,
+            "external": 254174734,
+            "arrayBuffers": 251719952
+          },
+          "after": {
+            "rss": 249053184,
+            "heapTotal": 110575616,
+            "heapUsed": 72445728,
+            "external": 443980247,
+            "arrayBuffers": 441525433
+          },
+          "peakRss": 344129536,
+          "peakHeap": 72445728,
+          "maxRssKiB": 535248,
+          "outcome": "ok",
+          "commandExitCode": 0
+        },
+        {
+          "id": "original-binary-20",
+          "stage": "shell-edit-verification",
+          "ms": 1647.0900829999991,
+          "before": {
+            "rss": 249151488,
+            "heapTotal": 110575616,
+            "heapUsed": 72518048,
+            "external": 443980247,
+            "arrayBuffers": 441525433
+          },
+          "after": {
+            "rss": 270254080,
+            "heapTotal": 110051328,
+            "heapUsed": 74131472,
+            "external": 275148406,
+            "arrayBuffers": 272693592
+          },
+          "peakRss": 290504704,
+          "peakHeap": 74131472,
+          "maxRssKiB": 535248,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 20973921,
+            "expandedPackage": 20973213,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 238,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 168131255,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 1740852615
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "fixture-store",
+          "ms": 10223.900958000002,
+          "before": {
+            "rss": 369049600,
+            "heapTotal": 70549504,
+            "heapUsed": 32360696,
+            "external": 254183683,
+            "arrayBuffers": 251711186
+          },
+          "after": {
+            "rss": 517308416,
+            "heapTotal": 38830080,
+            "heapUsed": 31974864,
+            "external": 739645049,
+            "arrayBuffers": 734044539
+          },
+          "peakRss": 544440320,
+          "peakHeap": 34547288,
+          "maxRssKiB": 535248,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2140,
+            "expandedPackage": 1558,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 197,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 525023879,
+            "serializedOutput": 104862071,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 55,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 6711278620
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "default-sdk",
+          "ms": 1.9791670000049635,
+          "outcome": "limit-exceeded: Archive byte budget exceeded.",
+          "usage": {
+            "compressedInput": 0,
+            "expandedPackage": 0,
+            "zipEntries": 0,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 0,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 0
+          },
+          "memory": {
+            "rss": 501760000,
+            "heapTotal": 38830080,
+            "heapUsed": 32083768,
+            "external": 739645049,
+            "arrayBuffers": 734044539
+          },
+          "maxRssKiB": 535248
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "public-admission",
+          "ms": 5909.156374999999,
+          "before": {
+            "rss": 501760000,
+            "heapTotal": 38830080,
+            "heapUsed": 32104848,
+            "external": 739645049,
+            "arrayBuffers": 734044539
+          },
+          "after": {
+            "rss": 270237696,
+            "heapTotal": 38830080,
+            "heapUsed": 32407200,
+            "external": 422051713,
+            "arrayBuffers": 419596931
+          },
+          "peakRss": 716603392,
+          "peakHeap": 32659232,
+          "maxRssKiB": 700224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524527955,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7549886543
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "validation",
+          "ms": 2.6014590000049793,
+          "before": {
+            "rss": 270680064,
+            "heapTotal": 38830080,
+            "heapUsed": 32483928,
+            "external": 422051713,
+            "arrayBuffers": 419596931
+          },
+          "after": {
+            "rss": 271728640,
+            "heapTotal": 38830080,
+            "heapUsed": 32484720,
+            "external": 422051674,
+            "arrayBuffers": 419596892
+          },
+          "peakRss": 271728640,
+          "peakHeap": 32484720,
+          "maxRssKiB": 700224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 151,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524579555,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 8388785746
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "validated-store",
+          "ms": 8841.073583000005,
+          "before": {
+            "rss": 271728640,
+            "heapTotal": 38830080,
+            "heapUsed": 32508744,
+            "external": 422051674,
+            "arrayBuffers": 419596892
+          },
+          "after": {
+            "rss": 526139392,
+            "heapTotal": 40927232,
+            "heapUsed": 32144224,
+            "external": 962801414,
+            "arrayBuffers": 954970349
+          },
+          "peakRss": 535019520,
+          "peakHeap": 33543864,
+          "maxRssKiB": 700224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 244,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1049128126,
+            "serializedOutput": 104859931,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 15938680885
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "reopen",
+          "ms": 5062.466249999998,
+          "before": {
+            "rss": 511197184,
+            "heapTotal": 40927232,
+            "heapUsed": 32216768,
+            "external": 962801414,
+            "arrayBuffers": 954970349
+          },
+          "after": {
+            "rss": 334577664,
+            "heapTotal": 40927232,
+            "heapUsed": 33018344,
+            "external": 639177876,
+            "arrayBuffers": 636723094
+          },
+          "peakRss": 617136128,
+          "peakHeap": 33520592,
+          "maxRssKiB": 700224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524527955,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7549886543
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "sdk-text-replace",
+          "ms": 13585.586541000004,
+          "before": {
+            "rss": 439631872,
+            "heapTotal": 40927232,
+            "heapUsed": 33096328,
+            "external": 639177876,
+            "arrayBuffers": 636723094
+          },
+          "after": {
+            "rss": 642187264,
+            "heapTotal": 45121536,
+            "heapUsed": 32317304,
+            "external": 1585929181,
+            "arrayBuffers": 1583474367
+          },
+          "peakRss": 754614272,
+          "peakHeap": 35374064,
+          "maxRssKiB": 736928,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 961,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2098270269,
+            "serializedOutput": 104860001,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 18455518102
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "sdk-edit-verification",
+          "ms": 5580.436042000001,
+          "before": {
+            "rss": 784580608,
+            "heapTotal": 44859392,
+            "heapUsed": 32314312,
+            "external": 1795649183,
+            "arrayBuffers": 1468062085
+          },
+          "after": {
+            "rss": 643432448,
+            "heapTotal": 44859392,
+            "heapUsed": 34072840,
+            "external": 1155945041,
+            "arrayBuffers": 1153490227
+          },
+          "peakRss": 965378048,
+          "peakHeap": 34595160,
+          "maxRssKiB": 942752,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104860001,
+            "expandedPackage": 104859293,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 238,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 839219895,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 8703397255
+          }
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "shell-default",
+          "ms": 197.10337500000605,
+          "before": {
+            "rss": 643612672,
+            "heapTotal": 44859392,
+            "heapUsed": 34196440,
+            "external": 1155945041,
+            "arrayBuffers": 1153490227
+          },
+          "after": {
+            "rss": 848691200,
+            "heapTotal": 45383680,
+            "heapUsed": 32468312,
+            "external": 841368279,
+            "arrayBuffers": 838913465
+          },
+          "peakRss": 848691200,
+          "peakHeap": 34196440,
+          "maxRssKiB": 942752,
+          "outcome": "ok",
+          "commandExitCode": 4
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "shell-large",
+          "ms": 49968.978833999994,
+          "before": {
+            "rss": 848723968,
+            "heapTotal": 45383680,
+            "heapUsed": 32547808,
+            "external": 841368279,
+            "arrayBuffers": 838913465
+          },
+          "after": {
+            "rss": 618020864,
+            "heapTotal": 41713664,
+            "heapUsed": 33190576,
+            "external": 1680238509,
+            "arrayBuffers": 1677783695
+          },
+          "peakRss": 944504832,
+          "peakHeap": 35831272,
+          "maxRssKiB": 942752,
+          "outcome": "undefined: Shell limit exceeded: maxCpuMs"
+        }
+      ]
+    },
+    "dense-metrics": {
+      "host": {
+        "compressedInput": 134217728,
+        "expandedPackage": 536870912,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 134217728,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "shellLimits": {
+        "maxOutputBytes": 268435456,
+        "maxWallClockMs": 600000,
+        "maxCpuMs": 600000
+      },
+      "fixture": {
+        "id": "dense-roundtrip",
+        "paragraphs": 25001,
+        "xmlBytes": 1325176,
+        "inputBytes": 1326875,
+        "inputSha256": "1ddaeb423eb30e3710be2e74dca08bb0dfad14984af1df4ef615ee54a6f303a0",
+        "outputSha256": "1ddaeb423eb30e3710be2e74dca08bb0dfad14984af1df4ef615ee54a6f303a0",
+        "sdkSha256": "5757424d1b9c294b69a593cd06d5b79e6b14876ef5043c4f205bb636ac83ec51",
+        "shellSha256": "5757424d1b9c294b69a593cd06d5b79e6b14876ef5043c4f205bb636ac83ec51",
+        "inputPreserved": true,
+        "verified": true
+      },
+      "records": [
+        {
+          "stage": "fixture-store",
+          "ms": 110.22045800000001,
+          "before": {
+            "rss": 145637376,
+            "heapTotal": 74104832,
+            "heapUsed": 42732288,
+            "external": 5571473,
+            "arrayBuffers": 1989804
+          },
+          "after": {
+            "rss": 156205056,
+            "heapTotal": 74104832,
+            "heapUsed": 48746424,
+            "external": 17511600,
+            "arrayBuffers": 13929891
+          },
+          "peakRss": 156205056,
+          "peakHeap": 48746424,
+          "maxRssKiB": 152544,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 2002,
+            "expandedPackage": 1420,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 182,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 7348473,
+            "serializedOutput": 1328877,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 50,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 85144122
+          }
+        },
+        {
+          "stage": "public-admission",
+          "ms": 2128.513625,
+          "before": {
+            "rss": 156401664,
+            "heapTotal": 74104832,
+            "heapUsed": 48815384,
+            "external": 17511600,
+            "arrayBuffers": 13929891
+          },
+          "after": {
+            "rss": 252395520,
+            "heapTotal": 135872512,
+            "heapUsed": 110629872,
+            "external": 8977992,
+            "arrayBuffers": 5396283
+          },
+          "peakRss": 252395520,
+          "peakHeap": 116013792,
+          "maxRssKiB": 246672,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326875,
+            "expandedPackage": 1326293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 100040,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 28056305,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 111934635
+          }
+        },
+        {
+          "stage": "validation",
+          "ms": 605.1031250000001,
+          "before": {
+            "rss": 252395520,
+            "heapTotal": 135872512,
+            "heapUsed": 110670288,
+            "external": 8977992,
+            "arrayBuffers": 5396283
+          },
+          "after": {
+            "rss": 413270016,
+            "heapTotal": 300236800,
+            "heapUsed": 273772568,
+            "external": 10303168,
+            "arrayBuffers": 6721459
+          },
+          "peakRss": 413270016,
+          "peakHeap": 273772568,
+          "maxRssKiB": 403584,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326875,
+            "expandedPackage": 1326293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 200112,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 49300177,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 139164187
+          }
+        },
+        {
+          "stage": "validated-store",
+          "ms": 707.1639170000003,
+          "before": {
+            "rss": 413270016,
+            "heapTotal": 300236800,
+            "heapUsed": 273790256,
+            "external": 10303168,
+            "arrayBuffers": 6721459
+          },
+          "after": {
+            "rss": 443875328,
+            "heapTotal": 306921472,
+            "heapUsed": 277277016,
+            "external": 20917876,
+            "arrayBuffers": 17336167
+          },
+          "peakRss": 443875328,
+          "peakHeap": 277277016,
+          "maxRssKiB": 440464,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326875,
+            "expandedPackage": 1326293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 300184,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 77375614,
+            "serializedOutput": 1326875,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 251281147
+          }
+        },
+        {
+          "stage": "reopen",
+          "ms": 2279.573958,
+          "before": {
+            "rss": 443875328,
+            "heapTotal": 306921472,
+            "heapUsed": 277330856,
+            "external": 20917876,
+            "arrayBuffers": 17336167
+          },
+          "after": {
+            "rss": 527958016,
+            "heapTotal": 419430400,
+            "heapUsed": 378264728,
+            "external": 18262672,
+            "arrayBuffers": 14680963
+          },
+          "peakRss": 527958016,
+          "peakHeap": 378264728,
+          "maxRssKiB": 515584,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326875,
+            "expandedPackage": 1326293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 100040,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 28056305,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 111934635
+          }
+        },
+        {
+          "stage": "sdk-text-replace",
+          "ms": 14935.644833,
+          "before": {
+            "rss": 529170432,
+            "heapTotal": 419430400,
+            "heapUsed": 378296224,
+            "external": 18262672,
+            "arrayBuffers": 14680963
+          },
+          "after": {
+            "rss": 488652800,
+            "heapTotal": 891404288,
+            "heapUsed": 847334184,
+            "external": 35521043,
+            "arrayBuffers": 31922024
+          },
+          "peakRss": 644939776,
+          "peakHeap": 847334184,
+          "maxRssKiB": 925408,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326875,
+            "expandedPackage": 1326293,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 1600681,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 578597330,
+            "serializedOutput": 1326966,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 499259702
+          }
+        },
+        {
+          "stage": "sdk-edit-verification",
+          "ms": 7610.317165999997,
+          "before": {
+            "rss": 491421696,
+            "heapTotal": 891404288,
+            "heapUsed": 847383520,
+            "external": 38174975,
+            "arrayBuffers": 34575956
+          },
+          "after": {
+            "rss": 190152704,
+            "heapTotal": 394919936,
+            "heapUsed": 298599640,
+            "external": 16955605,
+            "arrayBuffers": 13358671
+          },
+          "peakRss": 498270208,
+          "peakHeap": 962839624,
+          "maxRssKiB": 925408,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326966,
+            "expandedPackage": 1326384,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 300181,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 134949921,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 157479965
+          }
+        },
+        {
+          "stage": "shell-text-replace",
+          "ms": 16803.521584000002,
+          "before": {
+            "rss": 192348160,
+            "heapTotal": 394919936,
+            "heapUsed": 298701208,
+            "external": 16955605,
+            "arrayBuffers": 13358671
+          },
+          "after": {
+            "rss": 865304576,
+            "heapTotal": 1093943296,
+            "heapUsed": 1051179864,
+            "external": 43478970,
+            "arrayBuffers": 39882004
+          },
+          "peakRss": 865304576,
+          "peakHeap": 1051179864,
+          "maxRssKiB": 925408,
+          "outcome": "ok"
+        },
+        {
+          "stage": "shell-edit-verification",
+          "ms": 6570.418334000002,
+          "before": {
+            "rss": 867205120,
+            "heapTotal": 1093943296,
+            "heapUsed": 1051235408,
+            "external": 43478970,
+            "arrayBuffers": 39882004
+          },
+          "after": {
+            "rss": 287342592,
+            "heapTotal": 516145152,
+            "heapUsed": 482887984,
+            "external": 22259489,
+            "arrayBuffers": 18662555
+          },
+          "peakRss": 868089856,
+          "peakHeap": 1160398488,
+          "maxRssKiB": 925408,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 1326966,
+            "expandedPackage": 1326384,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 300181,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 134949921,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 157479965
+          }
+        }
+      ]
+    },
+    "packaged-shell": {
+      "host": {
+        "compressedInput": 134217728,
+        "expandedPackage": 536870912,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 134217728,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "shellLimits": {
+        "maxOutputBytes": 268435456,
+        "maxWallClockMs": 600000,
+        "maxCpuMs": 600000
+      },
+      "records": [
+        {
+          "id": "original-binary-100",
+          "stage": "packaged-shell-text-replace",
+          "ms": 43557.812917,
+          "before": {
+            "rss": 349487104,
+            "heapTotal": 62799872,
+            "heapUsed": 26008920,
+            "external": 213327131,
+            "arrayBuffers": 209876534
+          },
+          "after": {
+            "rss": 1631125504,
+            "heapTotal": 237928448,
+            "heapUsed": 225545512,
+            "external": 1157147034,
+            "arrayBuffers": 314671003
+          },
+          "peakRss": 1631125504,
+          "peakHeap": 225545512,
+          "maxRssKiB": 1592912,
+          "outcome": "ok",
+          "inputSha256": "dd76a1b291e8a5abea40832dba943cf9581873687425c335ed73de9203594cbd",
+          "inputPreserved": true,
+          "outputBytes": 104860001,
+          "outputSha256": "a56d0c45be0839c76d3db5852bdefe6721be5965fadfc1b2e1e0df0306aaa2ad",
+          "verified": true
+        },
+        {
+          "id": "original-binary-100",
+          "stage": "packaged-shell-verification",
+          "ms": 11087.220042,
+          "before": {
+            "rss": 1654456320,
+            "heapTotal": 237928448,
+            "heapUsed": 225631936,
+            "external": 423127836,
+            "arrayBuffers": 419530934
+          },
+          "after": {
+            "rss": 307412992,
+            "heapTotal": 245792768,
+            "heapUsed": 225665632,
+            "external": 531394656,
+            "arrayBuffers": 527797754
+          },
+          "maxRssKiB": 1722224,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 209719932,
+            "expandedPackage": 209718516,
+            "zipEntries": 12,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1048991460,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 15099744480
+          }
+        },
+        {
+          "id": "large-text",
+          "stage": "packaged-shell-text-replace",
+          "ms": 168315.72875,
+          "before": {
+            "rss": 388628480,
+            "heapTotal": 245792768,
+            "heapUsed": 225517992,
+            "external": 507016386,
+            "arrayBuffers": 503419484
+          },
+          "after": {
+            "rss": 698155008,
+            "heapTotal": 274104320,
+            "heapUsed": 237581768,
+            "external": 849789468,
+            "arrayBuffers": 846192534
+          },
+          "peakRss": 1696137216,
+          "peakHeap": 1552106296,
+          "maxRssKiB": 3103344,
+          "outcome": "ok",
+          "inputSha256": "0f68074179dfba4e07a0ba1be0feaf966b7d059850469cd28dca34efc5f7b34a",
+          "inputPreserved": true,
+          "outputBytes": 41945039,
+          "outputSha256": "e007d2deef2a59e0f5254528506fe8a56d791ff49e94b693463bdc3a49a8a1e8",
+          "verified": true
+        },
+        {
+          "id": "large-text",
+          "stage": "packaged-shell-verification",
+          "ms": 4842.290915999998,
+          "before": {
+            "rss": 576569344,
+            "heapTotal": 274104320,
+            "heapUsed": 237469992,
+            "external": 891734416,
+            "arrayBuffers": 882497290
+          },
+          "after": {
+            "rss": 321650688,
+            "heapTotal": 190447616,
+            "heapUsed": 153325112,
+            "external": 326594395,
+            "arrayBuffers": 322997493
+          },
+          "maxRssKiB": 3103344,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 83889987,
+            "expandedPackage": 83888823,
+            "zipEntries": 10,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 419841987,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 6040004568
+          }
+        }
+      ]
+    },
+    "packaged-sdk": {
+      "host": {
+        "compressedInput": 134217728,
+        "expandedPackage": 536870912,
+        "xmlPartBytes": 134217728,
+        "xmlNodes": 50000000,
+        "retainedBytes": 17179869184,
+        "work": 68719476736
+      },
+      "limits": {
+        "maxArchiveBytes": 134217728,
+        "maxEntryBytes": 134217728,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "inputSha256": "dd76a1b291e8a5abea40832dba943cf9581873687425c335ed73de9203594cbd",
+      "outputSha256": "dd76a1b291e8a5abea40832dba943cf9581873687425c335ed73de9203594cbd",
+      "editedSha256": "a56d0c45be0839c76d3db5852bdefe6721be5965fadfc1b2e1e0df0306aaa2ad",
+      "inputPreserved": true,
+      "verified": true,
+      "records": [
+        {
+          "stage": "public-admission",
+          "ms": 5178.974249999999,
+          "before": {
+            "rss": 302628864,
+            "heapTotal": 34684928,
+            "heapUsed": 13993928,
+            "external": 211911203,
+            "arrayBuffers": 209812268
+          },
+          "after": {
+            "rss": 236060672,
+            "heapTotal": 34160640,
+            "heapUsed": 13978880,
+            "external": 332416981,
+            "arrayBuffers": 209747137
+          },
+          "maxRssKiB": 398768,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524527955,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7549886543
+          }
+        },
+        {
+          "stage": "validated-store",
+          "ms": 7872.411667,
+          "before": {
+            "rss": 236306432,
+            "heapTotal": 34160640,
+            "heapUsed": 14059136,
+            "external": 332416981,
+            "arrayBuffers": 209747137
+          },
+          "after": {
+            "rss": 283901952,
+            "heapTotal": 34947072,
+            "heapUsed": 14328632,
+            "external": 634675075,
+            "arrayBuffers": 632594535
+          },
+          "maxRssKiB": 567376,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 151,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1049076526,
+            "serializedOutput": 104859931,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 15099781682
+          }
+        },
+        {
+          "stage": "reopen",
+          "ms": 6030.773500000001,
+          "before": {
+            "rss": 493715456,
+            "heapTotal": 34947072,
+            "heapUsed": 14413720,
+            "external": 844394937,
+            "arrayBuffers": 841918850
+          },
+          "after": {
+            "rss": 162217984,
+            "heapTotal": 51462144,
+            "heapUsed": 15497128,
+            "external": 634544226,
+            "arrayBuffers": 632463686
+          },
+          "maxRssKiB": 694176,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 58,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524527955,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7549886543
+          }
+        },
+        {
+          "stage": "sdk-text-replace",
+          "ms": 20200.169666,
+          "before": {
+            "rss": 291848192,
+            "heapTotal": 51462144,
+            "heapUsed": 15586576,
+            "external": 634544226,
+            "arrayBuffers": 632463686
+          },
+          "after": {
+            "rss": 599179264,
+            "heapTotal": 21053440,
+            "heapUsed": 15515104,
+            "external": 1581379378,
+            "arrayBuffers": 1579280495
+          },
+          "maxRssKiB": 709984,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104859931,
+            "expandedPackage": 104859223,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 961,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 2098270269,
+            "serializedOutput": 104860001,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 18455518102
+          }
+        },
+        {
+          "stage": "sdk-edit-verification",
+          "ms": 7334.845165999999,
+          "before": {
+            "rss": 789921792,
+            "heapTotal": 21315584,
+            "heapUsed": 15478064,
+            "external": 1791099380,
+            "arrayBuffers": 1363202516
+          },
+          "after": {
+            "rss": 380469248,
+            "heapTotal": 20791296,
+            "heapUsed": 15432672,
+            "external": 954710909,
+            "arrayBuffers": 952612058
+          },
+          "maxRssKiB": 771440,
+          "outcome": "ok",
+          "usage": {
+            "compressedInput": 104860001,
+            "expandedPackage": 104859293,
+            "zipEntries": 6,
+            "xmlPartBytes": 0,
+            "xmlNodes": 0,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 524495905,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 0,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 7549874760
+          }
+        }
+      ]
+    },
+    "match-controls": {
+      "host": {
+        "retainedBytes": 17179869184,
+        "work": 68719476736,
+        "xmlNodes": 50000000
+      },
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "records": [
+        {
+          "n": 1024,
+          "inputBytes": 25386,
+          "ms": 18505.997375,
+          "before": {
+            "rss": 170016768,
+            "heapTotal": 63275008,
+            "heapUsed": 30131392,
+            "external": 2743868,
+            "arrayBuffers": 303595
+          },
+          "after": {
+            "rss": 297304064,
+            "heapTotal": 195411968,
+            "heapUsed": 136133800,
+            "external": 13025637,
+            "arrayBuffers": 10570791
+          },
+          "maxRssKiB": 345184,
+          "usage": {
+            "compressedInput": 25386,
+            "expandedPackage": 24804,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 4261476,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 1780994060,
+            "serializedOutput": 119594,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 5120,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 985519415
+          },
+          "changes": 1024
+        },
+        {
+          "n": 2048,
+          "inputBytes": 48938,
+          "ms": 77747.35858300001,
+          "before": {
+            "rss": 294846464,
+            "heapTotal": 87343104,
+            "heapUsed": 29339608,
+            "external": 3069808,
+            "arrayBuffers": 614994
+          },
+          "after": {
+            "rss": 302415872,
+            "heapTotal": 186220544,
+            "heapUsed": 42549072,
+            "external": 4954599,
+            "arrayBuffers": 2499785
+          },
+          "maxRssKiB": 347840,
+          "usage": {
+            "compressedInput": 48938,
+            "expandedPackage": 48356,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 16910948,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 7067571340,
+            "serializedOutput": 237354,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 10240,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 3885321527
+          },
+          "changes": 2048
+        }
+      ]
+    },
+    "bounded-match-controls": {
+      "host": {
+        "retainedBytes": 17179869184,
+        "work": 68719476736,
+        "xmlNodes": 50000000
+      },
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "records": [
+        {
+          "n": 128,
+          "inputBytes": 4778,
+          "ms": 617.23575,
+          "before": {
+            "rss": 91734016,
+            "heapTotal": 35209216,
+            "heapUsed": 17961848,
+            "external": 2240512,
+            "arrayBuffers": 157997
+          },
+          "after": {
+            "rss": 166232064,
+            "heapTotal": 79118336,
+            "heapUsed": 44168360,
+            "external": 2422153,
+            "arrayBuffers": 321223
+          },
+          "peakRss": 166232064,
+          "peakHeap": 44168360,
+          "maxRssKiB": 162336,
+          "outcome": "ok",
+          "writes": 1,
+          "changes": 128,
+          "usage": {
+            "compressedInput": 4778,
+            "expandedPackage": 4196,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 74468,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 31614028,
+            "serializedOutput": 16554,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 640,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 18844727
+          }
+        },
+        {
+          "n": 256,
+          "inputBytes": 7722,
+          "ms": 1446.5493749999998,
+          "before": {
+            "rss": 166232064,
+            "heapTotal": 58490880,
+            "heapUsed": 18783824,
+            "external": 2233910,
+            "arrayBuffers": 133012
+          },
+          "after": {
+            "rss": 208011264,
+            "heapTotal": 90128384,
+            "heapUsed": 53729416,
+            "external": 2539835,
+            "arrayBuffers": 438905
+          },
+          "peakRss": 208011264,
+          "peakHeap": 53729416,
+          "maxRssKiB": 203552,
+          "outcome": "ok",
+          "writes": 1,
+          "changes": 256,
+          "usage": {
+            "compressedInput": 7722,
+            "expandedPackage": 7140,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 279396,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 117161164,
+            "serializedOutput": 31274,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 1280,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 67189559
+          }
+        },
+        {
+          "n": 512,
+          "inputBytes": 13610,
+          "ms": 5686.887708,
+          "before": {
+            "rss": 207568896,
+            "heapTotal": 63733760,
+            "heapUsed": 18952152,
+            "external": 2295734,
+            "arrayBuffers": 194836
+          },
+          "after": {
+            "rss": 205996032,
+            "heapTotal": 134610944,
+            "heapUsed": 79494136,
+            "external": 3293097,
+            "arrayBuffers": 1192167
+          },
+          "peakRss": 207585280,
+          "peakHeap": 79494136,
+          "maxRssKiB": 212704,
+          "outcome": "ok",
+          "writes": 1,
+          "changes": 512,
+          "usage": {
+            "compressedInput": 13610,
+            "expandedPackage": 13028,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 1082468,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 452619724,
+            "serializedOutput": 60714,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 2560,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 253630775
+          }
+        }
+      ]
+    },
+    "failed-match-retry": {
+      "host": {
+        "retainedBytes": 17179869184,
+        "work": 68719476736,
+        "xmlNodes": 50000000
+      },
+      "limits": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 17179869184,
+        "chunkSize": 65536
+      },
+      "records": [
+        {
+          "n": 4096,
+          "inputBytes": 96042,
+          "stage": "SDK all-match replacement",
+          "ms": 204048.04420899999,
+          "before": {
+            "rss": 92979200,
+            "heapTotal": 34160640,
+            "heapUsed": 14787768,
+            "external": 2991945,
+            "arrayBuffers": 314717
+          },
+          "after": {
+            "rss": 301318144,
+            "heapTotal": 222707712,
+            "heapUsed": 78472760,
+            "external": 5405332,
+            "arrayBuffers": 3306449
+          },
+          "peakRss": 301318144,
+          "peakHeap": 78472760,
+          "maxRssKiB": 341168,
+          "outcome": "limit-exceeded: Document retainedBytes limit exceeded.",
+          "writes": 0,
+          "usage": {
+            "compressedInput": 96042,
+            "expandedPackage": 95460,
+            "zipEntries": 5,
+            "xmlPartBytes": 0,
+            "xmlNodes": 46542496,
+            "xmlDepth": 0,
+            "embeddedMediaBytes": 0,
+            "retainedBytes": 17176330921,
+            "serializedOutput": 0,
+            "batchOperations": 0,
+            "matches": 0,
+            "insertedNodes": 15150,
+            "tableCells": 0,
+            "tableRows": 0,
+            "tableColumns": 0,
+            "diagnosticBytes": 0,
+            "work": 9032038495
+          }
+        }
+      ]
+    }
+  }
+}

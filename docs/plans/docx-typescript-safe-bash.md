@@ -4431,8 +4431,8 @@ tasks:
 
       Record the distinction between census and product ceilings: ordinary seed inspection used 512 MiB expanded and 5 million XML nodes, whereas the proposed product defaults are 256 MiB and 2 million. Exercise default rejection and explicit large-profile success through actual public SDK and Shell, including at least two successful large/dense round trips plus targeted edits. Do not label generated inputs as downloaded or claim the unfulfilled two-input 20 MiB/100 MiB acquisition regime.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: corpus-text-structure-qa
     title: Execute real-report text table field and structure QA
     prompt: |

@@ -207,7 +207,10 @@ process is invoked to implement shell-local timezone changes.
 
 The bounded format profile supports ordinary single-disk ZIP records with stored
 or raw-DEFLATE payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
-modes, archive/member comments, and ordinary data descriptors. It rejects ZIP64,
+modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
+single-disk ZIP64 input records. ZIP64 sizes and offsets must be safely representable
+and within configured limits. Archive updates emit classic ZIP records and remove
+obsolete ZIP64 size tags while preserving unrelated metadata. It rejects
 encryption, unsupported compression methods, split archives, self-extracting
 prefixes, unreferenced records and trailing bytes rather than guessing their
 meaning. This is not an assertion of complete Info-ZIP compatibility or identical

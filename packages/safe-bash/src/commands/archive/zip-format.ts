@@ -1,3 +1,4 @@
+import { zip64Directory, zip64Fields, stripZip64 } from "./zip/zip64.js";
 import { type ByteSource } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
@@ -80,7 +81,7 @@ function legacyName(bytes: Uint8Array): string {
   return name;
 }
 
-interface ExtraMetadata { name?: string; modified?: number }
+interface ExtraMetadata { name?: string; modified?: number; zip64?: Uint8Array }
 
 function extras(bytes: Uint8Array, rawName: Uint8Array, comment: Uint8Array, central: boolean, limits: ArchiveLimits): ExtraMetadata {
   number(bytes.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
@@ -96,7 +97,10 @@ function extras(bytes: Uint8Array, rawName: Uint8Array, comment: Uint8Array, cen
     if (offset + length > bytes.length) fail("ZIP truncated extra field payload");
     if (seen.has(identifier)) fail("ZIP duplicate extra field");
     seen.add(identifier);
-    if (identifier === 1) fail("ZIP64 is unsupported");
+    if (identifier === 1) {
+      if (!length || length > 28 || length % 4) fail("ZIP64 invalid extra field length");
+      result.zip64 = bytes.subarray(offset, offset + length);
+    }
     if (identifier === 0x9901 || identifier === 0x0017 || identifier === 0x0018 || identifier === 0x0019) fail("ZIP encryption is unsupported");
     if (identifier === 0x7075 || identifier === 0x6375) {
       if (length < 5 || bytes[offset] !== 1) fail("ZIP unsupported or truncated Unicode extra field");
@@ -132,7 +136,7 @@ function format(method: number, flags: number, version: number): void {
   if (flags & (1 | 64 | 0x2000)) fail("ZIP encryption is unsupported");
   if (flags & ~0x80e || method === 0 && flags & 6) fail("ZIP unsupported general purpose flags");
   if (method !== 0 && method !== 8) fail("ZIP unsupported compression method");
-  if (version < (method === 8 || flags & 8 ? 20 : 10) || version > 20) fail("ZIP unsupported extraction version (including ZIP64)");
+  if (version < (method === 8 || flags & 8 ? 20 : 10) || version > 20 && version !== 45) fail("ZIP unsupported extraction version (including ZIP64)");
 }
 
 function dosModified(date: number, time: number): Date {
@@ -188,13 +192,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     }
   }
   if (end === -1) fail("ZIP truncated or missing end of central directory");
-  const members = view.getUint16(end + 10, true);
-  const centralSize = view.getUint32(end + 12, true);
-  const centralStart = view.getUint32(end + 16, true);
-  if (members === 65535 || centralSize === 0xffffffff || centralStart === 0xffffffff) fail("ZIP64 is unsupported");
-  if (view.getUint16(end + 4, true) || view.getUint16(end + 6, true) || view.getUint16(end + 8, true) !== members) fail("ZIP multi-disk or inconsistent member count is unsupported");
-  if (centralStart + centralSize !== end) fail("ZIP invalid central directory span or unsupported ZIP64/trailing records");
-  number(members, limits.maxMembers, "member");
+  const { members, centralStart, centralEnd } = zip64Directory(view, end, limits);
   number(bytes.length - end - 22, limits.maxTextBytes, "archive comment");
   const entries: ZipEntry[] = [];
   const spans: Array<{ start: number; end: number }> = [];
@@ -202,7 +200,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
   let total = 0;
   for (let index = 0; index < members; index++) {
     await yieldTurn(signal);
-    if (offset + 46 > end || view.getUint32(offset, true) !== 0x02014b50) fail("ZIP truncated or invalid central header");
+    if (offset + 46 > centralEnd || view.getUint32(offset, true) !== 0x02014b50) fail("ZIP truncated or invalid central header");
     const versionMadeBy = view.getUint16(offset + 4, true);
     const version = view.getUint16(offset + 6, true);
     const flags = view.getUint16(offset + 8, true);
@@ -211,29 +209,32 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     const dosTime = view.getUint16(offset + 12, true);
     const dosDate = view.getUint16(offset + 14, true);
     const checksum = view.getUint32(offset + 16, true);
-    const compressedSize = view.getUint32(offset + 20, true);
-    const size = view.getUint32(offset + 24, true);
+    let compressedSize = view.getUint32(offset + 20, true);
+    let size = view.getUint32(offset + 24, true);
     const nameLength = view.getUint16(offset + 28, true);
     const extraLength = view.getUint16(offset + 30, true);
     const commentLength = view.getUint16(offset + 32, true);
     const internalAttributes = view.getUint16(offset + 36, true);
     if (internalAttributes & ~1) fail("ZIP unsupported internal attributes");
     const externalAttributes = view.getUint32(offset + 38, true);
-    const local = view.getUint32(offset + 42, true);
-    if (view.getUint16(offset + 34, true)) fail("ZIP multi-disk member is unsupported");
-    if (compressedSize === 0xffffffff || size === 0xffffffff || local === 0xffffffff) fail("ZIP64 is unsupported");
-    number(size, limits.maxEntryBytes, "entry byte");
-    if (method === 0 && compressedSize !== size) fail("ZIP stored size mismatch");
-    total += size;
-    number(total, limits.maxTotalBytes, "total byte");
+    let local = view.getUint32(offset + 42, true);
+    const disk = view.getUint16(offset + 34, true);
     const next = offset + 46 + nameLength + extraLength + commentLength;
-    if (next > end) fail("ZIP truncated central metadata");
+    if (next > centralEnd) fail("ZIP truncated central metadata");
     number(commentLength, limits.maxTextBytes, "entry comment");
     const rawName = bytes.subarray(offset + 46, offset + 46 + nameLength);
     const centralExtra = bytes.subarray(offset + 46 + nameLength, next - commentLength);
     const comment = bytes.subarray(next - commentLength, next);
     if (flags & 0x800) text(comment);
     const centralMetadata = extras(centralExtra, rawName, comment, true, limits);
+    const resolved = zip64Fields(centralMetadata.zip64, [size, compressedSize, local, disk === 65535 ? 0xffffffff : disk]);
+    [size, compressedSize, local] = resolved as [number, number, number, number];
+    if (resolved[3]) fail("ZIP multi-disk member is unsupported");
+    number(size, limits.maxEntryBytes, "entry byte");
+    number(compressedSize, limits.maxArchiveBytes, "compressed entry byte");
+    if (method === 0 && compressedSize !== size) fail("ZIP stored size mismatch");
+    total += size;
+    number(total, limits.maxTotalBytes, "total byte");
     const name = nameFrom(rawName, flags, centralMetadata, limits);
     if (local + 30 > centralStart || view.getUint32(local, true) !== 0x04034b50) fail("ZIP invalid local header span");
     if (view.getUint16(local + 4, true) !== version || view.getUint16(local + 6, true) !== flags || view.getUint16(local + 8, true) !== method || view.getUint16(local + 10, true) !== dosTime || view.getUint16(local + 12, true) !== dosDate) fail("ZIP central/local metadata mismatch");
@@ -249,15 +250,22 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     const localEffective = nameFrom(localName, flags, localMetadata, limits);
     if (localMetadata.name !== undefined && localEffective !== name) fail("ZIP central/local Unicode name mismatch");
     if (centralMetadata.modified !== undefined && localMetadata.modified !== undefined && centralMetadata.modified !== localMetadata.modified) fail("ZIP central/local timestamp mismatch");
-    for (const [position, expected] of [[14, checksum], [18, compressedSize], [22, size]] as const) {
-      const actual = view.getUint32(local + position, true);
+    const rawLocalSize = view.getUint32(local + 22, true);
+    const rawLocalCompressed = view.getUint32(local + 18, true);
+    const [localSize, localCompressed] = zip64Fields(localMetadata.zip64, [rawLocalSize, rawLocalCompressed]);
+    for (const [actual, expected] of [[view.getUint32(local + 14, true), checksum], [localCompressed, compressedSize], [localSize, size]]) {
       if (actual !== expected && (!(flags & 8) || actual !== 0)) fail("ZIP central/local size or CRC mismatch");
     }
     if (flags & 8) {
       const matches: number[] = [];
       for (const signed of [false, true]) {
         const descriptor = payloadEnd + (signed ? 4 : 0);
-        if (descriptor + 12 <= centralStart && (!signed || view.getUint32(payloadEnd, true) === 0x08074b50) && view.getUint32(descriptor, true) === checksum && view.getUint32(descriptor + 4, true) === compressedSize && view.getUint32(descriptor + 8, true) === size) matches.push(descriptor + 12);
+        const wide = rawLocalSize === 0xffffffff || rawLocalCompressed === 0xffffffff;
+        const length = wide ? 20 : 12;
+        if (descriptor + length > centralStart || signed && view.getUint32(payloadEnd, true) !== 0x08074b50 || view.getUint32(descriptor, true) !== checksum) continue;
+        const compressed = wide ? view.getBigUint64(descriptor + 4, true) : BigInt(view.getUint32(descriptor + 4, true));
+        const expanded = wide ? view.getBigUint64(descriptor + 12, true) : BigInt(view.getUint32(descriptor + 8, true));
+        if (compressed === BigInt(compressedSize) && expanded === BigInt(size)) matches.push(descriptor + length);
       }
       if (matches.length !== 1) fail("ZIP truncated, ambiguous or mismatched data descriptor");
       payloadEnd = matches[0]!;
@@ -277,7 +285,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     spans.push({ start: local, end: payloadEnd });
     offset = next;
   }
-  if (offset !== end) fail("ZIP central directory size or member count mismatch");
+  if (offset !== centralEnd) fail("ZIP central directory size or member count mismatch");
   spans.sort((first, second) => first.start - second.start);
   let covered = 0;
   for (const span of spans) {
@@ -399,8 +407,12 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     const comment = entry.comment ?? new Uint8Array();
     number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
     if (flags & 0x800) text(comment);
-    const localExtra = entry.localExtra ?? timestampExtra(entry.modified);
-    const centralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
+    const originalLocalExtra = entry.localExtra ?? timestampExtra(entry.modified);
+    extras(originalLocalExtra, rawName, comment, false, limits);
+    const localExtra = stripZip64(originalLocalExtra);
+    const originalCentralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
+    extras(originalCentralExtra, rawName, comment, true, limits);
+    const centralExtra = stripZip64(originalCentralExtra);
     const localMetadata = extras(localExtra, rawName, comment, false, limits);
     const centralMetadata = extras(centralExtra, rawName, comment, true, limits);
     if (nameFrom(rawName, flags, centralMetadata, limits) !== entry.name || localMetadata.name !== undefined && nameFrom(rawName, flags, localMetadata, limits) !== entry.name || entry.localName && !equal(rawName, entry.localName)) fail("ZIP retained filename metadata mismatch");

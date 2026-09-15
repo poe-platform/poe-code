@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { deflateRawSync, inflateRawSync } from "node:zlib";
+import { createHash } from "node:crypto";
+import zip64Oracle from "./fixtures/zip64-infozip.json" with { type: "json" };
 import { collectBytes, isPathWithin, resolvePath } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { DEFAULT_ARCHIVE_LIMITS as limits } from "../../src/commands/archive/internal.js";
+import { zip64Fields, stripZip64 } from "../../src/commands/archive/zip/zip64.js";
 import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive } from "../../src/commands/archive/zip-format.js";
 
 const signal = new AbortController().signal;
@@ -11,6 +14,21 @@ const text = new TextEncoder();
 const modified = new Date("2026-09-10T01:02:04Z");
 const attributes = { modified, mode: 0o100640, directory: false, symlink: false };
 const collectOptions = { maxBytes: limits.maxEntryBytes };
+
+for (const oracle of zip64Oracle.cases) {
+  test(`ZIP64 reads native ${oracle.args.join(" ")} and preserves payload`, async () => {
+    const bytes = Buffer.from(oracle.archive, "base64");
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), oracle.sha256);
+    if (oracle.unzipStatus !== 0) {
+      assert.equal(oracle.unzipStatus, 2);
+      await assert.rejects(readZipArchive(bytes, limits, signal));
+      return;
+    }
+    const archive = await readZipArchive(bytes, limits, signal);
+    const bodies = await Promise.all(archive.entries.map(entry => collectBytes(decodeZipEntry(entry, limits, signal), collectOptions)));
+    assert.deepEqual(Buffer.concat(bodies), Buffer.from(oracle.unzipStdout, "base64"));
+  });
+}
 
 function extra(identifier: number, data: Uint8Array): Uint8Array {
   const bytes = new Uint8Array(4 + data.length);
@@ -409,3 +427,146 @@ test("ZIP preserves literal POSIX colon and backslash names within the VFS root"
   }
   assert.deepEqual(await fs.readFile("/outside"), text.encode("sentinel"));
 });
+
+for (const oracle of zip64Oracle.cases.filter(item => item.unzipStatus === 0)) {
+  const original = Buffer.from(oracle.archive, "base64");
+  const end = original.length - 22;
+  const record = Number(original.readBigUInt64LE(end - 12));
+  const central = Number(original.readBigUInt64LE(record + 48));
+  let localExtra = 30 + original.readUInt16LE(26);
+  while (original.readUInt16LE(localExtra) !== 1) localExtra += 4 + original.readUInt16LE(localExtra + 2);
+  const mutations: Array<[string, (bytes: Buffer) => void]> = [
+    ["classic disk", bytes => bytes.writeUInt16LE(1, end + 4)],
+    ["classic start disk", bytes => bytes.writeUInt16LE(1, end + 6)],
+    ["locator disk", bytes => bytes.writeUInt32LE(1, end - 16)],
+    ["locator total disks", bytes => bytes.writeUInt32LE(2, end - 4)],
+    ["locator unsafe offset", bytes => bytes.writeBigUInt64LE(2n ** 63n, end - 12)],
+    ["locator out of bounds", bytes => bytes.writeBigUInt64LE(BigInt(bytes.length), end - 12)],
+    ["end signature", bytes => bytes.writeUInt32LE(0, record)],
+    ["short end record", bytes => bytes.writeBigUInt64LE(43n, record + 4)],
+    ["long end record", bytes => bytes.writeBigUInt64LE(45n, record + 4)],
+    ["unsafe end length", bytes => bytes.writeBigUInt64LE(2n ** 63n, record + 4)],
+    ["end version", bytes => bytes.writeUInt16LE(46, record + 14)],
+    ["end disk", bytes => bytes.writeUInt32LE(1, record + 16)],
+    ["end central disk", bytes => bytes.writeUInt32LE(1, record + 20)],
+    ["disk member count", bytes => bytes.writeBigUInt64LE(2n, record + 24)],
+    ["total member count", bytes => bytes.writeBigUInt64LE(2n, record + 32)],
+    ["unsafe member count", bytes => bytes.writeBigUInt64LE(2n ** 63n, record + 32)],
+    ["directory size", bytes => bytes.writeBigUInt64LE(1n, record + 40)],
+    ["directory offset", bytes => bytes.writeBigUInt64LE(1n, record + 48)],
+    ["classic member count", bytes => bytes.writeUInt16LE(2, end + 10)],
+    ["classic disk count", bytes => bytes.writeUInt16LE(2, end + 8)],
+    ["classic directory size", bytes => bytes.writeUInt32LE(1, end + 12)],
+    ["member disk", bytes => bytes.writeUInt16LE(1, central + 34)],
+    ["missing local size tag", bytes => bytes.writeUInt16LE(2, localExtra)],
+    ["truncated local size tag", bytes => bytes.writeUInt16LE(8, localExtra + 2)],
+    ["unsafe local size", bytes => bytes.writeBigUInt64LE(2n ** 63n, localExtra + 4)],
+    ["wrong local size", bytes => bytes.writeBigUInt64LE(99n, localExtra + 4)],
+    ["wrong local compressed size", bytes => bytes.writeBigUInt64LE(99n, localExtra + 12)],
+    ["missing central offset field", bytes => bytes.writeUInt32LE(0xffffffff, central + 42)],
+  ];
+  for (const [name, mutate] of mutations) {
+    test(`ZIP64 rejects ${name}: ${oracle.args.join(" ")}`, async () => {
+      const bytes = Buffer.from(original);
+      mutate(bytes);
+      await assert.rejects(readZipArchive(bytes, limits, signal), error => {
+        assert.equal(error instanceof RangeError, false);
+        return true;
+      });
+    });
+  }
+  test(`ZIP64 rejects every truncated prefix: ${oracle.args.join(" ")}`, async () => {
+    for (let length = 0; length < original.length; length++) {
+      await assert.rejects(readZipArchive(original.subarray(0, length), limits, signal));
+    }
+  });
+  test(`ZIP64 transcodes native archive into classic ZIP: ${oracle.args.join(" ")}`, async () => {
+    const archive = await readZipArchive(original, limits, signal);
+    const bytes = await writeZipArchive(archive, limits, signal);
+    const restored = await readZipArchive(bytes, limits, signal);
+    assert.deepEqual(restored.entries.map(entry => entry.data), archive.entries.map(entry => entry.data));
+    const bodies = await Promise.all(restored.entries.map(entry => collectBytes(decodeZipEntry(entry, limits, signal), collectOptions)));
+    assert.deepEqual(Buffer.concat(bodies), Buffer.from(oracle.unzipStdout, "base64"));
+    assert.equal(new DataView(bytes.buffer).getUint16(4, true), archive.entries[0]!.method === 8 ? 20 : 10);
+  });
+}
+
+// Inspired by CPython test_zipfile.test_core's generated ZIP64 field combinations
+// and extra-field stripping order cases; this implementation also checks disk fields.
+for (let mask = 0; mask < 16; mask++) {
+  test(`ZIP64 resolves ordered sentinel field combination ${mask}`, () => {
+    const expected = [123, 45, 67, 0];
+    const values = expected.map((value, index) => mask & 1 << index ? 0xffffffff : value);
+    const bytes = new Uint8Array(28);
+    const view = new DataView(bytes.buffer);
+    let length = 0;
+    for (let index = 0; index < 4; index++) {
+      if (!(mask & 1 << index)) continue;
+      if (index === 3) view.setUint32(length, expected[index]!, true);
+      else view.setBigUint64(length, BigInt(expected[index]!), true);
+      length += index === 3 ? 4 : 8;
+    }
+    assert.deepEqual(zip64Fields(bytes.subarray(0, length), values), expected);
+    if (length) {
+      assert.throws(() => zip64Fields(undefined, values));
+      for (let shorter = 0; shorter < length; shorter++) {
+        assert.throws(() => zip64Fields(bytes.subarray(0, shorter), values));
+      }
+    }
+  });
+}
+for (const position of [0, 1, 2]) {
+  test(`ZIP64 stripping preserves opaque extra order with size tag at ${position}`, () => {
+    const fields = [extra(0xcafe, new Uint8Array([1, 2])), extra(0xbeef, new Uint8Array([3]))];
+    const expected = Buffer.concat(fields);
+    fields.splice(position, 0, extra(1, new Uint8Array(16)));
+    assert.deepEqual(Buffer.from(stripZip64(Buffer.concat(fields))), expected);
+  });
+}
+test("ZIP64 accepts bounded extensible end data and enforces its metadata limit", async () => {
+  const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
+  const end = original.length - 22;
+  const record = Number(original.readBigUInt64LE(end - 12));
+  const extension = Buffer.from([0xca, 0xfe, 4, 0, 0, 0, 100, 97, 116, 97]);
+  const bytes = Buffer.concat([original.subarray(0, end - 20), extension, original.subarray(end - 20)]);
+  bytes.writeBigUInt64LE(44n + BigInt(extension.length), record + 4);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.equal(archive.entries.length, 1);
+  await assert.rejects(readZipArchive(bytes, { ...limits, maxPaxBytes: extension.length - 1 }, signal));
+});
+
+for (const signed of [false, true]) {
+  test(`ZIP64 reads and validates ${signed ? "signed" : "unsigned"} wide descriptors`, async () => {
+    const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
+    const oldEnd = original.length - 22;
+    const oldRecord = Number(original.readBigUInt64LE(oldEnd - 12));
+    const central = Number(original.readBigUInt64LE(oldRecord + 48));
+    const descriptor = Buffer.alloc(signed ? 24 : 20);
+    const base = signed ? 4 : 0;
+    if (signed) descriptor.writeUInt32LE(0x08074b50);
+    descriptor.writeUInt32LE(original.readUInt32LE(14), base);
+    descriptor.writeBigUInt64LE(BigInt(original.readUInt32LE(central + 20)), base + 4);
+    descriptor.writeBigUInt64LE(BigInt(original.readUInt32LE(central + 24)), base + 12);
+    const bytes = Buffer.concat([original.subarray(0, central), descriptor, original.subarray(central)]);
+    const end = oldEnd + descriptor.length;
+    const record = oldRecord + descriptor.length;
+    const newCentral = central + descriptor.length;
+    bytes.writeUInt16LE(bytes.readUInt16LE(6) | 8, 6);
+    bytes.writeUInt16LE(bytes.readUInt16LE(newCentral + 8) | 8, newCentral + 8);
+    bytes.writeUInt32LE(0, 14);
+    const tag = 30 + bytes.readUInt16LE(26);
+    bytes.writeBigUInt64LE(0n, tag + 4);
+    bytes.writeBigUInt64LE(0n, tag + 12);
+    bytes.writeBigUInt64LE(BigInt(newCentral), record + 48);
+    bytes.writeBigUInt64LE(BigInt(record), end - 12);
+    bytes.writeUInt32LE(newCentral, end + 16);
+    const archive = await readZipArchive(bytes, limits, signal);
+    const body = await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions);
+    assert.deepEqual(Buffer.from(body), Buffer.from(zip64Oracle.cases[0]!.unzipStdout, "base64"));
+    for (const position of [base, base + 4, base + 12]) {
+      const invalid = Buffer.from(bytes);
+      invalid[central + position] ^= 1;
+      await assert.rejects(readZipArchive(invalid, limits, signal));
+    }
+  });
+}

@@ -184,3 +184,22 @@ Manual interoperability verification generated an actual virtual stdout archive
 for a one-byte file, then read it with native UnZip and Python's independent ZIP
 reader in an isolated temporary directory. UnZip returned 0 and the exact `a`
 payload; Python confirmed DEFLATE, descriptor flag 8 and extraction version 20.
+
+## ZIP64 reader and classic transcoding
+
+Native Zip 3.0 captures include valid stdin and forced-ZIP64 file archives, plus
+a malformed forced-stdout archive rejected by native UnZip. The reader resolves
+single-disk ZIP64 end records, locator and ordered size/offset/disk extra fields
+under existing budgets. Classic rewriting strips obsolete ZIP64 tags.
+Tests cover all 16 sentinel combinations, every shorter required field payload,
+every truncated native archive prefix, disk/count/span inconsistencies, unsafe
+uint64 values, size mismatches, metadata tag ordering and extensible end records.
+Public inspiration: CPython test_bad_zip64_extra,
+test_generated_valid_zip64_extra, test_zip64_extensible_data and extra stripping
+order cases: https://github.com/python/cpython/blob/main/Lib/test/test_zipfile/test_core.py
+Tests adapt to this bounded single-disk profile. ZIP64 output remains open.
+
+Verification: 394 focused ZIP/unzip tests passed, including signed/unsigned
+64-bit descriptor mutations. Scoped ESLint passed. Both valid native captures
+were transcoded through the actual reader/writer; native UnZip integrity checks
+returned 0 for both resulting classic archives.

@@ -41,6 +41,42 @@ async function fixture(prefix = "w", pretty = false, media = 0x80, change?: (fil
 const payload: LocationPayload = { version: 1, sourceSha256: "a".repeat(64), generation: 0,
   part: main, story: main + "#body", path: [0, 1], range: null };
 
+it("keeps core compatibility fallback image locations when shape metadata is opaque", async () => {
+  const bytes = await fixture("w", false, 0x80, files => {
+    const xml = String(files.get(main.slice(1)));
+    files.set(main.slice(1), xml.replace('<a:blip xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" r:embed="img"/>', '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><mc:Choice Requires="wps"><wps:wsp><a:blip r:embed="img"/></wps:wsp></mc:Choice><mc:Fallback><a:blip r:embed="img"/></mc:Fallback></mc:AlternateContent>'));
+  });
+  const document = await openDocumentLocations(bytes, context);
+  expect(document.at("image", 1).value.path.slice(-2)).toEqual([1, 0]);
+});
+
+it("merges original repeated VML carrier locations without repeated growing sorts", async () => {
+  const bytes = await fixture("w", false, 0x80, files => files.set(main.slice(1), String(files.get(main.slice(1))).replace("</w:body>", `<w:p><w:r><w:pict xmlns:v="urn:schemas-microsoft-com:vml"><v:shape>${'<v:imagedata r:id="img"/>'.repeat(200)}</v:shape></w:pict></w:r></w:p></w:body>`)));
+  const sort = Array.prototype.sort; let comparisons = 0;
+  const spy = vi.spyOn(Array.prototype, "sort").mockImplementation(function (this: unknown[], compare?: (a: unknown, b: unknown) => number) {
+    const native = this.some(value => value && typeof value === "object" && "localName" in value && value.localName === "imagedata");
+    return sort.call(this, compare && native ? (a, b) => { comparisons++; return compare(a, b); } : compare);
+  });
+  try { expect((await openDocumentLocations(bytes, context)).list("image")).toHaveLength(201); expect(comparisons).toBeLessThan(4000); }
+  finally { spy.mockRestore(); }
+});
+
+it("keeps explicit inventory locations read-only while default editing still validates", async () => {
+  const bytes = await fixture();
+  const document = await openDocumentLocations(bytes, context, "inventory");
+  const first = document.snapshot(), second = document.snapshot();
+  expect(first.members[0]!.bytes).toEqual(second.members[0]!.bytes);
+  expect(first.members[0]!.bytes).not.toBe(second.members[0]!.bytes); expect(first.members[0]!.modified).not.toBe(second.members[0]!.modified);
+  first.members[0]!.bytes.fill(0); first.members[0]!.modified.setTime(0);
+  expect(document.snapshot()).toEqual(second);
+  const stage = vi.fn(() => []);
+  expect(() => document.mutate(document.list("paragraph"), { first: true }, stage)).toThrowError(expect.objectContaining({ code: "usage" }));
+  expect(stage).not.toHaveBeenCalled();
+  const broken = await fixture("w", false, 0x80, files => files.set(main.slice(1), String(files.get(main.slice(1))).replace('r:embed="img"', 'r:embed="missing"')));
+  await expect(openDocumentLocations(broken, context)).rejects.toThrow("validation");
+  expect((await openDocumentLocations(broken, context, "inventory")).list("image")).toHaveLength(1);
+});
+
 describe("document location tokens", () => {
   it("uses the exact ordered canonical token and detached values", () => {
     const token = "docx-loc-v1." + Buffer.from(JSON.stringify(payload)).toString("base64url");

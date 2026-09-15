@@ -39,17 +39,23 @@ import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
 import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
 import { executePropertiesCommand } from "./properties-command.js";
+import { executeImagesCommand, ImageCommandPublicationError } from "./images-command.js";
+import { ImageExtractionCancellationError, type ImageExtractionData } from "./images.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
   readonly filesystem: Pick<FileSystem, "readFile" | "readStream"> & Partial<FileSystem>;
   readonly registerCleanup?: ((cleanup: () => Promise<void>) => void) | undefined;
 }
+export interface DocxInspectionCommandResult {
+  readonly exitCode: number;
+  readonly extraction?: ImageExtractionData;
+}
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
 export function createDocxInspectionCommandEngine(options: { readonly limits: ArchiveLimits }) {
   const limits = Object.freeze({ ...options.limits });
-  return createDocxCommandEngine<DocxInspectionCommandRequest>({
+  return createDocxCommandEngine<DocxInspectionCommandRequest, DocxInspectionCommandResult>({
     async readSource(source, request, budget) {
       const io = new DocumentIo({ limits, signal: request.signal, budget, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
       try {
@@ -68,6 +74,16 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
+      let imageReceipt: ImageExtractionData | undefined;
+      const sinkFailure = (cause: unknown): DocxInspectionCommandResult => {
+        if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: 3 }; }
+        const extraction = { ...imageReceipt, complete: false };
+        if (request.signal.aborted || cause instanceof CancellationError) {
+          const published = [...extraction.entries.filter(entry => entry.published).map(entry => ({ path: entry.path, bytes: entry.bytes })), ...(extraction.manifest.published ? [{ path: extraction.manifest.path, bytes: extraction.manifest.bytes }] : [])];
+          throw new ImageExtractionCancellationError(cause instanceof CancellationError ? cause : new CancellationError("Image output cancelled.", { cause }), extraction, published);
+        }
+        return { exitCode: 3, extraction };
+      };
       const controlTemplateOperation = ["controls.repeat", "controls.bind"].includes(invocation.operation);
       const controlOperation = controlTemplateOperation || ["controls.list", "controls.set"].includes(invocation.operation);
       const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
@@ -80,7 +96,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const listOperation = ["lists.add", "lists.set"].includes(invocation.operation);
       const storyOperation = ["headers.list", "headers.get", "headers.set", "headers.remove", "footers.list", "footers.get", "footers.set", "footers.remove"].includes(invocation.operation);
       const propertyOperation = ["properties.list", "properties.get", "properties.set", "properties.remove"].includes(invocation.operation);
-      const packageResourceOperation = propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const imageOperation = ["images.list", "images.get", "images.extract"].includes(invocation.operation);
+      const packageResourceOperation = imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
@@ -95,6 +112,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
+        if (invocation.operation === "images.extract" && input !== "-" && request.filesystem.lstat) {
+          const path = resolvePath(request.cwd, input);
+          inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
+        }
         if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
@@ -107,7 +128,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         } });
         acquiring = false;
         if (packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = packageResourceOperation ? propertyOperation
+          output = imageOperation ? await executeImagesCommand(invocation, bytes, inputIdentity, request, context, data => { imageReceipt = data; return undefined; })
+            : packageResourceOperation ? propertyOperation
             ? await executePropertiesCommand(invocation, bytes, inputIdentity, request, context)
             : await executePackageResourcesCommand(invocation, bytes, request, context)
             : controlOperation ? controlTemplateOperation
@@ -201,6 +223,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         }
         }
       } catch (error) {
+        if (invocation.operation === "images.extract" && error instanceof ImageExtractionCancellationError) throw error;
         request.signal.throwIfAborted();
         if (error instanceof CancellationError) throw error;
         if (writingDiagnostics) return { exitCode: 3 };
@@ -208,15 +231,14 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
-        output = new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
-        try { await request.stderr.write(new TextEncoder().encode(diagnostic.human)); }
-        catch { request.signal.throwIfAborted(); return { exitCode: 3 }; }
+        const imageFailure = invocation.operation === "images.extract" && error instanceof ImageCommandPublicationError ? error : undefined;
+        if (imageFailure) imageReceipt = imageFailure.data;
+        output = imageFailure ? imageFailure.responseBytes : new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
+        try { await request.stderr.write(imageFailure ? imageFailure.diagnosticBytes : new TextEncoder().encode(diagnostic.human)); }
+        catch (cause) { return sinkFailure(cause); }
       } finally { await io.cleanup(); }
       try { if (output.length) await request.stdout.write(output); }
-      catch {
-        request.signal.throwIfAborted();
-        return { exitCode: 3 };
-      }
+      catch (cause) { return sinkFailure(cause); }
       return { exitCode };
     }
   }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: limits.maxEntryBytes, xmlDepth: limits.maxDepth });

@@ -5,10 +5,47 @@ import { writeDocumentArchive } from "./document-write.js";
 import { createDocxInspectionCommandEngine } from "./inspection-command.js";
 import { inspectDocument } from "./inspection.js";
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
+import { ImageExtractionCancellationError } from "./images.js";
+import type { FileSystem } from "@poe-code/safe-fs/core";
 
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024 };
 const signal = new AbortController().signal;
 const encoder = new TextEncoder();
+it("preserves public image extraction receipts when diagnostics cancel after publication", async () => {
+  const { bytes } = await createDocumentFixture("museum"), volume = Volume.fromJSON({});
+  volume.mkdirSync("/out");
+  const controller = new AbortController(), scope = {};
+  const stat = async (path: string) => {
+    const value = volume.lstatSync(path);
+    return { type: value.isDirectory() ? "directory" as const : "file" as const, size: value.size,
+      mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs, atimeMs: value.atimeMs,
+      ino: value.ino, dev: value.dev, nlink: value.nlink, identityScope: scope, revision: value.mtimeMs };
+  };
+  const filesystem = { capabilities: { atomicFileStaging: true, write: true }, lstat: stat, stat,
+    async readFile() { throw new Error("Undeclared original input"); },
+    async realpath(path: string) { return String(volume.realpathSync(path)); },
+    async access(path: string, mode: number) { volume.accessSync(path, mode); },
+    createStagedFile: (async (directory, name, content) => {
+      if (content.type !== "file") throw new Error("Unsupported original stage");
+      volume.mkdirSync(directory); volume.writeFileSync(`${directory}/${name}`, content.data);
+      return { parent: { path: "/out", stat: await stat("/out") }, directory: { path: directory, stat: await stat(directory) }, file: { path: `${directory}/${name}`, stat: await stat(`${directory}/${name}`) } };
+    }) as NonNullable<FileSystem["createStagedFile"]>,
+    publishStagedFile: (async (stage, path) => { volume.renameSync(stage.file.path, path); }) as NonNullable<FileSystem["publishStagedFile"]>,
+    removeStagedFile: (async stage => { volume.rmSync(stage.directory.path, { recursive: true }); }) as NonNullable<FileSystem["removeStagedFile"]>
+  } as unknown as FileSystem;
+  const pending = createDocxInspectionCommandEngine({ limits: { ...limits, maxRetainedBytes: 32000000 } }).execute({
+    args: ["images", "extract", "-", "--output-dir", "/out", "--allow-partial-output", "--json"].map(value => encoder.encode(value)),
+    cwd: "/", filesystem, signal: controller.signal,
+    stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
+    stdout: { async write() { throw new Error("Cancelled output must not publish"); } },
+    stderr: { async write() { controller.abort("Original diagnostic cancellation"); } }
+  });
+  await expect(pending).rejects.toBeInstanceOf(ImageExtractionCancellationError);
+  await expect(pending).rejects.toMatchObject({ code: "cancelled", data: {
+    complete: false, manifest: { published: true }, entries: [{ published: true }, { published: true }]
+  }, published: expect.arrayContaining([{ path: "/out/manifest.json", bytes: expect.any(Number) }]) });
+  expect(volume.readdirSync("/out")).toEqual(["image-1.bmp", "image-2.bmp", "manifest.json"]);
+});
 async function fixture() {
   const archive = await createDocumentArchive({}, { limits, signal });
   const chunks: Uint8Array[] = [];

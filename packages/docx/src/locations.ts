@@ -36,7 +36,8 @@ function options(value: MatchOptions, mode: "read" | "mutation" | "text"): void 
   if (mode === "read" && value.allowEmpty !== undefined) throw new InvalidValueError("allowEmpty is a mutation option.");
 }
 
-export async function openDocumentLocations(input: Uint8Array, context: ArchiveContext): Promise<DocumentLocations> {
+export async function openDocumentLocations(input: Uint8Array, context: ArchiveContext, mode: "editing" | "inventory" = "editing"): Promise<DocumentLocations> {
+  if (mode !== "editing" && mode !== "inventory") throw new InvalidValueError("Expected an editing or read-only inventory location view.");
   const { limits, budget, signal } = archiveSettings(context);
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
   if (input.length > limits.maxArchiveBytes) throw new ResourceLimitError("Document input limit exceeded.");
@@ -47,7 +48,7 @@ export async function openDocumentLocations(input: Uint8Array, context: ArchiveC
   const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", owned));
   budget.check("work", 0);
   const sourceSha256 = [...hash].map(byte => byte.toString(16).padStart(2, "0")).join("");
-  return new DocumentLocations(archive, sourceSha256, { limits, budget, signal });
+  return new DocumentLocations(archive, sourceSha256, { limits, budget, signal }, mode);
 }
 
 /** Revision-bound engine primitive; stage callbacks are trusted engine code, never document data. */
@@ -60,14 +61,16 @@ class DocumentLocations {
   readonly #admission: Pick<AdmittedDocumentArchive, "mainPart" | "dialect">;
   readonly #context: ArchiveContext;
   readonly #budget: DocumentBudget;
+  readonly #inventory: boolean;
 
-  constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext) {
+  constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext, mode: "editing" | "inventory") {
     const settings = archiveSettings(context);
     this.#context = { limits: settings.limits, signal: settings.signal, budget: settings.budget };
     this.#budget = settings.budget;
     this.#sourceSha256 = sourceSha256;
     this.#admission = { mainPart: archive.mainPart, dialect: archive.dialect };
-    this.#archive = new DocumentArchiveEditor(archive, {}, undefined, this.#budget).snapshot();
+    this.#inventory = mode === "inventory";
+    this.#archive = this.#inventory ? this.#copyArchive(archive) : new DocumentArchiveEditor(archive, {}, undefined, this.#budget).snapshot();
     this.#index = new LocationIndex(this.#archive, settings.limits, archive.mainPart, archive.dialect, this.#budget);
   }
 
@@ -225,6 +228,7 @@ class DocumentLocations {
   }
 
   mutate(candidates: readonly Location[], selection: LocationMutationOptions, stage: LocationStage): LocationMutationResult {
+    if (this.#inventory) throw new InvalidValueError("Read-only inventory locations cannot mutate the document.");
     if (this.#mutating) throw new InvalidValueError("A location mutation is already in progress.");
     closedRecord(selection, ["first", "all", "occurrence", "allowEmpty", "shared"]);
     if (selection.shared !== undefined && typeof selection.shared !== "boolean") throw new InvalidValueError("Expected a boolean shared switch.");
@@ -288,7 +292,13 @@ class DocumentLocations {
   }
 
   snapshot(): DocumentArchive {
-    return new DocumentArchiveEditor(this.#archive, {}, undefined, this.#budget).snapshot();
+    return this.#inventory ? this.#copyArchive(this.#archive) : new DocumentArchiveEditor(this.#archive, {}, undefined, this.#budget).snapshot();
+  }
+
+  #copyArchive(archive: DocumentArchive): DocumentArchive {
+    const bytes = archive.comment.length + archive.members.reduce((total, member) => total + member.bytes.length, 0);
+    this.#budget.charge("retainedBytes", bytes + archive.members.length * 96); this.#budget.charge("work", bytes + archive.members.length);
+    return { comment: new Uint8Array(archive.comment), members: archive.members.map(member => ({ ...member, bytes: new Uint8Array(member.bytes), modified: new Date(member.modified.getTime()) })) };
   }
 }
 

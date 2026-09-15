@@ -36,6 +36,20 @@ async function enriched(change?: (fs: Volume) => void, minimal = false) {
 }
 
 describe("document inspection and byte validation", () => {
+  it("counts preserve-only native VML carriers in admitted active stories", async () => {
+    const bytes = await enriched(fs => {
+      const main = fs.readFileSync("/word/document.xml", "utf8") as string;
+      fs.writeFileSync("/word/document.xml", main.replace("</w:body>", '<w:p><w:r><w:pict xmlns:v="urn:schemas-microsoft-com:vml"><v:shape><v:imagedata/></v:shape></w:pict></w:r></w:p></w:body>'));
+    });
+    expect((await inspectDocument(bytes, context())).counts.images).toBe(1);
+  });
+  it("counts active image occurrences while preserving inactive branch evidence", async () => {
+    const bytes = await enriched(fs => {
+      const main = fs.readFileSync("/word/document.xml", "utf8") as string;
+      fs.writeFileSync("/word/document.xml", main.replace("</w:body>", '<w:p><w:r><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><mc:Choice Requires="wps"><wps:wsp><a:blip/></wps:wsp></mc:Choice><mc:Fallback><w:drawing><a:blip/></w:drawing></mc:Fallback></mc:AlternateContent></w:r></w:p></w:body>'));
+    });
+    expect((await inspectDocument(bytes, context())).counts.images).toBe(1);
+  });
   it("reports an original minimal package deterministically without mutation", async () => {
     const { bytes, parts } = await createDocumentFixture("garden", "empty");
     const before = bytes.slice();

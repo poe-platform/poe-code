@@ -48,7 +48,13 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.inspectDocumentPackageResources).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentProperties).toBeTypeOf("function");
   expect.soft(runtime.editDocumentProperties).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentImages).toBeTypeOf("function");
+  expect.soft(runtime.extractDocumentImages).toBeTypeOf("function");
   const original = await textFixture('<w:p/>');
+  if (typeof runtime.inspectDocumentImages === "function") {
+    expect(await runtime.inspectDocumentImages(original, { operation: "images.list" }, textContext)).toEqual({ items: [], warnings: [] });
+    await expect(runtime.inspectDocumentImages(original, { operation: "images.get", image: 1 }, textContext)).rejects.toMatchObject({ code: "missing-selection" });
+  }
   expect(await runtime.inspectDocumentProperties(original, {}, textContext)).toEqual({ items: [], warnings: [] });
   await expect(runtime.inspectDocumentProperties(original, { name: "core:title" }, textContext)).rejects.toMatchObject({ code: "missing-selection" });
   await expect(runtime.inspectDocumentProperties(original, { scope: "body" }, textContext)).rejects.toMatchObject({ code: "usage" });

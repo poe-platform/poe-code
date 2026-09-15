@@ -102,14 +102,48 @@ export class LocationIndex {
           }
           return result;
         };
-        const compatibility = new MarkupCompatibility(root, { ...documentCompatibilityProfile,
-          understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces,
-            "urn:schemas-microsoft-com:vml",
-            "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",
-            "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"]
-        }, budget);
-        effective(compatibility.content);
+        const compatibility = new MarkupCompatibility(root, documentCompatibilityProfile, budget);
         for (const branch of compatibility.branches) branches.set(branch.alternateContent, branch.selected);
+        effective(compatibility.content);
+        const nativeCarriers = new Map<XmlElement, XmlElement[]>();
+        // Native image carriers remain inert read locations; namespace recognition
+        // here never changes compatibility branch selection or text understanding.
+        const carriers = (node: XmlElement, owner?: XmlElement) => {
+          budget.charge("work", 1);
+          if (node.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && node.localName === "AlternateContent") {
+            const selected = branches.get(node);
+            if (selected) carriers(selected, owner);
+            return;
+          }
+          if (node.namespace === "urn:schemas-microsoft-com:vml" && node.localName === "imagedata" && owner) {
+            const pending = nativeCarriers.get(owner) ?? [];
+            if (!nativeCarriers.has(owner)) nativeCarriers.set(owner, pending);
+            budget.charge("retainedBytes", 16);
+            pending.push(node);
+            this.children.set(node, []);
+            return;
+          }
+          if (node.namespace === w && node.localName === "txbxContent" && !this.children.has(node) && owner) {
+            effective(new MarkupCompatibility(node, documentCompatibilityProfile, budget).content);
+            this.children.set(owner, [...this.children.get(owner) ?? [], node]);
+          }
+          const next = this.children.has(node) ? node : owner;
+          for (const child of node.children) carriers(child, next);
+        };
+        carriers(root);
+        for (const [owner, pending] of nativeCarriers) {
+          const initial = this.children.get(owner) ?? [];
+          budget.charge("work", initial.length + pending.length);
+          budget.charge("retainedBytes", (initial.length + pending.length) * 32);
+          const merged = [...new Set([...initial, ...pending])];
+          merged.sort((a, b) => {
+            const left = this.#paths.get(a)!, right = this.#paths.get(b)!;
+            budget.charge("work", Math.min(left.length, right.length) + 1);
+            for (let i = 0; i < Math.min(left.length, right.length); i++) if (left[i] !== right[i]) return left[i]! - right[i]!;
+            return left.length - right.length;
+          });
+          this.children.set(owner, merged);
+        }
       }
       this.#add({ kind: "part", part: part.partname, story: part.partname, path: [], positions: {}, ...(root ? { node: root } : {}) });
     }

@@ -1225,6 +1225,86 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   not invented semantic editing commands. Equations add/replace require one
   bounded OMML math root, reject arbitrary surrounding WordprocessingML. Objects
   extract emits inert admitted bytes only, never activation.
+- **Image inventory and extraction.** Images list/get use kind images records,
+  current image Locations and exact owner-local relationship references. The
+  record name is the canonical primary internal part name when available; linked
+  or unresolved images omit name. Native image carriers in admitted stories are
+  occurrences; unrelated namespace-shaped payloads and orphan media parts are
+  not occurrences. Stored dimensions, transforms, crop, wrapping, stacking and
+  alt/decorative metadata use exact native namespaces and bounded validated
+  numeric values. Unsupported, missing, ambiguous or invalid fields read null
+  with bounded warnings, never fabricated layout defaults. HorizontalPosition and
+  verticalPosition retain separate native relativeFrom frames and exactly one
+  stored offsetEmu or alignment; frames/alignments use admitted native enumeration
+  spellings. Unsupported or conflicting axis modes read null with warnings.
+  Inline carriers have null axis positions; no anchor coordinates are inferred.
+  Pixel dimensions
+  remain null unless independently admitted by the bounded media header codec;
+  inventory does not render, decode pixel payloads or establish native-size parity.
+  Actual recognized media type is distinct from declared content type. Unknown
+  internal byte formats use application/octet-stream with preserve support;
+  missing/external media uses null type/bytes/hash and is never acquired.
+  Image read queries may use an explicit read-only inventory view over the
+  admitted archive, retaining ZIP/XML/package/dialect and capability budgets
+  without imposing mutation-semantic validation on unresolved image metadata.
+  Such a view rejects every mutation before selection or stage callbacks and
+  returns a fresh bounded owned archive snapshot on each call. Snapshot byte/Date
+  mutation cannot change its internal source or subsequent Locations/snapshots.
+  Normal editing views retain their existing semantic validation and edit guards;
+  inventory admission is not a publication or mutation validation bypass.
+  Selected core-v1 MCE branches supply active occurrences. Inventory MUST NOT
+  activate a Choice by extending the compatibility profile merely to recognize
+  VML or opaque image metadata. Inactive branches remain preserved part/reference
+  evidence, not duplicate visible occurrences. Raw native VML imagedata in a
+  selected story/branch may have a preserve-only image Location and inert resource
+  references even when its layout vocabulary is opaque. This raw inventory does
+  not declare that vocabulary understood, activate a Choice or promise visibility.
+  A selected native carrier may
+  expose admitted internal alternate resources without choosing a renderer's
+  preferred encoding. fallbackPart is populated only for an unambiguous stored
+  fallback association; alternateParts retains other exact internal associations.
+  For one exact admitted SVG extension associated with a recognized raster base
+  blip, the base remains the primary resource and may also be fallbackPart;
+  neither field implies a renderer preference. Extraction emits each distinct
+  associated part once per occurrence before advancing to the next occurrence.
+  Ambiguous association remains null with warnings and preserved references.
+  Image extraction writes exact admitted primary and unambiguously associated
+  alternate/fallback bytes, in selected occurrence order and then stored resource
+  order. A repeated shared resource may have repeated entries/owner Locations.
+  Generated image-N.ext names use admitted MIME extensions; opaque unknown bytes
+  use the fixed inert .bin extension, never a document-supplied name. External,
+  unresolved or ambiguous resource selections are skipped with bounded warnings
+  and complete false; no placeholder bytes/hash/path is fabricated. A fully
+  extracted selection, including an empty internal selection, has complete true.
+  A deterministic manifest.json records a closed version 1, kind images envelope
+  with entries of relative path, canonical part, byte count, source sha256 and
+  owner locations. This image-only manifest is not PackageInventoryV1;
+  ExtractionData.inventory is null. Image ExtractionData always includes a
+  manifest descriptor (or null before manifest admission). Descriptor and entry
+  receipt paths are absolute VFS paths; manifest entries use generated relative
+  filenames. Descriptor bytes/hash identify the exact admitted manifest bytes;
+  published records actual publication. The output directory is explicitly admitted
+  VFS capability input; all output names and aliases are preflighted before any
+  staged acquisition. Without multi-file transactions, more than one output
+  requires explicit allowPartialOutput, counting manifest.json as an output:
+  one image plus its manifest is two outputs; an empty selection emits one
+  manifest. Failure reports actual published entries
+  and does not claim rollback or guarantee a published manifest. Existing
+  chosen result/diagnostic serialization budgets, including newlines and partial
+  receipts, are admitted before staged acquisition using the same extraction
+  plan. Trusted synchronous publication-admission rejection prevents all output
+  publication; it does not add an argv option or permit asynchronous admission.
+  Late output/diagnostic sink or cancellation failures retain actual published
+  receipt data rather than claiming zero effects. A programmatic inspection
+  command engine MAY return its actual image extraction receipt and warnings
+  through a typed optional extraction result field when final stdout fails,
+  alongside exitCode 3. This execution-result field is separate from the closed
+  OfficeResultV1 stdout envelope. Cancellation retains the actual receipt on a
+  typed cancellation error with the stable cancelled code and Shell status 130.
+  Failed stdout is not retried and does not guarantee delivery of a JSON receipt.
+  Receipt transport MUST NOT parse serialized stdout to reconstruct publication
+  effects or impose new fallible allocation admission after publication. Existing
+  extraction profile excludes dryRun and requires outputDir even for empty input.
 - **Custom XML/glossary inventories.** Custom-xml list and glossary list are
   package-global reads with json/limit only; story selectors, scope and select
   reject. They return ResourceListData in canonical part-name order, one record
@@ -1715,6 +1795,7 @@ type DiffData = {
 type ExtractionData = {
   complete: boolean;
   inventory: PackageInventoryV1 | null;
+  manifest?: { path: string; bytes: number; sha256: string; published: boolean } | null;
   entries: {
     path: string;
     part: string;
@@ -1723,6 +1804,11 @@ type ExtractionData = {
     locations: Location[];
     published: boolean;
   }[];
+};
+type ImageExtractionManifestV1 = {
+  version: 1;
+  kind: "images";
+  entries: { path: string; part: string; bytes: number; sha256: string; locations: Location[] }[];
 };
 type ModelData = { value: ModelResultValue };
 type BatchData = { results: OfficeResultV1<ModelResultValue>[]; publication: MutationData | null };
@@ -1833,17 +1919,33 @@ canonical symbol string, dates as UTC strings). Null reads remain explicit.
 type ResourceDetails =
   | {
       kind: "images";
-      mime: string;
+      part: string | null;
+      mime: string | null;
+      declaredMime: string | null;
+      bytes: number | null;
       sha256: string | null;
       pixelWidth: number | null;
       pixelHeight: number | null;
-      widthEmu: number;
-      heightEmu: number;
-      placement: "inline" | "floating";
-      crop: { left: number; right: number; top: number; bottom: number };
-      rotation: number;
+      widthEmu: number | null;
+      heightEmu: number | null;
+      placement: "inline" | "floating" | null;
+      crop: { left: number; right: number; top: number; bottom: number } | null;
+      rotation: number | null;
+      flipHorizontal: boolean | null;
+      flipVertical: boolean | null;
+      wrap: "none" | "square" | "tight" | "through" | "top-bottom" | null;
+      zOrder: number | null;
+      horizontalPosition: {
+        relativeFrom: string | null; offsetEmu: number | null; alignment: string | null;
+      } | null;
+      verticalPosition: {
+        relativeFrom: string | null; offsetEmu: number | null; alignment: string | null;
+      } | null;
+      alt: string | null;
+      decorative: boolean | null;
       owners: Location[];
       fallbackPart: string | null;
+      alternateParts: string[];
       linked: boolean;
     }
   | {
@@ -1963,6 +2065,11 @@ structural edits return the surviving table location. The affected count is the
 number of directly selected objects changed. These bounded receipts do not
 establish live table-model or general model-batch coverage.
 Image unique mode returns one record per identical byte hash with all owners;
+grouping occurs after selection and includes only selected owners. The first
+selected occurrence supplies the representative Location and occurrence-local
+geometry; its geometry MUST NOT be presented as shared by the other owners.
+All exact selected owner-local references and distinct part identities remain
+available through references and alternateParts. Null hashes never group.
 linked-only drawings remain individual records with null hash/pixel dimensions
 and no acquisition. Noncreating absent header/footer records use section binding
 locations, empty text, linked state and an empty owners list when no definition

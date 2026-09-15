@@ -142,7 +142,6 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
           if (["asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"].includes(attr.localName)) themeNames.add(attr.value);
         }
       }
-      if (node.namespace === a && node.localName === "blip") counts.images++;
       if (node.namespace === a && ["latin", "ea", "cs", "font"].includes(node.localName)) { const value = attribute(node, "typeface"); if (value) fontNames.add(value); }
       if (node.namespace === m && node.localName === "oMath") counts.equations++;
     }
@@ -153,6 +152,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   const pages = properties.filter(p => p.group === "extended" && p.name === "pages");
   counts.cachedPages = pages.length === 1 && typeof pages[0]!.value === "number" && pages[0]!.value >= 0 ? pages[0]!.value : null;
   const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget);
+  counts.images = index.entries.filter(entry => entry.kind === "image").length;
   const stories = index.entries.filter(entry => entry.kind === "story").map(entry => {
     const value: LocationPayload = { version: 1, sourceSha256, generation: 0, part: entry.part, story: entry.story, path: entry.path, range: null };
     const token = encodeLocation(value);

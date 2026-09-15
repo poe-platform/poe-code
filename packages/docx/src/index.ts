@@ -95,12 +95,12 @@ export type {
 export {
   parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine, SourceError,
   type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource,
-  type DocxCommandRequest
+  type DocxCommandRequest, type DocxCommandEngineResult
 } from "./command.js";
 export { resolveDocxSelection } from "./simple-selection.js";
 export { getDocxDiscovery, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";
 export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
-export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest } from "./inspection-command.js";
+export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest, type DocxInspectionCommandResult } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";
 export { replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
 export { formatDocumentRuns, type RunFormatOptions, type RunFormatData } from "./run-format.js";
@@ -149,3 +149,4 @@ export { editDocumentControlRepeats } from "./control-repeat.js";
 export type { ControlTemplateData } from "./control-template-types.js";
 export { inspectDocumentPackageResources, type PackageResourceListData, type PackageResourceRecord, type CustomXmlResourceDetails, type GlossaryResourceDetails } from "./ancillary-resources.js";
 export { inspectDocumentProperties, editDocumentProperties, type PropertyInspectionOptions, type PropertyEditOptions, type PropertyInspectionData, type PropertyResourceRecord, type PropertyMutationData, type PropertyWarning } from "./document-properties.js";
+export { inspectDocumentImages, extractDocumentImages, ImageExtractionPublicationError, ImageExtractionCancellationError, type ImageDetails, type ImageRecord, type ImageInspectionData, type ImageInspectionOptions, type ImageExtractionManifestV1, type ImageExtractionData, type ImageExtractionContext } from "./images.js";

@@ -1,5 +1,14 @@
 # Disposable DOCX corpus audit
 
+Current image campaign, 2026-09-15: [bounded image QA](corpus-image-qa.md)
+records fresh four-input/280-media authentication, 331 exact extracted payloads,
+successful scoped edits, original-carrier refusals and separate rendered-page
+limits. Its cleanup receipt records deletion of the four selected disposable
+inputs and newly owned outputs only. Other corpus files and historical outputs
+remain retained. The acquisition-stage “not run” statements below are historical;
+they do not describe these newly executed image cohorts or imply whole-format
+or whole-model qualification.
+
 Current acquisition supplement, 2026-09-14: **23 real downloaded documents**
 and **two separately counted original QA examples**. Four additions establish
 actual insertion/deletion markup, Arabic RTL prose and Chinese Han prose. The

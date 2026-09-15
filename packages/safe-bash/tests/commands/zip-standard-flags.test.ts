@@ -7,6 +7,47 @@ import { standardCommands } from "../../src/commands/index.js";
 import { bindFileOutputBudget } from "../../src/contracts/filesystem-output.js";
 import type { FileSystem, InvocationCleanup } from "../../src/contracts/index.js";
 import { archiveBytes, binary, compressed, execute, fixture, members, readOnlyArchive } from "./zip-standard-flags.helpers.js";
+import { readZipArchive } from "../../src/commands/archive/zip-format.js";
+import { settings } from "../../src/commands/archive/internal.js";
+
+for (const { flags, source } of [
+  { flags: ["-j"], source: "/work/folder/data" },
+  { flags: ["-qj"], source: "folder/data" },
+  { flags: ["-jr"], source: "folder" },
+  { flags: ["-r", "-j"], source: "folder" },
+]) {
+  test(`zip ${flags.join(" ")} stores basenames and omits directory entries`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, [...flags, "output.zip", "binary", source]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), ["binary", "data"]);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, Buffer.concat([binary, compressed]));
+  });
+}
+
+test("zip -j rejects basename collisions without replacing an existing archive", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/folder/binary", compressed);
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-j", "sample.zip", "binary", "folder/binary"]);
+  assert.equal(result.exitCode, 16);
+  assert.match(result.stdout.toString(), /cannot repeat names in zip file/u);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+test("zip -j supports the reported image command through Shell", async () => {
+  const fs = await fixture();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/tmp/basketball-tiger.png", binary);
+  await fs.writeFile("/tmp/basketball-tiger-back.png", compressed);
+  const shell = new Shell({ fs }).use(archiveCommands()).use(standardCommands());
+  try {
+    const result = await shell.exec("cd /tmp && zip -j basketball-tiger-images.zip basketball-tiger.png basketball-tiger-back.png && unzip -p basketball-tiger-images.zip > images");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Buffer.from(await fs.readFile("/tmp/images")), Buffer.concat([binary, compressed]));
+  } finally { await shell.dispose(); }
+});
 
 for (const flags of [["-q"], ["-qq"], ["-qr"], ["-rq"], ["-r", "-q"]]) {
   test(`zip ${flags.join(" ")} suppresses create/update progress without a text budget charge`, async () => {

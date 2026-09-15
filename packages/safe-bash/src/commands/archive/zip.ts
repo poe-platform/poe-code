@@ -12,6 +12,7 @@ interface ZipOptions {
   readonly archive: string;
   readonly recursive: boolean;
   readonly quiet: boolean;
+  readonly junkPaths: boolean;
   readonly operands: readonly string[];
   readonly firstOperand: number;
 }
@@ -41,6 +42,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   let archive: string | undefined;
   let recursive = false;
   let quiet = false;
+  let junkPaths = false;
   let literal = false;
   let firstOperand = -1;
   const operands: string[] = [];
@@ -53,6 +55,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       for (const flag of argument.slice(1)) {
         if (flag === "r") recursive = true;
         else if (flag === "q") quiet = true;
+        else if (flag === "j") junkPaths = true;
         else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
       }
     } else if (archive === undefined) archive = argument;
@@ -62,11 +65,11 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       operands.push(argument);
     }
   }
-  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] ARCHIVE FILES...");
+  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] ARCHIVE FILES...");
   if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
-  return { archive, recursive, quiet, operands, firstOperand };
+  return { archive, recursive, quiet, junkPaths, operands, firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -139,6 +142,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
+    if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     if (directory && name && !name.endsWith("/")) name += "/";
     if (name) {
       checkPath(name, limits);

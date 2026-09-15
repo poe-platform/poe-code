@@ -733,3 +733,16 @@ ordering. All 809 focused ZIP/unzip tests, scoped ESLint and virtual-bash
 production build closure pass. Inspected /tmp/zip-help-cli.png for aligned,
 readable usage and supported options. Extended help, version, license and
 show-options behavior remain separate open requirements.
+
+## Extended help argument behavior
+
+Native Unix Zip captures validate h2/more-help/more, quiet groups, h22 immediate
+exit, later invalid arguments ignored and negation/value rejection. Seven
+success cases initially failed; eleven denied-filesystem/status tests now pass.
+Added extended guidance using existing implemented behavior, without copying
+native license or version claims. All 820 focused ZIP/unzip tests, scoped
+ESLint and virtual-bash production build closure pass. Inspected
+/tmp/zip-more-help-cli.png: readable complete output and aligned sections.
+Delivery session 46504 remains live on the prior basic-help main checkout.
+Remote main advanced to 71837fa14110e3c17aa3a99f32a23059a6363afb; integrate it
+after the live gate before verifying final delivery. No new push in this turn.

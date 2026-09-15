@@ -359,6 +359,8 @@ pattern to match. The option is not negatable.
 encountered, without reading source files or writing an archive. Earlier invalid
 options still fail; later arguments are ignored. Quiet mode does not suppress
 help. After the archive name and `--`, `-h` is an ordinary filename.
+`-h2` / `--more-help` prints extended selection, operation, compression,
+streaming and ZIPOPT guidance with the same immediate-exit behavior.
 
 The bounded format profile supports ordinary single-disk ZIP records with stored
 raw-DEFLATE or BZIP2 payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and

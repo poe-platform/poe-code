@@ -12,7 +12,8 @@ const commands: Command[] = [
   "scroll-down",
   "page-up",
   "page-down",
-  "follow"
+  "follow",
+  "render-stats"
 ];
 
 const defaultBindings: Record<Command, string[]> = {
@@ -26,7 +27,8 @@ const defaultBindings: Record<Command, string[]> = {
   "scroll-down": ["down"],
   "page-up": ["pageup"],
   "page-down": ["pagedown"],
-  follow: ["f", "F", "end"]
+  follow: ["f", "F", "end"],
+  "render-stats": ["Ctrl+g"]
 };
 
 type Binding = {

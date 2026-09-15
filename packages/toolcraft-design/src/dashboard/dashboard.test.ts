@@ -1588,6 +1588,21 @@ describe("createDashboard", () => {
     });
   });
 
+  it("exposes render metrics and toggles a diagnostics HUD without forwarding its key", () => {
+    vi.useFakeTimers();
+    const stdin = new TestDashboardStdin();
+    const stdout = new TestDashboardStdout();
+    const dashboard = createDashboard({ stdin: stdin as unknown as NodeJS.ReadStream, stdout: stdout as unknown as NodeJS.WriteStream });
+    const handler = vi.fn(); dashboard.onCommand(handler); dashboard.start();
+    for (let index = 0; index < 100; index++) dashboard.appendOutput({ kind: "info", text: `item ${index}`, ts: 0 });
+    vi.advanceTimersByTime(16);
+    expect(dashboard.getPerformance()).toMatchObject({ frames: 2, requests: 100, coalesced: 99 });
+    stdin.emit("data", Buffer.from("\u0007"));
+    expect(handler).not.toHaveBeenCalled();
+    expect(renderTerminalOutput(stdout.output, 80, 24).join("\n")).toContain("FPS");
+    dashboard.destroy(); vi.useRealTimers();
+  });
+
   it("coalesces navigation bursts and forwards quit before repainting", () => {
     vi.useFakeTimers();
     try {
@@ -1619,6 +1634,21 @@ describe("createDashboard", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("coalesces same-status metric bursts while preserving immediate status transitions", () => {
+    vi.useFakeTimers();
+    try {
+      const stdin = new TestDashboardStdin(); const stdout = new TestDashboardStdout();
+      const dashboard = createDashboard({ stdin, stdout }); dashboard.start();
+      dashboard.updateStats({ status: "running" });
+      const write = vi.spyOn(stdout, "write");
+      for (let i = 0; i < 100; i++) dashboard.updateStats({ tokensIn: i });
+      expect(write).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(16); expect(write).toHaveBeenCalledTimes(1);
+      dashboard.updateStats({ status: "done" }); expect(write).toHaveBeenCalledTimes(2);
+      dashboard.destroy();
+    } finally { vi.useRealTimers(); }
   });
 
   it("coalesces output bursts and cancels pending repaint on destroy", () => {

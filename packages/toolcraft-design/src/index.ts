@@ -199,3 +199,8 @@ export { Screen } from "./screen/screen.js";
 export type { Cell as ScreenCell, ScreenSize, ScreenSurface } from "./screen/screen.js";
 export { packStyle, styleToSgrDelta } from "./screen/style.js";
 export type { PackedStyle } from "./screen/style.js";
+
+// Bounded render diagnostics
+export { createRenderPerformanceMonitor, formatRenderPerformance } from "./render-performance.js";
+export type { RenderPerformanceSnapshot, RenderPercentiles } from "./render-performance.js";
+

@@ -29,7 +29,8 @@ export type Command =
   | "scroll-down"
   | "page-up"
   | "page-down"
-  | "follow";
+  | "follow"
+  | "render-stats";
 
 export type DashboardState = {
   output: OutputItem[];

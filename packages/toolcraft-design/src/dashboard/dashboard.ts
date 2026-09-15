@@ -1,3 +1,4 @@
+import { createRenderPerformanceMonitor, formatRenderPerformance, type RenderPerformanceSnapshot } from "../render-performance.js";
 import { createLogger } from "../components/logger.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { ScreenBuffer, diff } from "./buffer.js";
@@ -25,6 +26,8 @@ export type DashboardOptions = {
   hints?: FooterHint[];
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
+  /** Observe bounded performance snapshots without forcing idle repaints. */
+  onPerformance?: (stats: RenderPerformanceSnapshot) => void;
 };
 
 export type Dashboard = {
@@ -34,6 +37,7 @@ export type Dashboard = {
   updateStats(stats: Partial<DashboardStats>): void;
   onCommand(handler: (cmd: Command) => void): void;
   destroy(): void;
+  getPerformance(): RenderPerformanceSnapshot;
 };
 
 export function createDashboard(opts: DashboardOptions = {}): Dashboard {
@@ -56,6 +60,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   let unsubscribeResize: (() => void) | undefined;
   let started = false;
   let destroyed = false;
+  const performanceMonitor = createRenderPerformanceMonitor();
+  let showPerformance = false;
   let scrollOffset = 0;
   let heldOutput: OutputItem[] | undefined;
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
@@ -99,11 +105,19 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
 
     const activeStore = getStore();
     let previousStats = activeStore.getState().stats;
+    let lastStatsPaint = -Infinity;
     unsubscribeStore = activeStore.onChange(() => {
+      performanceMonitor.request("update");
       const stats = activeStore.getState().stats;
       if (stats !== previousStats) {
+        const statusChanged = stats.status !== previousStats.status;
         previousStats = stats;
-        render();
+        if (statusChanged || Date.now() - lastStatsPaint >= 16) {
+          lastStatsPaint = Date.now();
+          render();
+        } else {
+          renderTimer ??= setTimeout(render, 16);
+        }
       } else if (heldOutput === undefined && renderTimer === undefined) {
         renderTimer = setTimeout(render, 16);
       }
@@ -115,6 +129,12 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         return;
       }
 
+      performanceMonitor.request("input");
+      if (command === "render-stats") {
+        showPerformance = !showPerformance;
+        render();
+        return;
+      }
       if (command === "follow") {
         heldOutput = undefined;
         scrollOffset = 0;
@@ -147,6 +167,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       emitCommand(command);
     });
     unsubscribeResize = driver.onResize(() => {
+      performanceMonitor.request("resize");
       previousBuffer = new ScreenBuffer(0, 0);
       driver?.write("\u001b[2J");
       render();
@@ -205,6 +226,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       return;
     }
 
+    const startedAt = performanceMonitor.begin();
     const { cols, rows } = driver.getSize();
     const layout = computeDashboardLayout({
       totalWidth: cols,
@@ -222,7 +244,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     });
     scrollOffset = renderOutputPane(
       nextBuffer,
-      layout.leftPane,
+      { ...layout.leftPane, height: Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0)) },
       heldOutput ?? state.output,
       scrollOffset
     );
@@ -231,7 +253,13 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     if (layout.summary) renderCompactStatsPane(nextBuffer, layout.summary, state.stats);
     renderFooter(nextBuffer, layout.footer, footerHints);
 
-    driver.flush(diff(previousBuffer, nextBuffer));
+    if (showPerformance && layout.leftPane.height > 0) {
+      nextBuffer.putInRect(layout.leftPane, layout.leftPane.height - 1, formatRenderPerformance(performanceMonitor.snapshot(), layout.leftPane.width), { dim: true });
+    }
+    const changes = diff(previousBuffer, nextBuffer);
+    driver.flush(changes);
+    performanceMonitor.end(startedAt, { changedCells: changes.length });
+    opts.onPerformance?.(performanceMonitor.snapshot());
     previousBuffer = nextBuffer;
   }
 
@@ -266,6 +294,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     appendOutput,
     updateStats,
     onCommand,
+    getPerformance: performanceMonitor.snapshot,
     destroy
   };
 }

@@ -10,6 +10,63 @@ import { archiveBytes, binary, compressed, execute, fixture, members, readOnlyAr
 import { readZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 
+for (const { args, names } of [
+  { args: ["-qr", "output.zip", "folder", "binary", "-x", "folder/*"], names: ["binary"] },
+  { args: ["-qr", "output.zip", "folder", "binary", "-i", "folder/d?t[ab]"], names: ["folder/data"] },
+  { args: ["-qrj", "output.zip", "folder", "binary", "-i", "folder/*", "-x", "folder/"], names: ["data"] },
+  { args: ["-qr", "-x", "folder/*", "@", "output.zip", "folder", "binary"], names: ["binary"] },
+  { args: ["-qr", "output.zip", "folder", "binary", "-ifolder/*", "-x", "folder/"], names: ["folder/data"] },
+]) {
+  test(`zip filters ${args.join(" ")} against source member paths`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, args);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), names);
+  });
+}
+
+for (const flag of ["-x", "-i"]) {
+  test(`zip ${flag} requires a pattern`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["output.zip", "binary", flag]);
+    assert.equal(result.exitCode, 16);
+    assert.match(result.stdout.toString(), /requires a value/u);
+    await assert.rejects(fs.stat("/work/output.zip"), { code: "ENOENT" });
+  });
+}
+
+test("zip unmatched inclusion publishes an empty archive while exclusion-only returns Nothing to do", async () => {
+  const fs = await fixture();
+  const included = await execute("zip", fs, ["output.zip", "binary", "-i", "none"]);
+  assert.deepEqual(included, { exitCode: 0, stdout: Buffer.from("\tzip warning: zip file empty\n"), stderr: "" });
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.length, 0);
+  const excluded = await execute("zip", fs, ["excluded.zip", "binary", "-x", "*"]);
+  assert.equal(excluded.exitCode, 12);
+  await assert.rejects(fs.stat("/work/excluded.zip"), { code: "ENOENT" });
+});
+
+test("zip filters preserve unselected existing members and avoid reading excluded payloads", async () => {
+  const fs = await fixture();
+  const original = await fs.readFile("/work/sample.zip");
+  await fs.writeFile("/work/binary", Buffer.from("replacement"));
+  for (const property of ["readFile", "readStream"] as const) {
+    const originalRead = fs[property];
+    if (!originalRead) continue;
+    Object.defineProperty(fs, property, { value: (path: string, ...args: unknown[]) => {
+      assert.notEqual(path, "/work/folder/data", "excluded payload read");
+      return Reflect.apply(originalRead, fs, [path, ...args]);
+    } });
+  }
+  const result = await execute("zip", fs, ["-qr", "sample.zip", "folder", "binary", "-x", "folder/*"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const before = await readZipArchive(original, settings({}), new AbortController().signal);
+  const after = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(after.entries.find(entry => entry.name === "folder/data"), before.entries.find(entry => entry.name === "folder/data"));
+  assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "binary"])).stdout, Buffer.from("replacement"));
+});
+
 for (const { flags, source } of [
   { flags: ["-j"], source: "/work/folder/data" },
   { flags: ["-qj"], source: "folder/data" },

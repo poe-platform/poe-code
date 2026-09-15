@@ -13,7 +13,8 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] ARCHIVE FILES...` creates an archive or updates selected entries while
+`zip [-r] [-q] [-j] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
 selection patterns are matched inside the archive. Existing regular files prompt
@@ -27,6 +28,17 @@ implicit filesystem access or network fallback.
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
+
+`-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
+`?`, bracket classes and backslash escapes; `*` can span directories. Quote
+patterns to prevent shell expansion, for example
+`zip -qr project.zip project -x '*/node_modules/*' '*/.git/*'`.
+Exclusion takes precedence over inclusion. Filters use source member paths before
+`-j` removes directories and do not prevent traversal into unmatched directories.
+Pattern lists end at the next option or a standalone `@`; attached patterns such
+as `-x'*.tmp'` are supported. Existing unselected archive members remain intact.
+An unmatched inclusion list produces an empty archive with status 0; exclusion-only
+selection with nothing to add returns status 12.
 
 `zip -q` suppresses adding/updating progress and the advisory warnings that native
 Info-ZIP suppresses in quiet mode, including missing-source and repeated-name

@@ -7,12 +7,15 @@ import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { publishZip, ZipScope } from "./zip/safety.js";
+import { Selection } from "./unzip/arguments.js";
 
 interface ZipOptions {
   readonly archive: string;
   readonly recursive: boolean;
   readonly quiet: boolean;
   readonly junkPaths: boolean;
+  readonly includes: readonly string[];
+  readonly excludes: readonly string[];
   readonly operands: readonly string[];
   readonly firstOperand: number;
 }
@@ -46,16 +49,39 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   let literal = false;
   let firstOperand = -1;
   const operands: string[] = [];
-  for (const [index, argument] of context.args.entries()) {
+  const includes: string[] = [];
+  const excludes: string[] = [];
+  for (let index = 0; index < context.args.length; index++) {
+    const argument = context.args[index]!;
     checkPath(argument, limits);
     if (!literal && argument === "--") {
       if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "can't use -- before archive name");
       literal = true;
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
-      for (const flag of argument.slice(1)) {
+      for (let offset = 1; offset < argument.length; offset++) {
+        const flag = argument[offset];
         if (flag === "r") recursive = true;
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
+        else if (flag === "i" || flag === "x") {
+          const patterns = flag === "i" ? includes : excludes;
+          const before = patterns.length;
+          const append = (pattern: string) => {
+            checkPath(pattern, limits);
+            if (includes.length + excludes.length >= limits.maxMembers) fail("pattern count limit exceeded");
+            patterns.push(pattern);
+          };
+          if (offset + 1 < argument.length) append(argument.slice(offset + 1));
+          while (index + 1 < context.args.length) {
+            const next = context.args[index + 1]!;
+            if (next === "@") { index++; break; }
+            if (next.startsWith("-") && next !== "-") break;
+            append(next);
+            index++;
+          }
+          if (patterns.length === before) throw new ZipFailure(16, "Invalid command arguments", `option '${flag}' requires a value`);
+          break;
+        }
         else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
       }
     } else if (archive === undefined) archive = argument;
@@ -69,7 +95,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
-  return { archive, recursive, quiet, junkPaths, operands, firstOperand };
+  return { archive, recursive, quiet, junkPaths, includes, excludes, operands, firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -111,6 +137,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
+  const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal);
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
@@ -142,9 +169,18 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
-    if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     if (directory && name && !name.endsWith("/")) name += "/";
-    if (name) {
+    selection.matched.clear();
+    await selection.matches(name);
+    let included = parsed.includes.length === 0;
+    let excluded = false;
+    for (const pattern of selection.matched) {
+      if (pattern < parsed.includes.length) included = true;
+      else excluded = true;
+    }
+    const sourceName = name;
+    if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
+    if (name && included && !excluded) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {
@@ -176,13 +212,13 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         for (const child of children) {
           if (!child.name || child.name === "." || child.name === ".." || child.name.includes("/") || child.name.includes("\0")) fail("invalid filesystem directory entry");
           const prefix = source === "." ? "" : source.endsWith("/") ? source : `${source}/`;
-          await visit(`${prefix}${child.name}`, `${name}${child.name}`, depth + 1);
+          await visit(`${prefix}${child.name}`, `${sourceName}${child.name}`, depth + 1);
         }
       } finally { ancestors.pop(); }
     }
   };
   for (const operand of parsed.operands) await visit(operand, memberName(operand, limits), 0);
-  if (!selected.size) {
+  if (!selected.size && !parsed.includes.length) {
     const detail = parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${context.args.slice(0, parsed.firstOperand).join(" ")} . -i ${context.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
@@ -207,6 +243,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     else { await budget.member(entry.size); entries.push(entry); }
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
+  if (!entries.length && !parsed.quiet) await budget.output("\tzip warning: zip file empty\n");
   const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal);
   return { output, parentName, parent, parentStat, existing, bytes, progress };
 }

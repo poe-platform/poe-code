@@ -631,3 +631,13 @@ stored symlink with rmTy, then removed the source tree. Native UnZip integrity a
 Python exact members/payload/mode checks pass for /tmp/safe-bash-zip-move-result.zip.
 Full unit verification and lint remain live in session 9534. Contract and move
 commits remain local until those checks pass; no new remote delivery is claimed.
+
+## Paths compatibility option
+
+Native Unix Zip 3.0 and public zip.c case p validate that -p/--paths is
+an intentional compatibility no-op, including before or after -j. Nine memory
+filesystem tests cover short/long/repeated options, grouped jp/pj, ZIPOPT plus
+explicit junk paths, negation and invalid values. Six valid cases failed before
+the parser change; all 763 focused ZIP/unzip tests and scoped ESLint now pass.
+The full workspace check in delivery session 9534 remains live; this option
+and the move follow-up have not yet been delivered to remote main.

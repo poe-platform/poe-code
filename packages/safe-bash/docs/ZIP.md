@@ -147,6 +147,9 @@ directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
 
+`-p` / `--paths` is accepted as a compatibility no-op, matching Unix Zip 3.0.
+It does not undo `-j`, regardless of option order. Negation and values are invalid.
+
 `-D` omits newly selected directory entries while still traversing directories
 with `-r`. Existing directory members remain in an updated archive. Selecting
 only a directory without recursion produces `Nothing to do!` and status 12.

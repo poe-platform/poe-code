@@ -160,6 +160,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           toCrlf = true;
         }
         else if (flag === "m") move = true;
+        else if (flag === "p") {
+          if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option p is not negatable");
+          // Native Unix procname accepts -p for compatibility without undoing -j.
+        }
         else if (flag === "j") junkPaths = true;
         else if (flag === "X") {
           metadata = argument[offset + 1] === "-" ? "all" : "strip";

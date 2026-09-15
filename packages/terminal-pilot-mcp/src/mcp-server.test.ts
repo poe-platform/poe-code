@@ -42,3 +42,18 @@ describe("terminal-pilot-mcp entry point", () => {
     expect(runMCPMock).not.toHaveBeenCalled();
   });
 });
+
+it("preserves upstream command titles and annotations in both MCP aliases", async () => {
+  const { defineCommand, S } = await import("toolcraft");
+  const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+  createTerminalPilotGroupMock.mockReturnValue({ name: "terminal-pilot", children: [defineCommand({
+    name: "list-sessions", title: "List terminal sessions", annotations,
+    scope: ["mcp"], params: S.Object({}), handler: () => ({ sessions: [] })
+  })] });
+  const { createTerminalPilotMCPGroup } = await import("./index.js");
+  const group = createTerminalPilotMCPGroup();
+  expect(group.children).toHaveLength(2);
+  for (const child of group.children) {
+    expect(child).toMatchObject({ title: "List terminal sessions", annotations });
+  }
+});

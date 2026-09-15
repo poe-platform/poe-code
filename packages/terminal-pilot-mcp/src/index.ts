@@ -87,6 +87,8 @@ function getResultSchema(commandName: string): ObjectSchema<any> {
 function createMcpCommand(command: TerminalPilotMCPCommand, name: string): TerminalPilotMCPCommand {
   return defineCommand({
     name,
+    title: command.title,
+    annotations: command.annotations,
     description: command.description,
     params: command.params,
     result: getResultSchema(command.name),

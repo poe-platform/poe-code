@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setImmediate } from "node:timers/promises";
 import { createFsFromVolume, vol } from "memfs";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup, type Group } from "./index.js";
@@ -131,6 +132,8 @@ vi.mock("tiny-mcp-client", () => ({
 
 const proxyRuntime = await import("./mcp-proxy.js");
 const { parseRefreshEnv, resolveCachePath, resolveMcpProxies } = proxyRuntime;
+const { createSDK } = await import("./sdk.js");
+const { createMCPServer } = await import("./mcp.js");
 
 async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
   const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
@@ -306,9 +309,74 @@ describe("resolveMcpProxies", () => {
     vi.restoreAllMocks();
   });
 
+  it.each([1, 2])("retries deferred SDK discovery after transient failure with %s callers", async (callers) => {
+    const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+    setClientPlans({ listTools: () => { throw new Error("temporary discovery failure"); } },
+      { pages: [{ tools: [tool("remote")] }] }, { callToolResult: { content: [{ type: "text", text: "recovered" }] } });
+    const sdk = createSDK(root, { errorReports: false }) as { github: { remote(params: { title: string }): Promise<unknown> } };
+    const failures = await Promise.allSettled(Array.from({ length: callers }, () => sdk.github.remote({ title: "first" })));
+    for (const failure of failures) {
+      expect(failure.status).toBe("rejected");
+      if (failure.status === "rejected") expect(failure.reason.message).toContain("temporary discovery failure");
+    }
+    expect(clientState.instances).toHaveLength(1);
+    const results = await Promise.all(Array.from({ length: callers }, () => sdk.github.remote({ title: "retry" })));
+    expect(results).toHaveLength(callers);
+    expect(clientState.instances[2]?.callTool).toHaveBeenCalledTimes(callers);
+    expect(clientState.instances).toHaveLength(3);
+    expect(clientState.instances[0]?.close).toHaveBeenCalledOnce();
+  });
+
+  it.each([1, 2])("retries deferred MCP server discovery after transient failure with %s callers", async (callers) => {
+    const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+    setClientPlans({ listTools: () => { throw new Error("temporary discovery failure"); } },
+      { pages: [{ tools: [tool("remote")] }] });
+    const server = createMCPServer(root, { name: "audit", version: "1", errorReports: false });
+    const failures = await Promise.allSettled(Array.from({ length: callers }, () => Promise.resolve(server)));
+    for (const failure of failures) {
+      expect(failure.status).toBe("rejected");
+      if (failure.status === "rejected") expect(failure.reason.message).toContain("temporary discovery failure");
+    }
+    expect(clientState.instances).toHaveLength(1);
+    await expect(Promise.all(Array.from({ length: callers }, () => Promise.resolve(server)))).resolves.toHaveLength(callers);
+    expect(clientState.instances).toHaveLength(2);
+    expect(clientState.instances[0]?.close).toHaveBeenCalledOnce();
+  });
+
   it("disposes an empty proxy scope without opening clients", async () => {
     await proxyRuntime.disposeMcpProxies(defineGroup({ name: "empty", children: [] }));
     expect(clientState.instances).toHaveLength(0);
+  });
+
+  it.each(["active", "before connect", "during connect"])("propagates cancellation for a proxy request: %s", async (phase) => {
+    const connectGate = Promise.withResolvers<void>();
+    const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+    setClientPlans({ pages: [{ tools: [tool("remote")] }] }, {
+      ...(phase === "during connect" ? { connectGate: connectGate.promise } : {})
+    });
+    await resolveMcpProxies(root);
+    const group = root.children[0];
+    if (group?.kind !== "group") throw new Error("Expected proxy group.");
+    const command = group.children[0];
+    if (command?.kind !== "command") throw new Error("Expected proxy command.");
+    const controller = new AbortController();
+    const reason = new Error("cancelled proxy call");
+    if (phase === "before connect") controller.abort(reason);
+    const invocation = command.handler({ ...createContext({ title: "ready" }), signal: controller.signal } as never);
+    if (phase === "during connect") controller.abort(reason);
+    try {
+      if (phase === "active") {
+        await invocation;
+        expect(clientState.instances[1]?.callTool).toHaveBeenCalledWith(
+          { name: "remote", arguments: { title: "ready" } }, { signal: controller.signal }
+        );
+      } else {
+        const observed = invocation.then(() => "completed", (error: unknown) => error);
+        expect(await Promise.race([observed, setImmediate().then(() => "still connecting")])).toBe(reason);
+        expect(clientState.instances.some((client) => client.callTool.mock.calls.length > 0)).toBe(false);
+        if (phase === "before connect") expect(clientState.instances).toHaveLength(1);
+      }
+    } finally { connectGate.resolve(); await proxyRuntime.disposeMcpProxies(root); }
   });
 
   it("keeps SDK-style proxy calls hot until explicit disposal and supports later reuse", async () => {
@@ -399,6 +467,28 @@ describe("resolveMcpProxies", () => {
   });
 
   describe.each([false, true])("cyclic pagination with existing cache: %s", (warm) => {
+    it("bounds distinct pagination without changing working state", async () => {
+      const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+      const group = root.children[0];
+      if (group?.kind !== "group") throw new Error("Expected proxy group.");
+      if (warm) {
+        setClientPlans({ pages: [{ tools: [tool("old")] }] });
+        await resolveMcpProxies(root);
+      }
+      const previousChildren = [...group.children];
+      const previousCache = warm ? await mockFsPromises.readFile(getCachePath(), "utf8") : undefined;
+      let calls = 0;
+      const listTools = vi.fn(() => ({ tools: [tool(`page_${++calls}`)], ...(calls < 129 ? { nextCursor: `page:${calls}` } : {}) }));
+      setClientPlans({ listTools });
+      process.env.TOOLCRAFT_MCP_REFRESH = "github";
+      await expect(resolveMcpProxies(root)).rejects.toThrow("tool pagination limit (128 pages)");
+      expect(listTools).toHaveBeenCalledTimes(128);
+      expect(clientState.instances.at(-1)?.close).toHaveBeenCalledTimes(1);
+      expect(group.children).toEqual(previousChildren);
+      if (warm) expect(await mockFsPromises.readFile(getCachePath(), "utf8")).toBe(previousCache);
+      else expect(vol.existsSync(getCachePath())).toBe(false);
+    });
+
     it.each([
       { name: "self cycle", cursors: ["again", "again"] },
       { name: "longer cycle", cursors: ["first", "second", "first"] },
@@ -436,7 +526,8 @@ describe("resolveMcpProxies", () => {
   it.each([
     { name: "one page", cursors: [undefined] },
     { name: "opaque and empty cursors", cursors: ["opaque:next", "", undefined] },
-    { name: "many distinct pages", cursors: Array.from({ length: 35 }, (ignored, index) => index === 34 ? undefined : `page:${index}`) }
+    { name: "many distinct pages", cursors: Array.from({ length: 35 }, (ignored, index) => index === 34 ? undefined : `page:${index}`) },
+    { name: "terminating boundary page", cursors: Array.from({ length: 128 }, (ignored, index) => index === 127 ? undefined : `page:${index}`) }
   ])("retains valid pagination with $name", async ({ cursors }) => {
     const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
     const expectedTools: MockTool[] = [];
@@ -738,7 +829,7 @@ describe("resolveMcpProxies", () => {
     expect(clientState.instances[0]?.callTool).toHaveBeenCalledWith({
       name: "create_issue",
       arguments: { title: "Bug" },
-    });
+    }, { signal: undefined });
   });
 
   describe.each([false, true])("upstream failure ownership with output schema: %s", (typed) => {
@@ -784,6 +875,25 @@ describe("resolveMcpProxies", () => {
     const command = group.children[0];
     if (command?.kind !== "command") throw new Error("Expected proxy command");
     expect(await command.handler(createContext({ title: "value" }) as never)).toStrictEqual(value);
+  });
+
+  it.each([
+    { schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false }, value: {} },
+    { schema: { type: "integer", multipleOf: 3 }, value: 4 },
+    { schema: { type: "array", items: { type: "string" } }, value: [1] },
+    { schema: { type: "object", properties: { id: { type: "string", minLength: 3 } }, required: ["id"] }, value: { id: "x", extra: true } }
+  ])("rejects invalid upstream structured output against $schema.type through handler and SDK", async ({ schema, value }) => {
+    const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+    setClientPlans({ pages: [{ tools: [{ ...tool("value"), outputSchema: schema }] }] },
+      { callToolResult: { content: [], structuredContent: value } }, { callToolResult: { content: [], structuredContent: value } });
+    await resolveMcpProxies(root);
+    const group = root.children[0];
+    if (group?.kind !== "group") throw new Error("Expected proxy group");
+    const command = group.children[0];
+    if (command?.kind !== "command") throw new Error("Expected proxy command");
+    await expect(command.handler(createContext({ title: "value" }) as never)).rejects.toThrow("invalid structuredContent");
+    const sdk = createSDK(root, { errorReports: false }) as { github: { value(params: { title: string }): Promise<unknown> } };
+    await expect(sdk.github.value({ title: "value" })).rejects.toThrow("invalid structuredContent");
   });
 
   it("rejects typed upstream tool results that omit structuredContent", async () => {

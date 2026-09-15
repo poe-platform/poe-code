@@ -3,14 +3,18 @@ import {
   createServer,
   JSON_RPC_ERROR_CODES,
   ToolError,
+  toContentBlocks,
   type CustomMethodHandler,
+  type ContentItem,
   type ToolHandler,
+  type ToolReturn,
   type SDKTransport,
   type Server as TinyServer,
   type TypedSchema,
-  type TypedOutputSchema
+  type TypedOutputSchema,
+  type HandlerRequestContext
 } from "tiny-stdio-mcp-server";
-import { cloneDefaultValue, compileJsonSchema, formatIssues, isPlainRecord, toJsonSchema, unicodeLength, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
+import { cloneDefaultValue, compileJsonSchema, formatIssues, isPlainRecord, nativeJsonSchema, toJsonSchema, unicodeLength, validate, type AnySchema, type JsonSchema, type NativeSchema, type ObjectSchema } from "toolcraft-schema";
 import type {
   Command,
   Group,
@@ -66,16 +70,7 @@ interface MCPServerRuntime<TServices extends object> {
   getRequestContext?(): unknown;
   requestServices?: InvocationServicesResolver<TServices>;
 }
-type ToolContent =
-  | { type: "text"; text: string }
-  | { type: "image"; data: string; mimeType: string }
-  | { type: "audio"; data: string; mimeType: string }
-  | {
-      type: "resource";
-      resource:
-        | { uri: string; mimeType: string; text: string }
-        | { uri: string; mimeType: string; blob: string };
-    };
+type ToolContent = ContentItem;
 
 export const MCP_STREAM_METHODS = {
   list: "toolcraft/streams/list",
@@ -235,6 +230,7 @@ function applySchemaCasing(
   schema = toJsonSchema(source)
 ): JsonSchema {
   const canonical = unwrapOptional(source);
+  if ((canonical as NativeSchema)[nativeJsonSchema] !== undefined) return schema;
   const branches = canonical.kind === "oneOf"
     ? Object.values(canonical.branches)
     : canonical.kind === "union" ? canonical.branches : [];
@@ -244,6 +240,7 @@ function applySchemaCasing(
     const converted = applySchemaCasing(branch, casing, direction, child);
     if (canonical.kind === "oneOf" && child.default !== undefined) {
       converted.default = serializeResultValue(canonical, cloneDefaultValue(child.default), casing, "default", []);
+      if (!validate({ kind: "json" }, converted.default).ok) delete converted.default;
     }
     return converted;
   });
@@ -254,6 +251,7 @@ function applySchemaCasing(
   const metadata: JsonSchema = { ...schema };
   if (schema.default !== undefined) {
     metadata.default = serializeResultValue(canonical, cloneDefaultValue(canonical.default), casing, "default", []);
+    if (!validate({ kind: "json" }, metadata.default).ok) delete metadata.default;
   }
 
   if (canonical.kind !== "object") {
@@ -564,6 +562,17 @@ function describeReceived(value: unknown): string {
   return JSON.stringify(value);
 }
 
+function validateNativeMCPValue(schema: AnySchema, value: unknown, label: string, errors: ValidationError[]): unknown {
+  const result = validate(schema, value);
+  if (!result.ok) {
+    errors.push(...result.issues.map((issue) => ({
+      path: [label, ...issue.path].filter((part) => part !== "").join("."),
+      message: formatIssues([issue])
+    })));
+  }
+  return value;
+}
+
 function validateSchemaValue(
   schema: AnySchema,
   value: unknown,
@@ -575,6 +584,10 @@ function validateSchemaValue(
 
   if (isOptional(schema) && value === undefined) {
     return validateAppliedDefault(unwrappedSchema, label, errors);
+  }
+
+  if ((unwrappedSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(unwrappedSchema, value, label, errors);
   }
 
   if (value === null && unwrappedSchema.nullable === true) {
@@ -633,8 +646,13 @@ function validateSchemaValue(
     case "object":
       return validateObjectSchema(unwrappedSchema, value, casing, label, errors);
 
-    case "json":
+    case "json": {
+      const validation = validate(unwrappedSchema, value);
+      if (!validation.ok) {
+        errors.push(...validation.issues.map((issue) => ({ path: label, message: issue.message })));
+      }
       return value;
+    }
 
     case "record": {
       if (!isPlainRecord(value)) {
@@ -730,6 +748,9 @@ function validateObjectSchema(
   label: string,
   errors: ValidationError[]
 ): Record<string, unknown> {
+  if ((schema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(schema, value, label, errors) as Record<string, unknown>;
+  }
   if (!isPlainRecord(value)) {
     errors.push({
       path: label,
@@ -829,6 +850,10 @@ function serializeResultValue(
   errors: ValidationError[]
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
+
+  if ((unwrappedSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeMCPValue(unwrappedSchema, value, label, errors);
+  }
 
   if (isOptional(schema) && value === undefined) {
     return unwrappedSchema.default === undefined
@@ -1014,45 +1039,6 @@ function throwResultValidationErrors(errors: readonly ValidationError[]): void {
     JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
     `${errors.length} result errors:\n${rendered.join("\n")}`
   );
-}
-
-function isContentBlock(value: unknown): value is ToolContent {
-  if (!isObjectRecord(value) || typeof value.type !== "string") {
-    return false;
-  }
-
-  return (
-    value.type === "text" ||
-    value.type === "image" ||
-    value.type === "audio" ||
-    value.type === "resource"
-  );
-}
-
-function toToolContent(result: unknown): ToolContent[] {
-  if (result === undefined) {
-    return [];
-  }
-
-  if (Array.isArray(result)) {
-    return result.flatMap((item) => toToolContent(item));
-  }
-
-  if (typeof result === "string" || typeof result === "number" || typeof result === "boolean") {
-    return [{ type: "text", text: String(result) }];
-  }
-
-  if (result === null) {
-    return [{ type: "text", text: "null" }];
-  }
-
-  if (isContentBlock(result)) {
-    return [result];
-  }
-
-  const fallbackValue = result;
-  const fallbackText = JSON.stringify(fallbackValue);
-  return [{ type: "text", text: fallbackText }];
 }
 
 function toToolError(error: unknown, reportPath?: string): ToolError {
@@ -1290,13 +1276,15 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   for (const tool of tools.filter((candidate) => candidate.command.stream === undefined)) {
     const handler = async (
       argumentsValue: Record<string, unknown>,
-      transportContext?: unknown
+      transportContext?: HandlerRequestContext
     ) => {
       let params: unknown;
       let secrets: Record<string, string | undefined> | undefined;
       try {
+        transportContext?.signal.throwIfAborted();
         secrets = resolveCommandSecrets(tool.command, options.env);
         const requestServices = await runtime.requestServices?.(transportContext);
+        transportContext?.signal.throwIfAborted();
         const baseContext = {
           ...services,
           ...requestServices,
@@ -1307,6 +1295,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           fs: createFs(options.fs),
           env: createEnv(options.env),
           diagnostics,
+          signal: transportContext?.signal,
           progress(message: string): void {
             diagnostics.emit({ level: "info", message, category: "progress" });
           }
@@ -1321,6 +1310,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           }
         );
 
+        transportContext?.signal.throwIfAborted();
         params = validateToolArguments(tool.paramsSchema, argumentsValue, casing);
         const handlerContext = {
           ...baseContext,
@@ -1361,8 +1351,9 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           };
         }
 
-        return toToolContent(result);
+        return toContentBlocks(result as ToolReturn);
       } catch (error) {
+        if (transportContext?.signal.aborted) transportContext.signal.throwIfAborted();
         if (error instanceof ApprovalDeclinedError) {
           return renderDeclinedApproval(error);
         }
@@ -1428,7 +1419,10 @@ function createDeferredMCPServer<TServices extends object = Record<string, unkno
     serverPromise ??= (async () => {
       await resolveMcpProxies(root, { projectRoot: options.projectRoot });
       return createResolvedMCPServer(root, options);
-    })();
+    })().catch((error: unknown) => {
+      serverPromise = undefined;
+      throw error;
+    });
 
     return serverPromise;
   };

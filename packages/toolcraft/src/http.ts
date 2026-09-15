@@ -105,6 +105,7 @@ function createTransportOptions<TServices extends object>(
     allowedOrigins: options.allowedOrigins,
     allowedHosts: options.allowedHosts,
     maxRequestBytes: options.maxRequestBytes,
+    maxResponseBytes: options.maxResponseBytes,
     maxBatchSize: options.maxBatchSize,
     maxSessions: options.maxSessions,
     maxSessionsPerSubject: options.maxSessionsPerSubject,

@@ -500,7 +500,7 @@ describe("MCP proxy entrypoints", () => {
     expect(clientState.instances[0]?.callTool).toHaveBeenCalledWith({
       name: "create_issue",
       arguments: { title: "Bug" }
-    });
+    }, { signal: undefined });
   });
 
   it("keeps MCP discovery progress on stderr during runMCP startup", async () => {

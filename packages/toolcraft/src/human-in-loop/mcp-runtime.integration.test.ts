@@ -119,6 +119,8 @@ describe("human-in-loop MCP runtime", () => {
       });
       expect(handler).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [
           {
             type: "text",
@@ -156,6 +158,8 @@ describe("human-in-loop MCP runtime", () => {
 
       expect(handler).not.toHaveBeenCalled();
       expect(result).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         isError: true,
         content: [
           {

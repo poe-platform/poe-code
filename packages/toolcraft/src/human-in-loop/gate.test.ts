@@ -64,6 +64,35 @@ function createAsyncCommand(handler: ReturnType<typeof vi.fn>) {
 }
 
 describe("invokeWithHumanInLoop", () => {
+  it("does not run an approved handler after its request was cancelled", async () => {
+    const handler = vi.fn(async () => "done");
+    const approval = Promise.withResolvers<{ outcome: "approved" }>();
+    const requestApproval = vi.fn(() => approval.promise);
+    const controller = new AbortController();
+    const context = { ...createContext(), signal: controller.signal };
+    const operation = invokeWithHumanInLoop(createSyncCommand(handler), context, {
+      provider: { id: "cancel-test", requestApproval }
+    }, "root.deploy");
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+    controller.abort();
+    approval.resolve({ outcome: "approved" });
+    await expect(operation).rejects.toMatchObject({ name: "AbortError" });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("does not open approval for an already cancelled request", async () => {
+    const handler = vi.fn(async () => "done");
+    const requestApproval = vi.fn(async () => ({ outcome: "approved" as const }));
+    const controller = new AbortController();
+    controller.abort();
+    await expect(invokeWithHumanInLoop(createSyncCommand(handler), {
+      ...createContext(), signal: controller.signal
+    }, { provider: { id: "cancel-test", requestApproval } }, "root.deploy"))
+      .rejects.toMatchObject({ name: "AbortError" });
+    expect(requestApproval).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });

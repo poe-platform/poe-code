@@ -11,7 +11,7 @@ import { convertJsonSchema } from "./json-schema-converter.js";
 import { asMCPResult } from "./mcp-result.js";
 import { isProxyNode, markProxyNode } from "./mcp-proxy-metadata.js";
 import { findProjectRoot } from "./project-root.js";
-import type { ObjectSchema } from "toolcraft-schema";
+import { formatIssues, validate, type ObjectSchema } from "toolcraft-schema";
 
 export { findProjectRoot } from "./project-root.js";
 
@@ -149,11 +149,23 @@ function createProxyCommand(
     confirm: false,
     requires: parent.requires,
     handler: async (ctx) => {
-      const client = await ensureConnected(connection);
+      ctx.signal?.throwIfAborted();
+      const connecting = ensureConnected(connection);
+      const client = ctx.signal === undefined ? await connecting : await new Promise<McpClient>((resolve, reject) => {
+        const signal = ctx.signal!;
+        const abort = () => {
+          signal.removeEventListener("abort", abort);
+          reject(signal.reason);
+        };
+        signal.addEventListener("abort", abort, { once: true });
+        connecting.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+        if (signal.aborted) abort();
+      });
+      ctx.signal?.throwIfAborted();
       const toolResult = await client.callTool({
         name: tool.name,
         arguments: ctx.params as Record<string, unknown>,
-      });
+      }, { signal: ctx.signal });
       if (result === undefined || toolResult.isError === true) {
         return asMCPResult(toolResult);
       }
@@ -162,6 +174,8 @@ function createProxyCommand(
           `upstream tool "${tool.name}" declared outputSchema but returned no structuredContent`
         );
       }
+      const validation = validate(result, toolResult.structuredContent);
+      if (!validation.ok) throw new Error(`upstream tool "${tool.name}" returned invalid structuredContent: ${formatIssues(validation.issues)}`);
       return toolResult.structuredContent;
     },
     render: undefined,
@@ -334,9 +348,11 @@ async function fetchCache(
     const tools: Tool[] = [];
     const seenCursors = new Set<string>();
     let cursor: string | undefined;
+    let pages = 0;
 
     do {
       const page = await client.listTools(cursor === undefined ? {} : { cursor });
+      pages++;
       tools.push(...page.tools);
       cursor = page.nextCursor;
       if (cursor !== undefined) {
@@ -344,6 +360,7 @@ async function fetchCache(
           throw new Error("upstream tools/list returned a repeated pagination cursor");
         }
         seenCursors.add(cursor);
+        if (pages >= 128) throw new Error("upstream exceeded the tool pagination limit (128 pages)");
       }
     } while (cursor !== undefined);
 

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { S } from "toolcraft-schema";
 import { z } from "zod";
 import { HttpTransport, McpClient, createSdkTestPair } from "tiny-mcp-client";
-import { nodeFetch } from "tiny-http-mcp-server/test-support";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import { defineCommand, defineGroup, defineStreamCommand } from "./index.js";
 import { createMCPServer, MCP_STREAM_METHODS } from "./mcp.js";
 import {
@@ -12,6 +12,8 @@ import {
   runHTTPMCP,
   type ToolcraftHTTPContext
 } from "./http.js";
+
+installInMemoryHttp();
 
 const cleanupCallbacks: Array<() => Promise<void>> = [];
 

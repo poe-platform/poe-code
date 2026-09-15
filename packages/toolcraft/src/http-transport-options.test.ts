@@ -1,6 +1,6 @@
 import { setImmediate } from "node:timers/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { nodeFetch } from "tiny-http-mcp-server/test-support";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup, defineStreamCommand } from "./index.js";
 import { MCP_STREAM_METHODS } from "./mcp.js";
@@ -10,6 +10,8 @@ import {
   type RunHTTPMCPOptions,
   type ToolcraftHTTPServerHandle
 } from "./http.js";
+
+installInMemoryHttp();
 
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => { await Promise.all(cleanups.splice(0).map((cleanup) => cleanup())); });

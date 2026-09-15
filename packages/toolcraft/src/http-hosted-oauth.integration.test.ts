@@ -3,7 +3,7 @@ import { runInNewContext } from "node:vm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import { HttpTransport, McpClient } from "tiny-mcp-client";
-import { nodeFetch } from "tiny-http-mcp-server/test-support";
+import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 import { defineCommand, defineGroup } from "./index.js";
 import { createHTTPMCPServer, runHTTPMCP } from "./http.js";
 import {
@@ -11,6 +11,8 @@ import {
   hostedOAuth,
   HostedOAuthLoginError
 } from "./http-hosted-oauth.js";
+
+installInMemoryHttp();
 
 const cleanups: Array<() => Promise<void>> = [];
 

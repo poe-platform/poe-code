@@ -1,3 +1,4 @@
+import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as httpTransport from "tiny-http-mcp-server/server";
@@ -6,6 +7,8 @@ import { defineCommand, defineGroup, defineStreamCommand, UserError, type Group 
 import { createHTTPMCPServer, runHTTPMCP, type RunHTTPMCPOptions } from "./http.js";
 import { createInMemoryHostedOAuthStorage, hostedOAuth } from "./http-hosted-oauth.js";
 import { createMCPServer, MCP_STREAM_METHODS } from "./mcp.js";
+
+installInMemoryHttp();
 
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => {

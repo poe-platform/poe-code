@@ -20,6 +20,7 @@ export async function invokeWithHumanInLoop<T>(
     spawnRunner?: boolean;
   } = {}
 ): Promise<T | HumanInLoopPending> {
+  ctx.signal?.throwIfAborted();
   if (!node.humanInLoop) {
     return node.handler(ctx);
   }
@@ -32,12 +33,14 @@ export async function invokeWithHumanInLoop<T>(
   const approvalPlan = node.humanInLoop.plan === undefined
     ? undefined
     : createApprovalPlan(await node.humanInLoop.plan(planContext));
+  ctx.signal?.throwIfAborted();
   const message = approvalPlan === undefined
     ? baseMessage
     : formatApprovalMessage(baseMessage, approvalPlan);
 
   if (node.humanInLoop.mode === "async") {
     const { tasks } = await ensureApprovalList(runtimeOptions);
+    ctx.signal?.throwIfAborted();
     const { approvalId, pending } = await (options.enqueueApproval ?? enqueueApproval)({
       tasks,
       payload: {
@@ -50,6 +53,7 @@ export async function invokeWithHumanInLoop<T>(
       }
     });
 
+    ctx.signal?.throwIfAborted();
     if (options.spawnRunner !== false) {
       spawnApprovalRunner(approvalId, runtimeOptions);
     }
@@ -61,6 +65,7 @@ export async function invokeWithHumanInLoop<T>(
     message,
     declineInputPrompt: node.humanInLoop.declineInputPrompt
   });
+  ctx.signal?.throwIfAborted();
 
   if (result.outcome === "declined") {
     throw new ApprovalDeclinedError({
@@ -71,6 +76,7 @@ export async function invokeWithHumanInLoop<T>(
 
   if (approvalPlan !== undefined && node.humanInLoop.plan !== undefined) {
     const executionPlan = createApprovalPlan(await node.humanInLoop.plan(planContext));
+    ctx.signal?.throwIfAborted();
     assertApprovalPlanHash(approvalPlan.hash, executionPlan.hash);
   }
 

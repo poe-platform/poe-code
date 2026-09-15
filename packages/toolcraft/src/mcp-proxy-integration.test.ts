@@ -444,6 +444,8 @@ describe("mcp proxy integration", () => {
     });
 
     expect(result).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "khoor" }],
     });
   });
@@ -476,12 +478,18 @@ describe("mcp proxy integration", () => {
     });
 
     expect(firstResult).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "khoor" }],
     });
     expect(secondResult).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "def" }],
     });
     expect(thirdResult).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "abc" }],
     });
     expect(await readNumberFile(harness.countFile)).toBe(1);
@@ -538,6 +546,8 @@ describe("mcp proxy integration", () => {
     expect(
       await callCommand(github, ["caesar_cipher_encrypt"], { text: "hello" })
     ).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "khoor" }],
     });
 
@@ -551,6 +561,8 @@ describe("mcp proxy integration", () => {
     expect(
       await callCommand(github, ["caesar_cipher_encrypt"], { text: "abc" })
     ).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "def" }],
     });
 
@@ -564,6 +576,8 @@ describe("mcp proxy integration", () => {
     expect(
       await callCommand(github, ["caesar_cipher_encrypt"], { text: "xyz" })
     ).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "abc" }],
     });
     expect(await readNumberFile(harness.countFile)).toBe(3);
@@ -752,6 +766,8 @@ describe("mcp proxy integration", () => {
         text: "abc",
       })
     ).toEqual({
+      resultType: "complete",
+      _meta: { "io.modelcontextprotocol/serverInfo": { name: "tiny-stdio-mcp-test-server", version: "0.1.0" } },
       content: [{ type: "text", text: "def" }],
     });
 
@@ -779,6 +795,8 @@ describe("mcp proxy integration", () => {
       });
 
       expect(result).toEqual({
+        resultType: "complete",
+        _meta: { "io.modelcontextprotocol/serverInfo": { name: "toolcraft-test", version: "1.0.0" } },
         content: [{ type: "text", text: "abc" }],
       });
     } finally {

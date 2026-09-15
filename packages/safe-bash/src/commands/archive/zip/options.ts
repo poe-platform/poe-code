@@ -5,7 +5,7 @@ export class ZipFailure extends Error {
 const longOptions: Readonly<Record<string, string>> = {
   "recurse-paths": "r", quiet: "q", "junk-paths": "j", "no-dir-entries": "D",
   symlinks: "y", test: "T", "names-stdin": "@", update: "u", freshen: "f",
-  delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0",
+  delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
   "compress-5": "5", "compress-6": "6", "compress-7": "7", "compress-8": "8",
   "compress-9": "9",
@@ -24,7 +24,6 @@ const reservedOptions = [
   "split-verbose", "split-bell", "show-command", "show-debug", "show-files",
   "show-options", "from-date", "before-date", "unzip-command", "copy-entries",
   "verbose", "version", "wild-stop-dirs", "strip-extra", "archive-comment",
-  "compression-method",
 ];
 
 export function normalizeZipOption(argument: string): string {
@@ -37,7 +36,7 @@ export function normalizeZipOption(argument: string): string {
   const matched = matches[0];
   const short = matched === undefined ? undefined : longOptions[matched];
   if (!short) throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
-  if (equal >= 0 && short !== "i" && short !== "x" && short !== "n") {
+  if (equal >= 0 && short !== "i" && short !== "x" && short !== "n" && short !== "Z") {
     throw new ZipFailure(16, "Invalid command arguments", `option '${matched}' does not allow a value`);
   }
   return `-${short}${equal < 0 ? "" : argument.slice(equal)}`;

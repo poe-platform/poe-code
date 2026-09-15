@@ -25,8 +25,10 @@ implicit filesystem access or network fallback.
 ## Quiet creation and byte streaming
 
 `-0` stores files without compression; `-1` through `-9` select DEFLATE effort,
-from fastest to maximum compression. The default is `-6`. The last level wins,
-including flags after operands and grouped flags such as `-q9r`. Files that do
+from fastest to maximum compression. The default is `-6`. The last level controls
+compression effort, including flags after operands and grouped flags such as
+`-q9r`. Selecting `-0` switches to storage mode; a later positive level does not
+switch the method back to DEFLATE. Files that do
 not compress smaller remain stored. Compression levels do not promise identical
 archive bytes to Info-ZIP.
 
@@ -35,6 +37,14 @@ Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc
 `.lzh` and `.arj`; an empty value retains defaults, while `:` clears the list.
 Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
 overrides the suffix list and attempts maximum compression.
+
+`-Z store` / `-Z deflate` and `--compression-method=METHOD` explicitly select the
+method. Method names are case-insensitive and accept unique prefixes. Store mode
+remains selected through later level flags; `-Z deflate` switches it back. The
+native invalid level-zero/DEFLATE combination returns status 5 when compressing a
+nonempty regular file. Unknown methods return 16. Bzip2 is currently not enabled
+and returns the native disabled-method status 19; reading and writing method-12
+archives remains format implementation work.
 
 `-@` reads one source filename per stdin line before processing command-line
 operands. Empty lines are ignored; trailing carriage returns are removed, while

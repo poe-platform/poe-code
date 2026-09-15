@@ -12,6 +12,39 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+for (const { flags, method } of [
+  { flags: ["-0", "-9"], method: 0 },
+  { flags: ["-Z", "store", "-9"], method: 0 },
+  { flags: ["--compression-method=STORE"], method: 0 },
+  { flags: ["-Zdef"], method: 8 },
+  { flags: ["-Z=store", "-9", "-Z", "deflate"], method: 8 },
+  { flags: ["-0", "-9", "--compression-method=deflate"], method: 8 },
+]) {
+  test(`zip compression method ${flags.join(" ")}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-q", ...flags, "output.zip", "folder/data"]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries[0]!.method, method);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, compressed);
+  });
+}
+
+for (const { flags, status } of [
+  { flags: ["-Z", "unknown"], status: 16 },
+  { flags: ["-Z"], status: 16 },
+  { flags: ["-Z", "bzip2"], status: 19 },
+  { flags: ["-0", "-Z", "deflate"], status: 5 },
+]) {
+  test(`zip compression method rejects ${flags.join(" ")} without replacing the archive`, async () => {
+    const fs = await fixture();
+    const before = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q", "sample.zip", "folder/data", ...flags]);
+    assert.equal(result.exitCode, status, result.stdout.toString() + result.stderr);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  });
+}
+
 for (const flags of [
   ["--quiet", "--recurse-paths", "--junk-paths", "--test"],
   ["--qu", "--recurse-paths", "--junk-pa", "--test", "--compress-9"],

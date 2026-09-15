@@ -136,3 +136,14 @@ cases cover grouped semantic effects through long aliases, abbreviation ambiguit
 invalid values, unsupported options, attached includes before archive, empty
 inclusion, action aliases, stdin/suffix aliases and literal long-looking paths.
 Unimplemented native option aliases remain explicit failures, not completion.
+
+## Explicit compression method
+
+`-Z`/`--compression-method` selects store or DEFLATE with case-insensitive unique
+prefixes and attached/separate/equals values. Native captures revealed a precedence
+gap: `-0` selects storage, and later effort flags do not re-enable compression;
+explicit `-Z deflate` does. Ten memory cases cover method selection, precedence,
+round trips, unknown/missing method values, disabled bzip2 status 19 and native
+level-zero/DEFLATE status 5 preserving old archive bytes. The current native Unix
+Zip build also lacks bzip2, but adding method-12 format support remains in scope
+for the broader ZIP objective and other enabled native profiles.

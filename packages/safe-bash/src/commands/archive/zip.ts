@@ -1,3 +1,4 @@
+import { zipToCrlf } from "./zip/line-endings.js";
 import { parseZipDate, zipDateMatches, zipLatestTime } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
 import { readZipComment, ZipCommentInput } from "./zip/comments.js";
@@ -33,6 +34,7 @@ interface ZipOptions {
   readonly archiveComment: boolean;
   readonly entryComments: boolean;
   readonly latestTime: boolean;
+  readonly toCrlf: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
@@ -86,6 +88,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let archiveComment = false;
   let entryComments = false;
   let latestTime = false;
+  let toCrlf = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
   let descriptors = false;
@@ -149,6 +152,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "z") archiveComment = true;
         else if (flag === "c") entryComments = true;
         else if (flag === "o") latestTime = true;
+        else if (flag === "l") {
+          if (argument[offset + 1] === "l") throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+          toCrlf = true;
+        }
         else if (flag === "j") junkPaths = true;
         else if (flag === "X") {
           metadata = argument[offset + 1] === "-" ? "all" : "strip";
@@ -270,7 +277,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -381,6 +388,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const encodeSelected = async (source: string, name: string, bytes: Uint8Array, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">) => {
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
     if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
+    if (parsed.toCrlf && !attributes.directory && !attributes.symlink) {
+      const originalSize = bytes.length;
+      bytes = await zipToCrlf(bytes, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes + originalSize), context.signal);
+      budget.totalBytes += bytes.length - originalSize;
+    }
     const level = store ? 0 : parsed.level;
     let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0));
     if (parsed.descriptors) entry.descriptors = true;

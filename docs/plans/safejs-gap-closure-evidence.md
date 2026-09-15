@@ -3011,3 +3011,34 @@ Fresh registry downloads independently match all four SHA512 SRI values and both
 **Delivery/release disposition:** evidence-only local commit is reported separately; no candidate push, verified remote-main task delivery or candidate publication. Final explicit ancestry probes show divergent history: before this evidence commit, 62 unique local commits and 1,028 unique remote commits, merge base `60a6f594ec0f40467b61880a856a626d3b14de35`; remote main is not an ancestor of local HEAD. The preceding ancestry statement was incorrect because a multi-command shell result masked the ancestry probe exit status. Reconciliation and revalidation are required before any normal push; delivering this dirty candidate would include unqualified concurrent changes and would not bind the tested source/lock to a commit. No branches, force-push, unrelated reverts, workflow dispatch, local publish or issue closure. No explicitly associated issue was supplied. Recovery is the executed QA's final step: resolve validated runtime/archive integration defects with TDD, obtain exact committed candidate source/lock while preserving concurrent work, rerun maintained scope/broad checks as required, use normal push hooks, verify ancestry and follow all required release successors through publication, then compare registry installed bytes/provenance to tested artifacts. No new release or docs-only no-release outcome is claimed without remote delivery. Acceptance remains **OPEN / NOT COMPLETE**.
 
 Evidence commit preparation initially failed `git diff --cached --check` on the raw Vitest log’s terminal blank line. That log is retained losslessly as packaging-tests.log.gz; no test or result was changed. Repeated task-only whitespace review passes.
+
+### Task-owned publication clarification — 2026-09-15
+
+Source SHA `b2a7406ce9d8f25775962bbbf24a79dcc908b9e6` plus inherited dirty
+inputs; Node 22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin arm64.
+Added standalone dated compatibility summaries to both READMEs while preserving
+inherited edits. Only these additions and this report increment belong to this
+commit; existing README/ledger diffs and unrelated staged work are excluded.
+Target and corpus pins remain unchanged. The durable full-corpus last record was
+inspected directly: `aborted`, `complete:false`, ENOSPC. No accepted final run
+exists; runtime/transport failures and unsupported required modes remain blockers.
+
+Manual checks: current-source README quickstart executed with
+`node --import tsx --input-type=module`, importing Budget/run from
+`./packages/safe-js/src/index.ts`, asserting `ok === true` and `[6,10,16]` with
+the documented bindings and budgets: exit 0, no failures/skips. No runnable
+example was changed. Links in the new summaries were checked for existing files
+and heading fragments. Task-only staged whitespace check passed. Markdown-only
+work requires no runtime repair tests, broad suite or CLI screenshot. Retained
+selected corpus commands/results above remain partial evidence, not rerun here.
+
+Fresh read-only receipts: `git ls-remote origin refs/heads/main` returned
+`a03cf4f986dcbb7de309cbe4c1f5587551d81d04`;
+`npm view @poe-platform/safe-js@0.1.606 version dist.integrity --json` and
+`npm view poe-code@15.0.41 version gitHead --json` matched the retained registry
+receipts. No new signature authentication or candidate publication is claimed.
+Local documentation commit: reported after hooks in the completion message.
+Remote-main task delivery: none. Task publication: none. No push requested or
+attempted; divergent history and candidate qualification remain unresolved.
+Disposition: documentation clarification locally verified; final-corpus and
+release-bound acceptance remain OPEN.

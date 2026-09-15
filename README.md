@@ -290,6 +290,15 @@ These features are available but subject to breaking changes.
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
 - **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
 
+SafeJS compatibility is measured against published ECMA-262 edition 16 /
+ECMA-402 edition 12 (June 2025), with newer APIs tracked separately. The
+[dated compatibility report](docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15)
+links corpus results, runtime coverage, transport restrictions and release
+receipts. An aborted corpus, unsupported required modes and remaining failures
+prevent a full-conformance claim. Published predecessor versions do not establish
+delivery of the current checkout.
+
+
 ### Update Poe Code
 
 ```sh

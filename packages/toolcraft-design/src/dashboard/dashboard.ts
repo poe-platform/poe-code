@@ -2,6 +2,7 @@ import { createRenderPerformanceMonitor, formatRenderPerformance, type RenderPer
 import { createLogger } from "../components/logger.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { ScreenBuffer, diff } from "./buffer.js";
+import { renderContextPane } from "./components/context-pane.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import type { FooterHint } from "./components/footer.js";
@@ -242,6 +243,26 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       rightTitle: statsTitle,
       style: { dim: true }
     });
+    if (state.stats.context?.length) {
+      const contextRect = layout.summary ?? layout.leftPane;
+      // Context spans both panes on wide terminals.
+      const remaining = renderContextPane(nextBuffer, {
+        x: contextRect.x, y: contextRect.y, width: Math.max(0, cols - 2),
+        height: layout.summary ? layout.summary.height + layout.leftPane.height : layout.leftPane.height
+      }, state.stats.context);
+      const height = remaining.y - contextRect.y;
+      if (layout.summary) {
+        layout.summary.y = remaining.y;
+        layout.summary.height = Math.min(layout.summary.height, remaining.height);
+        layout.leftPane.y = layout.summary.y + layout.summary.height;
+        layout.leftPane.height = Math.max(0, remaining.height - layout.summary.height);
+      } else {
+        layout.leftPane.y += height;
+        layout.leftPane.height -= height;
+        layout.rightPane.y += height;
+        layout.rightPane.height -= height;
+      }
+    }
     scrollOffset = renderOutputPane(
       nextBuffer,
       { ...layout.leftPane, height: Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0)) },

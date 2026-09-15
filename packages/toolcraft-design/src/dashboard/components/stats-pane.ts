@@ -15,9 +15,11 @@ export function renderCompactStatsPane(
   buffer.clearRect(rect);
   if (rect.width <= 0 || rect.height <= 0) return;
   const status = formatStatus(stats.status);
-  const metrics = `${status} · ${stats.iterationsLabel ?? "Iteration"} ${formatNumber(stats.iterations)} · ${formatElapsed(stats.elapsedMs)} · ${formatNumber(stats.tokensIn + stats.tokensOut)} tokens`;
+  const progress = `${stats.iterationsLabel ?? "Iteration"} ${formatNumber(stats.iterations)}${stats.iterationsTotal === undefined ? "" : `/${formatNumber(stats.iterationsTotal)}`}`;
+  const primary = stats.iterationsTotal === undefined ? `${status} · ${progress}` : `${progress} · ${status}`;
+  const metrics = `${primary} · ${formatElapsed(stats.elapsedMs)} · ${formatNumber(stats.tokensIn + stats.tokensOut)} tokens`;
   const firstLine =
-    rect.height === 1 && stats.currentAction ? `${status} · ${stats.currentAction}` : metrics;
+    rect.height === 1 && stats.iterationsTotal === undefined && stats.currentAction ? `${status} · ${stats.currentAction}` : metrics;
   const messages = [firstLine, stats.currentAction ?? ""].map(plainTerminalText);
   buffer.putInRect(
     rect,
@@ -40,7 +42,8 @@ export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: Dashboa
   let lines = statsToLines(stats, rect.width);
   if (lines.length > rect.height) {
     const actions = stats.currentAction === undefined ? [] : lines.slice(9);
-    const visibleActions = actions.slice(0, Math.max(0, rect.height - 1));
+    const progressLines = stats.iterationsTotal === undefined ? [] : [lines[1]!];
+    const visibleActions = actions.slice(0, Math.max(0, rect.height - 1 - progressLines.length));
     if (visibleActions.length > 0 && visibleActions.length < actions.length) {
       const last = visibleActions[visibleActions.length - 1]!;
       visibleActions[visibleActions.length - 1] = {
@@ -49,9 +52,12 @@ export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: Dashboa
       };
     }
     lines = [
-      lines[0]!,
+      stats.iterationsTotal !== undefined && rect.height === 1
+        ? createKeyValueLine(formatStatus(stats.status), `${stats.iterations}/${stats.iterationsTotal}`, rect.width, getStatusStyle(stats.status))
+        : lines[0]!,
+      ...progressLines,
       ...visibleActions,
-      ...lines.slice(1, 7).filter((line) => line.prefix.length > 0 || line.text.length > 0)
+      ...lines.slice(stats.iterationsTotal === undefined ? 1 : 2, 7).filter((line) => line.prefix.length > 0 || line.text.length > 0)
     ];
   }
 
@@ -103,7 +109,7 @@ export function statsToLines(stats: DashboardStats, width: number): VisualLine[]
   const iterationsLabel = plainTerminalText(stats.iterationsLabel ?? "Iteration");
   const lines: VisualLine[] = [
     createKeyValueLine("Status", formatStatus(stats.status), width, getStatusStyle(stats.status)),
-    createKeyValueLine(iterationsLabel, formatNumber(stats.iterations), width),
+    createKeyValueLine(iterationsLabel, formatNumber(stats.iterations) + (stats.iterationsTotal === undefined ? "" : `/${formatNumber(stats.iterationsTotal)}`), width),
     createKeyValueLine("Elapsed", formatElapsed(stats.elapsedMs), width),
     createBlankLine(),
     createKeyValueLine("Tokens In", formatNumber(stats.tokensIn), width),

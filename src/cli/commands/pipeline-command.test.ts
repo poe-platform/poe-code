@@ -1284,7 +1284,7 @@ describe("pipeline run command", () => {
         total: 3,
         ...(initializationUsage ? { initializationUsage } : {})
       });
-      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ tokensIn: initializationUsage?.inputTokens ?? 0, tokensOut: initializationUsage?.outputTokens ?? 0 }));
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ iterations: 1, iterationsTotal: 3, tokensIn: initializationUsage?.inputTokens ?? 0, tokensOut: initializationUsage?.outputTokens ?? 0 }));
       options.onTaskStart?.({
         taskId: "auth-hardening",
         taskTitle: "Auth hardening",
@@ -1398,7 +1398,9 @@ describe("pipeline run command", () => {
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "done",
-        iterations: taskCompleted ? 1 : 0,
+        iterations: taskCompleted ? 2 : 1,
+        iterationsTotal: 3,
+        context: ["Plan 1/1: custom-plan.yaml"],
         tokensIn: 120 + (initializationUsage?.inputTokens ?? 0),
         tokensOut: 45 + (initializationUsage?.outputTokens ?? 0),
         currentAction: "Task 2/3 · Auth hardening · implement · step 1/2"

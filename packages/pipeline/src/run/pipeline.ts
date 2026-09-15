@@ -207,8 +207,6 @@ async function runResolvedPipeline(
 
   const maxRuns = options.maxRuns ?? Number.POSITIVE_INFINITY;
   let runsCompleted = 0;
-  let taskIndex = 0;
-  let lastSeenTaskId: string | undefined;
   let lastGoodPlan: PipelinePlan | undefined;
   let lastGoodStepsConfig: ResolvedStepsConfig | undefined;
   const pipelineStartTime = Date.now();
@@ -489,10 +487,7 @@ async function runResolvedPipeline(
         };
       }
 
-      if (selection.task.id !== lastSeenTaskId) {
-        taskIndex += 1;
-        lastSeenTaskId = selection.task.id;
-      }
+      const taskIndex = plan.tasks.findIndex((task) => task.id === selection.task.id) + 1;
 
       let stepIndex: number | undefined;
       let totalSteps: number | undefined;
@@ -508,6 +503,7 @@ async function runResolvedPipeline(
         ...(selection.stepName ? { stepName: selection.stepName } : {}),
         taskIndex,
         totalTasks,
+        completedTasks: plan.tasks.filter((task) => isTaskDone(task.status)).length,
         ...(stepIndex !== undefined ? { stepIndex, totalSteps } : {})
       };
 

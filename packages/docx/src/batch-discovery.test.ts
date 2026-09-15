@@ -1,0 +1,33 @@
+import { expect, it } from "vitest";
+import { getDocxDiscovery, type DocxSchemaData, type DocxCapabilitiesData } from "./discovery.js";
+import { parseDocxArguments } from "./command.js";
+import { documentBatchOperations } from "./batch-operations.js";
+const discover = (...words: string[]) => getDocxDiscovery(parseDocxArguments(words.map(word => new TextEncoder().encode(word))))!;
+it("advertises the bounded ordered utility registry without extending live model coverage", () => {
+  const features = (discover("capabilities").data as DocxCapabilitiesData).features;
+  const subset = features.find(feature => feature.id === "F12")?.subsets.find(item => item.name === "bounded-ordered-utility-batch");
+  expect(subset?.level).toBe("edit");
+  for (const id of documentBatchOperations) expect(subset?.reason).toContain(id);
+  expect(discover("help", "batch").human).toContain("one publication");
+  expect(discover("help", "images", "add").human).toContain("admitted ordered utility batch");
+});
+it("publishes precise utility result envelopes beside the original typed style branch", () => {
+  const schema = (discover("schema", "batch").data as DocxSchemaData).operations[0]!;
+  expect(schema.featureIds).toContain("F47");
+  const branch = schema.result.oneOf?.find(item => item.properties?.data?.properties?.publication);
+  const variants = branch?.properties?.data?.properties?.results?.items;
+  expect(variants ? variants.oneOf?.map(item => item.properties?.operation?.const) : []).toEqual([...documentBatchOperations]);
+  const text = variants ? variants.oneOf?.find(item => item.properties?.operation?.const === "text.replace") : undefined;
+  expect(text?.properties?.id).toMatchObject({ type: "string" });
+  expect(text?.properties?.data?.additionalProperties).toBe(false);
+  const field = variants ? variants.oneOf?.find(item => item.properties?.operation?.const === "fields.add") : undefined;
+  expect(field?.properties?.affected).toEqual({ type: "integer", minimum: 0 });
+  const fieldChanges = field?.properties?.data?.properties?.changes?.items;
+  expect(fieldChanges ? fieldChanges.properties?.kind?.enum : undefined).toEqual(["replace", "insert"]);
+  expect(branch?.properties?.data?.properties?.publication?.anyOf?.[0]?.properties?.output?.oneOf).toBeDefined();
+  const changes = branch?.properties?.data?.properties?.publication?.anyOf?.[0]?.properties?.changes?.items;
+  expect(changes ? changes.properties?.kind?.enum : undefined).toEqual(["add", "set", "remove", "replace"]);
+  const failure = schema.result.oneOf?.find(item => item.properties?.ok?.const === false);
+  const errors = failure?.properties?.errors?.items;
+  expect(errors ? errors.properties?.operationIndex : undefined).toMatchObject({ type: "integer", minimum: 0 });
+});

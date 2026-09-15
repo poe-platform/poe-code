@@ -734,8 +734,12 @@ Style operations are package-global and reject scope, ordinal/token selectors an
 `allowEmpty`. Their edit profile admits json/limit/output/inPlace/force/dryRun.
 Defaults get takes no name; set requires at least one applicable property.
 The schema enumerates the exact closed fields and implemented model batch IDs.
-Typed batch execution is limited to the declared style/formatting subgraph;
-unrelated model operations MUST reject without publication.
+Typed model batch execution is limited to the declared style/formatting subgraph.
+The separate [bounded ordered utility milestone](../plans/docx-ordered-batch-operations.md)
+implements the explicitly enumerated fields/text/paragraphs/runs/tables/images/
+properties registry through the shared CLI/SDK executor. Mixed utility/model
+arrays and unrelated model operations MUST reject without publication; this
+milestone does not establish general live-model batch coverage.
 
 ### 6.5 Format operation semantics and defaults
 
@@ -795,7 +799,8 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   majorAscii/majorHAnsi/majorEastAsia/majorBidi or the corresponding minor values.
   `themeColor` is nullable MSO_THEME_COLOR; `baseline` is nullable
   baseline/superscript/subscript. These additive fields use identical direct,
-  SDK and proposed batch schemas. Actual batch execution remains pending.
+  SDK and batch schemas. The bounded ordered utility executor now admits this
+  `runs.set` subset; general live run-model batches remain pending.
   `font` updates ascii/hAnsi and conflicts with those explicit slots; it retains
   their theme references. Language patches val only. Null clears the named slot
   or property; omitted/undefined fields retain it. False superscript/subscript
@@ -1015,7 +1020,9 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   reserved conservatively; stored lexical IDs are never normalized or reassigned.
   Author/time are escaped/validated explicit values, with the shared UTC timestamp
   precision; no ambient identity or clock is consulted. Creation does not imply
-  support for acceptance/rejection, live review owners or ordered batches.
+  support for acceptance/rejection or live review owners. The bounded ordered
+  utility executor admits tracked `text.replace` using explicit outer/item
+  author and timestamp; other review batches remain pending.
   Acceptance/rejection editing support is distinct from revision-list read
   interpretation. The bounded editing subset is ordinary inline insertion and
   deletion wrappers containing admitted text runs, plus direct run/paragraph
@@ -2501,6 +2508,7 @@ type Receiver =
   | { resultHandle: string; index?: number; key?: string };
 type BatchV1 = { version: 1; operations: OperationV1[] };
 type OperationV1 = {
+  id?: string;
   operation: string;
   arguments: OperationArguments;
   receiver?: Receiver;
@@ -2607,6 +2615,16 @@ read/value-only batch with zero results; absent operations is usage. A later
 failure discards all staged changes, reports the failing operation index and
 leaves prior files untouched. Original result objects may be returned in BatchData
 only on whole success; failed prepublication data remains null.
+
+Utility operation IDs are optional for compatibility. An explicit ID starts with
+an ASCII letter, contains only ASCII letters, digits, underscore or hyphen, and
+is at most 64 characters. Omitted IDs resolve to `step1`, `step2`, and so on in
+array order. IDs MUST be unique including collisions with generated IDs.
+Utility results carry the resolved ID. A semantic operation failure reports
+zero-based `operationIndex` and resolved `operationId`; failed result data remains
+null. JSON VFS paths named `-` remain literal paths, not stdin reservations.
+Only explicit command source arguments reserve stdin, and dual consumers reject
+before edits. No binary-stdin descriptor is admitted in batch item JSON.
 
 ### 6.7 Typed results and stable errors
 

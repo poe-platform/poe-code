@@ -22,6 +22,7 @@ export interface DocxInvocation {
   readonly sources?: readonly DocxArgumentSource[];
 }
 export interface DocxBatchOperation {
+  readonly id?: string;
   readonly operation: string;
   readonly arguments: Readonly<Record<string, unknown>>;
   readonly receiver?: Readonly<Record<string, unknown>>;
@@ -234,7 +235,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   }
   if (help) {
     assertDocxFields(Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, { ...field, required: false }])), options, (type, value) => {
-      if (type === "BatchV1") { validateDocxBatch(value, budget); return true; }
+      if (type === "BatchV1") { validateDocxBatch(value, budget, { author: options.author, timestamp: options.timestamp }); return true; }
       return undefined;
     });
     if (inputs.length > Number(schema.inputArity === "0|1" ? 1 : schema.inputArity)) usage("Invalid input arity.");
@@ -253,7 +254,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   for (const [file, json, semantic, type] of [["contentFile", "contentJson", "content", "OriginalDocumentContentV1"], ["dataFile", "dataJson", "data", "TemplateData"], ["opsFile", "opsJson", "operations", "BatchV1"]]) {
     if (options[file!] !== undefined && options[json!] !== undefined) usage("Conflicting JSON sources.");
     if (options[json!] !== undefined) {
-      if (type === "BatchV1") Object.assign(options, validateDocxBatch(options[json!], budget));
+      if (type === "BatchV1") Object.assign(options, validateDocxBatch(options[json!], budget, { author: options.author, timestamp: options.timestamp }));
       else options[semantic!] = options[json!];
       delete options[json!];
     }
@@ -337,7 +338,7 @@ function validateInvocation(value: unknown, budget: DocumentBudget, fromCli: boo
   if (operation === "batch") {
     if (deferred.has("operations")) validatedFields.version = { type: "literal 1", required: false };
     else {
-      const checked = validateDocxBatch({ version: options.version, operations: options.operations }, budget);
+      const checked = validateDocxBatch({ version: options.version, operations: options.operations }, budget, { author: options.author, timestamp: options.timestamp });
       options.operations = checked.operations;
     }
   }
@@ -404,20 +405,32 @@ function checkArgumentHandles(value: unknown, handles: ReadonlyMap<string, strin
   if (!Array.isArray(value) && Object.hasOwn(value, "resultHandle")) handleType(value as Record<string, unknown>, handles);
   else for (const item of Object.values(value)) checkArgumentHandles(item, handles);
 }
-export function validateDocxBatch(value: unknown, budget = new DocumentBudget()): DocxBatch {
+export function validateDocxBatch(value: unknown, budget = new DocumentBudget(), defaults: unknown = {}): DocxBatch {
+  const context = record(defaults, ["author", "timestamp"]);
+  assertDocxFields({ author: docxCommonOptions.author!, timestamp: docxCommonOptions.timestamp! }, context);
   const batch = record(value, ["version", "operations"]);
   if (batch.version !== 1 || !Array.isArray(batch.operations) || Object.getPrototypeOf(batch.operations) !== Array.prototype || !validateDocxValue("ReadonlyArray<unknown>", batch.operations)) usage("Expected a version 1 batch.");
   structuredBudget(batch, budget);
   budget.check("batchOperations", batch.operations.length);
   const handles = new Map([["document", "DocumentModel"]]);
-  const operations = batch.operations.map(value => {
-    const item = record(value, ["operation", "arguments", "receiver", "resultHandle"]);
+  const ids = new Set<string>();
+  const operations = batch.operations.map((value, index) => {
+    const item = record(value, ["id", "operation", "arguments", "receiver", "resultHandle"]);
+    const id = item.id === undefined ? `step${index + 1}` : item.id;
+    if (typeof id !== "string" || !id || id.length > 64 || !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(id[0]!) || [...id].some(c => !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-".includes(c)) || ids.has(id)) usage("Invalid or duplicate batch operation ID.");
+    ids.add(id);
     if (typeof item.operation !== "string") usage("Batch operation is required.");
     const schema = schemaFor(item.operation);
     if (schema.transport === "direct") usage("Operation is not available in batch.");
     const fields = { ...(schema.batchFields ?? schema.sdkFields) };
     for (const name of schema.commonOptions) if (!publication.includes(name)) fields[name] = docxCommonOptions[name]!;
     const arguments_ = record(item.arguments);
+    if (item.operation === "text.replace" && arguments_.trackChanges === true) {
+      for (const key of ["author", "timestamp"]) if (context[key] !== undefined) {
+        if (arguments_[key] !== undefined && arguments_[key] !== context[key]) usage("Conflicting batch context metadata.");
+        arguments_[key] = context[key];
+      }
+    }
     if (item.operation === "properties.set") Object.assign(arguments_, normalizeDocxPropertyOptions(arguments_, false));
     assertDocxFields(fields, arguments_);
     for (const [name, value] of Object.entries(arguments_)) if (fields[name]?.type !== "unknown") checkArgumentHandles(value, handles);
@@ -448,7 +461,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget())
       if (typeof name !== "string" || !name || !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(name[0]!) || [...name].some(c => !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_".includes(c)) || handles.has(name)) usage("Invalid or duplicate result handle.");
       handles.set(name, schema.resultHandle.type);
     }
-    return Object.freeze({ operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });
+    return Object.freeze({ ...(typeof item.id === "string" ? { id: item.id } : {}), operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });
   });
   return owned({ version: 1, operations }, budget) as DocxBatch;
 }
@@ -513,9 +526,10 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
             throw new SourceError(error);
           }
           const value = parseDocxJson(bytes, budget);
-          if (source.type === "BatchV1") Object.assign(options, validateDocxBatch(value, budget));
+          if (source.type === "BatchV1") Object.assign(options, validateDocxBatch(value, budget, { author: options.author, timestamp: options.timestamp }));
           else options[source.argument] = value;
         }
+        if (invocation.operation === "batch" && sources.filter(source => source.path === "-").length + invocation.inputs.filter(input => input === "-").length > 1) usage("Only one stdin consumer is permitted.");
         if (sources.some(source => source.format === "json")) invocation = validateInvocation({ ...invocation, options, sources: sources.filter(source => source.format !== "json") }, budget, true);
       }
       catch (error) {

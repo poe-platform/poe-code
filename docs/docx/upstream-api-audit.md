@@ -242,3 +242,13 @@ refusal. Its exact JS/security mappings retain Package/OpcPackage, Part/XmlPart,
 relationship, inherited and public underscore-prefixed obligations at their
 existing dispositions. The pinned inventory and historical evidence are unchanged;
 later tasks and whole-public-API coverage remain pending.
+
+The bounded [ordered utility batch milestone](../plans/docx-ordered-batch-operations.md)
+adds a versioned closed CLI/SDK array with stable operation IDs, staged semantic
+selection and one final publication. Its JS/security mapping uses async explicit
+byte/VFS acquisition, snapshots and shared cumulative budgets; it evaluates no
+callbacks or member paths. This corrects batch-pending documentation only for the
+listed utility registry. Live Document/Part/XmlPart owners, inherited members,
+enums, collections, helpers, prose-only APIs and public underscore-prefixed types
+retain their recorded obligations. The pinned inventory and historical evidence
+are unchanged; later tasks and complete model coverage remain pending.

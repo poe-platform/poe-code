@@ -1,4 +1,5 @@
 import { Volume } from "memfs";
+import type { ArchiveContext } from "../../src/index.js";
 import { textFixture, textContext, paragraph } from "./text.js";
 import { rasterPng } from "./raster.js";
 import { insertDocumentImage } from "../../src/image-insertion.js";
@@ -8,7 +9,7 @@ import { writeArchive } from "../../src/archive-write.js";
 export const svgNamespace = "http://www.w3.org/2000/svg";
 export const svgExtensionNamespace = "http://schemas.microsoft.com/office/drawing/2016/SVG/main";
 export const svgRelationshipNamespace = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-export const svgContext = { ...textContext, encoding: { order: "input" as const, compression: "store" as const } };
+export const svgContext: ArchiveContext & { readonly encoding: { readonly order: "input"; readonly compression: "store" } } = { ...textContext, encoding: { order: "input" as const, compression: "store" as const } };
 export const staticSvg = new TextEncoder().encode(`<svg xmlns="${svgNamespace}" width="99" height="17" viewBox="0 0 99 17"><defs><linearGradient id="paint"><stop offset="0" stop-color="#123"/></linearGradient></defs><rect width="1" height="1" fill="url(#paint)"/></svg>`);
 export function svgBinary(bytes: Uint8Array = staticSvg) {
   return { kind: "bytes" as const, base64: btoa(String.fromCharCode(...bytes)) };

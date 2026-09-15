@@ -1,6 +1,6 @@
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { dirname, basename, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
-import { archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { documentSession, archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import type { ArchiveSink, ArchiveWriteOptions } from "./archive-write.js";
 import { DocumentPackage } from "./package.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
@@ -212,6 +212,10 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   context = { ...context, encoding: { ...context.encoding } };
   const settings = archiveSettings(context);
   const { signal, budget, limits } = settings;
+  if (settings[documentSession]) {
+    await settings[documentSession].stage(archive);
+    return { published: [] };
+  }
   let original: Uint8Array<ArrayBuffer> | undefined;
   if (originalInput !== undefined) {
     if (!(originalInput instanceof Uint8Array)) throw new InputTypeError("Expected original document bytes.");

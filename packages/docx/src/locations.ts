@@ -1,4 +1,4 @@
-import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { documentSession, archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { DocumentBudget } from "./budget.js";
@@ -41,17 +41,18 @@ function options(value: MatchOptions, mode: "read" | "mutation" | "text"): void 
 
 export async function openDocumentLocations(input: Uint8Array, context: ArchiveContext, mode: "editing" | "inventory" = "editing"): Promise<DocumentLocations> {
   if (mode !== "editing" && mode !== "inventory") throw new InvalidValueError("Expected an editing or read-only inventory location view.");
-  const { limits, budget, signal } = archiveSettings(context);
+  const settings = archiveSettings(context);
+  const { limits, budget } = settings;
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
   if (input.length > limits.maxArchiveBytes) throw new ResourceLimitError("Document input limit exceeded.");
   budget.charge("retainedBytes", input.length);
   budget.charge("work", input.length);
   const owned = new Uint8Array(input);
-  const archive = await readDocumentArchive(owned, { limits, budget, signal });
+  const archive = await readDocumentArchive(owned, settings);
   const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", owned));
   budget.check("work", 0);
   const sourceSha256 = [...hash].map(byte => byte.toString(16).padStart(2, "0")).join("");
-  return new DocumentLocations(archive, sourceSha256, { limits, budget, signal }, mode);
+  return new DocumentLocations(archive, sourceSha256, settings, mode);
 }
 
 /** Revision-bound engine primitive; stage callbacks are trusted engine code, never document data. */
@@ -68,7 +69,8 @@ class DocumentLocations {
 
   constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext, mode: "editing" | "inventory") {
     const settings = archiveSettings(context);
-    this.#context = { limits: settings.limits, signal: settings.signal, budget: settings.budget };
+    this.#context = settings;
+    this.#generation = settings[documentSession]?.generation ?? 0;
     this.#budget = settings.budget;
     this.#sourceSha256 = sourceSha256;
     this.#admission = { mainPart: archive.mainPart, dialect: archive.dialect };

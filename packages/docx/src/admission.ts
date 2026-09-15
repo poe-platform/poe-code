@@ -1,3 +1,4 @@
+import { documentXmlCache } from "./budget.js";
 import { DocumentPackage } from "./package.js";
 import { asciiKey } from "./part-uri.js";
 import { InvalidPackageError, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
@@ -5,6 +6,7 @@ import { validatePackageDialect, type DocumentDialect } from "./dialect.js";
 export { InvalidPackageError, InvalidXmlError, UnsupportedProfileError } from "./package-xml.js";
 import {
   CancellationError,
+  documentSession,
   archiveSettings,
   readArchive,
   ResourceLimitError,
@@ -13,6 +15,7 @@ import {
 } from "./archive.js";
 
 export interface AdmittedDocumentArchive extends DocumentArchive {
+  readonly [admittedXml]?: Map<Uint8Array, XmlElement>;
   readonly kind: "docx" | "dotx";
   readonly dialect: DocumentDialect;
   readonly mainPart: string;
@@ -38,7 +41,9 @@ export async function readDocumentArchive(
   input: Uint8Array,
   context: ArchiveContext
 ): Promise<AdmittedDocumentArchive> {
-  const { limits, signal, budget } = archiveSettings(context);
+  const settings = archiveSettings(context);
+  if (settings[documentSession]) return settings[documentSession].read(input);
+  const { limits, signal, budget } = settings;
   if (signal.aborted) throw new CancellationError("Document admission cancelled.");
   if (
     input instanceof Uint8Array &&
@@ -52,17 +57,23 @@ export async function readDocumentArchive(
     );
   }
   const archive = await readArchive(input, { limits, signal, budget });
+  return admitDocumentArchive(archive, { limits, signal, budget }, input.length);
+}
+
+export const admittedXml = Symbol("admitted-xml");
+export async function admitDocumentArchive(archive: DocumentArchive, context: ArchiveContext, inputBytes = 0, parsed = new Map<Uint8Array, XmlElement>()): Promise<AdmittedDocumentArchive> {
+  const { limits, signal, budget } = archiveSettings(context);
+  for (const member of archive.members) budget[documentXmlCache].admitted?.add(member.bytes);
   const total = archive.members.reduce((sum, member) => sum + member.bytes.length, 0);
   // Reserve strings, parser state and lookup metadata in addition to owned payloads.
   if (
-    input.length * 4 + total * 16 + archive.members.length * 1024 + 65536 >
+    inputBytes * 4 + total * 16 + archive.members.length * 1024 + 65536 >
     limits.maxRetainedBytes
   )
     throw new ResourceLimitError("Document admission retained byte budget exceeded.");
-  const parsed = new Map<Uint8Array, XmlElement>();
   for (const member of archive.members) {
     if (member.name.toLowerCase() === "[content_types].xml" || member.name.toLowerCase().endsWith(".rels"))
-      parsed.set(member.bytes, (await parseDocumentXmlAsync(member.bytes, {}, budget)).root);
+      if (!parsed.has(member.bytes)) parsed.set(member.bytes, (await parseDocumentXmlAsync(member.bytes, {}, budget)).root);
   }
   const graph = new DocumentPackage(archive, limits, budget, parsed);
   for (const part of graph.parts) {
@@ -94,5 +105,5 @@ export async function readDocumentArchive(
   }
   const dialect = validatePackageDialect(graph, mainRelationships[0]!, parsed.get(main.bytes)!, budget, parsed);
   if (signal.aborted) throw new CancellationError("Document admission cancelled.");
-  return { ...archive, kind, dialect, mainPart: main.name, package: graph };
+  return { ...archive, kind, dialect, mainPart: main.name, package: graph, [admittedXml]: parsed };
 }

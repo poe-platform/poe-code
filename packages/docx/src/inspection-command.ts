@@ -37,7 +37,7 @@ import { extractDocumentText, type TextOptions } from "./text.js";
 import { executeCreateCommand } from "./create-command.js";
 import { executeTextReplaceCommand } from "./text-replace-command.js";
 import { executeParagraphEditCommand } from "./paragraph-edit-command.js";
-import { executeStyleModelCommand } from "./style-model-command.js";
+import { executeBatchCommand } from "./batch-command.js";
 import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
 import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
@@ -142,7 +142,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
-        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["sanitize", "signatures.remove", "shapes.set", "properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "lorem.set", "runs.set", "paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
+        if ((controlTemplateOperation || invocation.operation === "controls.set" || (commentOperation && !["comments.list", "comments.get"].includes(invocation.operation)) || (noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || revisionEditOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["sanitize", "signatures.remove", "shapes.set", "properties.set", "properties.remove", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "lorem.set", "runs.set", "paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat && (invocation.operation !== "batch" || invocation.options.inPlace === true || typeof invocation.options.output === "string" && invocation.options.output !== "-")) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -184,7 +184,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
             : listOperation ? await executeListsCommand(invocation, bytes, inputIdentity, request, context)
             : storyOperation ? await executeStoriesCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation.startsWith("sections.") ? await executeSectionsCommand(invocation, bytes, inputIdentity, request, context)
-            : invocation.operation === "batch" ? await executeStyleModelCommand(invocation, bytes, inputIdentity, request, context)
+            : invocation.operation === "batch" ? await executeBatchCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation.startsWith("styles.") ? await executeStylesCommand(invocation, bytes, inputIdentity, request, context)
             : ["paragraphs.remove", "runs.remove", "tables.remove"].includes(invocation.operation) ? await executeContentRemovalCommand(invocation, bytes, inputIdentity, request, context)
             : ["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) ? await executeParagraphEditCommand(invocation, bytes, inputIdentity, request, context)
@@ -269,12 +269,14 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         exitCode = error instanceof ResourceLimitError ? 4 : code === "conflict" ? 1 : acquiring || error instanceof PublicationError || code === "source-failure" || code === "sink-failure" ? 3 : code === "usage" ? 2 : 1;
         const diagnostic = commandDiagnostic(acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code, code, budget.limits.diagnosticBytes);
         const message = diagnostic.message;
+        const batchFailure = invocation.operation === "batch" && error instanceof Error && "operationIndex" in error && "operationId" in error
+          ? { operationIndex: error.operationIndex, operationId: error.operationId } : {};
         const imageFailure = ["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageCommandPublicationError || error instanceof ObjectCommandPublicationError) ? error : undefined;
         const locatedFailure = error instanceof UnsupportedDiagramMutationError || error instanceof UnsupportedEquationMutationError ? error : undefined;
         if (imageFailure) imageReceipt = imageFailure.data;
         output = imageFailure ? imageFailure.responseBytes : locatedFailure && invocation.options.json === true
           ? serializeDiagramMutationFailure(invocation.operation, locatedFailure, code, message, budget)
-          : new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n" : "");
+          : new TextEncoder().encode(invocation.options.json === true ? JSON.stringify({ version: 1, operation: invocation.operation, ok: false, data: null, warnings: [], errors: [{ code, message, ...batchFailure }], affected: 0, locations: [] }) + "\n" : "");
         try { await request.stderr.write(imageFailure ? imageFailure.diagnosticBytes : new TextEncoder().encode(diagnostic.human)); }
         catch (cause) { return sinkFailure(cause); }
       } finally { await io.cleanup(); }

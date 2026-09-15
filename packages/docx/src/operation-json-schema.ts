@@ -163,7 +163,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   }
   if (type === "BatchV1") return objectSchema({ version: "literal 1", operations: "ReadonlyArray<OperationV1>" }, definitions);
   if (type === "OperationV1") return { oneOf: Object.entries(docxOperationSchemas).filter(([, declaration]) => declaration.batchFields !== undefined).map(([id, declaration]) => {
-    const properties: Record<string, DocxJsonSchema> = { operation: { const: id }, arguments: fieldsSchema(declaration.batchFields!, definitions) };
+    const properties: Record<string, DocxJsonSchema> = { id: { type: "string", minLength: 1, maxLength: 64, pattern: "^[A-Za-z][A-Za-z0-9_-]*$" }, operation: { const: id }, arguments: fieldsSchema(declaration.batchFields!, definitions) };
     const required = ["operation", "arguments"];
     if (declaration.receiver) { properties.receiver = receiverSchema(declaration.receiver, definitions); required.push("receiver"); }
     if (declaration.resultHandle?.allowed) properties.resultHandle = identifier;

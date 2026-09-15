@@ -1,5 +1,10 @@
 import { CancellationError, InvalidValueError, ResourceLimitError } from "./archive.js";
 
+import type { DocumentXml } from "./package-xml.js";
+
+export const documentXmlCache = Symbol("document-xml-cache");
+interface InvocationXmlCache { entries?: Map<string, DocumentXml[]>; admitted?: WeakSet<Uint8Array> }
+
 export const documentLimitDefaults = Object.freeze({
   compressedInput: 64 * 1024 * 1024,
   expandedPackage: 256 * 1024 * 1024,
@@ -50,6 +55,7 @@ export class DocumentBudget {
   #ledger: Partial<Record<DocumentLimitName, number>> = {};
   #document: Partial<Record<DocumentLimitName, number>> = {};
   #cooperation = { work: 0 };
+  #xmlCache: InvocationXmlCache = {};
 
   constructor(host: Partial<DocumentLimits> = {}, signal = new AbortController().signal,
     yieldTurn: (signal: AbortSignal) => Promise<void> = async () => {
@@ -63,6 +69,8 @@ export class DocumentBudget {
     Object.freeze(this);
   }
 
+  get [documentXmlCache](): InvocationXmlCache { return this.#xmlCache; }
+
   get usage(): DocumentLimits {
     const usage: Record<DocumentLimitName, number> = { ...documentLimitDefaults };
     for (const key of Object.keys(usage) as DocumentLimitName[]) usage[key] = this.#ledger[key] ?? 0;
@@ -75,6 +83,7 @@ export class DocumentBudget {
     next.#ledger = this.#ledger;
     next.#document = this.#document;
     next.#cooperation = this.#cooperation;
+    next.#xmlCache = this.#xmlCache;
     return next;
   }
 

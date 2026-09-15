@@ -14,7 +14,15 @@ export interface ArchiveLimits {
   readonly chunkSize: number;
 }
 
+export const documentSession = Symbol("document-session");
+export interface StagedArchiveSession {
+  readonly generation: number;
+  read(input: Uint8Array): Promise<import("./admission.js").AdmittedDocumentArchive>;
+  stage(archive: DocumentArchive): Promise<void>;
+}
+
 export interface ArchiveContext {
+  readonly [documentSession]?: StagedArchiveSession;
   readonly limits: ArchiveLimits;
   readonly signal: AbortSignal;
   readonly budget?: DocumentBudget;
@@ -55,6 +63,7 @@ export function archiveSettings(context: ArchiveContext): {
   signal: AbortSignal;
   codecLimits: ZipLimits;
   budget: DocumentBudget;
+  [documentSession]?: StagedArchiveSession;
 } {
   if (!context || !context.limits || !(context.signal instanceof AbortSignal))
     throw new InputTypeError("Expected bytes, explicit limits and a cancellation signal.");
@@ -94,7 +103,7 @@ export function archiveSettings(context: ArchiveContext): {
     maxPaxBytes: limits.maxExtraBytes,
     maxTextBytes: limits.maxCommentBytes
   };
-  return { limits, signal, codecLimits, budget };
+  return { limits, signal, codecLimits, budget, ...(context[documentSession] ? { [documentSession]: context[documentSession] } : {}) };
 }
 
 export async function readArchive(

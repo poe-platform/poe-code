@@ -1,6 +1,6 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlLimits } from "@poe-code/safe-fs/xml";
 import { CancellationError, InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
-import { DocumentBudget } from "./budget.js";
+import { documentXmlCache, DocumentBudget } from "./budget.js";
 export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml";
 
 export class InvalidPackageError extends Error {
@@ -113,23 +113,57 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
   }
 }
 
+function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget: DocumentBudget): { key?: string; document?: DocumentXml } {
+  const entries = budget[documentXmlCache].entries;
+  if (!entries) return {};
+  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected XML bytes.");
+  const limits = documentXmlSettings(options, budget);
+  budget.check("work", 0);
+  if (input.length > limits.maxBytes || input.length > limits.maxWork)
+    throw new ResourceLimitError("XML byte or work limit exceeded.");
+  budget.charge("work", input.length);
+  let hash = 2166136261;
+  for (const byte of input) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+  const key = `${JSON.stringify(limits)}:${input.length}:${hash}`;
+  for (const candidate of entries.get(key) ?? []) {
+    budget.charge("work", input.length);
+    if (candidate.bytes.every((byte, index) => byte === input[index])) return { key, document: candidate };
+  }
+  return budget[documentXmlCache].admitted?.has(input) ? { key } : {};
+}
+
+function retainDocumentXml(key: string | undefined, document: DocumentXml, budget: DocumentBudget): DocumentXml {
+  if (key !== undefined) {
+    const entries = budget[documentXmlCache].entries!;
+    budget.charge("retainedBytes", key.length * 2 + 128);
+    const bucket = entries.get(key) ?? [];
+    bucket.push(document);
+    entries.set(key, bucket);
+  }
+  return document;
+}
+
 export function parseDocumentXml(input: Uint8Array, options: DocumentXmlLimits = {}, budget = new DocumentBudget()): DocumentXml {
+  const cached = cachedDocumentXml(input, options, budget);
+  if (cached.document) return cached.document;
   const parser = documentXmlSteps(input, options, budget);
   try {
     while (true) {
       const step = parser.next();
-      if (step.done) return step.value;
+      if (step.done) return retainDocumentXml(cached.key, step.value, budget);
       budget.charge("work", step.value);
     }
   } finally { parser.return(undefined as never); }
 }
 
 export async function parseDocumentXmlAsync(input: Uint8Array, options: DocumentXmlLimits = {}, budget = new DocumentBudget()): Promise<DocumentXml> {
+  const cached = cachedDocumentXml(input, options, budget);
+  if (cached.document) return cached.document;
   const parser = documentXmlSteps(input, options, budget);
   try {
     while (true) {
       const step = parser.next();
-      if (step.done) return step.value;
+      if (step.done) return retainDocumentXml(cached.key, step.value, budget);
       await budget.checkpoint(step.value);
     }
   } finally { parser.return(undefined as never); }

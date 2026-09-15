@@ -44,3 +44,26 @@ export function rasterTiff(little = true, unit = 2, x: readonly [number, number]
   entry(0, 256, 4, 1); entry(1, 257, 4, 1); entry(2, 282, 5, 74); entry(3, 283, 5, 82); entry(4, 296, 3, unit);
   v.setUint32(74, x[0], little); v.setUint32(78, x[1], little); v.setUint32(82, y[0], little); v.setUint32(86, y[1], little); bytes[90] = 80; return bytes;
 }
+
+export function rasterDirectory(little: boolean, entries: readonly { tag: number; type: number; values: readonly number[] }[]): Uint8Array {
+  const sizes: Readonly<Record<number, number>> = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1 };
+  const directoryEnd = 14 + entries.length * 12;
+  const bytes = new Uint8Array(directoryEnd + entries.reduce((sum, entry) => sum + (entry.values.length * sizes[entry.type]! > 4 ? entry.values.length * sizes[entry.type]! : 0), 0));
+  const view = new DataView(bytes.buffer);
+  bytes.set(little ? [73, 73] : [77, 77]); view.setUint16(2, 42, little); view.setUint32(4, 8, little); view.setUint16(8, entries.length, little);
+  let external = directoryEnd;
+  entries.forEach((entry, index) => {
+    const start = 10 + index * 12, size = sizes[entry.type]!, total = size * entry.values.length;
+    view.setUint16(start, entry.tag, little); view.setUint16(start + 2, entry.type, little); view.setUint32(start + 4, entry.values.length, little);
+    const address = total <= 4 ? start + 8 : external;
+    if (total > 4) { view.setUint32(start + 8, external, little); external += total; }
+    entry.values.forEach((value, item) => {
+      const offset = address + item * size;
+      if (size === 1) view.setUint8(offset, value);
+      else if (size === 2) view.setUint16(offset, value, little);
+      else if (size === 4) view.setUint32(offset, value, little);
+      else { view.setUint32(offset, value, little); view.setUint32(offset + 4, 1, little); }
+    });
+  });
+  return bytes;
+}

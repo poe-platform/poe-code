@@ -40,6 +40,44 @@ worker reviews reconciliation and the final candidate. No leaf Git operations.
    Isolate only task69 status from parsed HEAD YAML, preserve unrelated staging/
    working edits. Only after verification/commits begin task70. No push/release.
 
+## Current final verification
+
+Final frozen product candidate: maintained workspace 108 files / 2402 tests
+passed in /tmp/docx69-capability-workspace-final-test.log; maintained package
+lint/source/test types passed in /tmp/docx69-capability-final-lint.log. Header
+68 focused cases and domain 54 focused cases passed without parser changes.
+Independent renewed checks passed 182/116/108 focused/Shell/registration tests
+with append-aware 258-file proof unchanged; exact logs are
+/tmp/docx69-independent-renewed-focused-011.log,
+/tmp/docx69-independent-renewed-shell-009.log,
+/tmp/docx69-independent-renewed-registration-010.log and
+/tmp/docx69-independent-renewed-proof-012.json.
+
+Root final selected build/public exports v2 passed, with five derived build
+stages and two portable export tests. Maintained safe-bash typecheck passed
+26 current groups in /tmp/docx69-root-final-safe-bash-typecheck.log.
+Original regressions preceded validated coercion, path-byte bounds, dotfile,
+JavaScript constructor, unbounded read fallback and canonical schema fixes;
+preparation or test-fixture mistakes remain separate from behavioral red evidence.
+The sole/shared spec checkers each pass with zero warnings and retain Proposed /
+Implemented Through Not applicable metadata.
+
+Complete-input QA passed 24/24 admissions and 4/4 controls against a fresh approved
+258-path immutable source/member cohort. Reduced evidence is in docs/docx; no
+product binaries or native dependency was added. Initial QA inventories outside
+the approved current-source scope are explicitly superseded. The image campaign
+retains its authenticated inputs and exact owned cleanup inventory.
+
+Root lint's first candidate passed but predates final corrections. Renewed v2
+lint processed all 12621 subjects with 0 errors / 12 warnings but is INCOMPLETE:
+two ancestor identity gaps followed checkout root directory-size drift while QA
+created ignored scratch storage. Preserve the receipt, do not relax guards.
+All source/docs/cache entries are now settled before a third current-candidate
+guarded lint retry. The final v3 retry passed exit 0, complete 12621/12621 subjects,
+0 errors / 12 existing warnings, 25 receipts and 0 gaps in
+/tmp/docx69-root-final-guarded-lint-v3.log. Implementation/test statuses remain
+open pending atomic local commits. No push or release, no later task started.
+
 Initial ownership is read-only investigation, not implementation authorization.
 Root additionally owns docs/specs/office-sdk.md solely to qualify the shared
 live-owner rule for document/presentation-owned objects and immutable values.
@@ -65,11 +103,58 @@ Exclusive leaf ownership after reconciliation approval:
   operation-schema-data.ts; discovery.ts and its test; new
   packages/safe-bash/tests/commands/docx/image-model.test.ts.
 
+After screenshot review, the batch worker additionally owns
+packages/docx/src/operation-schema.ts and operation-json-schema.ts solely for
+declarative operation-specific finite wire refinements; operation-types.ts and
+operation-types.test.ts solely for the four Image factory map declarations and
+their exact type parity tests. Byte-only from_blob and closed image context must
+agree across runtime, schema and SDK batch declarations, preserving other routes.
+The batch worker additionally owns raster-operation-contract.test.ts solely to
+synchronize its exact F32 subset inventory after the maintained full workspace
+run exposed one stale assertion (2400 passing / 1 failing). The insertion subgroup
+remains PNG/JPEG only; standalone five-format values have independent read scope.
+
 Root additionally owns packages/safe-bash/scripts/integration-inputs.test.mjs
 solely for exact literal registration of that new test, preserving historical
 membership/seals. Root remains integration/export and Git owner. Different-worker
 review is required again for final implementation. Failing tests must precede
 implementation; product behavior and full parity remain unverified.
+
+## Final image value QA procedure
+
+The header leaf owns new docs/docx/image-format-api-qa.json solely as a reduced
+receipt. QA execution is authorized on the final frozen candidate after the
+maintained workspace result of 108 files / 2402 tests passed; it cannot promote
+extra insertion formats or live part/shape models. Root owns usage prose/Git.
+
+Execute only after the candidate product paths are frozen and original TypeScript
+tests pass. Use a unique disposable ignored output directory; execution scratch
+is not a maintained QA script or product dependency.
+
+1. Authenticate the retained original alpha PNG, portrait JPEG and landscape
+   JPEG against task 68's three recorded SHA-256 values. Enumerate only these
+   owned inputs; preserve downloaded corpus and historical seals. Derive complete
+   GIF/BMP/TIFF variants from original technical pixels with an available
+   QA-only independent converter, recording exact tool version and conversion
+   outcomes. Unavailable conversion is pending evidence, never a pass.
+2. Capture append-aware source/test/helper membership and SHA-256 values before
+   execution. Invoke the public portable TypeScript Image factories on complete
+   inputs via owned bytes, producer-reused fragments through explicit
+   open(signal), and capability-scoped memfs VFS paths. No ambient path opening
+   enters product admission. Record MIME, pixel dimensions, effective per-axis
+   DPI, generic versus VFS filename/ext, native and scaled EMUs, exact blob
+   equality and SHA-1. Verify absent/mismatched capabilities fail without reads.
+3. Independently characterize dimensions/density using the QA tool where
+   available, and compute SHA-1/SHA-256 with an independent standard-library
+   tool. Compare exact owned bytes, physical axis sizing and final shared
+   rounding against explicit expected values. Confirm known suffix mismatch
+   refuses; unknown suffix remains metadata. This does not qualify rendering,
+   insertion of GIF/BMP/TIFF, ImagePart or shape semantics.
+4. Repeat frozen membership/hashes after execution; refuse any unexplained
+   candidate drift. Reduce exact cohort counts, inputs/hashes, independent tool
+   profile, results and limitations into docs/docx/image-format-api.md and an
+   explicitly owned reduced JSON receipt there. Keep binaries only while this
+   image campaign needs them, then clean only the authenticated owned inventory.
 All138 image-codec,7 image-part and13 shape source variants and24 inventoried
 image/shape APIs require exact semantic accounting; current task promotion must
 be limited to actually passing original TS cases. Header-only technical fixtures

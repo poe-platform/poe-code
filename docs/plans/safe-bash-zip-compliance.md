@@ -101,3 +101,16 @@ ignored recursion and missing archives. Manual Zip 3.0 captures establish those
 statuses, channels, diagnostics and member effects. Integrity-test progress is
 flushed before validation to retain progress on test failure; default creation
 still emits completed progress after publication.
+
+## Update and freshen
+
+`-u` and `-f` compare whole-second modification times before reading source bytes;
+update adds new members, freshen does not. No-operand invocation selects existing
+archive names. Unchanged invocations return status 12 silently without publishing.
+Nine memory cases verify fractional-second skipping, newer replacements,
+no-operand selection with filters, new-member distinctions, incompatible action
+diagnostics, skipped payload reads and absent-archive freshening. Manual Zip 3.0
+captures establish the same behaviors, including odd-second Unix timestamps,
+freshening progress, missing-archive warnings and update's empty-inclusion result
+when creating a missing archive. Format/metadata dialect coverage still requires
+the remaining independent compatibility qualification.

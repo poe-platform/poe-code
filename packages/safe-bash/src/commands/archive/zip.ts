@@ -10,7 +10,7 @@ import { publishZip, ZipScope } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 
 interface ZipOptions {
-  readonly action: "add" | "delete";
+  readonly action: "add" | "delete" | "update" | "freshen";
   readonly archive: string;
   readonly recursive: boolean;
   readonly quiet: boolean;
@@ -73,7 +73,11 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
         if (flag === "r") recursive = true;
-        else if (flag === "d") action = "delete";
+        else if (flag === "d" || flag === "u" || flag === "f") {
+          const next = flag === "d" ? "delete" : flag === "u" ? "update" : "freshen";
+          if (action !== "add" && action !== next) throw new ZipFailure(16, "Invalid command arguments", "specify just one action");
+          action = next;
+        }
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
         else if (flag === "D") omitDirectories = true;
@@ -201,6 +205,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
+  if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
   const deleted = new Set<string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal);
@@ -239,7 +244,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const included = await filterName(name, selection, parsed.includes.length);
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
-    if (name && included && !(directory && parsed.omitDirectories)) {
+    const prior = old.get(name);
+    const eligible = parsed.action !== "update" && parsed.action !== "freshen"
+      || (prior ? Math.floor(stat.mtimeMs / 1000) > Math.floor(prior.modified.getTime() / 1000) : parsed.action === "update");
+    if (name && included && eligible && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {
@@ -261,7 +269,6 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
         let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, limits, context.signal, parsed.level);
         if ([".z", ".zip", ".zoo", ".arc", ".lzh", ".arj"].some(suffix => name.toLowerCase().endsWith(suffix))) entry = { ...entry, method: 0, data: bytes };
-        const prior = old.get(name);
         if (prior?.comment) entry = { ...entry, comment: prior.comment };
         if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
         compressedBytes += entry.data.length;
@@ -297,8 +304,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       }
     }
   } else {
-    for (const operand of parsed.operands) await visit(operand, memberName(operand, limits), 0);
+    const operands = parsed.operands.length || parsed.action === "add" ? parsed.operands : archive.entries.map(entry => entry.name);
+    for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
   }
+  if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
   if (!selected.size && !deleted.size && (parsed.action === "delete" || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${context.args.slice(0, parsed.firstOperand).join(" ")} . -i ${context.args.slice(parsed.firstOperand).join(" ")}`
@@ -317,7 +326,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   };
   const append = (entry: ZipEntry, update: boolean) => {
     const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
-    queue(`${update ? "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    queue(`${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
@@ -365,6 +374,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     try {
       const parsed = await parse(scope, limits);
       const prepared = await prepare(scope, parsed, budget);
+      if (!prepared) return { exitCode: 12 };
       await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, prepared)));
       for (const message of prepared.progress) await budget.output(message);
       return { exitCode: 0 };

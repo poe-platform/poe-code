@@ -12,6 +12,67 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+for (const flag of ["-u", "-f"]) {
+  test(`zip ${flag} updates newer members but skips equal whole-second timestamps`, async () => {
+    const fs = await fixture();
+    const before = await fs.readFile("/work/sample.zip");
+    const old = Date.parse("2024-01-02T03:04:06Z");
+    await fs.writeFile("/work/binary", Buffer.from("new"));
+    await fs.utimes!("/work/binary", old + 500, old + 500);
+    const same = await execute("zip", fs, [flag, "sample.zip", "binary"]);
+    assert.deepEqual(same, { exitCode: 12, stdout: Buffer.alloc(0), stderr: "" });
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+    await fs.utimes!("/work/binary", old + 1000, old + 1000);
+    const newer = await execute("zip", fs, [flag, "sample.zip", "binary"]);
+    assert.equal(newer.exitCode, 0, newer.stdout.toString() + newer.stderr);
+    assert.ok(newer.stdout.toString().startsWith(flag === "-f" ? "freshening: binary" : "updating: binary"));
+    assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "binary"])).stdout, Buffer.from("new"));
+  });
+
+  test(`zip ${flag} with no operands selects existing archive paths`, async () => {
+    const fs = await fixture();
+    await fs.writeFile("/work/binary", Buffer.from("new"));
+    const result = await execute("zip", fs, ["-q", flag, "sample.zip", "-i", "binary"]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "binary"])).stdout, Buffer.from("new"));
+  });
+}
+
+test("zip freshen excludes new members while update adds them", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/new", binary);
+  const before = await fs.readFile("/work/sample.zip");
+  const freshen = await execute("zip", fs, ["-qf", "sample.zip", "new"]);
+  assert.deepEqual(freshen, { exitCode: 12, stdout: Buffer.alloc(0), stderr: "" });
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  const update = await execute("zip", fs, ["-qu", "sample.zip", "new"]);
+  assert.equal(update.exitCode, 0, update.stdout.toString() + update.stderr);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "sample.zip", "new"])).stdout, binary);
+});
+
+test("zip update skips unchanged payload reads and freshen does not create missing archives", async () => {
+  const fs = await fixture();
+  const old = Date.parse("2024-01-02T03:04:06Z");
+  await fs.utimes!("/work/binary", old, old);
+  const readStream = fs.readStream!.bind(fs);
+  Object.defineProperty(fs, "readStream", { value: (path: string, ...args: unknown[]) => {
+    assert.notEqual(path, "/work/binary", "unchanged source payload read");
+    return Reflect.apply(readStream, fs, [path, ...args]);
+  } });
+  assert.deepEqual(await execute("zip", fs, ["-u", "sample.zip", "binary"]), { exitCode: 12, stdout: Buffer.alloc(0), stderr: "" });
+  const missing = await execute("zip", fs, ["-f", "missing.zip", "binary"]);
+  assert.deepEqual(missing, { exitCode: 12, stdout: Buffer.from("\tzip warning: missing.zip not found or empty\n"), stderr: "" });
+  await assert.rejects(fs.stat("/work/missing.zip"), { code: "ENOENT" });
+});
+
+for (const flags of ["-uf", "-du", "-fd"]) {
+  test(`zip ${flags} rejects conflicting actions`, async () => {
+    const result = await execute("zip", await fixture(), [flags, "sample.zip", "binary"]);
+    assert.equal(result.exitCode, 16);
+    assert.match(result.stdout.toString(), /specify just one action/u);
+  });
+}
+
 test("zip -d matches archive members without reading their source files", async () => {
   const fs = await fixture();
   await fs.rm("/work/folder", { recursive: true });

@@ -39,6 +39,14 @@ The input stream is owned and drained before cancellation settlement. This optio
 reads filename lists; stdin file payloads and stdout archives remain separate
 streaming work.
 
+`-u` updates existing members only when the source has a newer whole-second
+modification time, and adds new members. `-f` freshens only existing newer members.
+With no file operands, these modes select existing archive paths. Unchanged source
+payloads are not read or recompressed. If nothing changes, status 12 is returned
+without the fatal `Nothing to do!` diagnostic or archive publication. Freshening
+does not create a missing archive. Different action flags (`-u`, `-f`, `-d`) cannot
+be combined; repeated instances of the same action are accepted.
+
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.
 Unmatched operand patterns warn unless quiet; no selected members returns status

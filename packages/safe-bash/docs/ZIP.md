@@ -109,6 +109,17 @@ without editing comments. Input and resulting comments are bounded by
 `maxFilesFromBytes`, `maxPatternSteps`, `maxTextBytes` and the 65,535-byte format
 limit. Overflow rejects publication rather than truncating the comment.
 
+`-c` / `--entry-comments` reads one comment line for each selected member in
+archive order after file processing. Trailing LF is removed, CR remains literal,
+and NUL truncates the line. A blank line clears a member comment; EOF preserves
+its previous comment. Update/freshen can comment unchanged members without
+reading their payloads. Prompts are suppressed by quiet; delete/copy ignore the
+flag, and wholly current filesync skips commenting. Entry comments and `-z`
+share one bounded stdin cursor. Comment lines split at 65,535 bytes like native
+`fgets`. Changed Unicode-comment extras are removed to avoid stale CRCs. Raw
+non-UTF8 comments clear the UTF-8 flag; required Unicode-path metadata preserves
+Unicode filenames when that flag is cleared.
+
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.
 Unmatched operand patterns warn unless quiet; no selected members returns status

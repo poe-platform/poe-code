@@ -414,6 +414,46 @@ export function updateZipExtras(entry: ZipEntry, previous: ZipEntry | undefined,
   return { ...entry, localExtra: retained[0]!, centralExtra: retained[1]! };
 }
 
+export function setZipEntryComment(entry: ZipEntry, comment: Uint8Array, limits: ArchiveLimits): ZipEntry {
+  number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
+  let flags = entry.flags ?? 0x800;
+  if (flags & 0x800) {
+    try { new TextDecoder("utf-8", { fatal: true }).decode(comment); }
+    catch { flags &= ~0x800; }
+  }
+  const rawName = entry.rawName ?? pathBytes(entry.name, limits);
+  const needUnicodePath = !(flags & 0x800) && legacyName(rawName) !== entry.name;
+  const metadata: Uint8Array[] = [];
+  for (const [original, central] of [[entry.localExtra ?? timestampExtra(entry.modified), false], [entry.centralExtra ?? timestampExtra(entry.modified), true]] as const) {
+    extras(original, rawName, entry.comment ?? new Uint8Array(), central, limits);
+    const fields: Uint8Array[] = [];
+    const view = new DataView(original.buffer, original.byteOffset, original.byteLength);
+    for (let offset = 0; offset < original.length;) {
+      const identifier = view.getUint16(offset, true);
+      const next = offset + 4 + view.getUint16(offset + 2, true);
+      // A changed comment invalidates the old Unicode-comment CRC. Rebuild the
+      // Unicode path when it is required after clearing the UTF-8 flag.
+      if (identifier !== 0x6375 && !(needUnicodePath && identifier === 0x7075)) fields.push(original.subarray(offset, next));
+      offset = next;
+    }
+    if (needUnicodePath) {
+      const name = pathBytes(entry.name, limits);
+      const field = new Uint8Array(9 + name.length);
+      const header = new DataView(field.buffer);
+      header.setUint16(0, 0x7075, true);
+      header.setUint16(2, 5 + name.length, true);
+      field[4] = 1;
+      header.setUint32(5, crc32(rawName), true);
+      field.set(name, 9);
+      fields.push(field);
+    }
+    const rebuilt = Buffer.concat(fields);
+    number(rebuilt.length, Math.min(limits.maxPaxBytes, 65535), "extra field");
+    metadata.push(rebuilt);
+  }
+  return { ...entry, comment: new Uint8Array(comment), flags, localExtra: metadata[0]!, centralExtra: metadata[1]! };
+}
+
 interface EncodedEntry {
   entry: ZipEntry; rawName: Uint8Array; localExtra: Uint8Array; centralExtra: Uint8Array;
   comment: Uint8Array; wide: boolean; flags: number; date: number; time: number; offset: number;

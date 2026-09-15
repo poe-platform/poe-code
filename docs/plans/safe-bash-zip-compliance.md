@@ -399,3 +399,24 @@ and exact Unicode multiline comment in /tmp/safe-bash-zip-comment-result.zip.
 Filesync scoped release 35015808387 successfully published safe-bash 0.1.622;
 range release 35016159365 remains live. Remaining line conversion, entry comments,
 streaming, formats and grammar stay open.
+
+## Entry comments and shared input
+
+Native Unix captures and public zip.c comadd establish c/entry-comments reads
+one line per marked member in archive order after processing. LF is removed,
+CR remains literal, NUL truncates, blank clears and EOF retains old comments.
+Update/freshen can comment current members; delete/copy ignore with warnings;
+current filesync skips. Added a bounded cursor shared by entry/archive comments,
+with lazy acquisition when no comment input is needed. Initial fourteen failing
+cases validated unsupported c; two more exposed invalid UTF-8 comment flags and
+one proved unnecessary stdin acquisition. Nineteen memory cases cover those gaps,
+ordering, grammar, current payload preservation, old EOF comments, resource
+rejection, raw bytes with Unicode names, stale Unicode-comment metadata and the
+65,535-byte fgets split. Required Unicode-path extras retain filename identity
+after clearing UTF-8 for raw comments; changed comment CRC extras are removed.
+Native UnZip integrity checks pass for normal and raw-comment generated archives;
+Python independently checks exact Unicode entry/archive comments and binary data.
+Reference: https://github.com/LuaDist/zip/blob/master/zip.c
+Range release 35016159365 failed on previously published version 0.1.622;
+archive-comment release 35016686051 remains live. Remaining line conversion,
+move/timestamps, streaming, formats and grammar stay open.

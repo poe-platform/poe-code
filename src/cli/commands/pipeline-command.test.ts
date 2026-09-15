@@ -1264,7 +1264,7 @@ describe("pipeline run command", () => {
     );
   });
 
-  it.each([false, true])("routes pipeline progress with taskCompleted=%s through the dashboard", async (taskCompleted) => {
+  it.each([false, true].flatMap(taskCompleted => [undefined, { inputTokens: 80, outputTokens: 20 }].map(initializationUsage => ({ taskCompleted, initializationUsage }))))("routes pipeline progress with $taskCompleted and $initializationUsage through the dashboard", async ({ taskCompleted, initializationUsage }) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1281,8 +1281,10 @@ describe("pipeline run command", () => {
         done: 1,
         failed: 0,
         open: 2,
-        total: 3
+        total: 3,
+        ...(initializationUsage ? { initializationUsage } : {})
       });
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ tokensIn: initializationUsage?.inputTokens ?? 0, tokensOut: initializationUsage?.outputTokens ?? 0 }));
       options.onTaskStart?.({
         taskId: "auth-hardening",
         taskTitle: "Auth hardening",
@@ -1315,8 +1317,8 @@ describe("pipeline run command", () => {
         runsCompleted: 1,
         totalDurationMs: 2_000,
         metrics: {
-          totalInputTokens: 120,
-          totalOutputTokens: 45,
+          totalInputTokens: 120 + (initializationUsage?.inputTokens ?? 0),
+          totalOutputTokens: 45 + (initializationUsage?.outputTokens ?? 0),
           totalCachedTokens: 0,
           tasksCompleted: 1,
           tasksFailed: 0,
@@ -1397,8 +1399,8 @@ describe("pipeline run command", () => {
       expect.objectContaining({
         status: "done",
         iterations: taskCompleted ? 1 : 0,
-        tokensIn: 120,
-        tokensOut: 45,
+        tokensIn: 120 + (initializationUsage?.inputTokens ?? 0),
+        tokensOut: 45 + (initializationUsage?.outputTokens ?? 0),
         currentAction: "Task 2/3 · Auth hardening · implement · step 1/2"
       })
     );

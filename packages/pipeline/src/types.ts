@@ -156,6 +156,7 @@ export interface TaskCompletion extends TaskProgress {
 }
 
 export interface PlanSummary {
+  initializationUsage?: AgentRunUsage;
   planPath: string;
   done: number;
   failed: number;

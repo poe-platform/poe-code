@@ -2,7 +2,9 @@ import * as fsPromises from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import {
   resolveAbsolutePlanPath,
+  includePipelineInitialization,
   runPipeline as runWorkspacePipeline,
+  type AgentRunUsage,
   type PipelineFileSystem,
   type PipelineRunOptions as WorkspacePipelineRunOptions,
   type PipelineRunResult
@@ -155,6 +157,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
 async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
   assertNotAborted(options.signal);
+  let initialization: { durationMs: number; usage?: AgentRunUsage } | undefined;
   const userRunAgent =
     options.runAgent ??
     (async (input: PipelineAgentRunnerInput) => {
@@ -176,6 +179,7 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
     const planFs = options.fs ?? fsPromises;
     const planAbsolutePath = resolveAbsolutePlanPath(options.plan, options.cwd, options.homeDir);
     if (await planNeedsInit(planAbsolutePath, planFs)) {
+      const initializationStartedAt = Date.now();
       const sourceDocContent = await planFs.readFile(planAbsolutePath, "utf8");
       const prompt = buildPipelineInitPrompt({
         sourceDocPath: options.plan,
@@ -198,16 +202,28 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
       if (initResult.exitCode !== 0) {
         throw new Error(`Pipeline initialization failed with exit code ${initResult.exitCode}.`);
       }
+      initialization = {
+        durationMs: Math.max(0, Date.now() - initializationStartedAt),
+        ...(initResult.usage ? { usage: initResult.usage } : {})
+      };
     }
   }
 
   const retryRunAgent: PipelineAgentRunner = (input) =>
     runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT, input.signal);
 
-  return runWorkspacePipeline({
+  const initializationUsage = initialization?.usage;
+  const result = await runWorkspacePipeline({
     ...options,
+    ...(initializationUsage && options.onPlanResolved
+      ? {
+          onPlanResolved: (summary) =>
+            options.onPlanResolved?.({ ...summary, initializationUsage })
+        }
+      : {}),
     runAgent: retryRunAgent
   });
+  return initialization ? includePipelineInitialization(result, initialization) : result;
 }
 
 function isWorktreeEnabled(worktree: WorktreeExecutionOptions | undefined): boolean {

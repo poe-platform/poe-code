@@ -631,6 +631,10 @@ async function runPipelineWithDashboard(
       },
       onPlanResolved(summary: PlanSummary) {
         currentAction = undefined;
+        if (summary.initializationUsage) {
+          tokensIn += summary.initializationUsage.inputTokens;
+          tokensOut += summary.initializationUsage.outputTokens;
+        }
         appendOutput("info", `Tasks · ${formatPipelineTasksSummary(summary)}`);
         syncStats();
       },

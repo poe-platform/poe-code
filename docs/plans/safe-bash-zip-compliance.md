@@ -123,3 +123,16 @@ is case-sensitive and level 9 overrides storage suffixes. Nine memory cases cove
 default/custom matching, case, level-9 precedence, empty defaults, cleared lists
 and binary round trips. Matching storage suffixes bypass compression work rather
 than compressing and then discarding the result.
+
+## Long options and attached lists
+
+Native long spellings now normalize to implemented short flags without changing
+original argv indices or raw-byte admission. Exact names and unique abbreviations
+are supported; reserved unimplemented Unix names retain native prefix ambiguity
+instead of accidentally enabling a different short option. Native captures also
+validated a parser defect: attached `-iVALUE`/`-i=VALUE` and `--include=VALUE`
+consume only one value, and empty attached inclusion is valid. Fifteen memory
+cases cover grouped semantic effects through long aliases, abbreviation ambiguity,
+invalid values, unsupported options, attached includes before archive, empty
+inclusion, action aliases, stdin/suffix aliases and literal long-looking paths.
+Unimplemented native option aliases remain explicit failures, not completion.

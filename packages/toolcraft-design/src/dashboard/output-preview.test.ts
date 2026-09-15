@@ -33,6 +33,28 @@ it.each([1, 2, 7, 257])("preserves styles and terminal-string grammar across %s-
   expect(visible(preview.text())).toBe("red visible");
 });
 
+it.each(["\u001b[", "\u009b"])("keeps oversized %s parameters out of truncated previews", (opening) => {
+  const input = "before " + opening + "0;".repeat(20_000) + "mvisible";
+  expect(visible(limitOutputPreview(input))).toBe("before visible");
+  const preview = createOutputPreviewBuffer();
+  for (let index = 0; index < input.length; index += 257) preview.push(input.slice(index, index + 257));
+  expect(visible(preview.text())).toBe("before visible");
+});
+
+it("does not cut into an otherwise supported CSI sequence at the preview boundary", () => {
+  const input = "old".repeat(100) + "\u001b[" + "0;".repeat(300) + "mLATEST" + "x".repeat(MAX_OUTPUT_PREVIEW_CHARS - 500);
+  const check = (text: string) => {
+    expect(visible(text)).not.toContain("0;");
+    expect(text).toContain("LATEST");
+    expect(text.length).toBeLessThanOrEqual(MAX_OUTPUT_PREVIEW_CHARS);
+  };
+  check(limitOutputPreview(input));
+  const preview = createOutputPreviewBuffer();
+  preview.push(input.slice(0, 500));
+  preview.push(input.slice(500));
+  check(preview.text());
+});
+
 it("retains paragraph breaks and complete text before truncation", () => {
   const preview = createOutputPreviewBuffer();
   preview.push("first\n");

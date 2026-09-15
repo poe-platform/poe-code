@@ -1,4 +1,4 @@
-import { createTerminalStringFilter } from "./terminal-strings.js";
+import { createTerminalStringFilter, terminalControlTailStart } from "./terminal-strings.js";
 
 export const MAX_OUTPUT_PREVIEW_CHARS = 16_384;
 export const OUTPUT_TRUNCATION_NOTICE = "[Output truncated: showing latest text]\n";
@@ -8,6 +8,7 @@ export function retainOutputTail(text: string, maxChars: number): string {
   if (start > 0) {
     const newline = text.indexOf("\n", start);
     if (newline !== -1 && newline < text.length - 1) start = newline + 1;
+    start = terminalControlTailStart(text, start);
     const firstCodeUnit = text.charCodeAt(start);
     if (firstCodeUnit >= 0xdc00 && firstCodeUnit <= 0xdfff) start += 1;
   }
@@ -52,8 +53,9 @@ export function createOutputPreviewBuffer(): { push(text: string): void; text():
           chars -= first.length;
           chunks.shift();
         } else {
-          chunks[0] = first.slice(excess);
-          chars -= excess;
+          const start = terminalControlTailStart(first, excess);
+          chunks[0] = first.slice(start);
+          chars -= start;
         }
       }
     },

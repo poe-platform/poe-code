@@ -87,7 +87,11 @@ export * as acp from "./acp/index.js";
 
 // Dashboard
 export * as dashboard from "./dashboard/index.js";
-export { createDashboard, shouldUseInteractiveDashboard } from "./dashboard/index.js";
+export {
+  createDashboard,
+  createDashboardLineBuffer,
+  shouldUseInteractiveDashboard
+} from "./dashboard/index.js";
 export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 
 // Explorer

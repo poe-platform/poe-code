@@ -41,6 +41,34 @@ describe("dashboard loop shared helpers", () => {
     expect(lines).toEqual(["alpha", "beta", "charlie"]);
   });
 
+  it("bounds pending newline-free output while retaining the latest text", () => {
+    const lines: string[] = [];
+    const buffer = createDashboardLineBuffer((line) => lines.push(line));
+    for (let index = 0; index < 100; index += 1) buffer.push("old output ".repeat(100));
+    buffer.push("LATEST RESULT");
+    expect(lines).toEqual([]);
+    buffer.flush();
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.length).toBeLessThanOrEqual(16_384);
+    expect(lines[0]).toContain("Output truncated");
+    expect(lines[0]!.endsWith("LATEST RESULT")).toBe(true);
+    buffer.push("next\r");
+    buffer.push("\n");
+    expect(lines.at(-1)).toBe("next");
+  });
+
+  it("bounds oversized completed lines without losing following lines", () => {
+    const lines: string[] = [];
+    const buffer = createDashboardLineBuffer((line) => lines.push(line));
+    buffer.push("x".repeat(30000) + "END\nnext\n");
+    expect(lines[0]!.length).toBeLessThanOrEqual(16_384);
+    expect(lines[0]).toContain("Output truncated");
+    expect(lines[0]!.endsWith("END")).toBe(true);
+    expect(lines[1]).toBe("next");
+    buffer.flush();
+    expect(lines).toHaveLength(2);
+  });
+
   it("requires --tui, terminal output, and TTY stdin/stdout", () => {
     const io = {
       stdin: { isTTY: true },

@@ -1,4 +1,5 @@
 import { createDashboard } from "../dashboard.js";
+import { createDashboardLineBuffer } from "../line-buffer.js";
 import type { OutputItemKind } from "../types.js";
 
 // Fake output only: no agent, credentials, repository writes, or network requests.
@@ -44,6 +45,11 @@ if (scenario === "empty") {
   append("info", "All tasks are already complete.");
 } else if (scenario === "oversized") {
   append("tool", "output word ".repeat(50000) + "LATEST RESULT");
+} else if (scenario === "newline-free") {
+  const output = createDashboardLineBuffer((line) => append("tool", line));
+  for (let index = 0; index < 1000; index += 1) output.push("output word ".repeat(100));
+  output.push("LATEST RESULT");
+  output.flush();
 } else if (scenario === "execution-error") {
   append("error", "Fake execution threw before producing a task result");
   dashboard.updateStats({ status: "error", currentAction: undefined });

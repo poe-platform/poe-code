@@ -684,3 +684,52 @@ unproven until the normal build runs in the delivery checkout. Full session
 9534 terminated: 2265 passed files, one callable-parity timeout, two skipped
 files; the exact callable-parity file rerun passed all 21 cases in 2.65s. A
 full maintained rerun is required, rather than treating that rerun as the gate.
+
+## BZIP2 progress diagnostic
+
+Inspected the maintained CLI screenshot and found method 12 was reported as
+stored 0% despite valid compression. Added a failing memory test for exact
+method/savings and matched public zipup.c bzipped wording. All 786 focused
+ZIP/unzip tests pass. Inspected /tmp/zip-bzip2-cli-fixed.png: bzipped 97%,
+integrity OK, exit 0. Delivery checkout ff2b7d4c0 is running normal build,
+consumer typecheck, full unit and lint in session 18440; this diagnostic
+follow-up is not yet included in that checkout or remote main.
+
+## BZIP2 streamed input and selection combinations
+
+Nine additional memory cases validate empty/binary/compressible stdin to stdout
+with method 12, signed descriptors and actual ZIP64 wire size markers, plus
+explicit method switching, suffix STORE selection, level-9 suffix override and
+level-zero suffix-selected STORE. The reader intentionally resolves ZIP64
+without retaining the writer-only zip64 boolean; tests inspect headers rather
+than adding unnecessary metadata. All 795 focused ZIP/unzip cases pass.
+Python independently decoded exact 400000-byte level-1 multiblock output from
+/tmp/safe-bash-zip-bzip2-multiblock.zip. Normal delivery build passed; consumer
+typecheck historical models remain live in session 18440, followed by full
+unit and lint. The new test-only follow-up is not in that running checkout.
+
+Scoped edge-test ESLint passed. Delivery session 18440 terminated at the
+historical source-model subprocess timeout (180000ms); it reported no
+TypeScript diagnostic and never started full unit or lint. Rechecking that
+exact maintained historical-model route separately in session 86237; full
+delivery gates remain unproven.
+
+## Historical typecheck ZIP64 test correction
+
+Separate historical-model session 86237 terminated with TS2532 at
+zip-format.test.ts:568: indexed Buffer mutation was possibly undefined under
+noUncheckedIndexedAccess. Corrected the known allocated-byte access without
+changing the corruption scenario. All 132 format tests pass; source/test
+historical type verification must be repeated after integrating this correction.
+
+## Basic help argument behavior
+
+Native Unix Zip captures validate h/help/hel, quiet groups, immediate success
+before later unsupported arguments, earlier argument errors, negation/value
+rejection and literal termination. Eight new success cases failed before the
+change. Added basic usage as a parser information result; no filesystem access
+is needed. Fourteen memory tests include denied filesystem methods and ZIPOPT
+ordering. All 809 focused ZIP/unzip tests, scoped ESLint and virtual-bash
+production build closure pass. Inspected /tmp/zip-help-cli.png for aligned,
+readable usage and supported options. Extended help, version, license and
+show-options behavior remain separate open requirements.

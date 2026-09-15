@@ -12,6 +12,7 @@ import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
+import { zipHelp } from "./zip/help.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
@@ -53,7 +54,7 @@ interface ZipOptions {
 
 const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
-async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions> {
+async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" }> {
   const context = scope.context;
   const args = zipEnvironmentArguments(context.env, context.args, limits);
   if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
@@ -116,7 +117,12 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
-        if (flag === "r" || flag === "R") {
+        if (flag === "h") {
+          if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h is not negatable");
+          if (argument[offset + 1] === "2") throw new ZipFailure(16, "Invalid command arguments", "unsupported option: -h2");
+          return { information: "help" };
+        }
+        else if (flag === "r" || flag === "R") {
           if (flag === "r") recursive = true;
           else recursivePatterns = true;
           if (recursive && recursivePatterns) throw new ZipFailure(16, "Invalid command arguments", "do not specify both -r and -R");
@@ -607,7 +613,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   };
   const append = (entry: ZipEntry, update: boolean) => {
     const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
-    queue(`${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    queue(`${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${entry.name} (${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
@@ -698,6 +704,10 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     let budget = new Budget(context, limits);
     try {
       const parsed = await parse(scope, limits);
+      if ("information" in parsed) {
+        await budget.output(zipHelp);
+        return { exitCode: 0 };
+      }
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };

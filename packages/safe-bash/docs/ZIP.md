@@ -94,9 +94,19 @@ patterns to prevent shell expansion, for example
 Exclusion takes precedence over inclusion. Filters use source member paths before
 `-j` removes directories and do not prevent traversal into unmatched directories.
 Pattern lists end at the next option or a standalone `@`; attached patterns such
-as `-x'*.tmp'` are supported. Existing unselected archive members remain intact.
+as `-x'*.tmp'` or `-x='*.tmp'` consume only that attached value. Existing unselected
+archive members remain intact.
 An unmatched inclusion list produces an empty archive with status 0; exclusion-only
 selection with nothing to add returns status 12.
+
+Native long spellings are accepted for the implemented flags, including
+`--quiet`, `--recurse-paths`, `--junk-paths`, `--no-dir-entries`, `--symlinks`,
+`--test`, `--names-stdin`, `--update`, `--freshen`, `--delete`, `--store`,
+`--compress-1` through `--compress-9`, `--include`, `--exclude` and `--suffixes`.
+Value options accept `--include=PATTERN` and `--suffixes=LIST`; an empty attached
+include is a valid nonmatching pattern. Unique long abbreviations are accepted,
+with all native Unix option names considered for ambiguity. Long-looking paths
+after `--` remain literal. Additional native options still require implementation.
 
 `zip -q` suppresses adding/updating progress and the advisory warnings that native
 Info-ZIP suppresses in quiet mode, including missing-source and repeated-name

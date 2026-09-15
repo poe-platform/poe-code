@@ -8,6 +8,7 @@ import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, 
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { publishZip, ZipScope } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
+import { normalizeZipOption, ZipFailure } from "./zip/options.js";
 
 interface ZipOptions {
   readonly action: "add" | "delete" | "update" | "freshen";
@@ -24,10 +25,6 @@ interface ZipOptions {
   readonly suffixes: readonly string[];
   readonly operands: readonly string[];
   readonly firstOperand: number;
-}
-
-class ZipFailure extends Error {
-  constructor(readonly status: number, readonly label: string, detail: string) { super(detail); }
 }
 
 const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
@@ -68,8 +65,9 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   const includes: string[] = [];
   const excludes: string[] = [];
   for (let index = 0; index < context.args.length; index++) {
-    const argument = context.args[index]!;
-    checkPath(argument, limits);
+    const original = context.args[index]!;
+    checkPath(original, limits);
+    const argument = literal ? original : normalizeZipOption(original);
     if (!literal && argument === "--") {
       if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "can't use -- before archive name");
       literal = true;
@@ -106,12 +104,16 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           const patterns = flag === "i" ? includes : excludes;
           const before = patterns.length;
           const append = (pattern: string) => {
-            checkPath(pattern, limits);
+            if (pattern) checkPath(pattern, limits);
             if (includes.length + excludes.length >= limits.maxMembers) fail("pattern count limit exceeded");
             patterns.push(pattern);
           };
-          if (offset + 1 < argument.length) append(argument.slice(offset + 1));
-          while (index + 1 < context.args.length) {
+          const attached = offset + 1 < argument.length;
+          if (attached) {
+            const value = argument.slice(offset + 1);
+            append(value.startsWith("=") ? value.slice(1) : value);
+          }
+          while (!attached && index + 1 < context.args.length) {
             const next = context.args[index + 1]!;
             if (next === "@") { index++; break; }
             if (next.startsWith("-") && next !== "-") break;

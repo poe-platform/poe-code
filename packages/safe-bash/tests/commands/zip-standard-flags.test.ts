@@ -12,6 +12,68 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+for (const flags of [
+  ["--quiet", "--recurse-paths", "--junk-paths", "--test"],
+  ["--qu", "--recurse-paths", "--junk-pa", "--test", "--compress-9"],
+  ["--quiet", "--recurse-paths", "--junk-paths", "--include=folder/*", "--exclude=folder/"],
+]) {
+  test(`zip long options ${flags.join(" ")}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, [...flags, "output.zip", "folder"]);
+    assert.deepEqual(result, { exitCode: 0, stdout: Buffer.alloc(0), stderr: "" });
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), ["data"]);
+  });
+}
+
+for (const option of ["-ibinary", "-i=binary", "--include=binary"]) {
+  test(`zip attached include ${option} before archive consumes only its attached value`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-q", option, "output.zip", "binary", "folder/data"]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), ["binary"]);
+  });
+}
+
+test("zip empty attached inclusion creates an empty archive", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["--quiet", "--include=", "output.zip", "binary"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.length, 0);
+});
+
+test("zip long suffix and stdin options preserve literal long-looking filenames after --", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/--test", compressed);
+  const result = await execute("zip", fs, ["--quiet", "--names-stdin", "--suffixes=data", "output.zip", "--", "--test"], {}, {
+    stdin: toByteSource("folder/data\n"),
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => [entry.name, entry.method]), [["folder/data", 0], ["--test", 8]]);
+});
+
+for (const action of ["--update", "--freshen", "--delete"]) {
+  test(`zip long action ${action} uses the existing archive`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["--quiet", action, "sample.zip", "binary"]);
+    assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries.some(entry => entry.name === "binary"), action !== "--delete");
+  });
+}
+
+for (const option of ["--rec", "--quiet=yes", "--no-wild", "--unknown"]) {
+  test(`zip rejects ${option} without publication`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, [option, "output.zip", "binary"]);
+    assert.equal(result.exitCode, 16);
+    await assert.rejects(fs.stat("/work/output.zip"), { code: "ENOENT" });
+  });
+}
+
 for (const { name, flags, method } of [
   { name: "payload.zip", flags: [], method: 0 },
   { name: "payload.ZIP", flags: [], method: 8 },

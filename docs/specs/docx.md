@@ -1281,6 +1281,13 @@ the reviewed schema metadata resolves the external simple type's primitive.
 Width/height and both stored drawing extents MUST be positive integer EMUs no
 greater than 2147483647 when read for a geometry-dependent write or newly written.
 Every finite/range check applies before and after conversion; values never clamp.
+For supplied or computed extent lengths, the unrounded physical value and
+converted EMU value MUST be strictly positive, and converted EMUs MUST NOT exceed
+2147483647 before rounding. The rounded written extent MUST be an integer in
+[1,2147483647]. Thus 0.5emu and 0.75emu round to 1emu; a positive value below
+0.5emu that rounds to zero MUST reject. This distinction between positive
+unrounded lengths and positive written integers MUST NOT relax the pre-round
+upper bound or the pre-round signed-offset/nonnegative-distance bounds.
 
 Horizontal relative frames are page, margin, column, character, leftMargin,
 rightMargin, insideMargin and outsideMargin. Vertical frames are page, margin,

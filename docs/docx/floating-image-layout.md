@@ -29,6 +29,14 @@ SHA256fa3c3ad8fa4dfefa6b9c830921043a5083bd1477036819840e8cd1c4af681248
 before product edits. Shared CLI/SDK semantics remain unchanged.
 No implementation or product test pass follows from this wording change.
 
+Later lower-bound reconciliation, independently approved before code correction,
+authenticates sole447027d6e2c82083962b8dd31bc5f44d251de481c8d04356f6b35e1ee7e34516.
+Positive unrounded extent lengths remain >0 and below the native pre-round upper
+bound; final written extents are integers1..2147483647. Shared half-away rounding
+therefore admits0.5/0.75emu as1 and refuses positive values rounding tozero.
+Original RED08 verifies the earlier rawmin1 drift; checker again0warnings.
+No published/live model or completed product QA status follows from reconciliation.
+
 Explicit bounded primary toolkit metadata acquisition on2026-09-15 fetched
 https://raw.githubusercontent.com/dotnet/Open-XML-SDK/main/data/schemas/schemas_openxmlformats_org_drawingml_2006_wordprocessingDrawing.json
 at03:20:07.276624Z,41283bytes,SHA256
@@ -64,4 +72,36 @@ installation, repository manifest/lock/build change or product dependency.
 First network-denied/cache-write-confined headless export returned1 after28.1s
 without stdout/stderr/PDF. It remains failed feasibility, not rendered evidence.
 QuickLook's earlier clipped continuous previews remain an explicit inadequate
-cohort. Renderer investigation and all task71 product/page QA remain pending.
+cohort. Later IP inbound/outbound denial with local Unix IPC allowed exported the
+circular-economy original to a real PDF,exit0 after12.87s. Prior network* denial
+also denied required local IPC; all failed cohorts remain separate. The successful
+QA profile uses exclusive UserInstallation and explicit TMPDIR/TMP/TEMP paths,
+but whole-host write confinement was not established. Fontconfig cache warnings
+remain; host fonts are QA dependencies and rendering parity is not established.
+Independent and root inspection of five actual baseline page PNGs established
+pagination availability: circular-economy167pages and Wales27pages. Circular
+page1 compresses cover/acknowledgment/copyright with overlap and page3 is blank
+numbered; Wales page2 has a bottom figure cropped at its page boundary. These
+are original native-renderer limitations, not product defects or fidelity proof.
+Baseline receipt SHA256e05e3ce75bac4a6529c993393ae34f25ceeb970db3d5a13227d6550a8881bbbe
+authenticates that cohort. All task71 edited-product/page QA remains pending.
+
+## Exact language and public API boundaries
+
+| Observable task71 behavior | JavaScript/security mapping and retained obligation |
+| --- | --- |
+| images.set utility | setDocumentImageLayout always returns Promise; owned admitted bytes and explicit PublicationContext, no host path/time/font/media discovery; changed physical drawings return shared MutationData kind set. Final execution verification remains pending. |
+| Coordinates/sizes/distances | SDK accepts the same explicit Length value/unit records as direct CLI flags, checked half-away rounding once; inventory emits integer EMUs. Polygon points are bounded native integers in a closed owned record, not physical units or pixels. |
+| Selection/Locations | CLI ordinals are one-based per owner; immutable utility snapshots/current generation tokens are distinct from live model objects and zero-based model sequences. All preadmission does not authorize shared-story appearances. |
+| Optional native properties | Undefined preserves; false/zero are explicit values; absent/invalid inventory metadata is null with warnings. Merged crop/alt/decorative and native semantic-equivalent lexical noops require original tests. |
+| InlineShape.height/width/type | Historical API rows docx.shape.InlineShape.height, .width and .type remain pending live synchronous properties/value helpers. Extent utility edits and inventory do not complete those rows or instantiate a live InlineShape. |
+| InlineShapes and inherited part | docx.shape.InlineShapes, .part (canonical docx.shared.Parented.part), .__getitem__, .__iter__ and .__len__ remain pending live zero-based collection/iteration/length and bounded package-owner views. No proxy-wrapper or identity pass follows from utility tests. |
+| Insertion and enum graph | docx.text.run.Run.add_picture and docx.enum.shape.WD_INLINE_SHAPE_TYPE retain their separately inventoried construction/returned-owner/enum-alias obligations. Neither layout tests nor downloaded grouped artwork complete those members. |
+
+Pinned API/test inventories and their upstream-case identities remain research
+provenance. Task71 adds original utility cases only; no historical case/model
+status is promoted by acquisition, wording approval or baseline rendering.
+See upstream-api-audit.md, upstream-test-audit.md and the existing image inventory,
+format and replacement records for the retained broader obligations. Final
+product identity scanning and native-free build closure verification remain
+pending; no complete current-scope proof follows from these mappings.

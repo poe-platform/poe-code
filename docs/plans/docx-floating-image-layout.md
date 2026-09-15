@@ -32,6 +32,15 @@ the explicitly qualified integration paths above. revision_review owns only
 docs/docx/floating-image-layout-qa.json; independent source review is read-only.
 No worker stages/commits, edits another owner or begins task72.
 
+Before positive-extent validation corrections, root clarified sole unrounded
+lengths (>0 and converted EMUs <=2147483647) versus final written integers
+[1,2147483647]. Shared half-away rounding admits0.5/0.75emu as1 and rejects
+positive lengths rounding tozero. Independent wording approval authenticated
+sole447027d6e2c82083962b8dd31bc5f44d251de481c8d04356f6b35e1ee7e34516;
+bundled checker0warnings. Domain RED08 and schema-owned original boundary reds
+precede their corrections. This resolves discovered wording/implementation drift
+without altering upper/offset/distance bounds or qualifying product QA.
+
 ## Ordered implementation and QA procedure
 
 1. Read root/scoped instructions, complete task71, sole/shared contracts,
@@ -94,8 +103,16 @@ pages; preserve that failure. For genuine pagination acquire only official
 LibreOffice26.8.0 arm64 DMG, bounded700MiB and authenticated against the recorded
 Homebrew cask SHA256 before read-only mounting in the exclusive cache. Do not
 install into /Applications or add any repository dependency. Verify its signature,
-execute headless export with an exclusive UserInstallation profile, supervised
-timeout, denied network and writes confined to the cache. Authenticate exact
+first attempt headless export with an exclusive UserInstallation profile,
+supervised timeout, denied network and cache-confined writes. Authenticate exact
 manifest inputs before/after. Inspect actual PDF page counts and representative
 Poppler-rendered page images. Inventory outputs and reduce evidence before owned
 mount/profile/cache cleanup when the active campaign ends.
+
+Initial all-network denial blocked export even when its write restriction was
+lifted; version-only execution passed. IP inbound/outbound denial with local Unix
+IPC allowed exported an actual baseline PDF. Use that qualified QA profile with
+exclusive UserInstallation and explicit TMPDIR/TMP/TEMP cache paths; whole-host
+write confinement has not been established and MUST NOT be claimed. This permits
+no product runtime/network or native build dependency. Preserve all failed
+confinement/network-denial attempts beside the successful baseline.

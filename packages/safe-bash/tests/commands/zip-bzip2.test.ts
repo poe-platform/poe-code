@@ -3,6 +3,7 @@ import test from "node:test";
 import { compressed, execute, fixture } from "./zip-standard-flags.helpers.js";
 import { decodeZipEntry, readZipArchive, writeZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
+import { toByteSource } from "../../src/contracts/index.js";
 
 // Independent Python zipfile.ZIP_BZIP2 archive with binary payload.
 const oracle = Buffer.from("UEsDBC4AAAAMAJuCL129GAnfQgAAABMAAAAEAAAAZGF0YUJaaDkxQVkmU1le/zvlAAAD34DAEEAAEAAAIEAQEiJQEAAAoAAiEPSGmZQpgAC1zZmen2KRCyF8XckU4UJBe/zvlFBLAQIuAy4AAAAMAJuCL129GAnfQgAAABMAAAAEAAAAAAAAAAAAAACAAQAAAABkYXRhUEsFBgAAAAABAAEAMgAAAGQAAAAAAA==", "base64");
@@ -96,5 +97,44 @@ for (const body of [new Uint8Array(), Uint8Array.of(1, 2, 3)]) {
     const entry = (await readZipArchive(await fs.readFile("/work/out.zip"), settings({}), new AbortController().signal)).entries[0]!;
     assert.equal(entry.method, 0);
     assert.deepEqual(entry.data, body);
+  });
+}
+
+for (const body of [new Uint8Array(), Uint8Array.of(0, 255, 13, 10), compressed]) {
+  test(`BZIP2 stdout preserves ${body.length}-byte stdin with descriptors and ZIP64`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-qZbzip2", "-", "-"], {}, { stdin: toByteSource(body) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const signal = new AbortController().signal;
+    const entry = (await readZipArchive(result.stdout, settings({}), signal)).entries[0]!;
+    assert.equal(entry.method, 12, "stdout must retain compression even when it expands");
+    const view = new DataView(result.stdout.buffer, result.stdout.byteOffset, result.stdout.byteLength);
+    assert.equal(view.getUint32(18, true), 0xffffffff, "local compressed size uses ZIP64 marker");
+    assert.equal(view.getUint32(22, true), 0xffffffff, "local uncompressed size uses ZIP64 marker");
+    assert.equal(entry.flags! & 8, 8);
+    const decoded: Uint8Array[] = [];
+    for await (const chunk of decodeZipEntry(entry, settings({}), signal)) decoded.push(chunk);
+    assert.deepEqual(new Uint8Array(Buffer.concat(decoded)), new Uint8Array(body));
+  });
+}
+
+for (const { flags, method } of [
+  { flags: ["-Zbzip2", "-n", ".asset"], method: 0 },
+  { flags: ["-Zbzip2", "-n", ".asset", "-9"], method: 12 },
+  { flags: ["-Zbzip2", "-Zstore", "-9"], method: 0 },
+  { flags: ["-Zbzip2", "-Zdeflate"], method: 8 },
+  { flags: ["-Zstore", "-Zbzip2"], method: 12 },
+  { flags: ["-0", "-Zbzip2", "-n", ".asset"], method: 0 },
+]) {
+  test(`BZIP2 method and suffix precedence ${flags}`, async () => {
+    const fs = await fixture();
+    await fs.writeFile("/work/data.asset", compressed);
+    const result = await execute("zip", fs, ["-q", ...flags, "out.zip", "data.asset"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const entry = (await readZipArchive(await fs.readFile("/work/out.zip"), settings({}), new AbortController().signal)).entries[0]!;
+    assert.equal(entry.method, method);
+    const extracted = await execute("unzip", fs, ["-p", "out.zip"]);
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.deepEqual(extracted.stdout, compressed);
   });
 }

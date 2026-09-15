@@ -694,3 +694,22 @@ ZIP/unzip tests pass. Inspected /tmp/zip-bzip2-cli-fixed.png: bzipped 97%,
 integrity OK, exit 0. Delivery checkout ff2b7d4c0 is running normal build,
 consumer typecheck, full unit and lint in session 18440; this diagnostic
 follow-up is not yet included in that checkout or remote main.
+
+## BZIP2 streamed input and selection combinations
+
+Nine additional memory cases validate empty/binary/compressible stdin to stdout
+with method 12, signed descriptors and actual ZIP64 wire size markers, plus
+explicit method switching, suffix STORE selection, level-9 suffix override and
+level-zero suffix-selected STORE. The reader intentionally resolves ZIP64
+without retaining the writer-only zip64 boolean; tests inspect headers rather
+than adding unnecessary metadata. All 795 focused ZIP/unzip cases pass.
+Python independently decoded exact 400000-byte level-1 multiblock output from
+/tmp/safe-bash-zip-bzip2-multiblock.zip. Normal delivery build passed; consumer
+typecheck historical models remain live in session 18440, followed by full
+unit and lint. The new test-only follow-up is not in that running checkout.
+
+Scoped edge-test ESLint passed. Delivery session 18440 terminated at the
+historical source-model subprocess timeout (180000ms); it reported no
+TypeScript diagnostic and never started full unit or lint. Rechecking that
+exact maintained historical-model route separately in session 86237; full
+delivery gates remain unproven.

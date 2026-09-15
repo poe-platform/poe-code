@@ -84,3 +84,23 @@ It pins the inert diagramDrawing content type/relationship and drawing root, plu
 dataModelExt under native data-model extension ancestry with unqualified relId.
 This drawing binding is distinct from native r:dm/lo/qs/cs. Primary source data is
 research-only; no reference code, binary or identity enters product/test assets.
+
+## Independent product review — location wording reconciliation
+
+Candidate-v1 review validates two original memfs failures: unsupported expanded
+shape pairs were omitted from opaque inventory, and raw XML introducing opaque
+graphics returned a replacement-only path bound to the original source SHA.
+Receipts are /tmp/docx75-reviewer-original-shape-pair-red-v2.json and
+/tmp/docx75-reviewer-original-addition-location-v1.json. Construction assertions
+remain separately retained. Neither issue is dismissed as corpus preparation.
+
+The sole6.5.3 addition draft requires existing physical owner root[] for newly
+introduced observations with no source counterpart, and original observation
+paths for existing mutation/removal. Independent wording approval and its atomic
+commit precede product guard corrections. Product acceptance and QA remain held.
+
+Addition wording independently approved in
+/tmp/docx75-reviewer-addition-wording-approval-v1.json, SHA-256
+24ba45f94fb23bf5f9aaa2a0d46bd9330e1a1e81dd8178d9a37bd8c093775020.
+Sole SHA-2567e89e933e75fe5dbd8194a479a37536e4eb13decb3b2ee42b931672b0fd3a45d
+passes the bundled checker with zero warnings. This is wording-only evidence.

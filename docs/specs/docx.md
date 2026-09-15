@@ -2152,7 +2152,13 @@ containing paragraph/subtree mutation MUST reject rather than remove the graphic
 Rejection MUST carry an existing source-bound Location token: a part Location with
 path `[]` for a whole diagram resource, the raw element-child path of offending
 inline opaque graphics in their physical owner, or the applicable containing
-paragraph Location for destructive paragraph edits. Diagnostic part Locations have
+paragraph Location for destructive paragraph edits.
+For raw replacement introducing an observation without an existing source
+counterpart, rejection MUST identify that existing physical owner's part root
+with path `[]`; a replacement-only child path MUST NOT be bound to the original
+source fingerprint. Existing-observation mutation/removal uses the original
+offending observation path even when proposed content relocates it.
+Diagnostic part Locations have
 empty readable positions, generation zero and no range; no diagram ordinal or new
 location kind is introduced. Public SDK error, JSON diagnostic `location` token and
 failure-envelope `locations` objects MUST agree. The failure remains affected zero

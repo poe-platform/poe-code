@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "./terminal-width.js";
+import { displayWidth, expandTabs, graphemes, graphemeWidth, truncateToWidth } from "./terminal-width.js";
 
 describe("terminal width", () => {
-  it.each(["", "Hello, world! 0123456789 ~"])(
+  it.each(["", "Hello, world! 0123456789 ~", "解析中 ASCII 界界", "\u4e00\u9fff"])(
     "segments %j without invoking the native segmenter",
     (value) => {
       const segment = vi.spyOn(Intl.Segmenter.prototype, "segment");
@@ -50,7 +50,9 @@ describe("terminal width", () => {
     { value: "♥️", expected: ["♥️"] },
     { value: "👩‍💻", expected: ["👩‍💻"] },
     { value: "🇵🇱", expected: ["🇵🇱"] },
-    { value: "漢字", expected: ["漢", "字"] },
+    { value: "界\u0301", expected: ["界\u0301"] },
+    { value: "界\ufe0f", expected: ["界\ufe0f"] },
+    { value: "界👩‍💻字", expected: ["界", "👩‍💻", "字"] },
     { value: " ~\x7f", expected: [" ", "~", "\x7f"] }
   ])("uses native grapheme boundaries for $value", ({ value, expected }) => {
     const native = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -69,6 +71,20 @@ describe("terminal width", () => {
     expect(graphemeWidth("♥")).toBe(1);
     expect(graphemeWidth("♥️")).toBe(2);
     expect(displayWidth("A♥️B")).toBe(4);
+  });
+
+  it("leaves tab-free Unicode untouched without segmenting it", () => {
+    const segment = vi.spyOn(Intl.Segmenter.prototype, "segment");
+    try {
+      expect(expandTabs("界👩‍💻e\u0301", 7)).toBe("界👩‍💻e\u0301");
+      expect(segment).not.toHaveBeenCalled();
+    } finally {
+      segment.mockRestore();
+    }
+  });
+
+  it("expands tabs using the display width of mixed graphemes", () => {
+    expect(expandTabs("界\t👩‍💻\t", 1)).toBe("界     👩‍💻      ");
   });
 
   it("truncates at grapheme boundaries with an ellipsis", () => {

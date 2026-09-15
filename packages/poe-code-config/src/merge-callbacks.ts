@@ -3,6 +3,7 @@ type BivariantCallback<Args extends unknown[], Return = void> = {
 }["callback"];
 
 export type PipelineCallbackFields = {
+  onLockWait?: BivariantCallback<[planPath: string]>;
   onPlanResolved?: BivariantCallback<[summary: unknown]>;
   onTaskStart?: BivariantCallback<[progress: unknown]>;
   onTaskComplete?: BivariantCallback<[progress: unknown]>;

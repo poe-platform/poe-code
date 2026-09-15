@@ -1,0 +1,1 @@
+/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node

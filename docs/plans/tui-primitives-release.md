@@ -1,0 +1,9 @@
+# TUI primitives release
+
+User requested stable release after the eight primitives and dashboard render metrics were committed. Validate committed code in a detached checkout to exclude concurrent uncommitted safe-python work. Preserve remote main and push without force; no feature branch or local publication.
+
+Initial local main: 51e275720. Fetched remote main: ff1923235. Histories diverged (34 remote / 87 local commits). Merge remote main, preserving its removal of pipeline disk locks and the local wait-reporting and cancellation result behavior. Adapt concurrency regressions to in-process ownership and status serialization. Red baseline: 3 failed / 222 passed; resolved baseline: all 225 cases passed. No quarantines were added or expanded by this release work; remote main's existing configuration is retained.
+
+Before push: complete maintained npm test and npm run lint; verify normal npm run build, reconcile any subsequent remote changes, fast-forward local main while preserving unrelated workspace edits, and push main normally. After push: verify remote-main SHA, monitor the Release workflow until successful stable publication, and verify the published version. Report local integration, remote delivery and publication separately.
+
+Release preparation checks: full normal build passed. Full lint passed (zero ESLint errors/warnings, types/contracts and workflows). Full unit discovery found a newly added local lock feedback test that survived remote removal of its module; migrated it to serialize-feedback.test.ts while preserving once-only wait reporting, cancellation, active ownership and untouched legacy disk files. All 242 maintained pipeline cases passed. Restart the full unit route after this migration; final build and packed smoke run after all artifact-writing test tasks finish.

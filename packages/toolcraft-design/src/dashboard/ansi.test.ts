@@ -2,6 +2,64 @@ import { describe, expect, it } from "vitest";
 import { hasAnsi, parseAnsi } from "./ansi.js";
 
 describe("parseAnsi", () => {
+  it.each(["\u001bP", "\u0090", "\u001b_", "\u009f"])(
+    "keeps device-control string %j hidden until its string terminator", (start) => {
+      expect(parseAnsi(`${start}HIDDEN_FIRST\u0007HIDDEN_SECOND\u009cvisible`)).toEqual([
+        { segments: [{ text: "visible", style: {} }] }
+      ]);
+    }
+  );
+
+  it.each(["\u007f", "\u0000", "\u009c", "\u009b2J", "\u009dHIDDEN_OSC\u009c", "\u0090HIDDEN_DCS\u009c"])(
+    "discards nonprinting control payload %j", (control) => {
+      expect(parseAnsi(`left${control}right`)).toEqual([
+        { segments: [{ text: "leftright", style: {} }] }
+      ]);
+    }
+  );
+
+  it("applies C1 SGR and next-line controls without retaining control bytes", () => {
+    expect(parseAnsi("\u009b31mred\u009b0m\u0085next")).toEqual([
+      { segments: [{ text: "red", style: { fg: "red" } }] },
+      { segments: [{ text: "next", style: {} }] }
+    ]);
+  });
+
+  it.each([
+    ["界", " X"],
+    ["😀", " X"],
+    ["👩‍💻", " X"],
+    ["é", "X"]
+  ])("overwrites terminal cells rather than code units after %s backspace", (input, expected) => {
+    expect(parseAnsi(`${input}\bX`)).toEqual([
+      { segments: [{ text: expected, style: {} }] }
+    ]);
+  });
+
+  it("clears both cells of a wide glyph overwritten after carriage return", () => {
+    expect(parseAnsi("界界\rA")).toEqual([
+      { segments: [{ text: "A 界", style: {} }] }
+    ]);
+  });
+
+  it.each(["ABCDEF", "界界AB"])("preserves %s when a tab crosses existing cells", (text) => {
+    expect(parseAnsi(`${text}\r\tX`)).toEqual([
+      { segments: [{ text: `${text}  X`, style: {} }] }
+    ]);
+  });
+
+  it("preserves the styles of cells skipped by a tab", () => {
+    expect(parseAnsi("\u001b[31mABCDEF\u001b[0m\r\tX")).toEqual([
+      { segments: [{ text: "ABCDEF", style: { fg: "red" } }, { text: "  X", style: {} }] }
+    ]);
+  });
+
+  it("uses terminal tab stops when text is overwritten after a carriage return", () => {
+    expect(parseAnsi("a\tB\rX")).toEqual([
+      { segments: [{ text: "X       B", style: {} }] }
+    ]);
+  });
+
   it("returns a single empty line for an empty string", () => {
     expect(parseAnsi("")).toEqual([{ segments: [] }]);
   });
@@ -159,6 +217,33 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it.each(["\u001b[K", "\u001b[0K", "\u009bK"])("erases stale progress text with %j", (erase) => {
+    expect(parseAnsi(`progress 100%\rprogress 50%${erase}`)).toEqual([
+      { segments: [{ text: "progress 50%", style: {} }] }
+    ]);
+  });
+
+  it("erases through the cursor while retaining the line suffix", () => {
+    expect(parseAnsi("ABCDE\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "   DE", style: {} }] }
+    ]);
+  });
+
+  it("erases complete wide glyphs at either side of the cursor", () => {
+    expect(parseAnsi("界界\b\u001b[KX")).toEqual([
+      { segments: [{ text: "界 X", style: {} }] }
+    ]);
+    expect(parseAnsi("界界AB\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "    AB", style: {} }] }
+    ]);
+  });
+
+  it("retains the styles outside the erased range", () => {
+    expect(parseAnsi("\u001b[31mABCDE\u001b[0m\rXX\u001b[1K")).toEqual([
+      { segments: [{ text: "   ", style: {} }, { text: "DE", style: { fg: "red" } }] }
+    ]);
+  });
+
   it("erases the current line for CSI 2 K", () => {
     const result = parseAnsi("before\u001b[2Kafter");
     expect(result).toEqual([
@@ -182,7 +267,7 @@ describe("parseAnsi", () => {
   it("discards non-rendering controls while applying backspace", () => {
     const result = parseAnsi("a\u0000b\u0008c\td");
     expect(result).toEqual([
-      { segments: [{ text: "ac\td", style: {} }] }
+      { segments: [{ text: "ac      d", style: {} }] }
     ]);
   });
 

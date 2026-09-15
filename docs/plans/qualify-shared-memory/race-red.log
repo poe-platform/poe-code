@@ -1,0 +1,58 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-race.test.ts (1 test | 1 failed) 93ms
+   × rejects a restored registration race instead of inventing a not-equal settlement 92ms
+FAIL packages/safe-js/src/snapshot/atomic-wait-race.test.ts > rejects a restored registration race instead of inventing a not-equal settlement
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-race.test.ts:45:85
+     43|     schedule.mutateBeforeRegistration = true;
+     44|     try {
+     45|       await expect(withRunResources(undefined, () => restored.activate…
+       |                                                                                     ^
+     46|         .rejects.toThrow("Concurrent shared mutation prevents atomic w…
+     47|       expect(Atomics.notify(restored.currentScope.lookup("view").value…
+ ❯ Module.withRunResources packages/safe-js/src/interp/resources.ts:55:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-race.test.ts:34:3
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/atomic-wait-race.test.ts > rejects a restored registration race instead of inventing a not-equal settlement
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-race.test.ts:45:85
+     43|     schedule.mutateBeforeRegistration = true;
+     44|     try {
+     45|       await expect(withRunResources(undefined, () => restored.activate…
+       |                                                                                     ^
+     46|         .rejects.toThrow("Concurrent shared mutation prevents atomic w…
+     47|       expect(Atomics.notify(restored.currentScope.lookup("view").value…
+ ❯ Module.withRunResources packages/safe-js/src/interp/resources.ts:55:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-race.test.ts:34:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  23:11:55
+   Duration  1.87s (transform 1.33s, setup 32ms, import 1.68s, tests 93ms, environment 0ms)
+

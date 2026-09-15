@@ -1,3 +1,4 @@
+import { serializePlan } from "./plan/serialize.js";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
@@ -3525,7 +3526,7 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 0,
       tasksCompleted: 0,
       tasksFailed: 1,
-      stepsCompleted: 2
+      stepsCompleted: 1
     });
     expect(result.lastStepName).toBe("test");
     expect(runs).toHaveLength(2);
@@ -3574,7 +3575,7 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 2,
       tasksCompleted: 0,
       tasksFailed: 1,
-      stepsCompleted: 1
+      stepsCompleted: 0
     });
     expect(taskCompletions).toHaveLength(1);
     expect(taskCompletions[0]?.success).toBe(false);
@@ -4181,11 +4182,11 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("cancelled");
     expect(onTaskComplete).toHaveBeenCalledWith(
-      expect.objectContaining({ taskId: "task-1", success: false })
+      expect.objectContaining({ taskId: "task-1", success: false, cancelled: true })
     );
   });
 
-  it("returns cancelled without persisting a final task that aborts while succeeding", async () => {
+  it.each([false, true])("retains known task usage on cancellation with throwOnAbort=%s", async (throwOnAbort) => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
@@ -4201,6 +4202,8 @@ describe("createPipelineSimulation", () => {
       ].join("\n")
     });
     const controller = new AbortController();
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const onTaskComplete = vi.fn();
 
     const result = await runPipeline({
       agent: "codex",
@@ -4209,13 +4212,17 @@ describe("createPipelineSimulation", () => {
       plan: "docs/plans/plan.md",
       fs,
       signal: controller.signal,
+      onTaskComplete,
       runAgent: async () => {
         controller.abort();
-        return { stdout: "", stderr: "", exitCode: 0 };
+        if (throwOnAbort) throw Object.assign(new Error("cancelled"), { name: "AbortError", usage });
+        return { stdout: "", stderr: "", exitCode: 0, usage };
       }
     });
 
     expect(result.stopReason).toBe("cancelled");
+    expect(result.metrics).toMatchObject({ totalInputTokens: 120, totalOutputTokens: 45, totalCachedTokens: 10, tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0 });
+    expect(onTaskComplete).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ success: false, taskCompleted: false, cancelled: true, usage }));
     expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toContain("status: open");
   });
 
@@ -4233,6 +4240,8 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("failed");
     expect(result.runsCompleted).toBe(0);
     expect(prompts).toEqual(["Setup"]);
+    expect(result.lastTaskId).toBe("setup");
+    expect(result.metrics.stepsCompleted).toBe(0);
   });
 
   it("disables steps.yaml setup when plan sets setup: null", async () => {
@@ -4281,6 +4290,8 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("failed");
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
+    expect(result.lastTaskId).toBe("teardown");
+    expect(result.metrics.stepsCompleted).toBe(1);
   });
 
   it("does not archive a completed plan when teardown fails", async () => {
@@ -4320,13 +4331,13 @@ describe("createPipelineSimulation", () => {
     await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("returns cancelled when teardown aborts while resolving successfully", async () => {
+  it.each((["setup", "teardown"] as const).flatMap(phase => [{ throwOnAbort: false, carryUsage: false }, { throwOnAbort: true, carryUsage: false }, { throwOnAbort: true, carryUsage: true }].map(flags => ({ phase, ...flags }))))("reports $phase cancellation with throwOnAbort=$throwOnAbort carryUsage=$carryUsage", async ({ phase, throwOnAbort, carryUsage }) => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
         "kind: pipeline",
         "version: 1",
-        "teardown:",
+        `${phase}:`,
         "  prompt: Clean up",
         "tasks:",
         "  - id: task-1",
@@ -4338,13 +4349,16 @@ describe("createPipelineSimulation", () => {
       ].join("\n")
     });
     const controller = new AbortController();
-    const runAgent = vi
-      .fn()
-      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
-      .mockImplementationOnce(async () => {
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const onTaskComplete = vi.fn();
+    const runAgent = vi.fn(async (input) => {
+      if (input.prompt === "Clean up") {
         controller.abort();
-        return { stdout: "", stderr: "", exitCode: 0 };
-      });
+        if (throwOnAbort) throw Object.assign(new Error("cancelled"), { name: "AbortError", ...(carryUsage ? { usage } : {}) });
+        return { stdout: "", stderr: "", exitCode: 0, usage };
+      }
+      return { stdout: "", stderr: "", exitCode: 0, usage: { inputTokens: 7, outputTokens: 3, cachedTokens: 2 } };
+    });
 
     const result = await runPipeline({
       agent: "codex",
@@ -4353,10 +4367,22 @@ describe("createPipelineSimulation", () => {
       plan: "docs/plans/plan.md",
       fs,
       signal: controller.signal,
+      onTaskComplete,
       runAgent
     });
 
     expect(result.stopReason).toBe("cancelled");
+    const completedTasks = phase === "teardown" ? 1 : 0;
+    expect(result.metrics).toMatchObject({
+      totalInputTokens: (throwOnAbort && !carryUsage ? 0 : 120) + completedTasks * 7,
+      totalOutputTokens: (throwOnAbort && !carryUsage ? 0 : 45) + completedTasks * 3,
+      totalCachedTokens: (throwOnAbort && !carryUsage ? 0 : 10) + completedTasks * 2,
+      tasksCompleted: completedTasks,
+      tasksFailed: 0,
+      stepsCompleted: completedTasks
+    });
+    expect(onTaskComplete).toHaveBeenCalledWith(expect.objectContaining({ phase, success: false, cancelled: true, ...(throwOnAbort && !carryUsage ? {} : { usage }) }));
+    expect(onTaskComplete).not.toHaveBeenCalledWith(expect.objectContaining({ phase, success: true }));
   });
 
   it("expands {{file '...'}} in task prompts", async () => {
@@ -4525,5 +4551,28 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("completed");
     expect(prompts).toEqual(["Install dependencies.", "Do task 1"]);
+  });
+});
+
+
+describe("pipeline coordination progress", () => {
+  it("forwards contention before plan resolution and lets the caller cancel", async () => {
+    const planPath = "/repo/docs/plans/wait.md";
+    const fs = createPipelineTestFs(createFs({ [planPath]: "---\nkind: pipeline\nversion: 1\ntasks: []\n---\n" }));
+    let release!: () => void; let entered!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const ready = new Promise<void>(resolve => { entered = resolve; });
+    const owner = serializePlan({ planPath, kind: "run", operation: async () => { entered(); await gate; } });
+    const abort = new AbortController(); const onPlanResolved = vi.fn();
+    const onLockWait = vi.fn(() => abort.abort()); const runAgent = vi.fn();
+    let operation: ReturnType<typeof runPipeline> | undefined;
+    try {
+      await ready;
+      operation = runPipeline({ cwd: "/repo", homeDir: "/home/test", plan: planPath, agent: "codex", fs, runAgent, signal: abort.signal, onLockWait, onPlanResolved });
+      void operation.catch(() => undefined); await new Promise(setImmediate);
+      expect(onLockWait).toHaveBeenCalledExactlyOnceWith(planPath);
+      await expect(operation).resolves.toMatchObject({ stopReason: "cancelled", planPath, runsCompleted: 0, metrics: { tasksCompleted: 0, tasksFailed: 0 } });
+      expect(onPlanResolved).not.toHaveBeenCalled(); expect(runAgent).not.toHaveBeenCalled();
+    } finally { abort.abort(); release(); await Promise.allSettled([owner, operation]); }
   });
 });

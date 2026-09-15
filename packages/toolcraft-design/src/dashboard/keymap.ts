@@ -1,7 +1,20 @@
 import type { KeypressEvent } from "./terminal.js";
 import type { Command } from "./types.js";
 
-const commands: Command[] = ["forceQuit", "quit", "edit", "pause", "retry", "view-log"];
+const commands: Command[] = [
+  "forceQuit",
+  "quit",
+  "edit",
+  "pause",
+  "retry",
+  "view-log",
+  "scroll-up",
+  "scroll-down",
+  "page-up",
+  "page-down",
+  "follow",
+  "render-stats"
+];
 
 const defaultBindings: Record<Command, string[]> = {
   forceQuit: ["Ctrl+C"],
@@ -9,7 +22,13 @@ const defaultBindings: Record<Command, string[]> = {
   edit: ["e"],
   pause: ["p"],
   retry: ["r"],
-  "view-log": ["l"]
+  "view-log": ["l"],
+  "scroll-up": ["up"],
+  "scroll-down": ["down"],
+  "page-up": ["pageup"],
+  "page-down": ["pagedown"],
+  follow: ["f", "F", "end"],
+  "render-stats": ["Ctrl+g"]
 };
 
 type Binding = {
@@ -41,9 +60,8 @@ export function createKeymap<TCommand extends string>(
   }
 ): (event: KeypressEvent) => TCommand | undefined {
   const resolvedCommands = options?.commands ?? (commands as unknown as readonly TCommand[]);
-  const resolvedDefaults = options?.defaultBindings ?? (
-    defaultBindings as unknown as Record<TCommand, readonly string[]>
-  );
+  const resolvedDefaults =
+    options?.defaultBindings ?? (defaultBindings as unknown as Record<TCommand, readonly string[]>);
   const bindings = new Map<TCommand, Binding[]>();
   const sequences = new Set<string>();
   let pendingSequence = "";
@@ -137,7 +155,10 @@ function parseBinding(binding: string): Binding | undefined {
     return undefined;
   }
 
-  const parts = value.split("+").map((part) => part.trim()).filter(Boolean);
+  const parts = value
+    .split("+")
+    .map((part) => part.trim())
+    .filter(Boolean);
   if (parts.length === 0) {
     return undefined;
   }
@@ -213,11 +234,7 @@ function matchesSingleKey(binding: Binding, event: KeypressEvent): boolean {
     return false;
   }
 
-  if (
-    binding.ctrl !== event.ctrl ||
-    binding.meta !== event.meta ||
-    binding.shift !== event.shift
-  ) {
+  if (binding.ctrl !== event.ctrl || binding.meta !== event.meta || binding.shift !== event.shift) {
     return false;
   }
 

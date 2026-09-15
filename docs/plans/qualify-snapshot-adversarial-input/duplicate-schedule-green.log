@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/imported-promise-data.test.ts (20 tests) 28ms
+ ✓ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts (7 tests) 34ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-schedule.test.ts (10 tests) 10ms
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+   Start at  08:18:56
+   Duration  4.37s (transform 5.11s, setup 138ms, import 7.34s, tests 71ms, environment 0ms)
+

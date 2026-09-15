@@ -1,0 +1,92 @@
+[
+  {
+    "file": "dist/cli/commands/memory.js",
+    "specifier": "../../../packages/memory/src/templates/SKILL_memory.md",
+    "present": false,
+    "context": "import memorySkillTemplate from \"../../../packages/memory/src/templates/SKILL_memory.md\";"
+  },
+  {
+    "file": "dist/cli/commands/plan.js",
+    "specifier": "../../templates/plan/SKILL_plan.md",
+    "present": false,
+    "context": "import planSkillTemplate from \"../../templates/plan/SKILL_plan.md\";"
+  },
+  {
+    "file": "dist/index.d.ts",
+    "specifier": "../packages/user-error/dist/index.js",
+    "present": true,
+    "context": "export { UserError, isUserError } from \"../packages/user-error/dist/index.js\";"
+  },
+  {
+    "file": "dist/providers/create-provider.js",
+    "specifier": "../templates/py-poe-spawn/env.mustache",
+    "present": false,
+    "context": "    \"py-poe-spawn/env.mustache\": () => import(\"../templates/py-poe-spawn/env.mustache\"),"
+  },
+  {
+    "file": "dist/providers/create-provider.js",
+    "specifier": "../templates/py-poe-spawn/main.py.mustache",
+    "present": false,
+    "context": "    \"py-poe-spawn/main.py.mustache\": () => import(\"../templates/py-poe-spawn/main.py.mustache\"),"
+  },
+  {
+    "file": "dist/providers/create-provider.js",
+    "specifier": "../templates/py-poe-spawn/requirements.txt.mustache",
+    "present": false,
+    "context": "    \"py-poe-spawn/requirements.txt.mustache\": () => import(\"../templates/py-poe-spawn/requirements.txt.mustache\"),"
+  },
+  {
+    "file": "dist/providers/create-provider.js",
+    "specifier": "../templates/codex/config.toml.mustache",
+    "present": false,
+    "context": "    \"codex/config.toml.mustache\": () => import(\"../templates/codex/config.toml.mustache\"),"
+  },
+  {
+    "file": "packages/agent-harness/dist/loader/pair.d.ts",
+    "specifier": "../../../user-error/dist/index.js",
+    "present": true,
+    "context": "import { UserError } from \"../../../user-error/dist/index.js\";"
+  },
+  {
+    "file": "packages/markdown-reader/dist/mcp/run.js",
+    "specifier": "../../package.json",
+    "present": false,
+    "context": "import packageJson from \"../../package.json\" with { type: \"json\" };"
+  },
+  {
+    "file": "packages/tiny-http-mcp-oauth-test-server/dist/index.d.ts",
+    "specifier": "../../tiny-oauth-test-server/dist/index.js",
+    "present": false,
+    "context": "import { type OAuthTestStaticClient, type OAuthTestServer } from \"../../tiny-oauth-test-server/dist/index.js\";"
+  },
+  {
+    "file": "packages/toolcraft/dist/http-hosted-oauth.d.ts",
+    "specifier": "../../mcp-oauth-server/dist/index.js",
+    "present": false,
+    "context": "import { type AuthorizationServerStore, type AuthorizationGrantRecord, type AuthorizationTransactionRecord, type OAuthAuthorizationServerSigningKey } from \"../../mcp-oauth-server/dist/index.js\";"
+  },
+  {
+    "file": "packages/toolcraft/dist/http.d.ts",
+    "specifier": "../../mcp-oauth-server/dist/index.js",
+    "present": false,
+    "context": "import type { OAuthAuthorizationServer } from \"../../mcp-oauth-server/dist/index.js\";\nexport { createAuthorizationInteractionSecurity, createInMemoryAuthorizationServerStore, createOAuthAuthorizationServer, verifyAuthorizationInteractionCsrf } from \"../../mcp-oauth-server/dist/index.js\";\nexport type { AuthorizationInteraction, AuthorizationInteractionSecurity, AuthorizationServerStore, OAuthAuthorizationServer, OAuthAuthorizationServerOptions, VerifiedAuthorizationServerToken } from \"../../mcp-oauth-server/dist/index.js\";"
+  },
+  {
+    "file": "packages/toolcraft/dist/http.d.ts",
+    "specifier": "../../mcp-oauth-server/dist/index.js",
+    "present": false,
+    "context": "import type { OAuthAuthorizationServer } from \"../../mcp-oauth-server/dist/index.js\";\nexport { createAuthorizationInteractionSecurity, createInMemoryAuthorizationServerStore, createOAuthAuthorizationServer, verifyAuthorizationInteractionCsrf } from \"../../mcp-oauth-server/dist/index.js\";\nexport type { AuthorizationInteraction, AuthorizationInteractionSecurity, AuthorizationServerStore, OAuthAuthorizationServer, OAuthAuthorizationServerOptions, VerifiedAuthorizationServerToken } from \"../../mcp-oauth-server/dist/index.js\";"
+  },
+  {
+    "file": "packages/toolcraft/dist/http.d.ts",
+    "specifier": "../../mcp-oauth-server/dist/index.js",
+    "present": false,
+    "context": "import type { OAuthAuthorizationServer } from \"../../mcp-oauth-server/dist/index.js\";\nexport { createAuthorizationInteractionSecurity, createInMemoryAuthorizationServerStore, createOAuthAuthorizationServer, verifyAuthorizationInteractionCsrf } from \"../../mcp-oauth-server/dist/index.js\";\nexport type { AuthorizationInteraction, AuthorizationInteractionSecurity, AuthorizationServerStore, OAuthAuthorizationServer, OAuthAuthorizationServerOptions, VerifiedAuthorizationServerToken } from \"../../mcp-oauth-server/dist/index.js\";"
+  },
+  {
+    "file": "packages/worktree/dist/not-found.d.ts",
+    "specifier": "../../user-error/dist/index.js",
+    "present": true,
+    "context": "import { UserError } from \"../../user-error/dist/index.js\";"
+  }
+]

@@ -596,6 +596,29 @@ unqualified in the accumulated candidate. No proposal, skipped test or unavailab
 runner is counted as standard conformance. The dated evidence ledger retains
 individual findings rather than treating these limitations as resolved.
 
+## Compatibility evidence at a glance
+
+The published standard target is ECMA-262 edition 16 / ECMA-402 edition 12
+(June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`.
+Temporal and tracked newer APIs extend the measured surface without changing
+that target. The selector-free report is aborted (`complete: false`, ENOSPC);
+failures and unsupported required modes remain. Full conformance is not established.
+
+Use the [dated final evidence and disposition](../../docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15),
+[runtime matrix](../../docs/plans/safejs-runtime-support-matrix-final-audit-20260915.md),
+and [public transport contract](CHECKPOINT_REPLAY.md) to interpret feature claims.
+The declared ESM Node minimum is 18.18+, with a measured exact-minimum weak-symbol
+failure; broader OS/runtime qualification remains incomplete. Host capabilities
+are explicit, and host-admission restrictions are embedding policy, not language
+defects. Shared-write recovery remains unqualified.
+
+Registry receipts establish predecessor SafeJS 0.1.606 and poe-code 15.0.41
+publications, separately from local commits and remote main. They do not prove
+that this dirty checkout or these documentation changes have shipped. Historical
+local-only descriptions below must be interpreted using the dated receipts,
+not as a current publication inventory.
+
+
 ## Development status
 
 ### Pinned conformance runner

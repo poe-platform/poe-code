@@ -7,10 +7,14 @@ export async function serializePlan<Result>(options: {
   planPath: string;
   kind: "run" | "status";
   signal?: AbortSignal;
+  onWait?: (planPath: string) => void;
   operation: () => Promise<Result>;
 }): Promise<Result> {
   const key = `${options.kind}:${path.resolve(options.planPath)}`;
+  let notified = false;
   while (pending.has(key)) {
+    assertNotAborted(options.signal);
+    if (!notified) { notified = true; options.onWait?.(path.resolve(options.planPath)); }
     assertNotAborted(options.signal);
     const previous = pending.get(key)!;
     await new Promise<void>((resolve, reject) => {

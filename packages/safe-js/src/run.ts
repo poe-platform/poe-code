@@ -179,7 +179,9 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
   const jobs = new SandboxJobQueue();
   if (options.extensions !== undefined || options.builtinOverrides !== undefined) {
     const result = runWithExtensions(source, options, jobs).finally(() => jobs.finish());
-    return attachExecutionControl(result, jobs, options.signal);
+    const dumpController = createDumpController();
+    dumpController.fail(new TypeError("Snapshot is not replayable: Live realm state cannot be serialized or replayed."));
+    return attachExecutionControl(attachDumpController(result, dumpController), jobs, options.signal);
   }
   let capturePausedSnapshot: (() => RunSnapshot) | undefined;
   const lifecycle = {

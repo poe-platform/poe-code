@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { parse } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { PipelineFileSystem } from "@poe-code/pipeline";
+import { writeTaskStatus, type PipelineFileSystem } from "@poe-code/pipeline";
 import { runPipeline, type PipelineRunOptions } from "./pipeline.js";
 
 const planPath = "/repo/docs/plans/plan.md";
@@ -145,7 +145,7 @@ describe("SDK pipeline run coordination", () => {
       void second.catch(() => undefined);
       await new Promise(setImmediate);
       controller.abort();
-      await expect(second).rejects.toMatchObject({ name: "AbortError" });
+      await expect(second).resolves.toMatchObject({ stopReason: "cancelled", runsCompleted: 0 });
       expect(nextAgent).not.toHaveBeenCalled();
       await expect(setup.raw.stat(runLock)).rejects.toMatchObject({ code: "ENOENT" });
       expect(await setup.statuses()).toEqual({ first: "open", second: "open" });
@@ -160,6 +160,34 @@ describe("SDK pipeline run coordination", () => {
       release.resolve();
       await Promise.allSettled([first, second]);
     }
+  });
+
+  it("cancels at the coordination boundary without starting an agent", async () => {
+    const setup = fixture(); const controller = new AbortController();
+    const realpath = setup.fs.realpath!.bind(setup.fs);
+    setup.fs.realpath = async file => { const resolved = await realpath(file); controller.abort(); return resolved; };
+    const runAgent = vi.fn(async () => success());
+    await expect(runPipeline({ ...setup.options, signal: controller.signal, runAgent })).resolves.toMatchObject({ stopReason: "cancelled", runsCompleted: 0 });
+    expect(runAgent).not.toHaveBeenCalled(); await setup.assertReleased();
+  });
+
+  it("cancels a queued status write without releasing the active writer", async () => {
+    const setup = fixture(); const entered = deferred(); const release = deferred();
+    const readFile = setup.fs.readFile.bind(setup.fs);
+    const writerFs = { ...setup.fs, readFile: async (file: string, encoding: "utf8") => {
+      if (file === planPath) { entered.resolve(); await release.promise; }
+      return readFile(file, encoding);
+    } };
+    const writer = writeTaskStatus({ fs: writerFs, planPath, taskId: "first", status: "open" });
+    const controller = new AbortController(); let operation: ReturnType<typeof runPipeline> | undefined;
+    try {
+      await entered.promise;
+      operation = runPipeline({ ...setup.options, signal: controller.signal, runAgent: async () => success() });
+      void operation.catch(() => undefined); await new Promise(setImmediate); controller.abort();
+      await expect(operation).rejects.toMatchObject({ name: "AbortError" });
+      expect(await setup.statuses()).toEqual({ first: "open", second: "open" });
+      await expect(setup.raw.stat(runLock)).rejects.toMatchObject({ code: "ENOENT" });
+    } finally { controller.abort(); release.resolve(); await Promise.allSettled([writer, operation]); }
   });
 
   it.each(["agent exception", "setup exception", "teardown exception", "plan callback", "task callback", "status failure", "agent cancellation"])(

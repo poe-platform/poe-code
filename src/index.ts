@@ -175,7 +175,8 @@ export type {
   PipelineRunResult,
   PipelineInitRunOptions,
   PipelineInitRunResult,
-  PipelineInitSource
+  PipelineInitSource,
+  TaskCompletion
 } from "./sdk/pipeline.js";
 export type {
   RunMaestroOptions,

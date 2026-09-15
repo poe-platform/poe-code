@@ -1,0 +1,19 @@
+{
+  "source": "https://262.ecma-international.org/16.0/",
+  "clauses": {
+    "sec-sharedarraybuffer.prototype.grow": {
+      "normalizedTextSha256": "da56eab20e5fe546933eb37d3675c861afa6be48fbd6b071e4c588ffc1272183"
+    },
+    "sec-dowait": {
+      "normalizedTextSha256": "927c9acefa7ad4819d2f1469701b6fe89d6c66689a0e43c4a9b6816e28ec8290"
+    },
+    "sec-atomics.waitasync": {
+      "normalizedTextSha256": "83622b8dee53f65a79d1c537ea05045b50cf9e9182ce0de22e96c269e620b9ec"
+    }
+  },
+  "observations": {
+    "growth": "The published growth algorithm preserves monotonic length and totally orders racing growth operations.",
+    "wait": "DoWait distinguishes an immediate value mismatch from a registered waiter. Its published index calculation uses a four-byte multiplier; the existing BigInt indexing reconciliation remains open.",
+    "waitAsync": "waitAsync delegates to DoWait in asynchronous mode."
+  }
+}

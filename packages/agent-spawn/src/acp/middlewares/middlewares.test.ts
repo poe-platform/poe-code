@@ -37,7 +37,72 @@ function createContext(overrides: Partial<SpawnContext> = {}): SpawnContext {
   };
 }
 
+describe("acp/middlewares/sessionMetadataCapture", () => {
+  it("streams messages and tools without retaining history while capturing the thread", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const sourceEvents: AcpEvent[] = [
+      { event: "session_start", threadId: "metadata-thread" },
+      { event: "agent_message", text: "Message" },
+      { event: "tool_start", id: "one", kind: "exec", title: "inspect" },
+      { event: "tool_complete", id: "one", kind: "exec", path: "done" }
+    ];
+    const ctx = createContext({ eventStream: (async function* () { yield* sourceEvents; })() });
+    await sessionMetadataCapture(ctx, async () => {});
+    expect(await collect(ctx.eventStream!)).toEqual(sourceEvents);
+    expect(ctx.threadId).toBe("metadata-thread");
+    expect(ctx.sessionId).toBe("metadata-thread");
+    expect(ctx.events).toEqual([]);
+    expect(ctx.sessionResult).toBeUndefined();
+  });
+
+  it("captures valid preloaded thread metadata without rewriting caller-owned history", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const events: AcpEvent[] = [
+      { event: "session_start", threadId: "preloaded-thread" },
+      { event: "session_start", threadId: "" },
+      { event: "agent_message", text: "Message" }
+    ];
+    const ctx = createContext({ events });
+    await sessionMetadataCapture(ctx, async () => {});
+    expect(ctx.threadId).toBe("preloaded-thread");
+    expect(ctx.events).toBe(events);
+    expect(ctx.sessionResult).toBeUndefined();
+  });
+
+  it("preserves a session result explicitly supplied by other middleware", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const result = { output: "Caller result", messages: ["Caller result"], toolCalls: [] };
+    const ctx = createContext({ sessionResult: result, eventStream: (async function* () { yield { event: "agent_message", text: "Uncaptured" } as AcpEvent; })() });
+    await sessionMetadataCapture(ctx, async () => {});
+    await collect(ctx.eventStream!);
+    expect(ctx.sessionResult).toBe(result);
+    expect(result.output).toBe("Caller result");
+    expect(result.messages).toEqual(["Caller result"]);
+  });
+});
+
 describe("acp/middlewares/sessionCapture", () => {
+  it("captures a large live text burst within the interactive latency budget", async () => {
+    const ctx = createContext();
+    const text = "response word ".repeat(20);
+    ctx.eventStream = (async function* () {
+      for (let index = 0; index < 8_000; index++) yield { event: "agent_message", text } as AcpEvent;
+    })();
+    await sessionCapture(ctx, async () => {});
+    const startedAt = performance.now();
+    let count = 0;
+    for await (const event of ctx.eventStream!) {
+      count++;
+      if (count === 1) expect(ctx.sessionResult?.output).toBe(text);
+      expect(event.event).toBe("agent_message");
+    }
+    expect(performance.now() - startedAt).toBeLessThan(1_000);
+    expect(count).toBe(8_000);
+    expect(ctx.sessionResult?.messages).toHaveLength(count);
+    expect(ctx.sessionResult?.output.length).toBe(count * text.length + count - 1);
+    expect(ctx.sessionResult?.output.endsWith("\n" + text)).toBe(true);
+  });
+
   it("accumulates events and builds sessionResult while preserving event stream", async () => {
     const sourceEvents: AcpEvent[] = [
       { event: "session_start", threadId: "thread-123" },
@@ -206,6 +271,52 @@ describe("acp/middlewares/sessionCapture", () => {
 });
 
 describe("acp/middlewares/spawnLog", () => {
+  it("rolls a generated log back to its successful UTF-8 byte boundary", async () => {
+    const first: AcpEvent = { event: "agent_message", text: "café · 界 · 👩‍💻" };
+    const ctx = createContext({ logDir: "/tmp/generated-rollback", logContent: true });
+    ctx.eventStream = (async function* () {
+      yield first;
+      yield { event: "agent_message", text: "failed append" } as AcpEvent;
+    })();
+    const openSpy = vi.spyOn(fs, "open");
+    await spawnLog(ctx, async () => {});
+    const iterator = ctx.eventStream![Symbol.asyncIterator]();
+    await iterator.next();
+    const handle = await openSpy.mock.results[0]!.value;
+    const appendFile = handle.appendFile.bind(handle);
+    vi.spyOn(handle, "appendFile").mockImplementation(async (content, encoding) => {
+      await appendFile(String(content).slice(0, 1), encoding);
+      throw new Error("ENOSPC: partial append");
+    });
+    expect((await iterator.next()).value).toMatchObject({ text: "failed append" });
+    await iterator.next();
+    expect(await fs.readFile(ctx.logFile!, "utf8")).toBe(JSON.stringify(first) + "\n");
+    expect(ctx.logError).toContain("ENOSPC: partial append");
+  });
+
+  it("keeps generated logs current without statting the file for every event", async () => {
+    const sourceEvents: AcpEvent[] = [
+      { event: "agent_message", text: "café · 界" },
+      { event: "agent_message", text: "second" },
+      { event: "agent_message", text: "third" }
+    ];
+    const ctx = createContext({ logDir: "/tmp/generated-logs", logContent: true });
+    ctx.eventStream = (async function* () { yield* sourceEvents; })();
+    const openSpy = vi.spyOn(fs, "open");
+    await spawnLog(ctx, async () => {});
+    const iterator = ctx.eventStream![Symbol.asyncIterator]();
+    await iterator.next();
+    const handle = await openSpy.mock.results[0]!.value;
+    const statSpy = vi.spyOn(handle, "stat");
+    for (let index = 1; index < sourceEvents.length; index++) {
+      await iterator.next();
+      const lines = (await fs.readFile(ctx.logFile!, "utf8")).trimEnd().split("\n");
+      expect(lines.map((line) => JSON.parse(line))).toEqual(sourceEvents.slice(0, index + 1));
+    }
+    await iterator.next();
+    expect(statSpy).not.toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     vol.reset();
     vi.restoreAllMocks();

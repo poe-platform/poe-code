@@ -1935,6 +1935,219 @@ The shared checkout remains at **`bc6107ba5a308e94335f2d419d51d122ed17e6c3`** an
 **Unresolved acceptance:** 44 unchanged-deadline exhaustive timeouts; runtime eval/caller filenames; Function wrapper-relative positions; restored executable-source identity. Module/import execution unavailable by design is recorded separately from ECMAScript defects. The task is not claimed complete. The final receipt-only commit must finish its normal workflows; since all source fixes are now published, a successful no-new-version result is expected but must be observed rather than assumed.
 
 
+### qualify-source-modules — prompt unsupported-dump rejection (2026-09-13 UTC)
+
+Source base `60a6f594ec0f40467b61880a856a626d3b14de35`, Node **22.23.2 /
+ICU 78.2**, Darwin arm64. The ECMA-262 edition 16 / ECMA-402 edition 12 target,
+previously tracked newer APIs and pinned Test262 revision remain unchanged.
+[Qualification and reproducible blockers](qualify-source-modules/dump-readiness-audit/qualification.md)
+distinguish the task-owned repair from the pre-existing source-module candidate.
+
+Two failing regressions established that `dump()` and `dumpCurrent()` wait
+indefinitely for unsupported live snapshots when a host operation is pending.
+The live-run branch now attaches the existing dump controller with its existing
+unsupported-snapshot error. Requests reject promptly without stopping execution.
+Host completion and cancellation remain tested. Module-specific pending resolver
+and host-operation probes also reject promptly and preserve cancellation reasons.
+This is an error-readiness repair, not graph checkpoint or replay support.
+
+The exact committed code was checked in a detached checkout excluding prior local
+changes: maintained pretest, **49 tests / zero skipped**, lint and package
+typechecking all passed. The initial isolated test attempt lacked generated
+number-format fixtures and executed no tests; the maintained pretest repaired
+that preparation. Working-tree selections passed **67** snapshot/realm tests
+and **132** module/parser/SDK/CLI/runner controls, with no failures or skips.
+The CLI screenshot was opened and visually checked. Full package/root gates and
+the runtime matrix were not repeated for this focused repair.
+
+The complete pinned module-code rerun remains **594 passed / two failed / six
+unsupported**, 602 variants, exit 1. The previously recorded edition/capability
+dispositions remain; no nonpass is counted as a pass. Candidate source digest:
+`bce76d2afd041d595a1bae1e2e3169885fa88fed72c657d9898948e402a89cd9`.
+
+**Acceptance remains incomplete.** Fresh probes still produce identical
+placeholder hashes for different dependency sources, reject import-frame capture
+and all source restores before consulting the resolver, and return outside
+source under an inside identity in the deterministic two-swap rooted-resolution
+attack. Prompt dump rejection does not provide checkpoint encoding, pending-host
+replay, source-manifest mismatch validation or atomic ancestor confinement.
+
+This entry accompanies the local atomic dump repair commit; its SHA is reported
+after creation. The pre-existing module candidate and unrelated staged changes
+are preserved. Verified task remote-main delivery: **none**. Successful task
+release/publication receipts: **none**. No push was initiated.
+
+
+
+
+### qualify-module-authority — fresh reproduction and evidence-only commit (2026-09-13 05:34 UTC)
+
+**Acceptance remains unmet.** The [revalidation report](qualify-module-authority-revalidation.md)
+contains exact commands, observed outputs, source hashes and unresolved dispositions.
+Audited HEAD: `61fb23e4dd0fd5ea15d68440e687e647bb71a004` on main, with inherited dirty
+resolver changes. Node **22.23.2**, ICU **78.2**, V8 **12.4.254.21-node.56**.
+ECMA-262 edition 16 / ECMA-402 edition 12, the pinned Test262 revision and
+explicitly tracked newer APIs remain unchanged.
+
+Fresh focused tests: **138 passed / 18 files, zero failures or skips**. Five manual
+probes reproduce transient outside-root access, full oversized-source acquisition
+before budget rejection, absent dedicated graph admission limits, unsupported
+graph restore, and noncooperative host work surviving cancellation until explicit
+host cleanup. Probe exits are successful observations, not acceptance passes.
+All probe work was released and acquired handles closed. No runtime repair,
+weakened assertion, new string filter or broadened host authority was introduced.
+
+Manual checks for the exact documentation changes: scoped Prettier, task-patch
+whitespace validation, command-result review, and preservation checks. Broader
+package/runtime/build receipts above remain historical, not rerun results.
+Only this entry and the linked report belong to the evidence commit; pre-existing
+ledger content, source changes and staged work are preserved. Local SHA is
+reported after commit; remote-main delivery and publication are **not verified**.
+No push or release occurred. No completion or issue-closure claim is made.
+
+
+### qualify-lexical-and-source-text — CLI origin display and current-source requalification, 2026-09-13
+
+**Acceptance remains open.** This atomic repair makes the CLI display an unlocated error's supplied filename and error kind without inventing coordinates or printing host stack frames. It preserves ordinary startup failure messages and runtime exit code 1. Only the three-line `readErrorMessage` change, its new four-case regression file and this evidence section belong to this commit. Earlier local parser/module/diagnostic work and the three staged Safe Bash files are excluded and preserved. In particular, this display repair does not independently supply missing filenames: the bounded parser reproduction below also exercises pre-existing, uncommitted origin-preservation work.
+
+Target unchanged: **ECMA-262 edition 16 (June 2025)** / **ECMA-402 edition 12**, Test262 **419d3e0a2273ba01a3bfcbec423f2801425b8e93**, plus the ledger's separately tracked newer APIs. Corpus membership is not a new edition declaration; newer identifier fixtures retain their pinned corpus identity. The web reader rejected the edition HTML for exceeding its content-size limit; the previously retained edition-16 document and target pin were used, without substituting a floating draft.
+
+Base HEAD **7856b19dac7f030e7b96e70885c8b77927d403a8**, branch **main**; Node **22.23.2**, ICU **78.2**, Unicode **17.0**, V8 **12.4.254.21-node.56**, Darwin arm64. The full corpus and source-origin probes use the current mixed working tree, not an isolated claim about this commit. The isolated commit source contains HEAD plus only this repair.
+
+Maintained corpus source-content SHA-256 **3561b2c069390da644f6295227850d84a15f40985cf6d5acfe881c77d50cb20c**, manifest **64eb9e3d136fa25226447e642d56a250c305f578714f1e02b13ad603bc485559**; raw JSONL SHA-256 **7d365ac99c3443193a1c86846a8ebb5e6997384029a0f9e6cb609b33c9be0af5**. Completion **2026-09-13T06:59:25.489Z**, command exit **1**, `complete: true`: **1,231 files / 2,381 variants; 2,337 passed, 44 failed, zero unsupported**, zero metadata/execution errors. Every nonpass is `worker-wall-timeout`, with unchanged **3,000 ms per variant / 10,000 ms startup** and no budget overrides. No corpus failure is counted as a pass.
+
+| Category | Variants | Passed | Timeout failures |
+| --- | ---: | ---: | ---: |
+| language/asi | 204 | 204 | 0 |
+| language/comments | 46 | 42 | 4 |
+| language/comments/hashbang | 35 | 35 | 0 |
+| language/expressions/template-literal | 114 | 114 | 0 |
+| language/future-reserved-words | 85 | 85 | 0 |
+| language/identifiers | 535 | 503 | 32 |
+| language/keywords | 50 | 50 | 0 |
+| language/line-terminators | 82 | 82 | 0 |
+| language/literals/bigint | 26 | 26 | 0 |
+| language/literals/bigint/numeric-separators | 92 | 92 | 0 |
+| language/literals/boolean | 8 | 8 | 0 |
+| language/literals/null | 6 | 6 | 0 |
+| language/literals/numeric | 175 | 175 | 0 |
+| language/literals/numeric/numeric-separators | 126 | 126 | 0 |
+| language/literals/regexp | 368 | 360 | 8 |
+| language/literals/regexp/named-groups | 112 | 112 | 0 |
+| language/literals/string | 128 | 128 | 0 |
+| language/reserved-words | 53 | 53 | 0 |
+| language/source-text | 2 | 2 | 0 |
+| language/white-space | 134 | 134 | 0 |
+
+The table explicitly separates hashbang and numeric separators. Identifiers/string/source-text cover Unicode names, escapes and surrogate handling; line-terminators/ASI/comments cover the line-sensitive grammar; templates cover tagged raw/cooked values; regexp and reserved/contextual word cohorts retain their pinned modes and negative expectations. Exhaustive fixture failures remain performance/resource qualification failures, not proof of incorrect token acceptance. Their unchanged sources must still complete within the existing deadline; minimized controls do not replace them.
+
+The 22 failing files each fail in both sloppy and strict modes:
+
+- `language/comments/S7.4_A5.js`
+- `language/comments/S7.4_A6.js`
+- `language/identifiers/start-unicode-10.0.0-escaped.js`
+- `language/identifiers/start-unicode-10.0.0.js`
+- `language/identifiers/start-unicode-13.0.0-escaped.js`
+- `language/identifiers/start-unicode-13.0.0.js`
+- `language/identifiers/start-unicode-15.0.0-escaped.js`
+- `language/identifiers/start-unicode-15.0.0.js`
+- `language/identifiers/start-unicode-16.0.0-escaped.js`
+- `language/identifiers/start-unicode-16.0.0.js`
+- `language/identifiers/start-unicode-17.0.0-escaped.js`
+- `language/identifiers/start-unicode-17.0.0.js`
+- `language/identifiers/start-unicode-5.2.0-escaped.js`
+- `language/identifiers/start-unicode-5.2.0.js`
+- `language/identifiers/start-unicode-8.0.0-escaped.js`
+- `language/identifiers/start-unicode-8.0.0.js`
+- `language/identifiers/start-unicode-9.0.0-escaped.js`
+- `language/identifiers/start-unicode-9.0.0.js`
+- `language/literals/regexp/S7.8.5_A1.1_T2.js`
+- `language/literals/regexp/S7.8.5_A1.4_T2.js`
+- `language/literals/regexp/S7.8.5_A2.1_T2.js`
+- `language/literals/regexp/S7.8.5_A2.4_T2.js`
+
+Grammar separation was refreshed on 37 bounded sources. `parseEvalScript(source,{})` implements the standard Script entry; all 37 acceptance outcomes agree with native `vm.Script`. `parseSourceModule(source,"guest.mjs")` implements source modules; all 37 outcomes agree with Acorn configured for `ecmaVersion:2025, sourceType:"module"` (shared parser dependency, not an independent module oracle). Public Agent Script uses `parseExecutableModule`; lint was exercised separately. All four columns retain the prior recorded acceptance outcomes. Wrapper restrictions remain embedding dispositions, not standard early errors. Here A/R mean accepted/rejected during parsing, not execution or absence of lint findings; JSON strings represent exact input text.
+
+| Case | JSON source | Script | Module | Agent Script | Lint parse |
+| --- | --- | --- | --- | --- | --- |
+| unicode-identifier | `` "let \u03c0=1; \u03c0" `` | A | A | A | A |
+| astral-identifier | `` "let \ud801\udc00=1; \ud801\udc00" `` | A | A | A | A |
+| identifier-escape | `` "let \\u{10400}=1; \ud801\udc00" `` | A | A | A | A |
+| surrogate-identifier | `` "let \\uD800=1" `` | R | R | R | R |
+| surrogate-string | `` "let x=\"\\uD800\"" `` | A | A | A | A |
+| escaped-keyword | `` "let \\u0069f=1" `` | R | R | R | R |
+| identifier-joiner | `` "let a\u200cb=1" `` | A | A | A | A |
+| start-joiner | `` "let \u200ca=1" `` | R | R | R | R |
+| hashbang | `` "#!/usr/bin/guest\nlet x=1" `` | A | A | A | A |
+| hashbang-leading-space | `` " #!x\nlet x=1" `` | R | R | R | R |
+| html-comment | `` "<!-- x\nlet x=1" `` | A | R | R | R |
+| block-comment | `` "let x=1/*\u2028*/let y=2" `` | A | A | A | A |
+| asi-return | `` "function f(){return\u2028 1}" `` | A | A | A | A |
+| asi-throw | `` "function f(){throw\u2028 1}" `` | R | R | R | R |
+| numeric-separator | `` "let x=0xAB_CD+0b10_01+0o7_7+1_000+1.2_3e1_0+1_0n" `` | A | A | A | A |
+| numeric-separator-double | `` "let x=1__0" `` | R | R | R | R |
+| numeric-separator-radix | `` "let x=0x_FF" `` | R | R | R | R |
+| numeric-adjacent | `` "let x=1foo" `` | R | R | R | R |
+| legacy-octal | `` "let x=077" `` | A | R | R | R |
+| strict-legacy-octal | `` "\"use strict\";let x=077" `` | R | R | R | R |
+| legacy-escape | `` "let x=\"\\1\"" `` | A | R | R | R |
+| strict-legacy-escape | `` "\"use strict\";let x=\"\\1\"" `` | R | R | R | R |
+| tagged-invalid-escape | `` "const tag=x=>x;tag`\\xZ`" `` | A | A | A | A |
+| untagged-invalid-escape | `` "`\\xZ`" `` | R | R | R | R |
+| regex-after-condition | `` "if(true) /x/.test(\"x\")" `` | A | A | A | A |
+| division-after-object | `` "const x=({a:4}).a / 2" `` | A | A | A | A |
+| contextual-identifiers | `` "let async=1,of=2,from=3; async+of+from" `` | A | A | A | A |
+| strict-reserved | `` "\"use strict\";let implements=1" `` | R | R | A | A |
+| sloppy-reserved | `` "var implements=1" `` | A | R | A | A |
+| return-embedding | `` "return 1" `` | R | R | A | A |
+| await-embedding | `` "await 0" `` | R | A | A | A |
+| module-export | `` "export const x=1" `` | R | A | A | A |
+| terminator-"\n" | `` "let x=1\nlet y=2" `` | A | A | A | A |
+| terminator-"\r" | `` "let x=1\rlet y=2" `` | A | A | A | A |
+| terminator-"\r\n" | `` "let x=1\r\nlet y=2" `` | A | A | A | A |
+| terminator-"\u2028" | `` "let x=1\u2028let y=2" `` | A | A | A | A |
+| terminator-"\u2029" | `` "let x=1\u2029let y=2" `` | A | A | A | A |
+
+Fresh original-source checks use `run(source,{filename:"guest/main.ajs"})`:
+
+| Probe | Current disposition |
+| --- | --- |
+| `return eval("\nmissing")` | ReferenceError span starts at inner line 2, column 1, offset 1, but filename is absent. Open. |
+| `return eval("const x=)")` | SyntaxError message identifies inner column 9; attached span identifies outer eval call (column 8). Filename absent. Open. |
+| `return Function("\nreturn missing")()` | Filename absent; span includes generated function wrapper (line 4). Open. |
+| `return eval("1+2")`, `return Function("return 3")()` | Both return 3. |
+| Import `export const x=);` through an explicit resolver returning id `guest/dep.mjs` | SyntaxError preserves guest id, line 1, column 16, offset 15 and a header-only stack. Pass for this control. |
+| Import `export const x=1;` + U+2028 + `missing()` | ReferenceError preserves line 2, column 1, offset 18; filename absent. Open. |
+| Import `export const x=3;` | Root namespace returns x = 3. Resolver authority is explicit; no ambient import capability added. |
+| Eval-created closure throwing `new Error("marker")` after `await 0`, then dump and completed replay | Original/restored message and stack agree, but both lack filenames. Replay equality does not satisfy source-origin acceptance. |
+
+The existing dynamic-source record stores body/context without origin identity; the current module runtime also lacks filename attachment. Fixing display alone cannot resolve these producers or their snapshot representation. Current source-module files are pre-existing uncommitted work and are not silently included in this delivery. Required runtime-wide and installed-artifact coverage remains open; this follow-up ran Node22, not every supported runtime.
+
+Reproduction and checks from repository root (replace the corpus checkout path only with the same pinned revision):
+
+```sh
+npx tsx packages/safe-js/test/conformance/command.ts --corpus /private/tmp/safejs-baseline-test262-419d3e0 --report /tmp/lexical-fresh.jsonl --include language/identifiers --include language/source-text --include language/literals --include language/asi --include language/comments --include language/line-terminators --include language/white-space --include language/keywords --include language/future-reserved-words --include language/reserved-words --include language/expressions/template-literal
+npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts
+npx vitest run packages/safe-js/src/cli.unlocated-diagnostics.test.ts packages/safe-js/src/cli.lexical-diagnostics.test.ts packages/safe-js/src/parse packages/safe-js/src/lint packages/safe-js/src/error
+npx eslint packages/safe-js/src/cli-runtime.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts
+npx tsc --noEmit -p packages/safe-js/tsconfig.json
+```
+
+TDD: **one failure / three passing controls** before the repair; the failing assertion expected `RangeError: nested.ajs` followed by the original message, but received only the message. The regression injects the observed unlocated-error contract at the CLI startup boundary, avoiding environment-dependent native stack capacities. Direct Node+tsx with `runCli(["nested.ajs"],{cwd:"/guest",readFile:async()=>"(".repeat(1024)+"1"+")".repeat(1024),stat:async()=>({isFile:()=>true})})` independently reproduced the old output and verified the repaired output/exit 1. The source is bounded at 2,049 UTF-16 units. Shallow `(1 + 2)` execution and ordinary Error/string startup failures are neighboring controls. No capacity guard, runtime support, assertion, timeout, budget or host authority changed.
+
+Current mixed-tree integration: **2,411 passed / one declared opt-in parser-fuzz skip**, 137 passing files / one skipped, exit 0. Scoped ESLint and package no-emit TypeScript pass. Manual CLI screenshot command `npx tsx scripts/screenshot.ts --output /tmp/lexical-nesting.png npx tsx packages/safe-js/src/cli.ts docs/plans/qualify-lexical-and-source-text/host-stack-audit/nesting.ajs` was run and its image inspected: error kind, supplied relative path and original message are legible; there are no invented coordinates or host frames.
+
+**Exact files being committed were manually checked:** an isolated `git archive HEAD` copy received only the three-line source repair and the new test. First test attempt: four failures caused by absent generated `src/intl-data/dist/numberformat-engine.js`; this setup failure is retained. After maintained `npm run pretest --workspace=@poe-code/safe-js` (all four filesystem contract cells passed), `vitest run packages/safe-js/src/cli.test.ts packages/safe-js/src/cli.unlocated-diagnostics.test.ts` passed **50/50** and `tsc --noEmit -p packages/safe-js/tsconfig.json` passed. Installed dependencies were reused; this is not a clean-install certification. A redundant ESLint invocation inside the archive was interrupted with exit 143 after prolonged filesystem scanning and is not a pass. The exact committed CLI bytes instead passed the unchanged maintained root ESLint configuration via `npx eslint --stdin --stdin-filename packages/safe-js/src/cli-runtime.ts < /tmp/safejs-lexical-current/isolated/packages/safe-js/src/cli-runtime.ts`; the identical regression bytes passed the scoped root lint command above. No lint rule or configuration was bypassed or changed.
+
+Exact commit-file SHA-256 `packages/safe-js/src/cli-runtime.ts`: `87fb8d1a9e1d36d6e4fdd7ad136e1799116e4bfea638dc3e486fea5524412acc`.
+
+Exact commit-file SHA-256 `packages/safe-js/src/cli.unlocated-diagnostics.test.ts`: `cb6480e24d6f5ce14362aec9c1bd94670a3126c6b1a48ea49fc71f7274a79215`.
+
+Local raw receipts are retained under `docs/plans/qualify-lexical-and-source-text/cli-origin-audit/` (uncommitted logs/JSON/screenshot, not release artifacts). The commands, complete category counts, failing filenames and grammar inputs above are the committed reproducible record. The prior index patch SHA-256 is `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`; preservation is checked again after the commit.
+
+Delivery: the local repair is the containing Conventional Commit (retrieve its SHA with `git log -1 --format=%H -- packages/safe-js/src/cli.unlocated-diagnostics.test.ts`). **Verified remote-main delivery: none. Release/publication receipts: none; no push or release was requested/performed.** No historical publication is claimed for this candidate. Original-source acceptance, the 44 unchanged exhaustive-fixture timeouts and remaining runtime/artifact gates stay unresolved; this is not task completion.
+
+
 ## qualify-async-job-order — 2026-09-13 candidate qualification
 
 Owner: `qualify-async-job-order`; recovery coordination: `qualify-realms-and-recovery`. The target remains ECMA-262 edition 16 / June 2025 and pinned Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, with existing extension pins unchanged. [Detailed results, counterexamples, contracts and dispositions](qualify-async-job-order/results.md), [reproduction commands and manual review](qualify-async-job-order/commands.md), [initial environment](qualify-async-job-order/environment.json), and [candidate fingerprints](qualify-async-job-order/candidate-source.json) identify this execution.
@@ -2033,6 +2246,29 @@ SafeJS publication initially returned old latest metadata, exact-version/attesta
 The clean-candidate corpus still has **91 explicit nonpasses**, and the working tree with additional uncommitted repairs still has its separately fingerprinted **75 nonpasses**. Three host-boundary categories remain open: an inherited Proxy prototype trap, twice-invoked diagnostic getters on thrown plain records, and twice-invoked prototype traps on Proxy children of AggregateError.errors. [Installed residual-boundary traces and dispositions](qualify-error-completions/current-audit-20260913/installed-residual-boundary-receipt.json) are executed probes with failing privacy expectations, not passing tests. Full supported-platform and failing-path replay qualification remains open. The target edition, extension pins, deadlines, budgets, assertions and support remain unchanged.
 
 This follow-up contains receipts and disposition clarification only. Its own verified remote SHA and workflow outcome are recorded as a documentation-only delivery observation; it does not claim another runtime publication.
+
+### qualify-async-job-order — committed verification receipt, 2026-09-13 10:23 UTC
+
+Evidence-only verification of local `main` source SHA `8f6b7826cf71d6cc58e7eb7b0fd78f33e6dd2208`, Node **22.23.2**, ICU **78.2**. The maintained `sourceProvenance()` function in `packages/safe-js/test/conformance/provenance.ts` returned source hash `2f863dc2167796f6e081d7b2147ca77ea469e5017c0fc00b4b22cbeb9d014d3c`; all twelve `candidate-source.json` fingerprints match. ECMA-262 edition 16 / June 2025, pinned Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and separately tracked API pins remain unchanged.
+
+Manually reran the exact twelve-file `npx vitest run` and twelve-file `npx eslint` commands under “Maintained checks” in [commands.md](qualify-async-job-order/commands.md). Vitest: **132 passed / zero failed / zero skipped**, twelve files, **11.43 seconds**, exit **0**. ESLint: **exit 0**, no diagnostics. Reviewed independent literal traces, deterministic deferred gate acknowledgements, original/pending/completed replay equality, shared callback mutations, exact host-effect counts, cancellation and realm-close authority, and separate unhandled/late-handler policy tests. No code repair or additional TDD cycle was needed; no runtime, assertion, budget, timeout, or visual CLI change was made.
+
+The earlier unchanged-source package gate (**29,527 passed / 47 skipped / zero failed**), build, runtime matrix and screenshot receipts remain applicable historical results, not freshly executed checks. The pinned result remains **152 passed / 18 failed**: fourteen explicitly separate embedding rejection-policy outcomes and four post-edition Promise.try conflicts, as detailed in [results.md](qualify-async-job-order/results.md). Neither failures nor skips are counted as passes. The missing `.husky/pre-commit` file encountered during hook inspection was a read-only inspection failure; configured hooks remain enabled through `.husky/_`.
+
+**Disposition:** selected local async ordering/recovery acceptance remains evidenced; exhaustive ECMAScript compatibility is not claimed. Required manual checks passed for this evidence-only commit: source/fingerprint comparison, focused tests, candidate lint, report review, and staged whitespace/path review. This commit includes only this ledger addition; prior uncommitted ledger additions and all unrelated local/staged changes are preserved. Original staged-diff SHA-256: `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`. The local receipt commit is identified by this section's Git history and the final response; earlier repair/qualification commits are `26d6b7722`, `cff1a62cd`, `8f6b7826c`. **Verified remote-main delivery: not performed. Successful release/publication: not performed; no task release receipt exists.** No push was requested.
+
+
+## qualify-error-completions — independent cleanup traces, 2026-09-13 12:51 UTC
+
+**Acceptance remains blocked.** [Current qualification, exact commands and every failure disposition](safejs-error-completions-qualification-20260913.md) accompanies four new independent traces in `packages/safe-js/src/interp/completion-cleanup-traces.test.ts`: finally/continue/IteratorClose precedence, delegated missing-throw cleanup, close-failure precedence, and nested asynchronous suppression/cause identity before an overriding finally return. Each checks original and completed replay; the edition traces also have native controls. No existing dirty runtime repair is adopted by this commit.
+
+Source HEAD `2d36d34699ea800144d3176f919d41dac697a5e4`, preserved dirty source fingerprint `ef129136523fbc30ba25e6d8251e80a37b11d51c9d5a031e2c3a2ddd75d5b419`, Node **22.23.2 / ICU 78.2**, Darwin arm64. Target remains ECMA-262 edition 16, ECMA-402 edition 12, pinned Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and separately tracked resource-management revision `38c13295dc20c2273ba0a6ed82555f1fabb37764`.
+
+Manual checks for the exact new test bytes pass: **4 new tests**, **215 focused tests / 19 files**, zero skips, targeted ESLint, and **4 tests against archived HEAD** after maintained Intl-data generation. Two deadline-only probes reject without the external watchdog. No runtime, timeout, budget, assertion, support, README or CLI visual change is made. The report retains the aborted enumeration attempt and control setup failures without counting them as passing tests.
+
+Final corpus **12:49:04.053–12:51:03.396 UTC**, exit **1**, complete: **914 files / 1811 variants / 1736 passed / 75 failed**, zero unsupported/metadata/execution errors. File/hash/mode membership and all outcomes exactly match the preceding completed run. Unchanged deadlines: **3000 ms** variant / **10000 ms** startup. Remaining blockers are **two foreign ThrowTypeError variants, three strict tail-call timeouts, seventy newer stack-accessor variants, and three host Proxy getPrototypeOf traps**. Broader runtime/platform, failure-path replay and installed-artifact qualification remain open.
+
+Delivery: one local test/evidence commit is intended; its containing Git commit supplies the local receipt. **No push, no verified remote-main delivery, no publication** for this change. Previous releases are not substituted. Only the new test, its report and this ledger append belong to the commit; unrelated staged and working changes are preserved.
 
 ## qualify-language-semantics — current-source audit and global eval repair, 2026-09-13
 
@@ -2598,6 +2834,50 @@ Pinned replay: two BigInt passes, two numeric deadline failures at unchanged 3,0
 Source commits `d45c2826c`, `19df5532d`, `67febf867` are verified on remote main. [Nine scoped package receipts](qualify-exotic-object-invariants/delivery-20260913/scoped-publications.json) confirm successful workflows and actual @poe-platform/safe-js, safe-fs and safe-bash versions **0.1.586, 0.1.587, 0.1.588**, with matching registry integrity, inspected provenance commit/invocation and installed Node/Bun smoke checks. Registry delays and initial unavailable installs remain documented. Both repairs pass installed public-API probes. Root Release/publication remains pending at this checkpoint and is not claimed complete; successor ancestry and recovery are recorded in the report.
 
 
+
+## qualify-exotic-object-invariants — descriptor reentrancy, 2026-09-13
+
+**Acceptance remains open.** [Reproducible commands, source provenance and disposition](qualify-exotic-object-invariants/descriptor-recheck-20260913/qualification.md) record eight new independent descriptor mutation/revocation/throw controls. The final focused run passes **111/111 tests**, zero failures/skips; targeted ESLint passes on the exact new test bytes. No production change or weakened budget, assertion, timeout or support policy was introduced.
+
+Source HEAD `4caaa017fc01858ed43ebd0759b4a69e3063a844`, preserved dirty working-source hash `88a0352b98cd5d377ebca117613126187348eef5ff90b9b21022b7d238e185df`; Node **22.23.2 / ICU 78.2**. Edition 16 / June 2025, ECMA-402 edition 12, tracked newer APIs and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` remain pinned. These are working-candidate results, not clean-HEAD qualification.
+
+Fresh pinned selection: **8 passes / 2 failures** across five files / ten variants, no unsupported or metadata/execution errors. Numeric typed-array subarray custom-species cases still fail both modes with `worker-wall-timeout` at **3,000 ms**. Prior broad timeout and runtime coverage gaps remain unresolved. The test and report form a local atomic qualification commit; its SHA is reported after creation. **Verified remote-main delivery: none; publication/release receipts: none.**
+
+## qualify-binary-memory — terminal package gate, 2026-09-13
+
+**Acceptance remains open.** [Self-contained audit and reproducible results](qualify-binary-memory/current-gate-20260913/qualification.md) record source `33fde231ac697685bce3a353d0bbae4f002c859b` plus fingerprinted, unchanged dirty SafeJS files, Node 22.23.2 / ICU 78.2. ECMA-262 edition 16 / ECMA-402 edition 12 and the existing newer API pins remain unchanged. The pinned binary directory census contains 3,140 files before edition filtering; this inventory is not execution coverage.
+
+The maintained `npm test --workspace=@poe-code/safe-js` completed: four type-contract environments passed, **29,897 tests passed / 47 skipped**, **one failed suite / 1,388 passed files / two skipped files**, exit 1. `dom-exception-platform.test.ts` fails during import because the current uncommitted host bridge assumes DOMException diagnostic getters exist. A separate focused rerun reproduces the same failure with zero tests collected. The 45 independent binary controls and 36 public recovery controls pass within the package total. No failed or skipped result is counted as passing.
+
+Fresh two-byte native controls reconfirm missing resize/grow on Node 18.18.0 and 18.20.8, and Bun 1.3.11 growable shared-copy brand failure; Node 22 controls pass. Shared-memory runner exclusions, complete corpus/kind reconciliation, Workerd, exhaustive charged-growth/rollback and pending replay remain open. Host authority restrictions remain distinct from ECMAScript defects. No runtime repair, budget, assertion, timeout or support change was made.
+
+This increment commits only its report and this ledger section. Exact documentation formatting and isolated diff checks passed; the package runtime gate failed as stated. Original staged and source changes are preserved. **Local evidence commit:** this documentation commit (SHA reported separately after creation). **Verified remote-main delivery:** none. **Successful release/publication:** none; no release receipt, no push performed.
+
+## 2026-09-13 — qualify-regexp-semantics-and-cost: guest hook cost qualification
+
+**Acceptance remains open.** This atomic change adds `packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts`, with specification-derived positive results, ordinary guest-throw propagation, and fatal resource rejection for six integration paths: replacement callback, bound replacement receiver, split species, matchAll species, lastIndex coercion, and overridden exec. Each resource control executes work inside the hook under an explicit **2,000-step caller budget**, and requires rejection to survive both guest catch and a returning finally. All **18/18** tests pass independently on Node **18.20.8 / ICU 74.2**, **22.23.2 / ICU 78.2**, and **24.14.0 / ICU 78.2**, with zero skips. These controls close selected hook-work evidence gaps; they do not establish every restoration graph or every feature/backend combination.
+
+Source base: `66ed2cc09799e30b98476ea144d540ee5f501dec`, with inherited working changes, not clean HEAD. The completed maintained corpus reports source fingerprint `98453bae719845c3c4e3635a9162b8571ade3fee7c1e5c4cc21e2b6d10133d0a`, manifest `097c6a6cff70c6dc49321fa0fcfdc91225bb2c5fa77582ef6c54e8cfe65f0520`, Test262 revision `419d3e0a2273ba01a3bfcbec423f2801425b8e93`. Target remains **ECMA-262 edition 16 (June 2025)** plus the previously tracked newer APIs; no target or runtime-support change. Existing source and staged changes were independently byte/hash compared before commit and preserved. The inherited SafeJS TypeScript source inventory SHA-256 is `71e702a1025ecbfbb353a42076f3af77739123923a1932ed349d3252060aefe4`; no inherited runtime or test file was edited or adopted into this commit.
+
+Reproducible commands, from repository root (substitute an output directory for `/tmp/regexp-qualification-current`):
+
+```sh
+node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex packages/safe-js/src/interp/methods/string-regexp-created-hooks.test.ts packages/safe-js/src/interp/methods/string-replacement-validation.test.ts
+node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts
+/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts packages/safe-js/src/interp/regex/semantics-cost-qualification.test.ts
+/Users/kjopek/.nvm/versions/node/v24.14.0/bin/node node_modules/vitest/vitest.mjs run packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts
+npx eslint packages/safe-js/src/interp/regex/hook-cost-qualification.test.ts
+node --import tsx packages/safe-js/test/conformance/command.ts --corpus /tmp/safejs-regexp-test262-419d3e0 --include built-ins/RegExp/match-indices/indices-array-non-unicode-match.js --include built-ins/RegExp/match-indices/indices-array-unicode-match.js --include built-ins/RegExp/unicodeSets/generated/rgi-emoji-13.1.js --include built-ins/RegExp/unicodeSets/generated/character-class-intersection-character-class.js --report /tmp/regexp-qualification-current/corpus-stable.jsonl
+```
+
+The first command ran before adding the new test: **17 files / 378 tests passed**, exit 0, zero skips. It rechecks compiler ownership/ingress, matcher semantics, aggregate accounting, repeated iterator restore, String integration and fatal rejection without arbitrary guest-pattern native fallback. The separate new-file command passes **18 tests**, exit 0; ESLint passes, exit 0. The combined Node18 command exits 1: **82 passed / six failed / zero skipped**. All six failures remain property-backed v-mode intersection, subtraction and string-property semantic/resource cases; resource cases fail compilation before reaching their intended matcher checks and are not resource passes. The previously minimized `new RegExp("\\p{ASCII}", "v").test("a")` backend prerequisite remains unresolved. Finite validated Unicode atom classification is explicit host authority in parse.ts/engine.ts, distinct from delegating arbitrary guest matching; the new hook tests introduce no host callback authority.
+
+Completed pinned rerun at **2026-09-13T22:36:38.932Z**, exit **1**, complete=true: **four files / eight variants = two passed + six failed + zero unsupported**, zero metadata/execution accounting errors. Both strict and sloppy variants of each indices-array fixture time out; both RGI emoji 13.1 variants reject at **2,001 > 2,000** matcher steps; both character-class intersection variants pass. Variant deadlines remain **3,000 ms**, startup deadlines **10,000 ms**, with no budget overrides. The initial attempt used `corpus.jsonl`, exited 1 with `complete:false`, and reported “Runner sources changed during enumeration” because this increment added its test during enumeration; it is excluded from completed results. The source-stable rerun above replaces that attempt, not its failure record. No unsupported variant or policy rejection is counted as a semantic pass.
+
+The repeated indices timeouts, ordinary RGI fixture budget rejections, Node18 Unicode backend gap, complete expanded-corpus reconciliation, exact minimum runtime, Workerd/full backend qualification and exhaustive replay/resource coverage remain blockers. This increment does not repair those failures, relax budgets/timeouts, redefine the edition, or treat an intentionally absent host capability as an ECMAScript defect. Prior dirty-tree repairs and their historical receipts are not new deliveries.
+
+**Manual checks for the exact committed scope:** the new test passes on the three runtimes above; its ESLint passes; this report was reviewed against the completed JSONL and test logs; isolated staged diff/whitespace and source/index preservation checks pass. Tests and evidence only: no build, broad package gate or screenshot is claimed, and no visual CLI source changed. **Local commit:** this atomic test/evidence commit, SHA reported after creation. **Verified remote-main delivery:** none. **Successful release/publication:** none; no release receipt exists for this increment and no push was requested.
+
 ## qualify-builtins — category reconciliation and current counterexamples, 2026-09-13
 
 **Acceptance remains open.** [Qualification, exact commands and disposition](qualify-builtins/reconciliation-20260913/qualification.md) and [source receipt](qualify-builtins/reconciliation-20260913/source-before.json) identify local `main` `62573c6997efb255ce8d791046c5d2cfdb271aaa` plus preserved dirty source, Node **22.23.2 / ICU 78.2**. Fresh remote-main observation is `dea009de8f6c7ff608f295c6986d56f255570939`; no remote execution or publication is inferred. Edition 16 / edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` and tracked extension pins are unchanged.
@@ -2922,6 +3202,137 @@ The reproduction is retained and its zero process exit is not a semantic pass.
 An ownership/history or resumable-state design must resolve this before closure.
 No arbitrary live-realm interoperability or exactly-once side effects are claimed.
 
+### qualify-intl-environment-matrix — nine-service cleanup/replay receipt
+
+**Acceptance remains open.** [Self-contained report and manual reproduction](qualify-intl-environment-matrix/replay-completion-audit/qualification.md) records source `fcd686882afb26cd462f46c98be6f99289e0c9fa` plus inherited dirty bytes, exact runtime executables, ICU/CLDR/Unicode/tzdata, locale inputs, commands, failures and dispositions. ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` and tracked extension pins remain unchanged. This increment changes evidence only.
+
+Fresh twelve-cell matrix: Node18.18.0/ICU73.2, Node18.20.8/ICU74.2 and Node20.20.2/ICU78.2 each pass **32/33 per TZ**; Node22.23.2/ICU78.2, Node24.21.0/ICU78.3 and Node26.8.2/ICU78.3 each pass **33/33**, under UTC and America/New_York. Zero skips. Valid +05:45 remains the sole failing assertion in older cells; explicit UTC/New York/Kathmandu, DST, calendar/era, numbering, parts/ranges, invalid input and nonempty-field neighbors pass.
+
+New nine-service controls pass **72/72 evaluations** across pending/completed cleanup and two restores per checkpoint in all twelve cells. Saved resolved options, original option-getter counts, cached compare/date/number function identity, output stability and absence of ambient guest authority are independently checked. These are same-environment replay results, not cross-ICU migration claims. Existing semantic field assertions remain necessary; equal empty/wrong outputs are not an oracle.
+
+Fresh broader Intl/snapshot/SDK integration: **700 passed, zero failed/skipped**. Fresh pinned upstream: **2 passed / 4 timeouts / zero unsupported**, complete=true, exit 1 at unchanged 3000 ms deadlines. A fresh public SDK alias probe still incorrectly removes five nonboolean yes values, with five passing boolean-key neighbors. Fixed-offset backend support, alias semantics, whole-fixture cost and unqualified backend coverage prevent completion. No runtime support, assertion, deadline, budget or host authority was weakened.
+
+**Required manual checks passed for the exact evidence being committed:** receipt reconciliation, all 1,836 recorded SafeJS files unchanged, original staged changes preserved, owned Markdown formatting and staged path/whitespace review. Only this addition and its report are included; earlier ledger additions, package changes, untracked tests and generated receipts are excluded. Local evidence SHA is identified by this section's Git history and the final response. **Verified remote-main delivery: not performed. Successful release/publication: not performed; no release receipt exists for this increment.** No push was requested.
+
+
+## qualify-weak-lifetimes — 2026-09-13 cancellation retention repair (OPEN)
+
+**A cancellation lifetime defect is repaired; WL-MIN-SYMBOL still blocks overall acceptance.** [Self-contained qualification and exact reproduction commands](safejs-finalization-cancellation-lifetime.md) record source HEAD `034185b29ade2973996b1999b538b4e80388c4b0`, inherited working-tree scope, hashes of the three task-owned source files, Node/ICU versions, failures, omissions, and delivery disposition. ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and previously tracked extension pins remain unchanged.
+
+**WL-CANCEL-HELD:** unregister/dispose removed cells but queued cleanup closures and owner retention still held their payloads until dispatch. Five new deterministic tests failed before production edits. A further deferred-activation regression failed after the first repair because activation could re-retain a cancelled callback. Cancellation now clears the held value and pending callback/job slot and releases owner roots immediately. Completion and cleanup failure clear payloads too; other tokens' live cells retain and deliver their held values. Stale cancelled restore activations cannot dispatch. The final seven new tests pass on every Node without GC requests or sleeps.
+
+Final 30-file matrix, after the final build and with unchanged tested source: Node18.18.0/ICU73.2 **271 passed / 11 failed**; Node18.20.8/ICU74.2, Node20.20.2/ICU78.2, Node22.23.2/ICU78.2, Node24.21.0/ICU78.3 and Node26.8.2/ICU78.3 each **282 passed / zero failed**. **Zero skips throughout.** The floor's eleven failures remain the unique-symbol backend/prerequisite failures, individually named in the qualification. Public SDK/native probes freshly reproduce all five required unique-symbol failures on the floor, with object/well-known and registered-symbol rejection controls. This repair does not supply a symbol ephemeron backend or change runtime support.
+
+Manual checks for the exact task-owned source bytes: scoped ESLint **exit 0**; maintained `npm run build:workspaces -- --workspace=@poe-code/safe-js` **exit 0**, including **8/8** postbuild imports; focused cancellation/state/owner/restore suite **29/29**. The broader selection covers job retention/release, allowed/registry symbols, unregister tokens, held reachability, cleanup ownership/errors, isolation, weak graph roots/aliases, and failed restore rollback. Full package/repository gates and upstream reruns are not claimed. Bun1.3.11/ICU74.2 built SDK admission/rejection controls pass **20/20**; its source entrypoint fails resolution, and its cancellation/isolation matrix remains unqualified. Workerd is unavailable. Earlier exploratory checks and invalid launch attempts are separately dispositioned in the report.
+
+Actual collection time and eventual cleanup remain explicit nondeterministic host contracts, not missing forced-GC features. No permanent unique-symbol table, extra host grant, weaker assertion/budget/timeout, or higher version floor was introduced. Inherited source, staged changes and the ledger prefix were verified preserved; only the task-owned ledger addition is committed.
+
+**Local delivery:** the cancellation fix, seven regressions and relevant evidence form the enclosing Conventional Commit; obtain its SHA with `git log -1 --format=%H -- packages/safe-js/src/interp/finalization-cancellation-lifetime.test.ts`. **Verified remote-main delivery: none. Successful release/publication: none.** No push was requested or performed. Acceptance remains **OPEN** for the required minimum-runtime symbol implementation and unqualified runtime cells.
+
+## qualify-shared-memory — partial qualification, 2026-09-13
+
+**Acceptance remains open.** [Commands, smallest counterexamples, controls, case
+owners and dispositions](qualify-shared-memory/qualification.md) retain the
+published ECMA-262 edition 16 / ECMA-402 edition 12 target, separately pinned
+extensions, and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`.
+Execution used local main `e044be891151cf6f4b3ff20eaaf8838b687e3869` plus recorded
+preserved dirty source, Node 22.23.2 / ICU 78.2. Remote main observed:
+`da2ff844e7e72e96fc74e059e896822b0e920a86`; this is not a remote-source test claim.
+
+TDD reproduced and repaired low-level atomic-wait activation without a cleanup
+owner, reuse by a different/disposed owner, and a controlled registration race
+that previously invented a `not-equal` settlement for an already queued wait.
+The [recovery repair](qualify-shared-memory/atomic-activation-repair.md) preserves
+public versus low-level restore, same-owner idempotence, FIFO, cancellation,
+remaining-time accounting, and the nonblocking host agent. The [runner change](qualify-shared-memory/runner-admission.md)
+admits non-agent shared-memory fixtures and qualifies CanBlockIsFalse; it does
+not implement `$262.agent` or grant blocking authority.
+
+[Broader checks](qualify-shared-memory/qualification.log): **2,801 passed / 206
+files**, zero failures/skips; TypeScript and scoped ESLint passed. The [pinned
+upstream selection](qualify-shared-memory/upstream-v3.jsonl) completed **493 files /
+986 variants: 730 passed, 18 failed, 238 unsupported**, exit 1. All 18 failures are
+nine newer immutable-buffer fixtures in both modes, whose helper cannot supply
+immutable buffers; they remain failed observations, with edition/newer-API
+classification explicit. Unsupported: **224 agent / 14 blocking-mode** variants.
+Initial path-error and source-drift attempts are retained as aborted, not passes.
+Only Node22 was exercised; the required wider runtime matrix remains unverified.
+
+A [deterministic recovery counterexample](qualify-shared-memory/recovery-matrix.log)
+is still **unrepaired**: a host-retained shared buffer written by a queued
+microtask after callback return gives **original 7 / pending replay 0 / completed
+replay 0**, with no early rejection. The neighboring synchronous host-write
+control gives **7 / 7 / 7**. Snapshot boundary bytes cannot recover arbitrary
+intervening shared histories. No blanket removal of existing alias/transactional
+paths or invented-history guarantee is claimed. Early rejection/capture of this
+class and isolated upstream agent coverage remain explicit acceptance blockers.
+
+Local implementation commits:
+`8089068f678e97a3e3e7a738b28745b6a4dc6772` and
+`e0b76883387d9e38826f014d3e3e24202d25e65b`.
+**Verified remote-main delivery: none. Task release receipts: none.** Local and
+remote histories already diverged before this task's commits; no push occurred.
+Unrelated staged/local edits are preserved. These bounded improvements do not
+complete qualify-shared-memory.
+
+
+## qualify-shared-memory — partial activation rollback qualified (2026-09-14)
+
+**Acceptance remains OPEN.** [Qualification and disposition](qualify-shared-memory/activation-rollback/qualification.md), [executed Markdown QA](qualify-shared-memory/activation-rollback/manual-qa.md), and the [source manifest](qualify-shared-memory/activation-rollback/source-candidate.json) identify base `ec59c216b5844b1e45e2709ec6bd7dfa6b6abf2f` plus preserved dirty source. Final SafeJS source fingerprint: `61bcf0abe2a65b52ae0720a25154b8e1096c05b5d73b75faa4545f3b037f1429`; Node **22.23.2 / ICU 78.2**, Darwin arm64. ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), existing newer-API pins and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` remain unchanged.
+
+TDD reproduced **SM-ROLLBACK-1** for Int32 and BigInt64: a later activation race left an earlier restored waiter queued after rejection while the caller's owner remained live. The repair gives the restored queue a child resource lifetime, joins rollback before rejection and preserves unrelated original waits. Independent gates verify termination completion, no invented settlement, live parent ownership, failed-promise identity and zero residual waiters. Public/raw restore distinctions, FIFO, cancellation and remaining-time assertions remain intact. Initial red/typecheck failures and final results are retained separately; no assertions, budgets, timeouts or runtime floor were weakened.
+
+**Completed local gates:** [package tests](qualify-shared-memory/activation-rollback/package-test.log) **30,144 passed / 47 skipped; 1,412 files passed / two skipped**, zero failures/timeouts, exit 0. Skips remain explicit: 33 filesystem-reference gaps, eleven unavailable native Temporal cases, two unavailable native f16round comparisons and one opt-in fuzz profile. Maintained selected-workspace build closure and eight built-import tests pass; final scoped ESLint/typecheck and **21 focused activation tests** pass. Repository-wide gates are not claimed for this confined low-level restore repair. No visible CLI change required a screenshot.
+
+The [completed pinned upstream run](qualify-shared-memory/activation-rollback/upstream.jsonl) records **493 files / 986 variants: 968 passed, 18 failed, zero unsupported/timeouts**, complete=true, exit **1**. All **238** prior agent/blocking exclusions pass in the [independent variant mapping](qualify-shared-memory/activation-rollback/upstream-agent-mapping.json). The [18 nonpasses](qualify-shared-memory/activation-rollback/upstream-disposition.json) remain the nine immutable-buffer helper fixtures in both modes, separately tracked as newer-API failures. The historical BigInt timeout's cause remains unproven; this current full pass of that fixture does not erase it.
+
+[Six exact Node rollback cells](qualify-shared-memory/activation-rollback/runtime-matrix.json), including **18.18.0**, pass independent real-worker cleanup with original notify counts `[1,1]`, restored residuals `[0,0]` and a live parent owner. [Semantic cells](qualify-shared-memory/activation-rollback/semantic-matrix.json) pass 72 integer/BigInt operation traces, original/completed replay and negative blocking-authority controls on every runtime. Growth/alias results pass on Node20/22/24/26, but **both Node18 cells fail** with `Growable SharedArrayBuffer requires host runtime support` (process exit 1). This required-runtime growth gap is not missing host permission. Built Node22 probes pass; Bun/Workerd, other platforms, full upstream runtime cells and registry-installed artifacts remain unverified.
+
+**SM-REPLAY-1/2 remain blockers on all six Node versions.** [Fresh observations](qualify-shared-memory/activation-rollback/recovery-matrix.json) reproduce original **7**, pending/completed return-only replay **0**, and pending replay issuing incorrect subsequent effects **`[7,0]`**. The synchronous control stays **7/7/7**. A [fresh change-and-undo witness](qualify-shared-memory/activation-rollback/change-and-undo.log) again yields identical normalized boundary journals for distinct original observations. Arbitrary external histories remain excluded from deterministic guarantees, but required capture ownership/early rejection is still unimplemented; no invented-history guarantee is claimed solved. The published DoWait BigInt-index wording reconciliation also remains open.
+
+[Preservation receipt](qualify-shared-memory/activation-rollback/preservation.json) verifies the staged changes, unrelated existing SafeJS sources and initial ledger prefix. The repair, regressions and task-owned evidence form the enclosing local Conventional Commit; obtain its SHA with `git log -1 --format=%H -- packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts`. **Verified remote-main delivery: none. Successful release/publication: none; release receipts: none.** No push or issue closure was performed. This is a qualified rollback repair, not completion of qualify-shared-memory.
+
+## qualify-shared-memory — independent worker history witness (2026-09-14)
+
+**Acceptance remains OPEN; evidence-only increment.** [Report and disposition](qualify-shared-memory/history-ownership/qualification.md) and [executed Markdown QA](qualify-shared-memory/history-ownership/manual-qa.md) identify main `b97593d76b6ce19b38fb2e55c2a6cfc674ebf2a8` plus preserved dirty source, Node **22.23.2 / ICU 78.2**, Darwin arm64. Runner fingerprint `92ada3f4beabbe27ab7edc7811c92842cef7d32c4c060a1ec7a9c96bbde38578`; full SafeJS file-manifest fingerprint `d56b617a31ad8079ffd861ee748730425b944599e9bdd37ee98962ec1c3a0cb7`. ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), existing newer-API pins and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` remain unchanged.
+
+A new independent native-worker request/publication handshake produces original observations **0 and 7 from identical normalized boundary journals**, with zeroed final storage and absent `replayError`. Workers are started with acknowledgement and terminated in `finally`; only the isolated worker blocks. Both original-value assertions and the journal equality assertion pass. The initial worker-loader error and the preliminary schedule's capture race are recorded as failed QA attempts, not hidden or counted as passes. The final protocol orders the worker write after invocation settlement without relaxing assertions or budgets.
+
+The unchanged current replay probe still observes **7 originally but 0 accepted in pending/completed return-only replay**, and pending replay issues the incorrect subsequent effect **`[7,0]`**. SM-REPLAY-1/2 remain unresolved: boundary copies do not capture intervening reads or enforce ownership. An explicit unsupported-history mark and pre-resume rejection, including legacy unproven snapshots, remain unimplemented. No blanket deterministic-history guarantee, trust flag, changed recovery assertion or runtime repair is claimed.
+
+Focused checks: **509 passed / 43 files, zero failures/skips**, exit 0. These cover independent agents, integer/BigInt operations, growth/aliases, invocation/settlement and retained/cross-call storage, waitAsync/notify, owner-bound activation, FIFO, remaining-time capture, cancellation and partial-registration cleanup. Public restore and low-level private paused-wait activation remain distinct. Full package/backend and installed-artifact checks are not claimed for this documentation-only change. Required-runtime Node18 growth and the published DoWait indexing-text discrepancy remain open.
+
+Completed upstream selection: **493 files / 986 variants; 968 passed, 18 failed, zero unsupported/timeouts**, complete=true, exit **1**. All **238** previously excluded agent/blocking variants pass by exact filename/mode mapping. The 18 nonpasses remain the nine immutable-buffer helper fixtures in both modes, tracked separately from the published edition. Metadata and execution accounting errors: zero. Raw report SHA-256: `83dde11ccf347bae000e5275722bec74b4e512cd82bc84f3762435f08e0426b6`; exact command and every failing filename are retained in the report. No historical failure is erased by this run.
+
+The three task-owned Markdown files/hunks form the enclosing local Conventional Commit; obtain its SHA with `git log -1 --format=%H -- docs/plans/qualify-shared-memory/history-ownership/qualification.md`. Required exact-content manual QA, Markdown formatting and staged whitespace checks pass. All pre-existing staged content, SafeJS files and ledger text are preserved. No runtime code, existing test, budget, timeout, README or CLI output was changed. **Verified remote-main delivery: none. Successful publication/release: none; release receipts: none.** No push was requested or performed. This report does not complete qualify-shared-memory.
+
+## qualify-realms-and-recovery — shared graph boundary audit, 2026-09-14
+
+**Acceptance remains incomplete.** The [reproducible manual audit](qualify-realms-and-recovery/shared-graph-boundary-audit-20260914.md) confirms RR-8 and expands it to symbol-keyed object/array properties, named array properties and nested Map-held typed views. Seven shapes return **7 originally / 0 on completed replay**, with one host call, successful execution and no `replayError`; direct buffer, ordinary property and array-element controls pass. The final probe exits **1: seven failures / three controls**. An initial symbol probe incorrectly assumed a common host/guest symbol registry; the corrected probe uses the actual exported own symbol. Both attempts remain recorded. SM-REPLAY-1/2 also reproduces: queued shared writes can issue pending effects **[7,0]**, with completed mismatch rejection arriving later. No runtime repair is claimed.
+
+Source HEAD **947a383449d67460e060a5ac0ae77dcc87be6ad9** plus the preserved dirty candidate, Node **22.23.2 / ICU 78.2**, Darwin arm64. All **1,871** prior candidate file hashes match; no runtime source changes. Source receipt SHA-256 `b6205c3927e3e5589b04ff0b232de56b5aaf1b486348bb0c6b02e690374e01b5`. Targets remain ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` and the separate Temporal pin `e8cc03fc970a65a3359e8870e3b35e687ac94e55`; newer API pins are unchanged.
+
+The report contains exact commands, probe stdin and dispositions. The fresh recovery selection exits **0: 4,413 passed / zero failed / four native Temporal.Instant skips in 294 files**. All **156 transport, 100 rejection, 18 version-envelope and six genuine v8 controls** pass. Results SHA-256 `7babe512e7e9e76edad5f1ac68f4dd8a58529349891e2045154d8ab434ef328c`. Broad automated passes do not override the independent graph/history failures. Bun shared storage, uncaptured/legacy shared-history admission and unverified required runtime/artifact cells remain open. No arbitrary live-realm interoperability or exactly-once effects are claimed; these are recovery-contract findings, not ECMAScript omissions by design.
+
+Manual checks for this evidence-only commit: exact final Markdown probe rerun (retained expected nonpass), scoped Prettier and isolated staged whitespace check. Only the report and this appended ledger section are committed; inherited ledger/source changes and the staged Safe Bash patch remain untouched. Full package/root checks, cross-runtime matrix, installed artifacts and release checks were not rerun. **Local commit: this evidence increment, SHA reported after creation. Verified remote-main delivery: none. Successful publication: none. Release receipts: none.** No push was requested or performed.
+
+
+## qualify-snapshot-adversarial-input — 2026-09-14 local audit and repairs
+
+**Local acceptance matrix qualified; delivery and overall closure remain open.** [Entrypoint inventory, contracts, counterexamples, controls, failures and dispositions](qualify-snapshot-adversarial-input/audit.md). Owner: `qualify-snapshot-adversarial-input`, with realm-recovery, async-job and shared-memory integration owners.
+
+Target unchanged: ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` and the existing separately pinned newer APIs. Refetched ECMA-262 SHA-256 `6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713` matches the prior edition receipt. These findings concern the SafeJS snapshot/host-authority contract, not an expansion of ECMAScript requirements.
+
+Source anchor: local main `88548af52fa8f9bca1356c0670d900085d3bd976`, plus the recorded pre-existing working changes and these repairs. Environment: **Node 22.23.2 / ICU 78.2**. [Before source/environment](qualify-snapshot-adversarial-input/source-before.json), [tested source hashes](qualify-snapshot-adversarial-input/source-after.json), [commands and exclusions](qualify-snapshot-adversarial-input/commands.json). These are working-source receipts, not claims that a clean checkout of the anchor contains all tested source.
+
+Five validated defects: external/interpreter snapshot getters executed during validation; imported-Promise metadata and 84 compile-data units survived a scheduling failure; an earlier pending provider ran and values [8, 7] settled after a later restoration error; duplicate scheduling IDs were accepted; and failed primary intrinsic hydration retained a root and 4 live-data units. Each repair followed a failing deterministic regression, with exact failure/neighboring-control receipts linked in the audit. Repairs preserve original Promise table identities, defer provider/settlement activation, dispose newly owned import/compile/intrinsic state, and roll back transient memory while retaining work and peak-use charges.
+
+**Validation:** initial baseline 2,445/2,445; final stable-source **2,617/2,617 tests in 188 files**, zero skips or unhandled errors, 124.52s. [Final test log](qualify-snapshot-adversarial-input/acceptance.log). Focused TypeScript and ESLint checks exited 0. Seed `0x5a902026`, 96 mutation cases, the 750ms mutation cap and 2s timeout are unchanged. Explicit version 1/2 cyclic fixtures, jobs-v6 through v9 resume records, and jobs-v1 through v9 migration fixtures preserve identity. Existing private/prototype/weak/atomic-wait tests were rerun, including rollback after late errors. Initial repair failures involving optional undefined heap fields and mutation cost were fixed rather than waived.
+
+**Local commits:** `b4215ce3e` replay transaction; `1f8729839` external data validation; `837e81a2c` intrinsic/accounting rollback. [Commit receipts](qualify-snapshot-adversarial-input/local-commits.json). [Unrelated staged content preserved byte-for-byte](qualify-snapshot-adversarial-input/staged-preservation.json); [unrelated source preservation](qualify-snapshot-adversarial-input/source-preservation.json). The pre-existing jobs-v8 compatibility edit remains outside the owned validation commit.
+
+**Remote-main delivery:** not performed or verified for these commits. Remote main fetched at `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`; before these commits the histories differed by 38 local-only and 70 remote-only commits. No reset, force push or unrelated-history merge was performed. **Release:** no publication run or release receipt for these repairs. Clean delivered-source verification and publication remain open; independently executed Workerd/Bun qualification is not implied by the Node receipt. The first existing-realm test hit the intentional fresh-budget restriction before the injected late failure, so it was recorded as a boundary/control, not misreported as a reproduced realm corruption.
+
 
 ## qualify-snapshot-adversarial-input — capability lookup recheck, 2026-09-14
 
@@ -3101,6 +3512,19 @@ are required before pushing. **Local repair commit: recorded after creation.
 Verified remote-main delivery: none yet. Publication: none for this candidate.**
 Overall acceptance remains open until the clean candidate and delivery gates
 are evidenced. Historical non-Node limitations are not silently waived.
+
+
+### Local preflight repair commit reconciliation — 2026-09-14
+
+The previously uncommitted snapshot publication/preflight repairs are now selected
+as an atomic local commit, reconciling the same changes as isolated main commit
+`ec0280dc6`. This includes the three existing regression files; unrelated
+module-loading and transport edits remain unstaged. Clean baseline reproduction:
+17 failures / 14 passes including six separate caller-envelope cases. The three
+preflight/publication files pass 25/25 after repair; scoped ESLint passes.
+The broader isolated workspace gate is still running. A separately reproduced
+nested caller-accessor failure and its repair are being qualified independently.
+No push or publication has occurred. The original staged patch is preserved.
 
 
 ## qualify-snapshot-adversarial-input — Nested runtime data validation, 2026-09-14
@@ -3557,3 +3981,366 @@ Package installation remains separately subject to installed-artifact receipts.
 Markdown verification: 48 relative README links including heading fragments
 resolve, zero failures; [receipt](publish-compatibility-documentation-20260915/links.json).
 Manual documentation review and git diff --check pass.
+
+### Lifecycle acceptance and commit audit — 2026-09-14, 14:10 local
+
+**Acceptance remains blocked.** This increment adds only this evidence section;
+no runtime repair or test change is justified by the fresh Node results. The
+Bun native waiter teardown counterexample still reproduces. The earlier
+qualification, ownership matrix and documented profile remain applicable.
+
+Source anchor: local main `75d523a7bd66ed8d9811b158ac5aaffac806d229` plus the
+preserved working changes. Runtime: Node **22.23.2 / ICU
+78.2**, Darwin arm64. The SHA-256 of the sorted JSON map
+of file-path-to-SHA-256 values for all files returned by `rg --files
+packages/safe-js/src packages/safe-js/test packages/safe-js/scripts` is
+`fc9b7ad47f26689a2d9400f6a0afa970e750482038c3444c05fdd49e0fd0fbb6` (Python `json.dumps(map, sort_keys=True)`
+encoding). This identifies a dirty candidate, not a delivered source tree.
+The target remains ECMA-262 edition 16 / ECMA-402 edition 12, June 2025,
+Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and the separately tracked
+newer API pins. No runtime support, budget, assertion, timeout or host grant changed.
+
+Manual focused gate, executed from the repository root, exit **0**:
+
+```sh
+npx vitest run packages/safe-js/src/realm.test.ts packages/safe-js/src/realm-resource-ownership.test.ts packages/safe-js/src/realm-nested-suspension.test.ts packages/safe-js/src/realm-lifecycle-qualification.test.ts packages/safe-js/src/realm-source-lifecycle-qualification.test.ts packages/safe-js/src/realm-callback-phases.test.ts packages/safe-js/src/interp/atomic-wait.test.ts packages/safe-js/src/interp/weak-collection-cleanup.test.ts packages/safe-js/test/async-lifecycle-qualification.test.ts packages/safe-js/test/conformance/agents-lifecycle.test.ts packages/safe-js/src/snapshot/lifecycle-retained-accessors.test.ts packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts packages/safe-js/src/snapshot/atomic-wait-race.test.ts
+```
+
+Result: **98 passed in 13 files, zero failed/skipped**, Vitest **5.68 seconds**.
+Coverage includes repeated close, partial extension setup failure, callback
+release/revocation, live host objects, nested evaluation, concurrent rejection,
+late import settlement, weak registration isolation, atomic worker ownership,
+cleanup exceptions and checkpoint rollback/race. Review confirms realm teardown
+uses its disposal promise, revokes owned capabilities, detaches cancellation,
+and attempts every registered disposer; atomic cleanup is admitted before worker
+acquisition and keyed to the realm resource owner. Passing tests do not prove
+successful native worker teardown on other engines.
+
+Executed the first JavaScript fence of the unchanged
+[retention profile](qualify-lifecycle-and-retention/profile.md) using
+`node --import tsx --input-type=module`, exit **0**, **2.09 seconds**. Three
+warmups and twelve measured samples per mode, outside unit tests, no GC oracle:
+
+| Mode                 | Samples | Root counts | Data charges | Heap-used range, bytes |
+| -------------------- | ------: | ----------- | ------------ | ---------------------- |
+| fresh-realm          |      12 | [0]         | [0]          | 58165392–92422840      |
+| persistent-wait      |      12 | [0]         | [1]          | 93386640–104643680     |
+| completed-checkpoint |      12 | [0]         | [1697]       | 136015696–201491168    |
+
+Fresh closed realms have zero owned registrations. Persistent worker charges
+return to zero on close. Every measured completed checkpoint is
+**991030 serialized bytes**.
+The independent realm's guest closure remains usable. Heap ranges are descriptive;
+they do not establish unbounded retention or prove absence of every heap leak.
+
+Executed the unchanged first JavaScript fence of the
+[native worker control](qualify-lifecycle-and-retention/native-worker-control.md)
+with `node --input-type=module` and `bun run -`. Both reporting processes exited
+**0** and acknowledged registration. Node reports **0 remaining waiters**;
+Bun **1.3.11 / ICU 74.2** reports **1 remaining waiter after awaited termination**.
+The Bun observation is a **failed teardown contract**, regardless of process exit.
+The minimized counterexample has no SafeJS dependency. Waking an arbitrary guest
+buffer would risk another owner's waiter; it is not an acceptable cleanup repair.
+This host/backend blocker prevents acceptance, rather than establishing an
+ECMAScript defect or authorizing removal of Bun support.
+
+Fresh delivery observations:
+
+- `git ls-remote origin refs/heads/main` returned
+  `77505a0e76b178ef7fde1fd3089dbf5d3b4fbcfb`, the previously delivered lifecycle
+  repair tip. This does not deliver the dirty candidate or this evidence increment.
+- `gh run list --commit 77505a0e76b178ef7fde1fd3089dbf5d3b4fbcfb --json databaseId,headSha,name,status,conclusion`
+  returned terminal scoped release **34881845066: failure**, root release
+  **34881845353: cancelled**, schema publication **34881845094: success**.
+  Schema success is not npm publication. No successful task npm release exists
+  in those receipts.
+- This evidence-only increment is committed locally; no push or publication is
+  attempted. Its SHA is reported separately after commit. Historical repair
+  commits and remote delivery remain distinct from that local evidence commit.
+
+Required checks for the exact committed delta: standalone Markdown formatting
+and candidate `git diff --cached --check` pass. The commit contains only this
+section in `docs/plans/safejs-gap-closure-evidence.md`; the original ledger text,
+all inspected SafeJS source hashes and the original staged patch are preserved.
+No artifacts or pre-existing staged changes are adopted. Runtime tests above
+qualify the inspected working candidate, not a claim that this documentation
+commit contains the existing repairs.
+
+Full package/repository gates, other Node versions, Workerd, installed-artifact
+checks and CLI screenshots were not rerun for this documentation-only increment.
+Prior broad-gate failures and runtime gaps remain unresolved, not reclassified
+as passes. An initial hook inventory read found no `.husky/pre-commit`; the
+configured `.husky/_` dispatcher and existing commit-message hook were inspected.
+No hooks were bypassed. Local raw observations are in
+`/tmp/safejs-lifecycle-final-audit`; these temporary artifacts are not committed.
+The reproducible commands, profile, observations and disposition are recorded here.
+
+## Resource/timing descriptor and repeated-matrix review — 2026-09-14
+
+**Disposition: incomplete overall; declared local qualification passes, published accounting remains open.** The [qualification record](qualify-resource-and-timing-behavior/descriptor-review-20260914/qualification.md) identifies base SHA `73cd8b16089901364b51236b8a711a4ddcabcf54`, exact dirty-source/built hashes, Node/ICU versions, commands, sample counts, failure/skip dispositions and release observations. Target remains ECMA-262 edition 16 / ECMA-402 edition 12 and the existing explicitly tracked newer APIs.
+
+A new fast regression reproduces the collector's TypeError when a trusted native Proxy removes a symbol during descriptor capture. The owned guard omits missing descriptors, preserves capture ordering, charges surviving data and retains native invariants/errors. Five deterministic regressions pass, including adjacent 9/10-unit limits and rollback; an independent HEAD archive with only the owned patch/test also passes all five. Public native-Proxy admission and guest-Proxy target/handler accounting are unchanged.
+
+Expanded accounting/realm/host/CLI coverage passes **437 tests**, zero failures/skips; one nonexistent CLI-runtime filter is explicitly unavailable. Normal `npm run build`, repository `npm run lint` and scoped lint pass. Built public SDK original/dump/completed replay, work-budget neighbors, cleanup and negative authority controls pass; CLI returns success at 102 steps and budget exit 3 at 100 steps. The failed initial SDK import and failed first profile-summary launcher are retained as tooling failures, not passes.
+
+All **nine** complete original-quartet plus full harness-integration repetitions pass: **7,533 tests**, zero failures/skips, three samples each on Node20/22/24 with two workers. All **18** full original-workload profile samples pass unchanged assertions. Four immutable split fixtures at Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` pass all eight sloppy/strict variants on exact Node18.18.0 and Node20/22/24 at unchanged 3,000 ms. No timing speedup, reduced coverage, larger deadline or full-runtime compatibility certification is inferred.
+
+The first maintained `CI=1 npm test -- --concurrency=4 --exclude-workspace=virtual-bash` repetition exits **0 in 664.63 seconds**, including native root posttest. SafeJS: **30,642 passed, zero failed, 47 skipped**. Shared task: **22,603 passed, zero failed, two skipped**. Terminal-pilot: **288 passed**. Native posttest: **two passed**. Counts are per task; excluded virtual-bash remains unverified. The second unchanged repetition exits **0 in 640.13 seconds**, with the same per-task pass/skip totals and successful native posttest. Both complete attempts pass all original timing and coverage-demo integration workloads; neither reports EPERM. Finite passes do not erase earlier variability. Historical 5,225/5,000 ms replay and cleanup EPERM failures remain evidence of variability.
+
+Remote main advanced to `65bd8ad57aad237ce0c254d8a26ea97b78eeabb6`; its SafeJS tree is unchanged from the earlier witnessed remote accounting failure. Local/remote histories diverge. Fresh root/scoped-safe/schema release receipts are recorded separately and do not publish the new guard. The owned guard/test/evidence are committed locally as `f9c51fc212f2a5e7b3dff575b7c7e32ffd85a8d0`; no push or successful task release is claimed.
+
+Final remote main is `775253e664c8c14502178cf9dcb74e6a656aacb0`, with its SafeJS tree still unchanged from the earlier accounting witness. Registry latest **0.1.603** has a successful scoped-safe receipt **34898209657** from another revision. A freshly downloaded/integrity-checked artifact with declared dependencies **reproduces** the six-character maxSteps-100 bypass at **88** charged steps; widths 0–8 and 102-step false/true controls are preserved. Initial missing-dependency startup failure is recorded separately. Launcher exit 0 is observation, not acceptance. The local witness rejects at step **101** and cleans up.
+
+Own-undefined-symbol 6/7-unit controls and native-Proxy rejection before traps also pass. The owned descriptor repair is locally verified, but the existing aggregate-scan repair remains unpublished and attributed to its owner. Delivery, Ubuntu/Bun/Workerd/virtual-bash and full floor compatibility remain unverified; no successful task release is claimed.
+
+[Local commit receipt](qualify-resource-and-timing-behavior/descriptor-review-20260914/local-commit-receipt.json) records the isolated owned patch and preservation of unrelated staged changes. Broad passes identify the dirty source combination by hashes; they are not certification of a clean tree containing only this commit. Divergent remote history was not merged and no push was requested or attempted. **Overall acceptance remains incomplete because the current published scan-accounting bypass remains validated and unclosed.**
+
+
+## Resource/timing string-split admission review — 2026-09-14
+
+**Declared local matrix passes; overall acceptance/publication remains incomplete.** The [qualification report](qualify-resource-and-timing-behavior/admission-review-20260914/qualification.md) pins source SHA `316c9c5b1f8eb7783ffb2636c90aced7345c38c4`, actual candidate fingerprints, Node/ICU versions, exact commands, all sample values, failures/skips and release receipts. Compatibility remains ECMA-262 edition 16 / ECMA-402 edition 12 and existing explicitly tracked newer APIs.
+
+A corrected deterministic red test reproduces unnecessary output-string checks before oversized native string-split array admission. The owned repair admits array length first, validates strings in place and removes the second array/proxy-only helper. All string checks, exact limits, UTF-16 slots, trusted suspension and cleanup controls remain. Native split's first array still allocates before admission; no timing speedup or universal absence of bypasses is claimed. Incorrect initial separator-coercion test expectation and failed accounting/isolated startup launchers are retained as failures, never counted as passes.
+
+Accounting coverage: **440 passed / zero failures/skips**. Complete original timing quartet plus harness integration: **nine repetitions, 7,533 passes / zero failures/skips**, three each on Node20.20.0/ICU77.1, Node22.23.2/ICU78.2 and Node24.14.0/ICU78.2, CI=1/two workers. All **18** profiled original workload samples pass unchanged assertions/limits. Exact owned-only archive string tests: **844 passed**; its scoped ESLint and maintained selected SafeJS build closure pass. Candidate normal `npm run build`, repository `npm run lint` and scoped lint also pass.
+
+Two fresh exact `CI=1 npm test -- --concurrency=4 --exclude-workspace=virtual-bash` repetitions exit **0 in 637.45 / 740.30 seconds**, including native root posttest. Each reports SafeJS **30,645 passes / zero failures / 47 skips**, shared task **22,603 passes / zero failures / two skips**, terminal-pilot **288 passes**, native posttest **two passes**. Counts are per task. All original timing workloads pass twice; neither reports EPERM. The second run's 16.1% longer elapsed time and historical 6,224/8,312 ms camera, 5,225 ms harness replay and cleanup EPERM failures remain variability evidence. Excluded virtual-bash and unverified platform cells are not counted as passes.
+
+All fingerprinted SafeJS inputs and the initial unrelated staged diff remain unchanged through the maintained attempts. Only owned runtime hunks/test and this increment's report/profile instructions/evidence append are committed; inherited runtime/config/plan edits remain separate. Fresh remote main remains `775253e664c8c14502178cf9dcb74e6a656aacb0`; root Release `34898444904` is cancelled, schema `34898444408` succeeds, scoped safe `34898209657` succeeds at another source. Registry remains **0.1.603**. These are other revisions' receipts. The preceding installed-artifact scan-accounting witness remains validated/open; its inherited local runtime repair is not staged or claimed here. **No task push, verified remote delivery or successful task publication is claimed.** Local commit SHA is reported separately.
+
+
+Local split-admission repair receipt: **`87b49c345c304c00e9f9ffbab623b5b58877385f`** (`fix(safe-js): admit split arrays before string validation`). Exact owned runtime/test bytes pass the 844-test string selection, scoped lint and maintained selected SafeJS build closure; candidate normal build/repository lint, 440 accounting tests, nine complete timing repetitions and both maintained concurrency runs pass as recorded above. Unrelated staged/local edits remain preserved. **Remote delivery: not attempted. Task publication: not claimed. Overall acceptance: incomplete; the published 0.1.603 scan-accounting gap remains open.**
+
+## qualify-generated-interactions — task-owned terminal receipt (2026-09-14)
+
+GI-1 was re-executed unchanged on main at source HEAD `856f13967e01f63fdfaa1d4fd8cb08617c4ccd56` plus preserved local SafeJS changes. This is dirty-candidate evidence, not clean-HEAD or installed-release qualification. Compatibility remains ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and the separately tracked resource-management extension `38c13295dc20c2273ba0a6ed82555f1fabb37764`.
+
+Node **22.23.2**, ICU **78.2**, V8 **12.4.254.21-node.56**. SafeJS source/config/test manifest SHA-256: `ad648ec9de48e1e751fdda8ba7b91f2b9a3b0a441b69233c4623c42533c7b1a5`. Fresh local reproducibility receipts are under `docs/plans/qualify-generated-interactions/task-20260914-final/`: `source.json`, `command.json`, `results.json`, `campaign.log`, `coverage.json`, and `adversarial.json`. These execution artifacts are not committed; this report records their terminal evidence. The existing Markdown campaign, templates and manual reductions remain preserved local inputs, not newly committed or delivered by this evidence-only invocation.
+
+Exact campaign command: `SAFEJS_ADVERSARIAL_SLOW=1 npx vitest run packages/safe-js/test/adversarial/generated-interactions.test.ts packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts --reporter=json --outputFile=docs/plans/qualify-generated-interactions/task-20260914-final/results.json`. An external subprocess watchdog enforced 30 seconds. Terminal exit **1**, elapsed **10.04 seconds**, no timeout: **126 tests, 124 passed, 2 failed, 0 skipped**. All **120 generated interaction cases pass**. Maintained `createRandom` / `randomInt` reproduced three seeds `0xad5c2026`, `0x02622025`, `0x51a9cafe`, eight draws each, 24 parameter rows, 12 return / 12 throw branches. Counts describe finite template coverage, never conformance percentages.
+
+No limits changed: maximum source 2,048 characters, 10,000 steps, call depth 32, array length 128, string length 4,096, data size 1,000,000 bytes, 500 ms runtime deadline, 2,000 ms test timeout. Cycle grammar has two cycle modules plus one entry source; shared buffers are 16 bytes. Native controls remain specification-qualified; completed replay is admitted only for closed guest histories. Cancellation has explicit registered `cap.stop` authority and copied Error data, no host identity, GC, finalizer or cancelled-history replay oracle.
+
+**GI-PENDING-DISPOSAL remains blocking**, reproduced without weakening success assertions:
+
+- `async function f(){await using r={async [Symbol.asyncDispose](){}}}await f();return 1`: original returns 1; pending dump/restore fails `SnapshotValidationError` at `$.heap["924"]`, `Expected a guest heap array`.
+- `async function f(){await using r={[Symbol.asyncDispose](){}}}await f();return 1`: original returns 1; pending dump/restore fails at `$.heap["920"]`, `Wrong guest heap reference kind`.
+
+Both retained no-resource and unnested-resource neighbors pass. Existing reduced probes are fast regressions with failing success assertions, not expected-error passes. This is a product snapshot-contract counterexample, not a demonstrated published-edition execution defect. No new mismatch or runtime repair occurred. Historical remote module admission is a missing integration capability, not an ECMAScript defect; no fresh remote capability claim is made.
+
+Manual checks for this exact evidence-only append: scoped ESLint of both campaign test files exits **0**; `npx vitest run packages/safe-js/test/adversarial --reporter=json --outputFile=docs/plans/qualify-generated-interactions/task-20260914-final/adversarial.json` exits **0**, **135 passed / 0 failed / 5 explicitly skipped** (opt-in probes are nonpasses). Source fingerprints and the unrelated staged diff remain unchanged. No implementation, README, CLI or workflow change; broad unit/build/workflow and screenshot checks were not repeated. This append is checked for Markdown formatting and whitespace before its isolated commit.
+
+Finite campaign accounting and disposition of every observed mismatch are evidenced. Pending-disposal recovery remains blocked; broader runtime qualification and remote integration/publication remain unverified. Prior upstream/runtime receipts are historical evidence and were not rerun here. **Local commit:** this evidence-only Conventional Commit, SHA reported separately after creation. **Verified remote-main delivery:** none, no push. **Successful task release/publication:** none. No predecessor release receipt substitutes for this task.
+
+
+### qualify-environment-contract — current-source recheck and evidence disposition, 2026-09-14
+
+Source HEAD `fc3bdd270fecd2a81e1ffb89e1f221786e159ff4`, main, plus preserved pre-existing dirty source. Node 22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin ARM64. Compatibility remains ECMA-262 edition 16 / ECMA-402 edition 12 and the previously tracked newer APIs; Test262 pin remains `419d3e0a2273ba01a3bfcbec423f2801425b8e93`. This is an evidence-only recheck, not a runtime repair or a new supported-environment declaration.
+
+Manual checks executed against the current source:
+
+```sh
+npm exec vitest run packages/safe-js/src/environment-contract-qualification.test.ts packages/safe-js/src/environment-authority-negative-controls.test.ts packages/safe-js/src/modules/fs-race-boundary-qualification.test.ts packages/safe-js/src/realm-lifecycle-qualification.test.ts packages/safe-js/src/cli.fs-config.test.ts packages/safe-js/src/modules/source-revocation.test.ts packages/safe-js/src/modules/source-cancellation-qualification.test.ts packages/safe-js/src/modules/mcp-managed.test.ts
+npm exec vitest run scripts/package-safe.test.ts scripts/package-safe-native.test.ts
+npm exec eslint packages/safe-js/src/environment-authority-negative-controls.test.ts packages/safe-js/src/environment-contract-qualification.test.ts
+node scripts/package-safe.mjs --out-dir <canonical-temporary-directory>/packages --version 0.0.0-contract-qualification
+```
+
+Results: selected authority gate exit 0, eight files / 100 tests pass, zero failures/skips, 4.21 seconds; packaging guard gate exit 0, two files / five tests pass, zero failures/skips, 398 ms; ESLint exit 0. Actual packaging exit 1: `Private or CLI dependency leaked: tiny-mcp-client`. The canonical temporary output avoids the earlier /var symlink guard and independently reproduces the declaration-closure blocker. Partial output was removed, not installed or published. Current `modules/mcp-transport.ts` imports public option/connection types from this private workspace; `scripts/package-safe.mjs` rejects the bare declaration reference. Do not remove the rejection or authorize unrestricted npm resolution to obtain a passing artifact.
+
+Restriction rationale and reproducible denial/grant tests remain in the preceding authority audit and `packages/safe-js/src/environment-contract-qualification.test.ts`: ambient process/require/fetch/DOM/network/filesystem are absent because these are host APIs; registered exports and extension grants supply only explicitly configured authority; runtime grants are independent of lint permission. Independent negative controls cover computed globals, Function/constructor paths, cross-realm admission, accessor rejection, once-only cleanup and completed replay without repeated effects. Lifecycle, source cancellation/revocation, CLI filesystem configuration, managed MCP, and filesystem race controls passed again. Blocking native calls cannot be preempted or rolled back by cooperative guest cancellation. Root validation is not atomic hostile-namespace confinement. Source cache revocation is prospective; live/source recovery remains explicitly restricted. These boundaries are intentional environment contracts, not missing ECMAScript behavior.
+
+Unsupported/unverified dispositions remain explicit: ambient DOM and unrestricted CJS/npm are outside the contract; simulated Win32 filesystem refusal is not an actual Windows qualification; built workerd imports under Node are not actual Workerd execution; previous actual Workerd receipts do not establish full filesystem/checkpoint coverage. Installed candidate core/node/workerd entrypoint qualification remains blocked by packaging. This recheck does not rerun the full maintained package build/test or supported-runtime matrix and does not replace their earlier receipts. No budgets, assertions, timeouts, runtime support, README or implementation were changed. No CLI visual change: screenshot check inapplicable.
+
+Raw local reproducibility packet: `docs/plans/qualify-environment-contract/recheck-20260914/{focused.log,packager-tests.log,lint.log,package.log,package-receipt.json,source.json}`. Source-manifest SHA-256 `5fa6fb512a010471940711fe4e811f5b97d9e29d2d622c96d9f8c08914cb2921`. Logs/artifacts are not committed. Pre-existing modified-file bytes and staged binary diff were verified unchanged before the report append. The evidence-only commit contains this section alone, excluding every pre-existing ledger edit and staged change. Manual test/lint checks above passed; packaging failure is retained as a failure, not a skip or pass. Markdown checks for this exact appended section: balanced fenced commands, valid source IDs, and no whitespace errors in the staged diff.
+
+Delivery receipts: earlier local control commit `fc3bdd270fecd2a81e1ffb89e1f221786e159ff4`; this report commit SHA is reported by the commit result. Verified remote-main task delivery: none. Successful task publication: none. No push requested/performed. **Acceptance remains unresolved** for complete supported packaged-entrypoint qualification; local restriction controls pass, but no incomplete package is a release receipt.
+
+## qualify-public-api-and-diagnostics — private declaration closure repair, 2026-09-14
+
+**Disposition: one validated packaging defect repaired; task acceptance remains open.** This increment does not qualify every newly qualified feature or the entire platform/option matrix. No compatibility target, runtime support, budget, assertion, host authority or timeout changed. Unrelated staged/local changes were preserved.
+
+**Source identity:** local main HEAD before repair `cdab7a7bfd71cc26586ba05d45fe550eb1f5b9f6`, plus pre-existing dirty inputs and this repair. Selected source manifest: 1,948 tracked files under SafeJS, agent-harness, scripts and root build/test manifests, excluding dist; SHA-256 `40feabb6a7ee2f58e10451156b3f3096ecb9725c41215fd051c9577a9c45856a`. Manifest receipt `/private/tmp/safejs-api-qualification-final/source.json` is local, not a committed artifact. Node **22.23.2**, ICU **78.2**, V8 **12.4.254.21-node.56**, Darwin ARM64. Target remains **ECMA-262 edition 16 / ECMA-402 edition 12**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, plus the previously explicitly tracked newer APIs. Checks on this dirty source do not qualify HEAD alone or remote main.
+
+**Validated repair and TDD:** reachable SafeJS MCP declarations import private `tiny-mcp-client`. The prior evidence identifies canonical staging rejection. A new memfs fixture reproduces the same defect using a private workspace with a declared `types` entrypoint: `red.log`, one failing/one passing test. Packaging now resolves a private workspace's declared type route, copies its reachable declarations and rewrites references to artifact-relative imports. It preserves full declarations instead of deleting public types or publishing a private package. Private runtime imports remain rejected, as do undeclared private type subpaths; canonical filesystem routing remains intact. No provider-specific branch, proxy function, runtime capability or README addition was introduced.
+
+All new receipts below are retained locally in `/private/tmp/safejs-api-qualification-final/`; generated artifacts and unrelated evidence files are not committed.
+
+| Check | Reproducible command / result |
+| --- | --- |
+| Exact final code tests | `npx vitest run scripts/package-safe.test.ts scripts/package-safe-native.test.ts`: **5 passed / 2 files**, zero skips, 703 ms (`green-exact.log`). Includes preserved private-runtime denial, missing private-type route denial, copied declaration and no copied private runtime. |
+| Exact final code lint | `npx eslint scripts/package-safe.mjs scripts/package-safe.test.ts`: exit 0 (`lint-exact.log`). |
+| Maintained selected build | `npm run build:workspaces -- --workspace=@poe-code/safe-js`: exit 0, 23 declared builds, eight built-import tests pass, zero skips (`build.log`). |
+| SafeJS declarations | `npx tsc -p packages/safe-js/tsconfig.json --noEmit`: exit 0 (`types.log`). |
+| Candidate canonical staging | `node scripts/package-safe.mjs --out-dir /private/tmp/safejs-api-qualification-final/candidate-corrected --version 0.0.0-qualification`: exit 0, SafeJS 371 files (`staging-corrected.log`). |
+| Fresh tarball consumer | Pack both staged SafeJS/SafeFS using `npm pack --ignore-scripts --pack-destination /private/tmp/safejs-api-qualification-final <staged-directory>`; install both resulting tarballs and `poe-code` with `npm install --prefix /private/tmp/safejs-api-qualification-final/tarball-consumer --ignore-scripts --no-audit --no-fund <safe-js-tgz> <safe-fs-tgz> poe-code`: exit 0, 189 packages (`pack-js.log`, `pack-fs.log`, `tarball-install.log`). This uses unpacked tarballs, not workspace symlinks. |
+| Public contracts | Copy retained `recheck-20260914/installed-probe.mjs` and `installed-feature-probe.mjs` into the consumer and execute with Node: exit 0 (`probe.log`, `features.log`). Canonical/core candidate public SDK, defaults, success/error/rejection, snapshot/stats, steps 21 > 20, zero calls on pre-abort, denied ungranted module despite lint declaration, CLI exits 0/2/3, public harness and **45 feature cells** pass. Legacy entries are separately installed published `poe-code@15.0.40`, not a current candidate legacy build. No private factory is needed. |
+| Public MCP type closure | Copy retained `recheck-20260914/installed-consumer.mts` into consumer. Add `McpModuleOptions` with a Response-returning mock fetch and Node pipe-spawn implementation; add an expected error for `fetch: async () => 42`. Compile with `npx tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext <consumer.mts>`, then `--module esnext --moduleResolution bundler`: both exit 0, negative directives consumed (`mcp-consumer-types.log`, `mcp-consumer-bundler.log`). |
+| Explicit mocked host parity | Local `tarball-consumer/mcp-parity.mjs`: public `run` uses `makeMcpModule` in `modules`; public `runCli` uses `mcp`, injected read/stat/output services. Guest calls named `mock` server's echo tool with `{value:7}`; injected fetch responds to initialize/notification/tool requests without ambient network. Both return text `7`, SDK connection explicitly closed; exit 0 (`mcp-parity.log`). |
+
+**Retained failures and invocation corrections:** initial staging used `/tmp`, a macOS symlink, and correctly failed the native asset symlink guard (`staging.log`). Repeating with `/private/tmp` succeeded without suppressing that guard. An initial source manifest attempted to read a tracked symlink directory; the final selected manifest records symlinks explicitly and excludes unrelated fixture trees. The added type-route negative fixture initially contaminated a later CLI-denial fixture; restoring only that memfs fixture made final controls pass (`green-final.log` retains the failed attempt). Initial mocked MCP initialization advertised unsupported protocol `2024-11-05`; error code -32600 identified that version and guest tool position line 1/column 87 (`mcp-protocol-negative.log`). Echoing the requested protocol corrected the fixture, without modifying product validation.
+
+**Visual QA:** executed [the Markdown plan](qualify-public-api-and-diagnostics-packaging-qa.md), captured fresh candidate installed help and syntax PNGs and inspected both. Flags/exit codes are readable; syntax retains original filename, line 2/column 8, excerpt and caret without host implementation stack leakage. Screenshots are local receipts (`help.png`, `syntax.png`), not committed artifacts or release proof. No visual implementation changed. QA Markdown Prettier check passed.
+
+**Repository-wide gates remain unqualified:** `npm test` and `npm run lint` were started, uncached, using maintained routes (`root-test.log`, `root-lint.log`). The full test command finished with **exit 1**: shared route **915 files passed / 2 failed / 2 skipped**, **22,558 tests passed / 33 skipped**; later workspace stages were not a completed pass. Root lint remains active without a final exit receipt. Unit output reports browser bundle resolution failure for `poe-code/safe-fs` (`packages/safe-js/dist/browser/safe-fs.js` missing), plus `poe-code/safe-fs/core` module resolution failures through SafeBash/SafeFS integration. The maintained `npm run build` was then started to check generated-artifact prerequisites (`root-build.log`); it has no final receipt at recording. These are concrete unresolved build/entrypoint integration failures, not counted as passes or language defects. Other pre-existing test/lint processes overlap this run; no isolated timing claim applies. No process, timeout or unrelated source was changed to obtain a pass. Final broad gate results must be recorded before any push. The selected exact-file lint/tests above passed for the code being committed; no successful repository-wide or pre-push gate is claimed.
+
+**Remaining acceptance:** exhaustive feature/option mapping, current candidate legacy SDK integration, all advertised CLI/SDK/harness combinations, minimum Node/Workerd/Linux/backend cells, previously reported broad-run O12 stability, final maintained broad gates and current remote/release qualification remain open. This repair removes the private declaration staging blocker on the locally checked candidate; it does not erase those missing cells or historical failures. A missing ambient host capability by design remains an explicit authority policy, not an ECMAScript defect.
+
+**Delivery separately:** this atomic repair is intended for one local Conventional Commit containing only the packaging code/test, its Markdown QA and this evidence increment. Local SHA is reported after commit, not inferred from source HEAD above. Task remote-main delivery **none**; successful task release/publication **none**. No push was requested or performed. Installed legacy prior publication is not a task release receipt. hey-boss completion reporting was attempted and failed with daemon unavailable / Connection refused (os error 61), retained in `notification.log`.
+
+### Packaging repair — final build and delivery observation
+
+**Local code commit:** `34d04b3b3fad419316fe0f61d38d31506764612a` (`fix(safe-js): retain private host declaration closures in packages`), four task-owned files only. The pre-existing evidence worktree contents were compared byte-for-byte and preserved; three unrelated staged SafeBash files remain staged. Hooks were not bypassed. Exact code lint and five packaging/native tests passed before this commit.
+
+**Maintained root build:** `npm run build` finished **exit 0**, 70 declared builds; py-poe-spawn has no declared build and is explicitly not a passing build. Root schema suffix stages, TypeScript and bundle completed (`/private/tmp/safejs-api-qualification-final/root-build.log`). No source repair or guard suppression was needed for the missing generated entrypoints.
+
+**Reproduced failed-file recheck:** after that build, `npx vitest run scripts/bundle-safe-bash.test.ts packages/safe-fs/tests/real-read-budget-review.test.ts` finished **45 passed / 2 files**, zero skips, 11.27 seconds (`broad-failure-recheck.log`). Both previously failing files therefore have concrete successful rechecks. The earlier full `npm test` receipt remains exit 1; a complete subsequent all-workspace run is not evidenced and must not be inferred from these two files. Root `npm run lint` remains active (session 75066) without a final receipt. Its run overlapped code/test edits and concurrent workloads, so it cannot establish a clean exact-source gate even if it subsequently succeeds. Selected exact-file checks remain the commit validation.
+
+**Acceptance remains open:** this replaces the preceding pending root-build disposition and diagnoses the two failed files as generated-output prerequisites. It does not resolve all-workspace completion, exhaustive feature/option/platform mapping, current installed legacy candidate, historical O12 broad stability, or final repository-wide lint. No remote delivery or publication occurred; both task receipts remain **none**. New report Markdown and staged whitespace checks passed. No task artifact, ignored file, unrelated staged change or README change was committed.
+
+
+## drain-conformance-findings — rejection identity repair, 2026-09-14
+
+**Task disposition: OPEN / acceptance not reached.** One validated product repair is locally qualified. A full post-repair corpus, complete edition reconciliation and tested exhaustive embedding-exclusion list are still required. Earlier partial reports are never combined into a final pass.
+
+**Candidate before repair:** local main `b944e99bede5e55969feb0f160a576b780728d57` plus preserved pre-existing dirty inputs. Fresh complete manifest `35854b2be7936c045ebc7c46ba829c86e3d9264e381e7d4e763cefa3cfa983dd`, source hash `4bb6b2f777b3a940b7dfd8194b165c2e9bdaa6ae891ef9424389bd940220b310`; 53,876 files, 294 fixtures, 102,926 variants, zero metadata errors. Node 22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin ARM64. Source hashes include transitive workspace sources/dist and existing changes; HEAD alone does not identify these inputs.
+
+**Unchanged target:** published ECMA-262 edition16 / ECMA-402 edition12, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and previously pinned newer APIs. [Primary edition receipt](drain-conformance-findings/recheck-20260914/spec-receipt.json) records the freshly downloaded edition16 hash. NewPromiseReactionJob invokes the handler with its argument; PerformPromiseThen retains the rejection value. Array.fromAsync is an exposed newer API, absent from edition16; this repair qualifies its existing product rejection contract and does not redefine edition membership. The exact edition/extension membership of every pinned fixture remains missing evidence.
+
+**Owner and reproduced counterexample:** SafeJS `executeAsyncFunction` native-promise rejection boundary, exposed through Array.fromAsync; categories qualify-async-job-order / qualify-builtins. `function E(){}; const reason=new E(); await Array.fromAsync({get length(){throw reason}}).then(undefined,error=>[error===reason,error.constructor===E,error instanceof E])` returned `[false,false,false]`; required `[true,true,true]`. Replacing Array.fromAsync with Promise.reject(reason) is a neighboring passing control. Direct await/catch also passes, narrowing the defect to reaction delivery. This is a product defect, not a host capability limitation.
+
+**TDD:** [fast regression](../../packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts) first failed both length-getter and async-iterator-getter cases in **151 ms**, expected `[[true,true,true],true]`, actual `[[false,false,false],true]` ([red](drain-conformance-findings/recheck-20260914/rejection-red.log)). Runtime and HEAD as above; the added regression changes source hashes relative to the initial manifest. The repair converts captured guest exceptions into their guest throw-completion value before promise rejection. Fatal budget/cancellation errors retain their original path. The shared helper also serves restored closures; interaction review covers async continuations and host identity, without granting authority.
+
+**Qualification:** regression plus existing Array.fromAsync/Proxy-result tests: **43 passed / 3 files**, no skips ([green](drain-conformance-findings/recheck-20260914/rejection-green.log)); async driver/cancellation/continuations/public and host settlement identity: **46 passed / 5 files**, no skips ([interactions](drain-conformance-findings/recheck-20260914/interactions.log)). Exact-file eslint and SafeJS no-emit TypeScript exit 0. Original pinned `asyncitems-arraylike-length-accessor-throws.js` and **entire Array.fromAsync sibling category**, plus boxed Array-length control: before **162 passed / 26 failed / 188 variants**; after **188 passed / zero failed / zero unsupported**, 96 files, zero fixture/metadata/execution errors. [Before](drain-conformance-findings/recheck-20260914/array-historical.jsonl), [after](drain-conformance-findings/recheck-20260914/array-after.jsonl), [commands](drain-conformance-findings/recheck-20260914/commands.md). After header source hash `e5d809b1835fb84e49fdfef869a7228ad28847b7bff44a08fbb1c9843de0aac9`, same pre-commit HEAD plus repair. The earlier boxed Array-length defect does not reproduce and received no speculative fix. No visual CLI behavior changed.
+
+**Other findings and categories:** all **48 legacy-RegExp variants fail** across 24 fixtures; both IsHTMLDDA control variants are **unsupported**, not skipped/passed. Legacy fixtures carry `esid: pending`, `features: legacy-regexp`; GetLegacyRegExpStaticProperty is absent from edition16. They remain an explicit corpus mismatch with extension/product membership unresolved, not a silently discarded standard defect. IsHTMLDDA is an unavailable explicit harness capability; the complete filename/mode inventory is retained locally, but an inventory is not a fully executed tested embedding disposition. No exhaustive exclusion list is claimed.
+
+**Full-corpus attempt:** `full-corpus.jsonl` was started from the complete fresh manifest, with no selector, no budget override, unchanged 3,000 ms variant wall/deadline and 10,000 ms startup timeout. It was explicitly interrupted with SIGINT / exit130 to allow the reproduced repair, and has no final summary. Its retained prefix includes passes, unsupported IsHTMLDDA, unexpected throws and timeouts. Unobserved variants, metadata/execution errors, fixtures and unsupported modes remain distinct in local `observations.json`; no timeout or assertion was weakened. The prefix is diagnostic evidence only and cannot qualify either the pre-repair or post-repair complete corpus. A fresh complete run must identify the final candidate revision/hash; subsequent semantic changes invalidate final qualification. Other current-source processes in a different checkout and initial selected runs overlapped this diagnostic run, so timeout causes remain unqualified.
+
+**Delivery blocker, separately:** fresh fetch observed remote main `4693f5f75b5eec61a63c07e7195824ddb22d3e92`; local HEAD is **58 local-only / 1,025 remote-only commits**. This source cannot be pushed directly without reconciliation. No merge/reset/force-push or unrelated staged/worktree reversal was performed. The atomic repair commit is recorded after creation; **verified task remote-main delivery: none; task release: none**. Remote fixes must be reconciled and this counterexample revalidated there before publishing. Acceptance remains blocked by final complete execution, remaining mismatch classification/repairs, exhaustive tested exclusions and remote release qualification. Retained uncommitted large manifest/spec/prefix artifacts are local evidence, not release receipts.
+
+
+## 2026-09-15 — independent runtime matrix commit audit
+
+**OPEN / RELEASE BLOCKED.** The [self-contained final audit](safejs-runtime-support-matrix-final-audit-20260915.md) records manifest-derived cells, fixed edition 16/402 edition 12 target, full reproduction source, exact commands, source SHA, Node/ICU/V8 metadata, fresh maintained imports/type contracts and installed controls. All seven runtime import sets pass; two fresh-symbol failures persist on exact Node 18.18.0 (current and installed public 0.1.605); other selected controls pass. No missing platform or feature is passed. Linux/Windows, full Workerd metadata/coverage, cross-runtime whole suites and current-source installed canonical/umbrella qualification remain explicit release blockers. No runtime repair or weakened budget/assertion/timeout/support/authority. Zero prior source-fingerprint changes; unrelated staged diff preserved. Prior publication remains predecessor-only. This evidence-only increment is committed locally through normal hooks; verified remote delivery and task publication are not claimed.
+
+
+### 2026-09-15 — integrated candidate final evidence disposition
+
+**Acceptance OPEN; candidate not certified.** Source HEAD `365774cd83ff387c4237adfed8fe7b8bf0ffb4f1` plus dirty worktree; Node22.23.2 / ICU78.2 / V8 12.4.254.21-node.56, Darwin arm64. [Independent final receipt](safejs-integrated-candidate-final-audit-20260915.json) verifies every recorded source input and raw log digest from the existing integrated audit, with zero changed/missing inputs or logs. This is receipt validation, not a fresh full-suite pass. Fixed ECMA-262 edition16 / ECMA-402 edition12 and explicitly pinned newer APIs remain unchanged.
+
+Existing uncached maintained build/native prepack, fresh installed fixture/import/CLI/SDK/module/capability/selected replay/type/browser checks and six maintained MCP E2Es passed as detailed in the preserved working ledger. Existing full npm test failed committed-lock binding; repository-wide lint failed1467 documentation errors; minimum Node18.18 weak-symbol behavior failed. Those negative results remain negative. Unreached native test tasks/posttest, incomplete broad skip adjudication, Linux/Windows, fresh Workerd metadata and exhaustive repaired-case/cancellation/version cells remain missing evidence. No skips are promoted to passes. Existing installed screenshot inspection is recorded in the working ledger, not newly performed here. Detailed earlier audit artifacts remain local uncommitted evidence; this small evidence commit does not deliver those files or contributor report additions.
+
+Fresh final checks reproduce both blockers: committed-package verification exits1 with `Peer binding requires the selected committed workspace lock`; opt-in maintained generated-interactions-counterexamples exits1, four tests pass and two nested async-function await-using portable restores fail (`Expected a guest heap array` and `Wrong guest heap reference kind`). Exact commands/log hash are in the receipt. No product changes, test weakening, support-floor changes, or implicit host authority grants. Full gates are not rerun merely to duplicate same-source failures. Required manual checks cannot be confirmed as universally passing for this candidate.
+
+Evidence-only atomic commit includes this increment and its final receipt, using an isolated index to exclude existing report additions and unrelated staged work. Local commit is separately reported after commit; remote-main delivery:none; task publication:none. No push or local publication. The task remains unresolved until full gates and artifact acceptance actually pass.
+
+
+### verify-package-provenance — independent maintained-build recheck, 2026-09-15
+
+**Disposition: OPEN / NOT COMPLETE.** This increment is evidence-only. Source HEAD is `c93c068d46b376028c07e58c2145d4f94f74edd5` on main, with dirty candidate inputs; it is not an immutable published candidate. Runtime: Darwin arm64, Node 22.23.2, ICU 78.2, V8 12.4.254.21-node.56, Unicode 17.0. Compatibility remains ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), plus explicitly tracked newer APIs. Missing host authority by design is not a language defect. No support, budgets, assertions or timeouts were changed.
+
+Source qualification: SHA256-rehash all 5,321 entries in `verify-package-provenance-20260915/source-files.json` and `supplemental-build-inputs.json`, comparing both the working checkout and `/private/tmp/safejs-provenance-build-20260915`. Every current input matches that isolated checkout. Only package.json differs from the original recorded inventory, matching the preceding recorded repair: SHA256 `a325180837bc4d6e91f9048429872a30214d55b06b6e5daf206061e4bcf88c1b`. Working lock SHA256 is `117d208b362e9c1e2147e65c4c94926092c695229c844ad35f8007c60ac13888`; it differs from HEAD. Resolve lockfile `link:true` entries through their `resolved` workspace records before comparing versions: all root direct runtime ranges match. An initial naive comparison falsely flagged toolcraft and tiny-stdio-mcp-server because link records have no version; the corrected comparison is authoritative. This does not certify minimum runtime or publication reproducibility.
+
+Executed commands and results (raw logs retained at `/tmp/verify-package-provenance-current-*`; temporary paths are execution receipts, not required published files):
+
+- In the working checkout, `npx vitest run scripts/package-safe.test.ts scripts/package-safe-native.test.ts scripts/guard-package-dist.test.ts scripts/bundle-graph.test.ts`: exit 0, 4 files / 45 tests pass. `npm run lint:packages`: exit 0, all 17 rules pass.
+- In the isolated checkout, `npm run build`: exit 0, maintained uncached route reports 71 workspaces, 70 declared builds, 211 edges, 11 layers; py-poe-spawn has no declared build and is explicitly not counted as a pass. Root suffix schema generation, TypeScript and bundling complete. Existing working-tree dist was neither adopted nor deleted.
+- In that checkout, `npm pack --ignore-scripts --json --pack-destination /private/tmp/verify-package-provenance-current-packs`: exit 0. npm nevertheless emits prepare/husky output (`.git can't be found`) before JSON. The first direct JSON parse fails; retain this setup failure and parse the JSON array separately, or inspect the actual archive. It is not a build failure.
+- `node scripts/package-safe.mjs --out-dir /private/tmp/verify-package-provenance-current-scoped --version 0.0.0-provenance.c93c068`: exit 0. In each generated safe-fs/safe-js/safe-bash directory, repeat `npm pack --ignore-scripts --json --pack-destination /private/tmp/verify-package-provenance-current-packs`: all exit 0. Private workspace manifests are not publish manifests.
+
+Fresh archive receipts: root 5,855 members, SHA256 `704330ae86ac1203358865646ab31af94a0c4a3bdec6bf9e6e8d248ed85c1bc4`, integrity `sha512-QmzVDw3E8boVS3IkzOGzGr3Tp0Zs3bNd8yU4kDI8uqJlZkPSDTtfRFNcriLuccIS3lvPUcvvE0pPAKZIQiw2IA==`. It is byte-identical to the retained repaired tarball installed below. Scoped SHA256 receipts: SafeFS 140 members, `51c2b001a8c01e1ecfc2ab138f77bb382a2a40ed3e4781bb0fd132d8cd3a36dc`; SafeJS 380 members, `30d006ebb9b7da08e60ab65abdfa6cdfa8761c113ea295c03000c8bfca361464`; Safe Bash 1,645 members, `48b2997b321066627fe620377a3f56b334a0f26b88c9bee080379eaaef11cd46`. Python tarfile traversal confirms licenses, no links, and no missing literal or wildcard manifest export/import targets in all four archives; bin targets were checked for root. Scoped file lists contain no src directory, test file, node_modules, .env or .git entry. Safe Bash retains native compression LICENSES.txt. SafeJS includes the generated numberformat-engine declaration; bundled Intl behavior passes below. This limited audit does not assert exhaustive third-party license or raw-reference closure.
+
+Independent installation controls:
+
+- Create `/private/var/tmp/safejs-provenance-current-consumer.HQg6iD` using mktemp, and run `npm init --yes` with that directory as cwd (exit 0). `npm install --ignore-scripts --no-audit --no-fund /private/tmp/safejs-provenance-repair-tarballs-20260915/poe-code-0.0.0-dev.tgz`: exit 0, 185 packages. Installed bytes match the freshly rebuilt root SHA above. `npm ls --all --json`: exit 0. Copy the preceding `verify-package-provenance-terminal-20260915/root-controls.mjs` into this consumer and run `node root-controls.mjs`: exit 0, independently repeated with the same result. Seven imports (root, SafeJS public/core aliases, SafeFS, Safe Bash) pass. SafeJS controls check Intl output, absent process/require/fetch, rejection of unauthorized process access, malformed syntax and bounded infinite loops using explicit Budget(maxSteps 30, dataSize 100000). The control also verifies no ancestor node_modules or external workspace links.
+- Create `/private/var/tmp/safejs-provenance-current-scoped-consumer.GH3KwY` and run `npm init --yes`: exit 0. Install all three exact fresh scoped tarballs using `npm install --ignore-scripts --no-audit --no-fund <safe-fs.tgz> <safe-js.tgz> <safe-bash.tgz>`: exit 0. Copy maintained `scripts/fixtures/safe-packages-*` there. `node safe-packages-smoke.mjs`: exit 0. `npm ls --all --json`: exit 0. Isolated build's node_modules/.bin/tsc with `--noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts`: exit 0, without skipLibCheck. Its esbuild with `safe-packages-browser.mjs --bundle --platform=browser --format=esm --outfile=browser.mjs`: exit 0; `node browser.mjs`: exit 0. Consumer dependencies have no links outside .bin, and there is no ancestor node_modules. Compiler/bundler tools are deliberately supplied from the build; runtime dependencies resolve in the consumer.
+
+Current negative evidence: installed root memory.js still refers to absent `../../../packages/memory/src/templates/SKILL_memory.md`; markdown-reader/dist/mcp/run.js refers to absent `../../package.json`. Both literal references and absent targets were rechecked in the new consumer. Their supported-entry reachability was not newly adjudicated; they remain closure findings, not newly claimed SafeJS language defects. Preceding exhaustive raw-reference findings remain unresolved. Semver comparison of retained consumer engine declarations against 18.18.0 preserves four conflicts: @noble/hashes 2.4.0 requires >=20.19.0; brace-expansion 5.0.12 requires 20 or >=22; bundled tiny-http-mcp-server 0.1.0 and toolcraft's 0.1.17 require >=20. Node22 passes do not qualify Node18. No dependencies were changed in this increment.
+
+Publication observation: `git ls-remote origin refs/heads/main refs/tags/v15.0.41` resolves both to `a03cf4f986dcbb7de309cbe4c1f5587551d81d04`. `npm view poe-code@15.0.41 version gitHead dist --json` agrees on version/commit, advertises signatures and SLSA provenance attestation, integrity `sha512-FM/nQ/K1ghJXhf2Mv1eOV/ssMP4L2hSt4XJPKz1Gm8co91/jqy9SFz180tbdY23It2Uz5DJm6I+e0fPS1vS7vA==`. This observation is not a new cryptographic verification or this candidate's receipt. `gh run list --workflow release.yml --limit 1 --json databaseId,headSha,status,conclusion,url`: predecessor run 34935069364 succeeded at that SHA. Scoped workflow's latest two runs 34935034511 / 34921860899 succeeded at be0cac7268ed62429623e39f6868b86c5c455ad1 / 6bc5290f862612a79944c105facb408d9e0057b0. Read maintained publishing guide at docs/development/NPM_PUBLISHING.md. Scoped release tests packed tarballs then publishes directories with --provenance; no actual candidate tested-byte receipt was established. No workflow dispatch, push or local publication occurred.
+
+Remaining acceptance gaps: immutable source/lock binding, minimum-runtime compatibility, raw/internal archive closure disposition, normal install lifecycle with explicit host configuration, native/Bun/Workerd/full runtime matrix, exhaustive license intent and generated-data receipts, and candidate publication integrity/provenance/version/commit association. Prior broad-check failures are not superseded by focused passes. No code repairs or visual changes were made, so no repair TDD or screenshot pass is claimed. Manual checks for the sole task-owned documentation increment: reviewed commands against maintained declarations, reviewed archive and consumer results, and `git diff --check -- docs/plans/safejs-gap-closure-evidence.md` exit 0. Only this increment is committed; preceding unrelated report edits and staged Safe Bash changes are preserved. Local evidence commit SHA is reported separately in the final response; remote task delivery and successful task candidate publication are absent. Acceptance remains OPEN.
+
+### verify-package-provenance — normal lifecycle and strict minimum-runtime rejection, 2026-09-15
+
+**Acceptance OPEN / candidate rejected.** Source HEAD `c84b02b90f200f9104062cf0818da1e020c0d361` plus dirty inputs; source/lock is not an immutable release candidate. [Executed QA and recovery path](verify-package-provenance-followup-20260915/manual-qa.md). Node 22.23.2 / ICU 78.2 / Unicode 17.0 / V8 12.4.254.21-node.56, Darwin arm64; [runtime receipt](verify-package-provenance-followup-20260915/runtime.json). Minimum probe uses actual Node 18.18.0 / ICU 73.2 (node18.json), npm 10.9.8. Compatibility target stays ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), plus the explicitly tracked newer APIs. No code, dependency range, lockfile, runtime support, budget, assertion or timeout was changed. Missing host capability by design is not a language defect.
+
+[Source receipt](verify-package-provenance-followup-20260915/source.json) independently rehashes all 5,321 preceding recorded inputs before and after the fresh maintained build: working and isolated build bytes agree throughout. Staged Safe Bash fingerprint stays `839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8`. Lock SHA256 stays `117d208b362e9c1e2147e65c4c94926092c695229c844ad35f8007c60ac13888`, still differing from HEAD. Existing checkout outputs were not accepted as evidence; rerun uncached `npm run build` in the qualified isolated checkout: **exit 0**, maintained workspace builds, generators, root compilation and bundle. Packaging tests (package-safe, package-safe-native, bundle-graph): **exit 0, 24/24**; maintained package lint: **exit 0, 17 rules**. Raw build, packaging-test and package-lint logs retained in the follow-up receipt directory.
+
+Fresh mktemp artifact directories, maintained package-safe preparation at explicit version `0.0.0-provenance.c84b02b`, and all four packs: **exit 0**. [Actual archives](verify-package-provenance-followup-20260915/archives.json) have root 5,855 members, SafeFS 140, SafeJS 380, Safe Bash 1,645; all literal manifest export targets exist, no archive links, license/generated-data hashes and runtime declarations retained. Root SHA256 `704330ae86ac1203358865646ab31af94a0c4a3bdec6bf9e6e8d248ed85c1bc4` is byte-identical to the preceding freshly rebuilt repaired root archive. Scoped version-dependent bytes are newly recorded, not equated with predecessor archive digests. License presence/data hashes do not certify exhaustive third-party license intent or unavailable native profiles. npm pack again emits the retained prepare/husky prefix; actual archive inspection supplies the verification.
+
+Fresh root-only consumer `/private/var/tmp/provenance-followup-root.RJd13e`: explicit minimal package.json, `npm install --no-audit --no-fund --foreground-scripts <exact-root.tgz>` **exit 0, 185 packages**. This time lifecycle scripts are enabled, with no CI or SKIP_SYNC_SKILLS override. Installed postinstall plan independently asserts `{action:skip,reason:missing-sync-script}`: expected packaged behavior, no host skills configured and no source-only sync script required. This supersedes the normal root install lifecycle skip for this platform and dependency resolution only. Seven public/core/legacy-alias/SafeFS/SafeBash imports, Intl, explicit host-authority negatives, parse rejection and bounded-loop controls: **exit 0**. `npm ls --all --json`: **exit 0**. Fresh scoped-only consumer `/private/var/tmp/provenance-followup-scoped.9zp4uD` installs all three exact tarballs: **exit 0**; maintained Node and Bun smoke **exit 0** (Bun `1.3.11-canary.1+687700d84`), NodeNext/ES2022 declaration check without skipLibCheck **exit 0**, maintained browser bundle/run **exit 0**, dependency tree **exit 0**. After recording scoped-only results, add exact root candidate and run maintained legacy fixture: **exit 0**. [Isolation receipt](verify-package-provenance-followup-20260915/isolation.json): both consumers have no ancestor node_modules or external workspace symlinks. Compiler/bundler tools explicitly supplied from build setup; runtime modules resolve in consumers. No full Workerd/native matrix pass claimed.
+
+Fresh separate `/private/var/tmp/provenance-followup-minimum.mrV27T`: `npx --yes --package=node@18.18.0 -- node <npm-cli.js> install --engine-strict --ignore-scripts --no-audit --no-fund <exact-root.tgz>` **exit 1, EBADENGINE**. Actual Node 18.18.0 conflicts with `@noble/hashes@2.4.0` requiring `>=20.19.0`. [Failure](verify-package-provenance-followup-20260915/minimum-install.log) concretely confirms the previously reported runtime contract defect. Other previously validated engine conflicts remain unresolved; stopping at the first engine error does not certify remaining dependencies. Neither declaring a newer minimum nor an unreviewed dependency substitution is used to get a pass.
+
+[Raw reference recheck](verify-package-provenance-followup-20260915/raw-reference-disposition.json) corrects stale accounting: all three user-error references now resolve; **12 unresolved literal occurrences across 10 unique importing-file/specifier pairs** remain. Exact import lines distinguish unbundled raw CLI template references, raw markdown-reader package.json, and internal tiny-oauth/mcp-oauth-server declarations. Public bundle success does not qualify these raw modules; this audit does not assert that every internal reference is an exposed SafeJS defect. Their intended archive disposition remains OPEN, along with exhaustive license intent and the unexecuted native/Workerd profiles.
+
+Fresh registry downloads independently match all four SHA512 SRI values and both attestation subject digests. [Registry receipts](verify-package-provenance-followup-20260915/registry.json) observe scoped **0.1.606**, source `be0cac7268ed62429623e39f6868b86c5c455ad1`, SLSA invocation run **34935034511**; root **15.0.41**, gitHead/SLSA source `a03cf4f986dcbb7de309cbe4c1f5587551d81d04`, invocation run **34935069364**. Corresponding retained workflow URLs show success. Remote main and v15.0.41 agree at root predecessor SHA. These are predecessor receipts, not this candidate's publication. Initial registry display code failed by assuming npm publish statements also had SLSA buildDefinition; valid registry.json was written before that display failure. Corrected display and subject checks pass. Decoding is not cryptographic authentication: preceding `npm audit signatures` remains the separate predecessor signature/attestation qualification.
+
+**Delivery/release disposition:** evidence-only local commit is reported separately; no candidate push, verified remote-main task delivery or candidate publication. Final explicit ancestry probes show divergent history: before this evidence commit, 62 unique local commits and 1,028 unique remote commits, merge base `60a6f594ec0f40467b61880a856a626d3b14de35`; remote main is not an ancestor of local HEAD. The preceding ancestry statement was incorrect because a multi-command shell result masked the ancestry probe exit status. Reconciliation and revalidation are required before any normal push; delivering this dirty candidate would include unqualified concurrent changes and would not bind the tested source/lock to a commit. No branches, force-push, unrelated reverts, workflow dispatch, local publish or issue closure. No explicitly associated issue was supplied. Recovery is the executed QA's final step: resolve validated runtime/archive integration defects with TDD, obtain exact committed candidate source/lock while preserving concurrent work, rerun maintained scope/broad checks as required, use normal push hooks, verify ancestry and follow all required release successors through publication, then compare registry installed bytes/provenance to tested artifacts. No new release or docs-only no-release outcome is claimed without remote delivery. Acceptance remains **OPEN / NOT COMPLETE**.
+
+Evidence commit preparation initially failed `git diff --cached --check` on the raw Vitest log’s terminal blank line. That log is retained losslessly as packaging-tests.log.gz; no test or result was changed. Repeated task-only whitespace review passes.
+
+### Task-owned publication clarification — 2026-09-15
+
+Source SHA `b2a7406ce9d8f25775962bbbf24a79dcc908b9e6` plus inherited dirty
+inputs; Node 22.23.2 / ICU 78.2 / V8 12.4.254.21-node.56, Darwin arm64.
+Added standalone dated compatibility summaries to both READMEs while preserving
+inherited edits. Only these additions and this report increment belong to this
+commit; existing README/ledger diffs and unrelated staged work are excluded.
+Target and corpus pins remain unchanged. The durable full-corpus last record was
+inspected directly: `aborted`, `complete:false`, ENOSPC. No accepted final run
+exists; runtime/transport failures and unsupported required modes remain blockers.
+
+Manual checks: current-source README quickstart executed with
+`node --import tsx --input-type=module`, importing Budget/run from
+`./packages/safe-js/src/index.ts`, asserting `ok === true` and `[6,10,16]` with
+the documented bindings and budgets: exit 0, no failures/skips. No runnable
+example was changed. Links in the new summaries were checked for existing files
+and heading fragments. Task-only staged whitespace check passed. Markdown-only
+work requires no runtime repair tests, broad suite or CLI screenshot. Retained
+selected corpus commands/results above remain partial evidence, not rerun here.
+
+Fresh read-only receipts: `git ls-remote origin refs/heads/main` returned
+`a03cf4f986dcbb7de309cbe4c1f5587551d81d04`;
+`npm view @poe-platform/safe-js@0.1.606 version dist.integrity --json` and
+`npm view poe-code@15.0.41 version gitHead --json` matched the retained registry
+receipts. No new signature authentication or candidate publication is claimed.
+Local documentation commit: reported after hooks in the completion message.
+Remote-main task delivery: none. Task publication: none. No push requested or
+attempted; divergent history and candidate qualification remain unresolved.
+Disposition: documentation clarification locally verified; final-corpus and
+release-bound acceptance remain OPEN.
+
+
+## prepare-release-failure-recovery — committed independent execution receipt, 2026-09-15
+
+[Standalone executed QA record](safejs-release-recovery-independent-20260915.md) records seven nonpublishing scenarios, exact recovery procedures, source e63e1b158c58de8b14a926a6e6c8989da1d23feb plus dirty inputs, Node22.23.2 / ICU78.2, reproduced helper commands, 21/21 retained hashes, independent failed/cancelled identities, and separate three-package predecessor receipts/root no-release. Manual workflow lint exit0; no workflow unit tests, code edits, publishing or destructive actions. Recovery-QA scope satisfied; historical failures and exact-old-version selective resume remain unresolved. Fixed edition16/edition12 and tracked newer APIs unchanged. Local commit reported after commit; remote delivery:none; task publication:none. Unrelated staged/local evidence preserved.
+
+
+### verify-final-release — final independent audit and isolated evidence commit
+
+**BLOCKED; acceptance and completeness remain open.** Source `84e2c44f67e5c7a60d61277ff263fe05c789449d` plus preserved dirty inputs; freshly queried remote main `ff1923235ea1e0fa0a40bdeb06468fda13cc8d8b`, divergence **67 local /1029 remote unique commits**. [Initial receipt](verify-final-release-20260915/final-audit/before.json) records Darwin ARM64 **Node22.23.2/ICU78.2**, V8 and staged hash. Target remains **ECMA-262 edition16 / ECMA-402 edition12 (June2025)**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93` plus ledger extensions. [Executed manual QA and explicit skips](verify-final-release-20260915/final-audit/qa.md) define this audit's bounds.
+
+**Implementation:** no code repair, capability expansion, support-floor/budget/assertion/timeout change. **Verification:** [fresh controls](verify-final-release-20260915/final-audit/gates.json) reproduce replay **exit1,4 pass/2 fail** (guest array924/reference kind920); committed-lock binding **exit1**; workflow lint **exit0**. Earlier integrated full test/lint failures remain unresolved, and no fresh broad-gate pass is claimed. [Rehashed final corpus/accounting](verify-final-release-20260915/final-audit/historical-accounting.json) retains **23,411 records /42,094 passed /3,581 failed /78 unsupported variants**, then **ENOSPC-aborted, complete:false**, absent supervisor exit. These are partial totals, not final corpus acceptance. All33 tasks,895 canonical historical rows and1475 category IDs retain evidence-backed **blocked final-candidate dispositions**; the historical inventories do not establish exhaustive owner acceptance or standard/mode/oracle adjudication. No completeness objective is closed.
+
+**Required failures versus intentional restrictions:** published minimum **Node18.18.0/ICU73.2** still fails nonregistered-symbol WeakMap assertion, while object-key neighbor passes. This is edition-required behavior, separately from replay-contract failures and committed-lock qualification failure. Absent ambient process/fetch/require and explicit host/native-Promise/filesystem/module authority remain embedding policies, not automatic standard defects. Unknown corpus nonpasses remain unadjudicated. Required Linux/Windows/Workerd provenance, exhaustive runtime/replay/cancellation/transport and other named owner limitations remain unresolved.
+
+**Actual predecessor publication:** [fresh registry byte/provenance checks](verify-final-release-20260915/final-audit/registry-verified.json), [asserted exact source/workflow association](verify-final-release-20260915/final-audit/association.json), [fresh installed consumer](verify-final-release-20260915/final-audit/installed.json). All three scoped packages are exactly **0.1.607**, SLSA source `ff1923235ea1e0fa0a40bdeb06468fda13cc8d8b`, scoped gitHead absent. Root **poe-code15.0.41** has gitHead/SLSA source `a03cf4f986dcbb7de309cbe4c1f5587551d81d04`. SHA1/SHA512 SRI and all attestation subjects match downloaded registry bytes. Fresh exact installs, Node scoped/legacy/root authority smoke, manifest assertions and npm signature checks pass (**214 signatures/43 attestations**); unchanged minimum-symbol assertion fails. `--ignore-scripts` skips normal postinstall; Bun/browser/types/full installed matrix is unverified.
+
+[All85 runs and88 attempts freshly rechecked](verify-final-release-20260915/final-audit/all-workflow-recheck.json) are terminal: runs70 success/10 failure/5 cancelled; attempts70 success/13 failure/5 cancelled. **None contains candidate HEAD.** Scoped [34974245983/attempt1](https://github.com/poe-platform/poe-code/actions/runs/34974245983/attempts/1) successfully publishes all three artifacts; latest root [34974246493](https://github.com/poe-platform/poe-code/actions/runs/34974246493) is successful no-release. Root [34935069364/attempt1](https://github.com/poe-platform/poe-code/actions/runs/34935069364/attempts/1) published15.0.41 then failed GitHub release creation; [attempt2](https://github.com/poe-platform/poe-code/actions/runs/34935069364/attempts/2) is successful no-release, not another publication. Fresh latest-five lists show no superseding candidate-containing run. No required predecessor publication is running; candidate obligations are unsatisfied, not waived.
+
+**Delivery:** task-owned appendix and new final-audit receipts are isolated for a normal Conventional evidence commit on local main; its containing commit identifies the local audit SHA, reported separately from release sources. Prior dirty ledger content and unrelated staged drafts are excluded. Remote candidate/evidence delivery is **not verified**: divergent histories, missing task attribution/remote evidence and failed required gates prevent a qualified normal push. No force-push, bulk cherry-pick, publication dispatch or issue closure. The associated-issue ledger contains no explicit validated issue number; no title-only closure is inferred. **Local evidence commit is not remote delivery; predecessor publication is not final-candidate publication.** Recovery requires owned-delta reconciliation, TDD repairs, complete pinned-corpus/runtime qualification and exact-candidate maintained gates, then ordinary main delivery and candidate-containing GitHub publication/artifact receipts. Final-release task remains blocked.
+
+### verify-final-release — fetched delivery and independent artifact recheck, 2026-09-15 14:47 UTC
+
+**BLOCKED / NOT COMPLETE.** Fresh fetch leaves local source `9020ed37489e92b5175fbedeefb760b6cbb3829b` and remote main `ff1923235ea1e0fa0a40bdeb06468fda13cc8d8b`, **68 local /1029 remote unique commits**. [Source/environment receipt](verify-final-release-20260915/delivery-recheck/before.json): Node22.23.2/ICU78.2. Target unchanged: ECMA-262 edition16 /ECMA-402 edition12, pinned Test262 and explicitly tracked extensions. Dirty source is not an integrated committed candidate.
+
+**Verification:** [replay command/output](verify-final-release-20260915/delivery-recheck/replay.json) exits1, 4 pass/2 fail: heap924 expected guest array; heap920 wrong reference kind. [Accounting rehash](verify-final-release-20260915/delivery-recheck/accounting.json) matches prior inventories:33 tasks,895 historical ledger rows,1475 category IDs; blocked dispositions retained, not successful terminal owner acceptance. Corpus remains23,411 records,42,094 passed/3,581 failed/78 unsupported variants, ENOSPC-aborted/complete:false and no supervisor exit. Exhaustive standard/mode/oracle adjudication and required runtime cells remain unresolved. Previously failed committed-lock and integrated gates are not repaired or waived. [Workflow lint](verify-final-release-20260915/delivery-recheck/workflow-lint.json) passes; broad gates not rerun or claimed green.
+
+**Actual predecessor artifacts:** [fresh registry metadata and SHA1/SHA512 integrity](verify-final-release-20260915/delivery-recheck/registry.json), [fresh attestation subjects/SLSA sources](verify-final-release-20260915/delivery-recheck/provenance.json). SafeFS/SafeJS/SafeBash exactly0.1.607, source ff192323; scoped gitHead absent. poe-code exactly15.0.41, gitHead/provenance a03cf4f986dcbb7de309cbe4c1f5587551d81d04. Subject digests match downloaded registry bytes. [Fresh isolated registry consumer commands/results](verify-final-release-20260915/delivery-recheck/installed.json): exact installs/manifests, scoped maintained smoke, legacy and root explicit-authority smoke pass; npm audit signatures passes214 signatures/43 attestations. Initial scoped smoke exited1 because the audit copied an incomplete fixture dependency closure; retained attempt followed by complete remote-source fixture copy and successful unchanged smoke. Minimum Node18.18.0/ICU73.2 control still exits1 with TypeError; this rerun does not independently localize its failure beyond retained earlier weak-symbol evidence. No assertion, runtime floor, timeout or budget changed. Ignore-scripts skips postinstall; Bun/browser/types and exhaustive installed matrix not newly verified. Missing ambient guest process/fetch and explicit host capabilities remain intentional embedding policies, separately from standard-required unresolved failures.
+
+**Workflows/delivery:** [latest five root and five scoped runs, ancestry individually tested](verify-final-release-20260915/delivery-recheck/workflows.json) are terminal; none contains source9020ed374. Scoped [34974245983](https://github.com/poe-platform/poe-code/actions/runs/34974245983) successfully published predecessors. Root [34974246493](https://github.com/poe-platform/poe-code/actions/runs/34974246493) is successful no-release; root15.0.41 provenance remains [34935069364/attempt1](https://github.com/poe-platform/poe-code/actions/runs/34935069364/attempts/1), published then failed GitHub release creation, with successful no-release attempt2 retained separately. Earlier85-run/88-attempt audit remains dated evidence; this pass freshly checks latest lists, not every historical API response. No required predecessor run pending; candidate delivery/build/publication is unsatisfied and uninitiated, not complete.
+
+**Implementation:** none. **Local evidence:** this appendix and receipts only; containing audit commit identifies local SHA separately. **Verified remote task delivery:** none. **Candidate publication:** none. No issue explicitly associated by number in retained ledger; none closed. Preserve all unrelated drafts/staged bytes and preceding ledger prefix. Required gate failures prohibit acceptance and completeness closure. Recovery: reconcile attributed owned deltas with fetched concurrent main without force/reverts, TDD repair replay and required semantic findings, complete pinned corpus/runtime adjudication and maintained integrated gates, then normal atomic main push hooks and candidate-containing GitHub publication plus fresh artifact verification. A docs-only no-release outcome cannot satisfy candidate release acceptance.

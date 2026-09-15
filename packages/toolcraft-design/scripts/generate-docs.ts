@@ -58,6 +58,11 @@ const textDocConfig = {
 
 export const sections: Section[] = [
   {
+    title: "Interactive primitives",
+    description: "Scrollable viewports, collapsible event groups, indexed task trees, concurrent progress, command registries, overlay focus stacks, bounded metrics and inline notices. Dashboard Ctrl+G shows repaint dispatch FPS and paint/input latency; getPerformance() exposes cumulative slow frames and the longest paint. Idle FPS is zero; terminal presentation is not observable.",
+    elements: [{ name: "primitives", description: "Known progress uses a percentage; unknown work uses an ellipsis. Metrics retain bounded samples. Notices do not take focus. Use createViewport, createEventGroups, createTaskTree, createCommandRegistry, createOverlayManager and createNotices for stateful interaction.", codeSnippet: 'const metric = createMetric({ capacity: 64, unit: "ms" });\nmetric.push(4);\nmetric.render(40);\nrenderProgressGroup([{ label: "Upload", completed: 3, total: 4 }], 40);\nrenderNotice({ level: "info", text: "Working" }, 40);', demoArgs: "primitives" }]
+  },
+  {
     title: "Overview",
     description:
       "The `toolcraft-design` package provides a consistent visual language for poe-code CLI output. Import components from the package:",

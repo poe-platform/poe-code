@@ -1,5 +1,6 @@
 import { color, type Color } from "../components/color.js";
 import { expandTabs, graphemes, graphemeWidth } from "./terminal-width.js";
+import { parseAnsi, type StyledSegment } from "./ansi.js";
 import type { Cell, CellStyle, Rect } from "./types.js";
 
 const EMPTY_CELL: Cell = { ch: " ", style: {} };
@@ -31,19 +32,21 @@ export class ScreenBuffer {
     const normalizedStyle = normalizeStyle(style);
     let offset = 0;
 
-    for (const ch of graphemes(expandTabs(text, Math.max(0, x)))) {
-      const targetX = x + offset;
-      const width = graphemeWidth(ch);
-      offset += width;
+    for (const segment of screenSegments(text, normalizedStyle)) {
+      for (const ch of graphemes(expandTabs(segment.text, Math.max(0, x + offset)))) {
+        const targetX = x + offset;
+        const width = graphemeWidth(ch);
+        offset += width;
 
-      if (!this.isInBoundsX(targetX)) {
-        continue;
-      }
+        if (!this.isInBoundsX(targetX)) {
+          continue;
+        }
 
-      this._cells[this.index(targetX, y)] = { ch, style: normalizedStyle };
-      for (let continuation = 1; continuation < width; continuation += 1) {
-        if (this.isInBoundsX(targetX + continuation)) {
-          this._cells[this.index(targetX + continuation, y)] = { ch: "", style: normalizedStyle };
+        this._cells[this.index(targetX, y)] = { ch, style: segment.style };
+        for (let continuation = 1; continuation < width; continuation += 1) {
+          if (this.isInBoundsX(targetX + continuation)) {
+            this._cells[this.index(targetX + continuation, y)] = { ch: "", style: segment.style };
+          }
         }
       }
     }
@@ -107,23 +110,25 @@ export class ScreenBuffer {
     const rectEndX = rect.x + rect.width;
     let offset = 0;
 
-    for (const ch of graphemes(expandTabs(text))) {
-      const targetX = rect.x + offset;
-      const width = graphemeWidth(ch);
-      offset += width;
+    for (const segment of screenSegments(text, normalizedStyle)) {
+      for (const ch of graphemes(expandTabs(segment.text, offset))) {
+        const targetX = rect.x + offset;
+        const width = graphemeWidth(ch);
+        offset += width;
 
-      if (targetX + width > rectEndX) {
-        break;
-      }
+        if (targetX + width > rectEndX) {
+          break;
+        }
 
-      if (!this.isInBoundsX(targetX)) {
-        continue;
-      }
+        if (!this.isInBoundsX(targetX)) {
+          continue;
+        }
 
-      this._cells[this.index(targetX, y)] = { ch, style: normalizedStyle };
-      for (let continuation = 1; continuation < width; continuation += 1) {
-        if (this.isInBoundsX(targetX + continuation)) {
-          this._cells[this.index(targetX + continuation, y)] = { ch: "", style: normalizedStyle };
+        this._cells[this.index(targetX, y)] = { ch, style: segment.style };
+        for (let continuation = 1; continuation < width; continuation += 1) {
+          if (this.isInBoundsX(targetX + continuation)) {
+            this._cells[this.index(targetX + continuation, y)] = { ch: "", style: segment.style };
+          }
         }
       }
     }
@@ -144,6 +149,16 @@ export class ScreenBuffer {
   private isInBoundsY(y: number): boolean {
     return y >= 0 && y < this._height;
   }
+}
+
+function screenSegments(text: string, style: CellStyle): StyledSegment[] {
+  for (let index = 0; index < text.length; index++) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) {
+      return parseAnsi(text, style).flatMap((line, row) => row === 0 ? line.segments : [{ text: " ", style }, ...line.segments]);
+    }
+  }
+  return [{ text, style }];
 }
 
 export function diff(

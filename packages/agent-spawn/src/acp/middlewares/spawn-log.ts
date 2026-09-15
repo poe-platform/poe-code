@@ -83,6 +83,10 @@ function describeLogFailure(filePath: string, error: unknown): string {
 class SpawnLogWriter {
   private fileHandle: FileHandle | undefined;
 
+  private size: number | undefined;
+
+  private readonly tracksSize: boolean;
+
   private isDisabled = false;
 
   readonly filePath: string | undefined;
@@ -97,6 +101,9 @@ class SpawnLogWriter {
 
   constructor(ctx: SpawnContext) {
     this.ctx = ctx;
+    // UUID-named run logs have one writer; explicit or session-named paths may be shared.
+    this.tracksSize = !ctx.logPath && !ctx.logFileName &&
+      (ctx.sessionId.length === 0 || ctx.sessionId === "unknown");
     this.filePath = resolveLogFilePath(ctx);
     this.logDirPath = this.filePath ? path.dirname(this.filePath) : "";
     this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
@@ -120,8 +127,12 @@ class SpawnLogWriter {
       }
 
       const eventForLog = prepareEventForLog(event, this.includeContent);
-      previousSize = (await this.fileHandle.stat()).size;
-      await this.fileHandle.appendFile(`${JSON.stringify(eventForLog)}\n`, "utf8");
+      previousSize = this.tracksSize && this.size !== undefined
+        ? this.size
+        : (await this.fileHandle.stat()).size;
+      const line = `${JSON.stringify(eventForLog)}\n`;
+      await this.fileHandle.appendFile(line, "utf8");
+      if (this.tracksSize) this.size = previousSize + Buffer.byteLength(line, "utf8");
     } catch (error) {
       this.isDisabled = true;
       this.ctx.logError ??= describeLogFailure(this.filePath, error);

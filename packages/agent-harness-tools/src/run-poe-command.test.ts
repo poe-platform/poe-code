@@ -345,7 +345,8 @@ describe("runPoeCommand", () => {
     });
   });
 
-  it("waits for captured wrapped stdio to drain after the exit marker", async () => {
+  it.each([undefined, false])("drains and forwards stdout with captureStdout=%s", async (captureStdout) => {
+    const onStdout = vi.fn();
     const { state } = createRecordingState();
     const env = createMockEnv();
 
@@ -379,16 +380,17 @@ describe("runPoeCommand", () => {
     await expect(
       runPoeCommand({
         factory: createFactory(env),
-        openSpec: createOpenSpec({ execution: { captureOutput: true } }),
+        openSpec: createOpenSpec({ execution: { captureOutput: true, captureStdout, onStdout } }),
         detach: false,
         state
       })
     ).resolves.toMatchObject({
       kind: "sync",
       exitCode: 0,
-      stdout: "late stdout\n",
+      stdout: captureStdout === false ? "" : "late stdout\n",
       stderr: "late stderr\n"
     });
+    expect(onStdout).toHaveBeenCalledExactlyOnceWith("late stdout\n");
   });
 
   it("persists display argv while executing the original argv", async () => {

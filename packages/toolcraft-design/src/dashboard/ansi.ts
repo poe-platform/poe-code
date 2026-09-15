@@ -1,4 +1,6 @@
 import type { CellStyle } from "./types.js";
+import { graphemes, graphemeWidth } from "./terminal-width.js";
+import { createTerminalStringFilter } from "./terminal-strings.js";
 
 export interface StyledSegment {
   text: string;
@@ -10,6 +12,17 @@ export interface StyledLine {
 }
 
 const ESC = "\u001b";
+
+/** Visible text for a plain screen row; styles are supplied by the caller. */
+export function plainTerminalText(text: string): string {
+  for (let index = 0; index < text.length; index++) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) {
+      return parseAnsi(text).map(line => line.segments.map(segment => segment.text).join("")).join(" ");
+    }
+  }
+  return text;
+}
 
 export function hasAnsi(text: string): boolean {
   return text.includes(ESC);
@@ -24,12 +37,37 @@ export function hasAnsi(text: string): boolean {
  * `baseStyle` is used as the initial style and as the restore target for SGR reset / default color.
  */
 export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
+  text = createTerminalStringFilter().push(text);
   const base = normalizeStyle(baseStyle);
   let style: CellStyle = { ...base };
   let concealed = false;
   const lines: StyledLine[] = [];
   let cells: Array<{ ch: string; style: CellStyle } | undefined> = [];
   let column = 0;
+
+  const clearCell = (position: number): void => {
+    if (cells[position]?.ch === "" && position > 0) {
+      cells[position - 1] = { ch: " ", style: { ...style } };
+    }
+    if (cells[position + 1]?.ch === "") {
+      cells[position + 1] = { ch: " ", style: { ...style } };
+    }
+    cells[position] = undefined;
+  };
+
+  const writeGrapheme = (ch: string): void => {
+    const width = graphemeWidth(ch);
+    if (width === 0) {
+      const previous = cells[column - 1]?.ch === "" ? column - 2 : column - 1;
+      if (!concealed && cells[previous]) cells[previous]!.ch += ch;
+      return;
+    }
+    clearCell(column);
+    if (width === 2) clearCell(column + 1);
+    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
+    if (width === 2) cells[column + 1] = { ch: concealed ? " " : "", style: { ...style } };
+    column += width;
+  };
 
   const finishLine = (): void => {
     lines.push({ segments: cellsToSegments(cells) });
@@ -42,8 +80,8 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   while (index < text.length) {
     const ch = text[index]!;
 
-    if (ch === ESC && text[index + 1] === "[") {
-      const paramsStart = index + 2;
+    if ((ch === ESC && text[index + 1] === "[") || ch === "\u009b") {
+      const paramsStart = index + (ch === ESC ? 2 : 1);
       let cursor = paramsStart;
 
       while (cursor < text.length && !isCsiFinalByte(text[cursor]!)) {
@@ -62,20 +100,30 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
         const sgr = applySgr(style, concealed, parseParams(params), base);
         style = sgr.style;
         concealed = sgr.concealed;
-      } else if (finalByte === "K" && parseParams(params)[0] === 2) {
-        cells = [];
+      } else if (finalByte === "K") {
+        const mode = parseParams(params)[0];
+        if (mode === 0) {
+          clearCell(column);
+          cells.length = Math.min(cells.length, column);
+        } else if (mode === 1) {
+          const end = Math.min(column, cells.length - 1);
+          for (let position = 0; position <= end; position += 1) clearCell(position);
+        } else if (mode === 2) {
+          cells = [];
+        }
       }
 
       index = cursor + 1;
       continue;
     }
 
+    if (ch === "\u0085") {
+      finishLine();
+      index += 1;
+      continue;
+    }
+
     if (ch === ESC) {
-      const next = text[index + 1];
-      if (next === "]" || next === "P" || next === "X" || next === "^" || next === "_") {
-        index = skipStringTerminated(text, index + 2);
-        continue;
-      }
       index += 2;
       continue;
     }
@@ -98,15 +146,30 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
-    const code = ch.charCodeAt(0);
-    if (code < 0x20 && ch !== "\t") {
+    if (ch === "\t") {
+      const spaces = 8 - (column % 8);
+      for (let offset = 0; offset < spaces; offset++) {
+        if (cells[column] === undefined) writeGrapheme(" ");
+        else column += 1;
+      }
       index += 1;
       continue;
     }
 
-    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
-    column += 1;
-    index += 1;
+    const code = ch.charCodeAt(0);
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) {
+      index += 1;
+      continue;
+    }
+
+    let end = index + 1;
+    while (end < text.length) {
+      const next = text.charCodeAt(end);
+      if (next < 0x20 || (next >= 0x7f && next <= 0x9f)) break;
+      end += 1;
+    }
+    for (const grapheme of graphemes(text.slice(index, end))) writeGrapheme(grapheme);
+    index = end;
   }
 
   finishLine();
@@ -133,21 +196,6 @@ function cellsToSegments(cells: Array<{ ch: string; style: CellStyle } | undefin
 function isCsiFinalByte(ch: string): boolean {
   const code = ch.charCodeAt(0);
   return code >= 0x40 && code <= 0x7e;
-}
-
-function skipStringTerminated(text: string, start: number): number {
-  let index = start;
-  while (index < text.length) {
-    const ch = text[index]!;
-    if (ch === "\u0007") {
-      return index + 1;
-    }
-    if (ch === ESC && text[index + 1] === "\\") {
-      return index + 2;
-    }
-    index += 1;
-  }
-  return index;
 }
 
 function parseParams(params: string): number[] {

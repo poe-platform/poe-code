@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderTerminalPng } from "terminal-png";
+import { main } from "../cli.js";
 import { screenshot } from "./screenshot.js";
 import type { TerminalPilotCommandServices, TerminalPilotRuntime } from "./runtime.js";
 
@@ -35,6 +36,24 @@ function createCommandContext(runtime: TerminalPilotRuntime): TerminalPilotComma
 }
 
 describe("screenshot command", () => {
+  it.each([false, true])("accepts a positional image path with json=%s", async (json) => {
+    const previousExitCode = process.exitCode;
+    const screen = { rawLines: ["visible"], lines: ["visible"], cursor: { row: 0, col: 0 }, size: { rows: 1, cols: 7 } };
+    const runtime = { resolveSession: vi.fn().mockResolvedValue({ name: "qa", session: { screen: async () => screen } }) } as unknown as TerminalPilotRuntime;
+    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    vi.mocked(renderTerminalPng).mockClear();
+    vi.mocked(renderTerminalPng).mockResolvedValue(Buffer.from("png"));
+    process.exitCode = 0;
+    try {
+      await main(["node", "terminal-pilot", ...(json ? ["--json"] : []), "screenshot", "qa.png", "--session", "qa"], { terminalPilotRuntime: runtime });
+      expect(process.exitCode).toBe(0);
+      expect(renderTerminalPng).toHaveBeenCalledWith("visible", expect.objectContaining({ output: "qa.png" }));
+    } finally {
+      process.exitCode = previousExitCode;
+      stderr.mockRestore();
+    }
+  });
+
   it("renders the session raw screen buffer as a PNG", async () => {
     const screen = {
       rawLines: ["\u001b[36mcyan\u001b[0m", "\u001b[35mviolet\u001b[0m"],

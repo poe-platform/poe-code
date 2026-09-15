@@ -1,0 +1,77 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts (1 test | 1 failed) 99ms
+   × preserves an existing realm's intrinsic identity and properties after later restore failure 98ms
+FAIL packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts > preserves an existing realm's intrinsic identity and properties after later restore failure
+AssertionError: expected a thrown error to be Error: final reconciliation refused
+
+- Expected
++ Received
+
+- Error {
+-   "message": "final reconciliation refused",
++ TypeError {
++   "message": "Duplicate intrinsic identity: [\"Object\"]",
+  }
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:26:59
+     24|   const reconcile = vi.spyOn(budget, "reconcileCompileData").mockImple…
+     25|   try {
+     26|     expect.soft(() => restore(saved, { source, budget })).toThrow(fail…
+       |                                                           ^
+     27|     expect.soft(reconcile).toHaveBeenCalledOnce();
+     28|     expect.soft(resolveIntrinsicIdentity(budget, id)).toBe(prototype);
+
+AssertionError: expected "reconcileCompileData" to be called once, but got 0 times
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:27:28
+     25|   try {
+     26|     expect.soft(() => restore(saved, { source, budget })).toThrow(fail…
+     27|     expect.soft(reconcile).toHaveBeenCalledOnce();
+       |                            ^
+     28|     expect.soft(resolveIntrinsicIdentity(budget, id)).toBe(prototype);
+     29|     expect.soft(Object.getOwnPropertyDescriptors(prototype)).toEqual(b…
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts > preserves an existing realm's intrinsic identity and properties after later restore failure
+AssertionError: expected a thrown error to be Error: final reconciliation refused
+
+- Expected
++ Received
+
+- Error {
+-   "message": "final reconciliation refused",
++ TypeError {
++   "message": "Duplicate intrinsic identity: [\"Object\"]",
+  }
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:26:59
+     24|   const reconcile = vi.spyOn(budget, "reconcileCompileData").mockImple…
+     25|   try {
+     26|     expect.soft(() => restore(saved, { source, budget })).toThrow(fail…
+       |                                                           ^
+     27|     expect.soft(reconcile).toHaveBeenCalledOnce();
+     28|     expect.soft(resolveIntrinsicIdentity(budget, id)).toBe(prototype);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts > preserves an existing realm's intrinsic identity and properties after later restore failure
+AssertionError: expected "reconcileCompileData" to be called once, but got 0 times
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:27:28
+     25|   try {
+     26|     expect.soft(() => restore(saved, { source, budget })).toThrow(fail…
+     27|     expect.soft(reconcile).toHaveBeenCalledOnce();
+       |                            ^
+     28|     expect.soft(resolveIntrinsicIdentity(budget, id)).toBe(prototype);
+     29|     expect.soft(Object.getOwnPropertyDescriptors(prototype)).toEqual(b…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  08:11:23
+   Duration  2.14s (transform 1.54s, setup 38ms, import 1.94s, tests 99ms, environment 0ms)
+

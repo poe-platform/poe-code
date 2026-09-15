@@ -151,11 +151,13 @@ export interface TaskProgress {
 export interface TaskCompletion extends TaskProgress {
   durationMs: number;
   success: boolean;
+  cancelled?: boolean;
   usage?: AgentRunUsage;
   taskCompleted?: boolean;
 }
 
 export interface PlanSummary {
+  initializationUsage?: AgentRunUsage;
   planPath: string;
   done: number;
   failed: number;
@@ -182,6 +184,8 @@ export interface PipelineRunOptions {
     options: Array<{ label: string; value: string }>;
   }) => Promise<string | null>;
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
+  /** Called once when the run encounters an existing plan lock. */
+  onLockWait?: (planPath: string) => void;
   onPlanResolved?: (summary: PlanSummary) => void;
   onTaskStart?: (progress: TaskProgress) => void;
   onTaskComplete?: (progress: TaskCompletion) => void;

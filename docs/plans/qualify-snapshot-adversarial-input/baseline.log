@@ -1,0 +1,197 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/guest-generator-iteration-continuations.test.ts (50 tests) 6255ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-nested-yields.test.ts (70 tests) 7728ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-closures.test.ts (24 tests) 4970ms
+   ✓ restores the originating realm for '()=>[]'  309ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-catch-iterator.test.ts (28 tests) 4743ms
+ ✓ packages/safe-js/src/snapshot/mixed-source-closures.test.ts (16 tests) 3510ms
+   ✓ preserves distinct function bodies and captured state from return ()=>1  316ms
+   ✓ preserves distinct function bodies and captured state from const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 1})();return async()=>{c.resolve();return await p}  313ms
+ ✓ packages/safe-js/src/external-checkpoint-validation.test.ts (14 tests) 2612ms
+     ✓ captures externally and by signal while 'callback' remains pending  437ms
+     ✓ captures externally and by signal while 'retry-reissue' remains pending  354ms
+     ✓ captures externally and by signal while 'retry-external' remains pending  359ms
+     ✓ captures externally and by signal while 'co' remains pending  804ms
+ ✓ packages/safe-js/src/migrate.test.ts (31 tests) 2608ms
+ ✓ packages/safe-js/src/snapshot/async-function-continuations.test.ts (29 tests) 2338ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-array-patterns.test.ts (29 tests) 2837ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-object-patterns.test.ts (31 tests) 2333ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-delegation.test.ts (20 tests) 2105ms
+ ✓ packages/safe-js/src/snapshot/private-elements.test.ts (31 tests) 2077ms
+ ✓ packages/safe-js/src/snapshot/internal-continuation-references.test.ts (21 tests) 1806ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-calls.test.ts (18 tests) 1878ms
+ ✓ packages/safe-js/src/snapshot/dynamic-import.test.ts (18 tests) 1558ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-values.test.ts (15 tests) 1701ms
+ ✓ packages/safe-js/src/migration-file.test.ts (14 tests) 1291ms
+ ✓ packages/safe-js/src/snapshot/proxy.test.ts (36 tests) 1565ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-continuations.test.ts (16 tests) 1274ms
+ ✓ packages/safe-js/src/snapshot/eval-source.test.ts (18 tests) 1259ms
+ ✓ packages/safe-js/src/snapshot/intrinsic-mutations.test.ts (17 tests) 1042ms
+ ✓ packages/safe-js/src/snapshot/constructor-environments.test.ts (14 tests) 994ms
+ ✓ packages/safe-js/src/snapshot/resource-declarations.test.ts (11 tests) 907ms
+ ✓ packages/safe-js/src/snapshot/async-generator-validation.test.ts (13 tests) 554ms
+ ✓ packages/safe-js/src/snapshot/settled-promises.test.ts (11 tests) 873ms
+ ✓ packages/safe-js/src/snapshot/thenable-continuations.test.ts (10 tests) 913ms
+ ✓ packages/safe-js/src/snapshot/eval-call.test.ts (10 tests) 952ms
+ ✓ packages/safe-js/src/snapshot/symbol-registry.test.ts (13 tests) 935ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-subclasses.test.ts (5 tests) 596ms
+ ✓ packages/safe-js/src/snapshot/dynamic-source.test.ts (18 tests) 796ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 587ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-switch.test.ts (35 tests) 577ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-aggregates.test.ts (7 tests) 757ms
+ ✓ packages/safe-js/src/snapshot/completed-map-alias.test.ts (2 tests) 758ms
+     ✓ matches native before and after two completed restores: 'captured Map value alias'  335ms
+     ✓ matches native before and after two completed restores: 'collection cycles, sparse metadata an…'  422ms
+ ✓ packages/safe-js/src/snapshot/class-constructor.test.ts (11 tests) 595ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-executors.test.ts (8 tests) 693ms
+ ✓ packages/safe-js/src/snapshot/dynamic-with.test.ts (6 tests) 509ms
+ ✓ packages/safe-js/src/snapshot/buffer-prototype-replay.test.ts (9 tests) 570ms
+ ✓ packages/safe-js/src/snapshot/eval-super-environment.test.ts (5 tests) 454ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-in.test.ts (35 tests) 573ms
+ ✓ packages/safe-js/src/snapshot/eval-class-arguments.test.ts (4 tests) 364ms
+ ✓ packages/safe-js/src/snapshot/dynamic-function-self-binding.test.ts (9 tests) 556ms
+ ✓ packages/safe-js/src/snapshot/array-buffer-detached.test.ts (14 tests) 522ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts (16 tests) 509ms
+ ✓ packages/safe-js/src/snapshot/async-disposable-stack.test.ts (5 tests) 362ms
+ ✓ packages/safe-js/src/snapshot/sloppy-let.test.ts (5 tests) 394ms
+ ✓ packages/safe-js/src/snapshot/dynamic-block-functions.test.ts (6 tests) 452ms
+ ✓ packages/safe-js/src/snapshot/strict-destructuring-bindings.test.ts (4 tests) 389ms
+ ✓ packages/safe-js/src/snapshot/eval-source-validation.test.ts (14 tests) 614ms
+ ✓ packages/safe-js/src/snapshot/promise-resolvers.test.ts (8 tests) 809ms
+ ✓ packages/safe-js/src/snapshot/symbol-accessor-replay.test.ts (5 tests) 634ms
+ ✓ packages/safe-js/src/snapshot/shadowed-array-methods.test.ts (23 tests) 724ms
+ ✓ packages/safe-js/src/snapshot/exception-function-hoisting.test.ts (6 tests) 636ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-dump.test.ts (7 tests) 587ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-continuations.test.ts (26 tests) 546ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-bindings.test.ts (3 tests) 369ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-branches.test.ts (40 tests) 429ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-species.test.ts (4 tests) 416ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-callbacks.test.ts (2 tests) 367ms
+ ✓ packages/safe-js/src/snapshot/eval-deleted-assignment.test.ts (5 tests) 579ms
+ ✓ packages/safe-js/src/snapshot/typed-array-iterator-replay.test.ts (5 tests) 509ms
+ ✓ packages/safe-js/src/snapshot/guest-heap-validation.test.ts (11 tests) 479ms
+ ✓ packages/safe-js/src/snapshot/promise-callable-references.test.ts (6 tests) 461ms
+ ✓ packages/safe-js/src/snapshot/global-object.test.ts (4 tests) 515ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-do-while.test.ts (36 tests) 490ms
+ ✓ packages/safe-js/src/snapshot/restore.test.ts (82 tests) 519ms
+     ✓ restores thousands of parent scopes without using the host call stack  409ms
+ ✓ packages/safe-js/src/snapshot/undefined-binding.test.ts (2 tests) 429ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-declarations.test.ts (19 tests) 496ms
+ ✓ packages/safe-js/src/snapshot/eval-catch-conflicts.test.ts (3 tests) 433ms
+ ✓ packages/safe-js/src/snapshot/async-function-validation.test.ts (5 tests) 285ms
+ ✓ packages/safe-js/src/snapshot/reference-error-delivery.test.ts (10 tests) 507ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-pattern-sources.test.ts (19 tests) 489ms
+ ✓ packages/safe-js/src/snapshot/regex-cursor-data.test.ts (53 tests) 358ms
+ ✓ packages/safe-js/src/snapshot/duplicate-block-functions.test.ts (3 tests) 384ms
+ ✓ packages/safe-js/src/snapshot/finalization-registry.test.ts (7 tests) 461ms
+ ✓ packages/safe-js/src/snapshot/array-unscopables.test.ts (3 tests) 365ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-pattern-defaults.test.ts (18 tests) 473ms
+ ✓ packages/safe-js/src/snapshot/iterator-zip.test.ts (9 tests) 376ms
+ ✓ packages/safe-js/src/snapshot/async-function-to-string-tag.test.ts (3 tests) 387ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-update.test.ts (2 tests) 273ms
+ ✓ packages/safe-js/test/adversarial/snapshot-mutation.test.ts (1 test) 360ms
+     ✓ rejects malformed mutations with typed errors and preserves valid roundtrips  359ms
+ ✓ packages/safe-js/src/snapshot/deleted-to-string-tag.test.ts (3 tests) 326ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-assignments.test.ts (34 tests) 357ms
+ ✓ packages/safe-js/src/snapshot/promise-to-string-tag.test.ts (3 tests) 341ms
+ ✓ packages/safe-js/src/snapshot/array-unscopables-descriptors.test.ts (3 tests) 348ms
+ ✓ packages/safe-js/src/snapshot/for-in-sequence.test.ts (2 tests) 222ms
+ ✓ packages/safe-js/src/snapshot/temporal-instant-replay.test.ts (26 tests) 236ms
+ ✓ packages/safe-js/src/snapshot/legacy-for-in-initializers.test.ts (2 tests) 229ms
+ ✓ packages/safe-js/src/snapshot/array-shape.test.ts (19 tests) 233ms
+ ✓ packages/safe-js/src/snapshot/iterator-concat.test.ts (7 tests) 243ms
+ ✓ packages/safe-js/src/snapshot/array-buffer.test.ts (22 tests) 197ms
+ ✓ packages/safe-js/src/snapshot/eval-parameter-environment.test.ts (2 tests) 216ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-block-function.test.ts (2 tests) 229ms
+ ✓ packages/safe-js/src/snapshot/function-restricted-accessors.test.ts (2 tests) 211ms
+ ✓ packages/safe-js/src/snapshot/labeled-functions.test.ts (2 tests) 214ms
+ ✓ packages/safe-js/src/snapshot/bigint.test.ts (21 tests) 213ms
+ ✓ packages/safe-js/src/snapshot/weak-collection-key-kinds.test.ts (2 tests) 221ms
+ ✓ packages/safe-js/src/snapshot/catch-reference-errors.test.ts (2 tests) 217ms
+ ✓ packages/safe-js/src/snapshot/global-bindings.test.ts (1 test) 191ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-members.test.ts (22 tests) 200ms
+ ✓ packages/safe-js/src/snapshot/guest-lowlevel.test.ts (7 tests) 222ms
+ ✓ packages/safe-js/src/snapshot/weak-reference.test.ts (20 tests) 167ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-tagged-templates.test.ts (16 tests) 214ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-logical-references.test.ts (18 tests) 161ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-templates.test.ts (14 tests) 149ms
+ ✓ packages/safe-js/src/snapshot/arguments-restricted-descriptor.test.ts (1 test) 144ms
+ ✓ packages/safe-js/src/snapshot/intl-bound-call-context.test.ts (3 tests) 140ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-objects.test.ts (16 tests) 149ms
+ ✓ packages/safe-js/src/snapshot/weak-ephemeron-qualification.test.ts (5 tests) 131ms
+ ✓ packages/safe-js/src/snapshot/guest-ast-validation.test.ts (8 tests) 131ms
+ ✓ packages/safe-js/src/snapshot/temporal-duration.test.ts (20 tests) 136ms
+ ✓ packages/safe-js/src/snapshot/temporal-duration-replay.test.ts (24 tests) 90ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-identifier-assignments.test.ts (14 tests) 84ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-validation.test.ts (3 tests) 107ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-restore.test.ts (23 tests) 125ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts (2 tests) 118ms
+ ✓ packages/safe-js/src/snapshot/bound-constructor-new-target.test.ts (2 tests) 126ms
+ ✓ packages/safe-js/src/snapshot/restore-function-kind.test.ts (20 tests) 77ms
+ ✓ packages/safe-js/src/snapshot/reference-error-stack.test.ts (1 test) 104ms
+ ✓ packages/safe-js/src/snapshot/shared-array-buffer.test.ts (25 tests) 102ms
+ ✓ packages/safe-js/src/snapshot/serialize.test.ts (15 tests) 80ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-head-scope.test.ts (5 tests) 89ms
+ ✓ packages/safe-js/src/snapshot/guest-dump.test.ts (1 test) 73ms
+ ✓ packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts (32 tests) 76ms
+ ✓ packages/safe-js/src/snapshot/async-function-live-capture.test.ts (1 test) 64ms
+ ✓ packages/safe-js/src/snapshot/backing-storage-cycles.test.ts (3 tests) 68ms
+ ✓ packages/safe-js/src/restore.test.ts (36 tests) 55ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts (2 tests) 61ms
+ ✓ packages/safe-js/src/snapshot/weak-collection.test.ts (13 tests) 58ms
+ ✓ packages/safe-js/src/snapshot/date-properties.test.ts (9 tests) 51ms
+ ✓ packages/safe-js/src/snapshot/template-identity.test.ts (14 tests) 46ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-race.test.ts (1 test) 38ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-depth.test.ts (3 tests) 39ms
+ ✓ packages/safe-js/src/snapshot/guest-heap.test.ts (4 tests) 29ms
+ ✓ packages/safe-js/src/snapshot/collection-iterators.test.ts (50 tests) 39ms
+ ✓ packages/safe-js/src/snapshot/assignment-reference-validation.test.ts (6 tests) 32ms
+ ✓ packages/safe-js/src/snapshot/obj-002-num-integration.test.ts (8 tests) 33ms
+ ✓ packages/safe-js/src/snapshot/obj-002-validation.test.ts (17 tests) 28ms
+ ✓ packages/safe-js/src/snapshot/symbol.test.ts (22 tests) 27ms
+ ✓ packages/safe-js/src/snapshot/regexp-properties.test.ts (19 tests) 25ms
+ ✓ packages/safe-js/src/snapshot/collection-properties.test.ts (30 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-year-month.test.ts (15 tests) 22ms
+ ✓ packages/safe-js/src/snapshot/with-environment.test.ts (7 tests) 24ms
+ ✓ packages/safe-js/src/snapshot/temporal-instant.test.ts (18 tests) 22ms
+ ✓ packages/safe-js/src/snapshot/mapped-arguments.test.ts (12 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/null-object-prototype.test.ts (12 tests) 18ms
+ ✓ packages/safe-js/src/snapshot/error-data.test.ts (15 tests) 19ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-date.test.ts (13 tests) 19ms
+ ✓ packages/safe-js/src/snapshot/regexp-iterators.test.ts (7 tests) 20ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-date-time.test.ts (11 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-month-day.test.ts (13 tests) 20ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-time.test.ts (22 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/regexp-iterator-modes.test.ts (12 tests) 19ms
+ ✓ packages/safe-js/src/snapshot/guest-arrays.test.ts (11 tests) 19ms
+ ✓ packages/safe-js/src/snapshot/temporal-zoned-date-time.test.ts (11 tests) 17ms
+ ✓ packages/safe-js/src/snapshot/datetimeformat-requested-options.test.ts (10 tests) 16ms
+ ✓ packages/safe-js/src/snapshot/temporal-calendar-replay.test.ts (36 tests) 14ms
+ ✓ packages/safe-js/src/snapshot/scheduler.test.ts (14 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-data.test.ts (20 tests) 12ms
+ ✓ packages/safe-js/src/snapshot/replay-data.test.ts (19 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/replay-inputs.test.ts (13 tests) 12ms
+ ✓ packages/safe-js/src/snapshot/symbol-replay.test.ts (16 tests) 10ms
+ ✓ packages/safe-js/src/snapshot/backend.test.ts (11 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/trusted-promise-replay.test.ts (5 tests) 8ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-time-replay.test.ts (26 tests) 9ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-properties.test.ts (7 tests) 10ms
+ ✓ packages/safe-js/src/snapshot/temporal-zoned-date-time-replay.test.ts (13 tests) 9ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-schedule.test.ts (10 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/input-symbol-references.test.ts (9 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/replay-graph-extension.test.ts (5 tests) 7ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-property-validation.test.ts (4 tests) 7ms
+ ✓ packages/safe-js/src/snapshot/pending-imported-promise-validation.test.ts (5 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/data-descriptor-validation.test.ts (11 tests) 3ms
+ ✓ packages/safe-js/src/snapshot/dump-readiness.test.ts (2 tests) 5ms
+ ✓ packages/safe-js/src/snapshot/policy.test.ts (24 tests) 4ms
+ ✓ packages/safe-js/src/snapshot/scope-frames.test.ts (6 tests) 5ms
+ ✓ packages/safe-js/src/snapshot/property-descriptors.test.ts (9 tests) 4ms
+
+ Test Files  177 passed (177)
+      Tests  2445 passed (2445)
+   Start at  08:04:22
+   Duration  86.21s (transform 4.89s, setup 1.32s, import 61.30s, tests 99.22s, environment 8ms)
+

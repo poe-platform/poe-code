@@ -28,6 +28,7 @@ import type {
   StepMode
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
+import { getAbortUsage } from "./abort-usage.js";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
@@ -79,7 +80,7 @@ function completesTaskOnSuccess(task: PipelineTask, stepName?: string): boolean 
   );
 }
 
-function isAbortError(error: unknown): boolean {
+function isAbortError(error: unknown): error is Error {
   return error instanceof Error && error.name === "AbortError";
 }
 
@@ -153,12 +154,23 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const canonicalPlanPath = fs.realpath ? await fs.realpath(absolutePlanPath) : path.resolve(absolutePlanPath);
-  return serializePlan({
-    planPath: canonicalPlanPath,
-    kind: "run",
-    signal: options.signal,
-    operation: () => runResolvedPipeline({ ...options, fs, plan: planPath, runAgent }, metrics)
-  });
+  const waitStartedAt = Date.now();
+  let executionStarted = false;
+  try {
+    return await serializePlan({
+      planPath: canonicalPlanPath,
+      kind: "run",
+      signal: options.signal,
+      onWait: options.onLockWait,
+      operation: () => {
+        executionStarted = true;
+        return runResolvedPipeline({ ...options, fs, plan: planPath, runAgent }, metrics);
+      }
+    });
+  } catch (error) {
+    if (executionStarted || !isAbortError(error)) throw error;
+    return { stopReason: "cancelled", planPath, runsCompleted: 0, totalDurationMs: Math.max(0, Date.now() - waitStartedAt), metrics };
+  }
 }
 
 async function runResolvedPipeline(
@@ -254,21 +266,43 @@ async function runResolvedPipeline(
       });
     } catch (error) {
       if (isAbortError(error)) {
+        const usage = getAbortUsage(error);
+        if (usage) {
+          metrics.totalInputTokens += usage.inputTokens;
+          metrics.totalOutputTokens += usage.outputTokens;
+          metrics.totalCachedTokens += usage.cachedTokens ?? 0;
+        }
+        options.onTaskComplete?.({
+          ...phaseProgress,
+          durationMs: Date.now() - startTime,
+          success: false,
+          taskCompleted: false,
+          cancelled: true,
+          ...(usage ? { usage } : {})
+        });
         return { success: false, cancelled: true };
       }
       throw error;
     }
-    if (options.signal?.aborted) {
-      return { success: false, cancelled: true };
-    }
     const durationMs = Date.now() - startTime;
-    const success = result.exitCode === 0;
     if (result.usage) {
       metrics.totalInputTokens += result.usage.inputTokens;
       metrics.totalOutputTokens += result.usage.outputTokens;
       metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
     }
-    metrics.stepsCompleted += 1;
+    if (options.signal?.aborted) {
+      options.onTaskComplete?.({
+        ...phaseProgress,
+        durationMs,
+        success: false,
+        taskCompleted: false,
+        cancelled: true,
+        ...(result.usage ? { usage: result.usage } : {})
+      });
+      return { success: false, cancelled: true };
+    }
+    const success = result.exitCode === 0;
+    if (success) metrics.stepsCompleted += 1;
     options.onTaskComplete?.({
       ...phaseProgress,
       durationMs,
@@ -329,6 +363,7 @@ async function runResolvedPipeline(
         stopReason: cancelled ? "cancelled" : "failed",
         planPath,
         runsCompleted: 0,
+        lastTaskId: "setup",
         totalDurationMs: Date.now() - pipelineStartTime,
         metrics
       };
@@ -394,6 +429,7 @@ async function runResolvedPipeline(
                 stopReason: cancelled ? "cancelled" : "failed",
                 planPath,
                 runsCompleted,
+                lastTaskId: "teardown",
                 totalDurationMs: Date.now() - pipelineStartTime,
                 metrics
               };
@@ -509,11 +545,19 @@ async function runResolvedPipeline(
         });
       } catch (error) {
         if (isAbortError(error)) {
+          const usage = getAbortUsage(error);
+          if (usage) {
+            metrics.totalInputTokens += usage.inputTokens;
+            metrics.totalOutputTokens += usage.outputTokens;
+            metrics.totalCachedTokens += usage.cachedTokens ?? 0;
+          }
           options.onTaskComplete?.({
             ...taskProgress,
             durationMs: Date.now() - taskStartTime,
             success: false,
-            taskCompleted: false
+            taskCompleted: false,
+            cancelled: true,
+            ...(usage ? { usage } : {})
           });
           return {
             stopReason: "cancelled",
@@ -528,12 +572,18 @@ async function runResolvedPipeline(
         throw error;
       }
 
+      if (result.usage) {
+        metrics.totalInputTokens += result.usage.inputTokens;
+        metrics.totalOutputTokens += result.usage.outputTokens;
+        metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
+      }
       if (options.signal?.aborted) {
         options.onTaskComplete?.({
           ...taskProgress,
           durationMs: Date.now() - taskStartTime,
           success: false,
           taskCompleted: false,
+          cancelled: true,
           ...(result.usage ? { usage: result.usage } : {})
         });
         return {
@@ -549,12 +599,7 @@ async function runResolvedPipeline(
 
       const taskDurationMs = Date.now() - taskStartTime;
       const success = result.exitCode === 0;
-      if (result.usage) {
-        metrics.totalInputTokens += result.usage.inputTokens;
-        metrics.totalOutputTokens += result.usage.outputTokens;
-        metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
-      }
-      metrics.stepsCompleted += 1;
+      if (success) metrics.stepsCompleted += 1;
       const taskCompleted = success && completesTaskOnSuccess(selection.task, selection.stepName);
       if (success) {
         if (taskCompleted) {

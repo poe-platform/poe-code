@@ -1,0 +1,4 @@
+{"withEffect":false,"outOfBand":false,"original":7,"pendingReplay":{"ok":true,"value":7},"completedReplay":{"ok":true,"value":7},"saves":1,"effects":[],"replayError":null}
+{"withEffect":false,"outOfBand":true,"original":7,"pendingReplay":{"ok":true,"value":0},"completedReplay":{"ok":true,"value":0},"saves":1,"effects":[],"replayError":null}
+{"withEffect":true,"outOfBand":false,"original":7,"pendingReplay":{"ok":true,"value":7},"completedReplay":{"ok":true,"value":7},"saves":1,"effects":[7,7],"replayError":null}
+{"withEffect":true,"outOfBand":true,"original":7,"pendingReplay":{"ok":true,"value":0},"completedReplay":{"error":"HostCallResumabilityError","message":"Host call b37063fe-20a3-49c5-bc89-132d8bb4d552:3 does not match the next restored invocation; reset is required."},"saves":1,"effects":[7,0],"replayError":null}

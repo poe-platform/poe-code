@@ -61,6 +61,7 @@ vi.mock("../../sdk/spawn.js", () => ({
 vi.mock("../../providers/index.js", () => ({ getDefaultProviders: () => [] }));
 
 const { registerHarnessCommand } = await import("./harness.js");
+await import("./harness-runtime.js");
 
 type HarnessRunOptions = Parameters<typeof import("@poe-code/agent-harness").runHarnessPair>[1];
 

@@ -87,7 +87,12 @@ export * as acp from "./acp/index.js";
 
 // Dashboard
 export * as dashboard from "./dashboard/index.js";
-export { createDashboard, shouldUseInteractiveDashboard } from "./dashboard/index.js";
+export {
+  createDashboard,
+  createDashboardLineBuffer,
+  createStreamingDashboardLineBuffer,
+  shouldUseInteractiveDashboard
+} from "./dashboard/index.js";
 export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 
 // Explorer
@@ -194,3 +199,11 @@ export { Screen } from "./screen/screen.js";
 export type { Cell as ScreenCell, ScreenSize, ScreenSurface } from "./screen/screen.js";
 export { packStyle, styleToSgrDelta } from "./screen/style.js";
 export type { PackedStyle } from "./screen/style.js";
+
+// Bounded render diagnostics
+export { createRenderPerformanceMonitor, formatRenderPerformance } from "./render-performance.js";
+export type { RenderPerformanceSnapshot, RenderPercentiles } from "./render-performance.js";
+
+export { createViewport, selectViewportTail } from "./viewport.js";
+export { createNotices, createCommandRegistry, createOverlayManager, createEventGroups, createTaskTree, renderTaskRows, renderEventGroupRows, renderProgressGroup, createMetric, renderNotice } from "./primitives.js";
+export type { DesignCommand, GroupEvent, EventGroupRow, TaskNode, ProgressItem, InlineNotice } from "./primitives.js";

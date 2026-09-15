@@ -18,13 +18,26 @@ export function createOwnedFinalizationRegistryState(callback: SandboxClosure, b
     const keep = retainValues(budget, () => [callback,heldValue]);
     try { await invokeBuiltinClosure(callback,[heldValue],budget,context,undefined); }
     finally { keep(); }
-  }, (job,heldValue) => {
+  }, (job,cell) => {
     if (owner.signal.aborted || activation?.phase === "cancelled") return;
+    // Queues and pending restore activations can outlive cancellation. Keep
+    // their guest work in a clearable slot, not directly in queued closures.
+    const pending: { job?: () => Promise<void>; callback?: SandboxClosure } = { job, callback };
+    let keep: (() => void) | undefined;
+    cell.release = () => {
+      pending.job = undefined;
+      pending.callback = undefined;
+      keep?.();
+      keep = undefined;
+    };
     const dispatch = () => {
-      if (owner.signal.aborted) return;
-      const keep = retainValues(budget, () => [callback,heldValue]);
-      void schedule(async () => { if (!owner.signal.aborted) await job(); })
-        .catch(error => reportError(isCapturedException(error) ? error.reason : error)).finally(keep);
+      if (owner.signal.aborted || activation?.phase === "cancelled" || pending.job === undefined) return;
+      keep = retainValues(budget, () => [pending.callback,cell.heldValue]);
+      void schedule(async () => { if (!owner.signal.aborted) await pending.job?.(); })
+        .catch(error => reportError(isCapturedException(error) ? error.reason : error)).finally(() => {
+          cell.release?.();
+          cell.release = undefined;
+        });
     };
     if (activation?.phase === "pending") activation.pending.push(dispatch);
     else dispatch();

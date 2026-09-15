@@ -89,6 +89,7 @@ function createActivityTimeoutError(): Error {
 
 describe("SDK pipeline", () => {
   beforeEach(() => {
+    vi.spyOn(Date, "now").mockReturnValue(1_000);
     workspaceRunPipelineMock.mockReset();
     sdkSpawnAutonomousMock.mockReset();
     runWithOptionalWorktreeMock.mockReset();
@@ -113,6 +114,7 @@ describe("SDK pipeline", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("runs directly when the target file already has tasks", async () => {
@@ -261,6 +263,87 @@ describe("SDK pipeline", () => {
     expect(runAgent).toHaveBeenCalledTimes(1);
     expect(runAgent.mock.calls[0]?.[0]).not.toHaveProperty("mode");
     expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { inputTokens: 120, outputTokens: 45, cachedTokens: 10 },
+    { inputTokens: 120, outputTokens: 45 },
+    undefined
+  ])("includes automatic initialization time and usage %j in the result and plan summary", async (usage) => {
+    seedFs({ "/repo/feature.md": "---\ntasks: []\n---\n# Feature\n" });
+    let now = 1_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const onPlanResolved = vi.fn();
+    const summary = { planPath: "feature.md", done: 0, failed: 0, open: 1, total: 1 };
+    const engineResult = {
+      ...workspaceResult,
+      metrics: {
+        ...workspaceResult.metrics,
+        totalInputTokens: 7,
+        totalOutputTokens: 3,
+        totalCachedTokens: 2
+      }
+    };
+    const runAgent = vi.fn(async () => {
+      now += 2_000;
+      await fs.promises.writeFile("/repo/feature.md", initializedPlan());
+      return { stdout: "initialized", stderr: "", exitCode: 0, usage };
+    });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options: PipelineRunOptions) => {
+      options.onPlanResolved?.(summary);
+      return engineResult;
+    });
+    try {
+      const result = await runPipeline({
+        agent: "codex", cwd, homeDir, plan: "feature.md", runAgent, onPlanResolved
+      });
+      expect(result.totalDurationMs).toBe(2_100);
+      expect(result.metrics).toEqual({
+        ...workspaceResult.metrics,
+        totalInputTokens: 7 + (usage?.inputTokens ?? 0),
+        totalOutputTokens: 3 + (usage?.outputTokens ?? 0),
+        totalCachedTokens: 2 + (usage?.cachedTokens ?? 0)
+      });
+      expect(onPlanResolved).toHaveBeenCalledExactlyOnceWith({
+        ...summary, ...(usage ? { initializationUsage: usage } : {})
+      });
+      expect(engineResult.totalDurationMs).toBe(100);
+      expect(engineResult.metrics).toEqual({
+        ...workspaceResult.metrics,
+        totalInputTokens: 7,
+        totalOutputTokens: 3,
+        totalCachedTokens: 2
+      });
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it.each(["returned", "thrown", "unknown"] as const)("reports interrupted initialization with %s usage", async (mode) => {
+    seedFs({ "/repo/feature.md": "---\ntasks: []\n---\n# Feature\n" });
+    let now = 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const controller = new AbortController();
+    const usage = { inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+    const runAgent = vi.fn(async () => {
+      now += 2_500;
+      controller.abort();
+      if (mode !== "returned") throw Object.assign(new Error("cancelled"), { name: "AbortError", ...(mode === "thrown" ? { usage } : {}) });
+      return { stdout: "", stderr: "", exitCode: 0, usage };
+    });
+    const result = await runPipeline({ agent: "codex", cwd, homeDir, plan: "feature.md", signal: controller.signal, runAgent });
+    expect(result.stopReason).toBe("cancelled");
+    expect(result.totalDurationMs).toBe(2_500);
+    expect(result.runsCompleted).toBe(0);
+    expect(result.metrics).toMatchObject({
+      tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0,
+      totalInputTokens: mode === "unknown" ? 0 : 120,
+      totalOutputTokens: mode === "unknown" ? 0 : 45,
+      totalCachedTokens: mode === "unknown" ? 0 : 10
+    });
+    expect(runAgent).toHaveBeenCalledTimes(1);
+    expect(workspaceRunPipelineMock).not.toHaveBeenCalled();
+    expect(await fs.promises.readFile("/repo/feature.md", "utf8")).toContain("tasks: []");
   });
 
   it("does not run automatic initialization when already aborted", async () => {
@@ -487,6 +570,7 @@ describe("SDK pipeline", () => {
     expect(sdkSpawnAutonomousMock).toHaveBeenCalledWith(
       "codex",
       expect.objectContaining({
+        captureSession: false,
         prompt: "Ship it.",
         cwd,
         mode: "yolo",

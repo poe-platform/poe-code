@@ -2,7 +2,7 @@ import { ScreenBuffer, cellToAnsi } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import { renderOutputPane } from "./components/output-pane.js";
-import { renderStatsPane } from "./components/stats-pane.js";
+import { renderCompactStatsPane, renderStatsPane } from "./components/stats-pane.js";
 import { computeDashboardLayout } from "./layout.js";
 import type { DashboardStats, OutputItem } from "./types.js";
 
@@ -42,6 +42,7 @@ export function renderDashboardSnapshot(opts: SnapshotOptions = {}): string {
   });
   renderOutputPane(buffer, layout.leftPane, items);
   renderStatsPane(buffer, layout.rightPane, stats);
+  if (layout.summary) renderCompactStatsPane(buffer, layout.summary, stats);
   renderFooter(buffer, layout.footer, defaultHints());
 
   return bufferToAnsi(buffer);

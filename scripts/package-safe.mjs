@@ -172,7 +172,21 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             for (const profile of ["node", "browser"]) pending.push(path.join(rootDir, "packages/safe-fs/dist/platform", profile + (declaration ? ".d.ts" : ".js")));
             return specifier;
           }
-          const publicName = publicSpecifier(specifier);
+          let publicName = publicSpecifier(specifier);
+          if (declaration) {
+            const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));
+            if (workspace) {
+              const route = "." + publicName.slice(workspace.pkg.name.length);
+              const exported = workspace.pkg.exports?.[route];
+              const types = exported?.types ?? (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined);
+              if (typeof types !== "string") throw new Error(`Missing private workspace declaration entrypoint: ${specifier}`);
+              const target = path.resolve(rootDir, "packages", workspace.dir, types);
+              artifactPath(rootDir, target);
+              if (!target.endsWith(".d.ts") && !target.endsWith(".d.mts")) throw new Error(`Not a private workspace declaration: ${specifier}`);
+              publicName = path.relative(path.dirname(filename), target).split(path.sep).join("/");
+              if (!publicName.startsWith(".")) publicName = "./" + publicName;
+            }
+          }
           if (!publicName.startsWith(".")) {
             if (publicName.startsWith("#")) throw new Error(`Unresolved package import: ${publicName}`);
             addDependency(publicName);

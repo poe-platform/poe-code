@@ -94,6 +94,8 @@ Options:
   -i, --interactive            Launch the agent in interactive TUI mode
   --mode <mode>                Permission mode: yolo | auto | edit | read
                                (prompted; --yes uses auto)
+  --no-capture-session         Omit the captured conversation from the spawn
+                               result
   -h, --help                   Display help for command
 
 Advanced:

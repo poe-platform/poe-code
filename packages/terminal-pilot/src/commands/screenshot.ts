@@ -29,6 +29,7 @@ export const screenshot = defineCommand<
   name: "screenshot",
   description: "Capture the current terminal screen as a PNG image",
   scope: ["cli"],
+  positional: ["output"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
     const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(

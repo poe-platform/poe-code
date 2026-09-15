@@ -1,0 +1,108 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts (6 tests | 1 failed) 23ms
+   ✓ returns compile charges and imported registrations when scheduling throws after fulfilled capture 5ms
+   ✓ returns compile charges and imported registrations when scheduling throws after rejected capture 1ms
+   ✓ restores the exact existing Promise property table after a later error (present=false) 1ms
+   ✓ restores the exact existing Promise property table after a later error (present=true) 1ms
+   ✓ preserves generated cyclic graph identities and leaves the source untouched 10ms
+   × does not activate an earlier pending provider after a later scheduling failure 4ms
+FAIL packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > does not activate an earlier pending provider after a later scheduling failure
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      "call",
+      1,
+    ]
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:91:29
+     89|   // Drain the finite Promise reaction chain, without timers or real w…
+     90|   for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+     91|   expect.soft(provider).not.toHaveBeenCalled();
+       |                             ^
+     92|   expect.soft(settlements).toEqual([]);
+     93|   for (const promise of captured) expect(importedPromiseSnapshots.has(…
+
+AssertionError: expected [ 8, 7 ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   8,
++   7,
++ ]
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:92:28
+     90|   for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+     91|   expect.soft(provider).not.toHaveBeenCalled();
+     92|   expect.soft(settlements).toEqual([]);
+       |                            ^
+     93|   for (const promise of captured) expect(importedPromiseSnapshots.has(…
+     94| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > does not activate an earlier pending provider after a later scheduling failure
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      "call",
+      1,
+    ]
+
+
+Number of calls: 1
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:91:29
+     89|   // Drain the finite Promise reaction chain, without timers or real w…
+     90|   for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+     91|   expect.soft(provider).not.toHaveBeenCalled();
+       |                             ^
+     92|   expect.soft(settlements).toEqual([]);
+     93|   for (const promise of captured) expect(importedPromiseSnapshots.has(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > does not activate an earlier pending provider after a later scheduling failure
+AssertionError: expected [ 8, 7 ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   8,
++   7,
++ ]
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:92:28
+     90|   for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+     91|   expect.soft(provider).not.toHaveBeenCalled();
+     92|   expect.soft(settlements).toEqual([]);
+       |                            ^
+     93|   for (const promise of captured) expect(importedPromiseSnapshots.has(…
+     94| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  08:16:37
+   Duration  2.34s (transform 1.77s, setup 44ms, import 2.18s, tests 23ms, environment 0ms)
+

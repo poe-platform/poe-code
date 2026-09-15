@@ -1,0 +1,352 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/restore.test.ts (36 tests) 58ms
+ ✓ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts (34 tests) 234ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-iteration-continuations.test.ts (50 tests) 7123ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-nested-yields.test.ts (70 tests) 8268ms
+   ✓ resumes suspension inside yield arguments: 'let count=0;function input(){count++;…' (async=false, operation='return')  308ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-closures.test.ts (24 tests) 7439ms
+   ✓ restores the originating realm for '()=>[]'  436ms
+   ✓ restores the originating realm for 'Function("return this")'  327ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  313ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  325ms
+   ✓ restores the originating realm for '(()=>{const C=class { constructor(){r…'  324ms
+   ✓ restores the originating realm for '(()=>{class C { value=[] };return ()=…'  326ms
+   ✓ restores the originating realm for '(()=>{class C { #value={};get(){retur…'  326ms
+   ✓ restores the originating realm for '(()=>{class B{};class C extends B { v…'  308ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  343ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  315ms
+   ✓ restores the originating realm for '(()=>{function* f(){yield 0;while(tru…'  311ms
+   ✓ restores the originating realm for '(()=>{function* f(){while(true)yield …'  389ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  314ms
+   ✓ restores the originating realm for '(()=>{async function* f(){while(true)…'  301ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  328ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  311ms
+   ✓ restores the originating realm for '(()=>{const c=Promise.withResolvers()…'  316ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-catch-iterator.test.ts (28 tests) 6988ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a,b])…' async=false  340ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a,b])…' async=true  307ms
+   ✓ restores catch binding and body: 'let closed=0;function* input(){try{yi…' async=true  328ms
+   ✓ restores catch binding and body: 'try{throw [1,undefined]}catch([a,b=yi…' async=false  309ms
+   ✓ restores catch binding and body: 'try{throw new Set([1,2])}catch([a]){t…' async=false  356ms
+ ✓ packages/safe-js/src/migrate.test.ts (31 tests) 4655ms
+ ✓ packages/safe-js/src/snapshot/mixed-source-closures.test.ts (16 tests) 5104ms
+   ✓ preserves distinct function bodies and captured state from return ()=>1  450ms
+   ✓ preserves distinct function bodies and captured state from class C { value=1 };return ()=>new C().value  304ms
+   ✓ preserves distinct function bodies and captured state from function* f(){yield 0;yield 1};const g=f();g.next();return ()=>g.next().value  328ms
+   ✓ preserves distinct function bodies and captured state from class C { #value=1;read(){return this.#value} };return ()=>new C().read()  329ms
+   ✓ preserves distinct function bodies and captured state from const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 1})();return async()=>{c.resolve();return await p}  356ms
+   ✓ preserves distinct function bodies and captured state from async function* f(){yield 0;yield 1};const g=f();await g.next();return async()=>(await g.next()).value  315ms
+   ✓ preserves distinct function bodies and captured state from function* f(){try {yield 0}finally {yield 1}};const g=f();g.next();return ()=>g.next().value  318ms
+   ✓ preserves distinct function bodies and captured state from const read=Function('return 1');return ()=>read()  322ms
+   ✓ preserves distinct function bodies and captured state from class Base {constructor(){this.value=1}}class Derived extends Base {constructor(){super()}}return ()=>new Derived().value  325ms
+   ✓ reuses each restored template site with other source first  491ms
+   ✓ reuses each restored template site with other source second  420ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-array-patterns.test.ts (29 tests) 3147ms
+ ✓ packages/safe-js/src/external-checkpoint-validation.test.ts (14 tests) 3604ms
+     ✓ captures externally and by signal while 'reduction' remains pending  397ms
+     ✓ captures externally and by signal while 'callback' remains pending  648ms
+     ✓ captures externally and by signal while 'retry-reissue' remains pending  532ms
+     ✓ captures externally and by signal while 'retry-external' remains pending  466ms
+     ✓ captures externally and by signal while 'co' remains pending  990ms
+ ✓ packages/safe-js/src/snapshot/async-function-continuations.test.ts (29 tests) 3069ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-object-patterns.test.ts (31 tests) 2384ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-delegation.test.ts (20 tests) 2322ms
+ ✓ packages/safe-js/src/snapshot/private-elements.test.ts (31 tests) 2545ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-calls.test.ts (18 tests) 2006ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-values.test.ts (15 tests) 1865ms
+ ✓ packages/safe-js/src/snapshot/internal-continuation-references.test.ts (21 tests) 2668ms
+ ✓ packages/safe-js/src/snapshot/proxy.test.ts (36 tests) 2227ms
+ ✓ packages/safe-js/src/snapshot/dynamic-import.test.ts (18 tests) 2233ms
+   ✓ restores dynamic module access in a closure (already loaded=false)  354ms
+   ✓ preserves host-export property cycles and reconnects only supplied capabilities  353ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-continuations.test.ts (16 tests) 1535ms
+ ✓ packages/safe-js/src/migration-file.test.ts (14 tests) 2187ms
+     ✓ inspects without writes, then exclusively publishes a portable continuation  331ms
+ ✓ packages/safe-js/src/snapshot/eval-source.test.ts (18 tests) 1764ms
+ ✓ packages/safe-js/src/snapshot/intrinsic-mutations.test.ts (17 tests) 1557ms
+ ✓ packages/safe-js/src/snapshot/constructor-environments.test.ts (14 tests) 1313ms
+ ✓ packages/safe-js/src/snapshot/eval-call.test.ts (10 tests) 1069ms
+ ✓ packages/safe-js/src/snapshot/symbol-registry.test.ts (13 tests) 1173ms
+ ✓ packages/safe-js/src/snapshot/thenable-continuations.test.ts (10 tests) 1166ms
+ ✓ packages/safe-js/src/snapshot/resource-declarations.test.ts (11 tests) 1322ms
+ ✓ packages/safe-js/src/snapshot/settled-promises.test.ts (11 tests) 1240ms
+ ✓ packages/safe-js/src/snapshot/promise-resolvers.test.ts (8 tests) 954ms
+ ✓ packages/safe-js/src/snapshot/dynamic-source.test.ts (18 tests) 1220ms
+ ✓ packages/safe-js/src/snapshot/completed-map-alias.test.ts (2 tests) 898ms
+     ✓ matches native before and after two completed restores: 'captured Map value alias'  402ms
+     ✓ matches native before and after two completed restores: 'collection cycles, sparse metadata an…'  495ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-aggregates.test.ts (7 tests) 901ms
+ ✓ packages/safe-js/src/snapshot/shadowed-array-methods.test.ts (23 tests) 757ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-executors.test.ts (8 tests) 824ms
+ ✓ packages/safe-js/src/snapshot/exception-function-hoisting.test.ts (6 tests) 670ms
+ ✓ packages/safe-js/src/snapshot/symbol-accessor-replay.test.ts (5 tests) 598ms
+ ✓ packages/safe-js/src/snapshot/eval-source-validation.test.ts (14 tests) 775ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-subclasses.test.ts (5 tests) 658ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-dump.test.ts (7 tests) 708ms
+ ✓ packages/safe-js/src/snapshot/class-constructor.test.ts (11 tests) 873ms
+ ✓ packages/safe-js/src/snapshot/eval-deleted-assignment.test.ts (5 tests) 642ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 694ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-switch.test.ts (35 tests) 689ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-in.test.ts (35 tests) 693ms
+ ✓ packages/safe-js/src/snapshot/buffer-prototype-replay.test.ts (9 tests) 835ms
+ ✓ packages/safe-js/src/snapshot/dynamic-function-self-binding.test.ts (9 tests) 820ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-continuations.test.ts (26 tests) 553ms
+ ✓ packages/safe-js/src/snapshot/async-generator-validation.test.ts (13 tests) 934ms
+ ✓ packages/safe-js/src/snapshot/array-buffer-detached.test.ts (14 tests) 768ms
+ ✓ packages/safe-js/src/snapshot/restore.test.ts (82 tests) 593ms
+     ✓ restores thousands of parent scopes without using the host call stack  477ms
+ ✓ packages/safe-js/src/snapshot/global-object.test.ts (4 tests) 645ms
+   ✓ preserves global object identity and identifier storage through repeated snapshots  339ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts (16 tests) 579ms
+ ✓ packages/safe-js/src/snapshot/typed-array-iterator-replay.test.ts (5 tests) 564ms
+ ✓ packages/safe-js/src/snapshot/dynamic-with.test.ts (6 tests) 745ms
+ ✓ packages/safe-js/src/snapshot/reference-error-delivery.test.ts (10 tests) 477ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-declarations.test.ts (19 tests) 575ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-do-while.test.ts (36 tests) 490ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-pattern-sources.test.ts (19 tests) 474ms
+ ✓ packages/safe-js/src/snapshot/guest-heap-validation.test.ts (11 tests) 593ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-pattern-defaults.test.ts (18 tests) 516ms
+ ✓ packages/safe-js/src/snapshot/promise-callable-references.test.ts (6 tests) 459ms
+ ✓ packages/safe-js/src/snapshot/finalization-registry.test.ts (7 tests) 532ms
+ ✓ packages/safe-js/src/snapshot/eval-super-environment.test.ts (5 tests) 721ms
+ ✓ packages/safe-js/src/snapshot/dynamic-block-functions.test.ts (6 tests) 813ms
+ ✓ packages/safe-js/src/snapshot/eval-catch-conflicts.test.ts (3 tests) 524ms
+ ✓ packages/safe-js/src/snapshot/undefined-binding.test.ts (2 tests) 549ms
+   ✓ preserves undefined lookup through repeated closure snapshots: return ()=>undefined  327ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-branches.test.ts (40 tests) 379ms
+ ✓ packages/safe-js/src/snapshot/pending-promise-species.test.ts (4 tests) 434ms
+ ✓ packages/safe-js/src/snapshot/sloppy-let.test.ts (5 tests) 653ms
+ ✓ packages/safe-js/src/snapshot/strict-destructuring-bindings.test.ts (4 tests) 507ms
+ ✓ packages/safe-js/src/snapshot/async-function-to-string-tag.test.ts (3 tests) 418ms
+ ✓ packages/safe-js/src/snapshot/duplicate-block-functions.test.ts (3 tests) 452ms
+ ✓ packages/safe-js/src/snapshot/iterator-zip.test.ts (9 tests) 324ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-bindings.test.ts (3 tests) 526ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-callbacks.test.ts (2 tests) 388ms
+ ✓ packages/safe-js/src/snapshot/array-unscopables.test.ts (3 tests) 446ms
+ ✓ packages/safe-js/src/snapshot/eval-class-arguments.test.ts (4 tests) 727ms
+ ✓ packages/safe-js/src/snapshot/async-disposable-stack.test.ts (5 tests) 476ms
+ ✓ packages/safe-js/src/snapshot/regex-cursor-data.test.ts (53 tests) 456ms
+ ❯ packages/safe-js/test/adversarial/snapshot-mutation.test.ts (1 test | 1 failed) 1353ms
+     × rejects malformed mutations with typed errors and preserves valid roundtrips 1352ms
+FAIL packages/safe-js/test/adversarial/snapshot-mutation.test.ts > snapshot mutation corpus > rejects malformed mutations with typed errors and preserves valid roundtrips
+AssertionError: promise rejected "Error: Adversarial snapshot case failed.
+…" instead of resolving
+ ❯ packages/safe-js/test/adversarial/snapshot-mutation.test.ts:7:45
+      5| describe("snapshot mutation corpus", () => {
+      6|   it("rejects malformed mutations with typed errors and preserves vali…
+      7|     await expect(runSnapshotMutationCorpus()).resolves.toBeUndefined();
+       |                                             ^
+      8|   }, 2_000);
+      9| });
+
+Caused by: Error: Adversarial snapshot case failed.
+seed=0x5a902026
+minimized snapshot:
+{ "version": 2, "sourceHash": "eb804bd1", "executionSemantics": "jobs-v9", "bindings": { "eval": { "kind": "ref", "id": 1 }, "JSON": { "kind": "ref", "id": 2 }, "console": { "kind": "ref", "id": 7 }, "Map": { "kind": "ref", "id": 10 }, "Set": { "kind": "ref", "id": 63 }, "WeakMap": { "kind": "ref", "id": 81 }, "WeakSet": { "kind": "ref", "id": 89 }, "Float32Array": { "kind": "ref", "id": 94 }, "Uint8Array": { "kind": "ref", "id": 137 }, "Int8Array": { "kind": "ref", "id": 145 }, "Uint8ClampedArr…
+cause: Error: case cap exceeded time cap: 1172.9ms > 750ms
+ ❯ adversarialFailure packages/safe-js/test/adversarial/report.ts:11:10
+ ❯ runSnapshotMutationCorpus packages/safe-js/test/adversarial/snapshot-mutation.ts:63:11
+ ❯ packages/safe-js/test/adversarial/snapshot-mutation.test.ts:7:5
+
+ ✓ packages/safe-js/src/snapshot/guest-generator-assignments.test.ts (34 tests) 340ms
+ ✓ packages/safe-js/src/snapshot/array-unscopables-descriptors.test.ts (3 tests) 406ms
+ ✓ packages/safe-js/src/snapshot/promise-to-string-tag.test.ts (3 tests) 375ms
+ ✓ packages/safe-js/src/snapshot/deleted-to-string-tag.test.ts (3 tests) 412ms
+ ✓ packages/safe-js/src/snapshot/async-function-validation.test.ts (5 tests) 402ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-update.test.ts (2 tests) 339ms
+ ✓ packages/safe-js/src/snapshot/iterator-concat.test.ts (7 tests) 283ms
+ ✓ packages/safe-js/src/snapshot/temporal-instant-replay.test.ts (26 tests) 311ms
+ ❯ packages/safe-js/src/snapshot/array-shape.test.ts (19 tests | 1 failed) 300ms
+     ✓ preserves empty holes, length, undefined and null 10ms
+     ✓ preserves sparse holes, length, undefined and null 1ms
+     ✓ preserves dense holes, length, undefined and null 2ms
+     ✓ preserves sparse indexed aliases and cycles 1ms
+     ✓ preserves separately observed named metadata and raw aliases 1ms
+     ✓ discovers aliases and cycles reachable only through named entries 2ms
+     ✓ retains dense heap arrays and explicit undefined 1ms
+     ✓ preserves empty holes, length, undefined and null 2ms
+     ✓ preserves sparse holes, length, undefined and null 1ms
+     × preserves dense holes, length, undefined and null 1ms
+     ✓ preserves sparse indexed aliases and cycles 1ms
+     ✓ preserves separately observed named metadata and raw aliases 1ms
+     ✓ discovers aliases and cycles reachable only through named entries 1ms
+     ✓ retains dense heap arrays and explicit undefined 1ms
+     ✓ matches native structuredClone for Array(2) 42ms
+     ✓ matches native structuredClone for [, undefined, null, ,] 22ms
+     ✓ matches native structuredClone for [1, 2] 22ms
+     ✓ clones sparse cycles and aliases without densifying 31ms
+     ✓ serializes sparse automatic checkpoints and resumes with preserved shape 156ms
+FAIL packages/safe-js/src/snapshot/array-shape.test.ts > dump array checkpoint shape > preserves dense holes, length, undefined and null
+SnapshotValidationError: Invalid snapshot at $.heap: contains an unsupported value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalidType', path: '$.heap' }
+ ✓ packages/safe-js/src/snapshot/legacy-for-in-initializers.test.ts (2 tests) 325ms
+ ✓ packages/safe-js/src/snapshot/eval-delete-block-function.test.ts (2 tests) 321ms
+ ✓ packages/safe-js/src/snapshot/for-in-sequence.test.ts (2 tests) 298ms
+ ✓ packages/safe-js/src/snapshot/guest-lowlevel.test.ts (7 tests) 237ms
+ ✓ packages/safe-js/src/snapshot/weak-collection-key-kinds.test.ts (2 tests) 281ms
+ ✓ packages/safe-js/src/snapshot/catch-reference-errors.test.ts (2 tests) 275ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-tagged-templates.test.ts (16 tests) 273ms
+ ✓ packages/safe-js/src/snapshot/eval-parameter-environment.test.ts (2 tests) 342ms
+ ✓ packages/safe-js/src/snapshot/labeled-functions.test.ts (2 tests) 296ms
+ ✓ packages/safe-js/src/snapshot/bigint.test.ts (21 tests) 303ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-members.test.ts (22 tests) 262ms
+ ✓ packages/safe-js/src/snapshot/function-restricted-accessors.test.ts (2 tests) 352ms
+ ✓ packages/safe-js/src/snapshot/array-buffer.test.ts (22 tests) 228ms
+ ✓ packages/safe-js/src/snapshot/global-bindings.test.ts (1 test) 251ms
+ ✓ packages/safe-js/src/snapshot/weak-reference.test.ts (20 tests) 213ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-logical-references.test.ts (18 tests) 203ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-objects.test.ts (16 tests) 178ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-templates.test.ts (14 tests) 175ms
+ ✓ packages/safe-js/src/snapshot/arguments-restricted-descriptor.test.ts (1 test) 200ms
+ ✓ packages/safe-js/src/snapshot/intl-bound-call-context.test.ts (3 tests) 159ms
+ ✓ packages/safe-js/src/snapshot/guest-ast-validation.test.ts (8 tests) 167ms
+ ✓ packages/safe-js/src/snapshot/temporal-duration.test.ts (20 tests) 176ms
+ ✓ packages/safe-js/src/snapshot/bound-constructor-new-target.test.ts (2 tests) 139ms
+ ✓ packages/safe-js/src/snapshot/weak-ephemeron-qualification.test.ts (5 tests) 162ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts (2 tests) 116ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-restore.test.ts (23 tests) 130ms
+ ✓ packages/safe-js/src/snapshot/reference-error-stack.test.ts (1 test) 96ms
+ ✓ packages/safe-js/src/snapshot/promise-aggregate-validation.test.ts (3 tests) 123ms
+ ✓ packages/safe-js/src/snapshot/shared-array-buffer.test.ts (25 tests) 99ms
+ ✓ packages/safe-js/src/snapshot/temporal-duration-replay.test.ts (24 tests) 91ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-for-head-scope.test.ts (5 tests) 88ms
+ ✓ packages/safe-js/src/snapshot/guest-generator-identifier-assignments.test.ts (14 tests) 99ms
+ ✓ packages/safe-js/src/snapshot/serialize.test.ts (15 tests) 85ms
+ ✓ packages/safe-js/src/snapshot/restore-function-kind.test.ts (20 tests) 82ms
+ ✓ packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts (32 tests) 96ms
+ ✓ packages/safe-js/src/snapshot/guest-dump.test.ts (1 test) 87ms
+ ✓ packages/safe-js/src/snapshot/backing-storage-cycles.test.ts (3 tests) 76ms
+ ✓ packages/safe-js/src/snapshot/async-function-live-capture.test.ts (1 test) 72ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts (2 tests) 63ms
+ ✓ packages/safe-js/src/snapshot/weak-collection.test.ts (13 tests) 68ms
+ ✓ packages/safe-js/src/snapshot/date-properties.test.ts (9 tests) 61ms
+ ✓ packages/safe-js/src/snapshot/template-identity.test.ts (14 tests) 59ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-depth.test.ts (3 tests) 66ms
+ ✓ packages/safe-js/src/snapshot/collection-iterators.test.ts (50 tests) 56ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-race.test.ts (1 test) 50ms
+ ✓ packages/safe-js/src/snapshot/obj-002-num-integration.test.ts (8 tests) 48ms
+ ❯ packages/safe-js/src/snapshot/obj-002-validation.test.ts (17 tests | 1 failed) 30ms
+     ✓ retains the original metadata/raw observation's complete alias graph 11ms
+     ✓ preserves an all-hole array of length 0 1ms
+     ✓ preserves an all-hole array of length 2 1ms
+     ✓ preserves an all-hole array of length 9 1ms
+     ✓ distinguishes holes, indexed undefined, null and named undefined 1ms
+     ✓ discovers named-only references and mutual cycles without extra roots 2ms
+     ✓ preserves shape and shared identities across two independent captures 2ms
+     ✓ retains the original metadata/raw observation's complete alias graph 2ms
+     × preserves an all-hole array of length 0 1ms
+     ✓ preserves an all-hole array of length 2 1ms
+     ✓ preserves an all-hole array of length 9 1ms
+     ✓ distinguishes holes, indexed undefined, null and named undefined 1ms
+     ✓ discovers named-only references and mutual cycles without extra roots 2ms
+     ✓ preserves shape and shared identities across two independent captures 1ms
+     ✓ restores a previously supported inline array 0ms
+     ✓ restores a previously supported heap items array 0ms
+     ✓ restores a legacy items self-reference without rewriting its representation 0ms
+FAIL packages/safe-js/src/snapshot/obj-002-validation.test.ts > independent OBJ002 dump > preserves an all-hole array of length 0
+SnapshotValidationError: Invalid snapshot at $.heap: contains an unsupported value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalidType', path: '$.heap' }
+ ✓ packages/safe-js/src/snapshot/assignment-reference-validation.test.ts (6 tests) 37ms
+ ✓ packages/safe-js/src/snapshot/guest-heap.test.ts (4 tests) 38ms
+ ✓ packages/safe-js/src/snapshot/symbol.test.ts (22 tests) 37ms
+ ✓ packages/safe-js/src/snapshot/regexp-properties.test.ts (19 tests) 29ms
+ ✓ packages/safe-js/src/snapshot/with-environment.test.ts (7 tests) 28ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-time.test.ts (22 tests) 22ms
+ ✓ packages/safe-js/src/snapshot/mapped-arguments.test.ts (12 tests) 26ms
+ ✓ packages/safe-js/src/snapshot/collection-properties.test.ts (30 tests) 28ms
+ ✓ packages/safe-js/src/snapshot/temporal-instant.test.ts (18 tests) 26ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-year-month.test.ts (15 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-date-time.test.ts (11 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/regexp-iterators.test.ts (7 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-month-day.test.ts (13 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/guest-arrays.test.ts (11 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/error-data.test.ts (15 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/regexp-iterator-modes.test.ts (12 tests) 22ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-date.test.ts (13 tests) 21ms
+ ✓ packages/safe-js/src/snapshot/null-object-prototype.test.ts (12 tests) 23ms
+ ✓ packages/safe-js/src/snapshot/temporal-zoned-date-time.test.ts (11 tests) 20ms
+ ✓ packages/safe-js/src/snapshot/datetimeformat-requested-options.test.ts (10 tests) 22ms
+ ✓ packages/safe-js/src/snapshot/temporal-calendar-replay.test.ts (36 tests) 17ms
+ ✓ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts (5 tests) 18ms
+ ✓ packages/safe-js/src/snapshot/replay-inputs.test.ts (13 tests) 13ms
+ ✓ packages/safe-js/src/snapshot/scheduler.test.ts (14 tests) 13ms
+ ✓ packages/safe-js/src/snapshot/backend.test.ts (11 tests) 14ms
+ ✓ packages/safe-js/src/snapshot/replay-data.test.ts (19 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-data.test.ts (20 tests) 13ms
+ ✓ packages/safe-js/src/snapshot/symbol-replay.test.ts (16 tests) 14ms
+ ✓ packages/safe-js/src/snapshot/promise-capability-properties.test.ts (7 tests) 10ms
+ ✓ packages/safe-js/src/snapshot/temporal-plain-time-replay.test.ts (26 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/temporal-zoned-date-time-replay.test.ts (13 tests) 11ms
+ ✓ packages/safe-js/src/snapshot/trusted-promise-replay.test.ts (5 tests) 7ms
+ ✓ packages/safe-js/src/snapshot/replay-graph-extension.test.ts (5 tests) 9ms
+ ✓ packages/safe-js/src/snapshot/input-symbol-references.test.ts (9 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-schedule.test.ts (10 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/pending-imported-promise-validation.test.ts (5 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/dump-readiness.test.ts (2 tests) 5ms
+ ✓ packages/safe-js/src/snapshot/imported-promise-property-validation.test.ts (4 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/scope-frames.test.ts (6 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/policy.test.ts (24 tests) 5ms
+ ✓ packages/safe-js/src/snapshot/property-descriptors.test.ts (9 tests) 4ms
+ ✓ packages/safe-js/src/snapshot/data-descriptor-validation.test.ts (11 tests) 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/adversarial/snapshot-mutation.test.ts > snapshot mutation corpus > rejects malformed mutations with typed errors and preserves valid roundtrips
+AssertionError: promise rejected "Error: Adversarial snapshot case failed.
+…" instead of resolving
+ ❯ packages/safe-js/test/adversarial/snapshot-mutation.test.ts:7:45
+      5| describe("snapshot mutation corpus", () => {
+      6|   it("rejects malformed mutations with typed errors and preserves vali…
+      7|     await expect(runSnapshotMutationCorpus()).resolves.toBeUndefined();
+       |                                             ^
+      8|   }, 2_000);
+      9| });
+
+Caused by: Caused by: Error: Adversarial snapshot case failed.
+seed=0x5a902026
+minimized snapshot:
+{ "version": 2, "sourceHash": "eb804bd1", "executionSemantics": "jobs-v9", "bindings": { "eval": { "kind": "ref", "id": 1 }, "JSON": { "kind": "ref", "id": 2 }, "console": { "kind": "ref", "id": 7 }, "Map": { "kind": "ref", "id": 10 }, "Set": { "kind": "ref", "id": 63 }, "WeakMap": { "kind": "ref", "id": 81 }, "WeakSet": { "kind": "ref", "id": 89 }, "Float32Array": { "kind": "ref", "id": 94 }, "Uint8Array": { "kind": "ref", "id": 137 }, "Int8Array": { "kind": "ref", "id": 145 }, "Uint8ClampedArr…
+cause: Error: case cap exceeded time cap: 1172.9ms > 750ms
+ ❯ adversarialFailure packages/safe-js/test/adversarial/report.ts:11:10
+ ❯ runSnapshotMutationCorpus packages/safe-js/test/adversarial/snapshot-mutation.ts:63:11
+ ❯ packages/safe-js/test/adversarial/snapshot-mutation.test.ts:7:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/safe-js/src/snapshot/array-shape.test.ts > dump array checkpoint shape > preserves dense holes, length, undefined and null
+ FAIL  packages/safe-js/src/snapshot/obj-002-validation.test.ts > independent OBJ002 dump > preserves an all-hole array of length 0
+SnapshotValidationError: Invalid snapshot at $.heap: contains an unsupported value
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+{
+  kind: 'regex',
+  source: 'abc',
+  flags: '',
+  lastIndex: 0,
+  VITEST_TEST_NAME: undefined,
+  VITEST_TEST_PATH: '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts',
+  type: 'Unhandled Rejection',
+  stacks: []
+}
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { kind: 'regex', source: 'abc', flags: '', lastIndex: +0 }
+This error originated in "packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  3 failed | 176 passed (179)
+      Tests  3 failed | 2481 passed (2484)
+     Errors  1 error
+   Start at  08:09:12
+   Duration  101.35s (transform 4.42s, setup 1.31s, import 63.02s, tests 127.65s, environment 8ms)
+

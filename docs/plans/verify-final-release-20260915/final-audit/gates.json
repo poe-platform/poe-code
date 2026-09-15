@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "npm",
+      "exec",
+      "--",
+      "vitest",
+      "run",
+      "packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts"
+    ],
+    "environment": {
+      "SAFEJS_ADVERSARIAL_SLOW": "1"
+    },
+    "exit": 1,
+    "log": "replay.log"
+  },
+  {
+    "command": [
+      "node",
+      "packages/safe-bash/tests/integration/s3-http-exports/verify.mjs",
+      "HEAD",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-final-lock-v4l69ynv.json"
+    ],
+    "environment": {},
+    "exit": 1,
+    "log": "lock.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "lint:workflows"
+    ],
+    "environment": {},
+    "exit": 0,
+    "log": "workflow-lint.log"
+  }
+]

@@ -1,0 +1,25 @@
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(48,41): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | SandboxObject | Date | BigInt64Array<ArrayBuffer> | DataView<ArrayBufferLike> | ... 7 more ... | SandboxPromise'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(49,42): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | SandboxObject | Date | BigInt64Array<ArrayBuffer> | DataView<ArrayBufferLike> | ... 7 more ... | SandboxPromise'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(52,65): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'RuntimeSnapshotValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'RuntimeSnapshotValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | Date | BigInt64Array<ArrayBuffer> | SandboxClosure | SandboxGenerator | ... 10 more ... | { ...; }'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(60,66): error TS2339: Property 'value' does not exist on type 'ScopeLookupResult'.
+  Property 'value' does not exist on type '{ found: false; }'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(73,63): error TS2339: Property 'value' does not exist on type 'ScopeLookupResult'.
+  Property 'value' does not exist on type '{ found: false; }'.

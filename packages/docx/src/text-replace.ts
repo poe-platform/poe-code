@@ -13,6 +13,7 @@ import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
+export type DummyTextOptions = DocxOperationArguments<"lorem.set"> & { readonly input?: PublicationInput };
 export type TextReplaceOptions = DocxOperationArguments<"text.replace"> & { readonly input?: PublicationInput };
 export interface TextMutationData {
   readonly changed: boolean;
@@ -21,7 +22,7 @@ export interface TextMutationData {
   readonly dryRun: boolean;
 }
 interface Leaf { node: XmlElement; run: XmlElement; editor: DocumentXmlEditor; text: string; start: number; }
-interface Match { paragraph: Location; leaves: { leaf: Leaf; start: number; end: number }[]; unsupported: boolean; }
+interface Match { empty?: { node: XmlElement; editor: DocumentXmlEditor }; insert?: string; paragraph: Location; leaves: { leaf: Leaf; start: number; end: number }[]; unsupported: boolean; }
 interface Edit { start: number; end: number; insert: string; }
 
 export function textMarkup(node: XmlElement, text: string): string {
@@ -45,12 +46,25 @@ export function textMarkup(node: XmlElement, text: string): string {
 
 /** Preserving literal replacement over owned bytes and explicit publication capabilities. */
 export async function replaceDocumentText(input: Uint8Array, options: TextReplaceOptions, context: PublicationContext): Promise<TextMutationData> {
+  xmlValue(options.find); xmlValue(options.with);
+  return mutateDocumentText(input, options, context, "text.replace");
+}
+
+/** Seeded placeholder text only; this is not anonymization. */
+export async function setDocumentDummyText(input: Uint8Array, options: DummyTextOptions, context: PublicationContext): Promise<TextMutationData> {
   const settings = archiveSettings(context);
+  validateDocxInvocation({ operation: "lorem.set", inputs: [options.input?.path ?? "document"], options: Object.fromEntries(Object.entries(options).filter(([key]) => key !== "input")) }, settings.budget);
+  return mutateDocumentText(input, options, context, "lorem.set");
+}
+
+async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions | DummyTextOptions, context: PublicationContext,
+  operation: "text.replace" | "lorem.set"): Promise<TextMutationData> {
+  const settings = archiveSettings(context);
+  const dummy = operation === "lorem.set";
   const { input: identity, ...operationOptions } = options;
-  const invocation = validateDocxInvocation({ operation: "text.replace", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
-  const opts = invocation.options as DocxOperationArguments<"text.replace">;
+  const invocation = validateDocxInvocation({ operation, inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
+  const opts = invocation.options as DocxOperationArguments<"text.replace"> & Partial<DocxOperationArguments<"lorem.set">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
-  xmlValue(opts.find); xmlValue(opts.with);
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
   const archive = document.snapshot();
@@ -74,11 +88,19 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     const field = fields.get(paragraph.value.story) ?? [];
     fields.set(paragraph.value.story, field);
     let pieces: Leaf[] = [], logicalOffset = 0;
+    const paragraphPieces: Leaf[] = [];
+    let paragraphUnsafe = false;
     const ranges = reviewRanges.get(paragraph.value.story) ?? new Set<string>();
     reviewRanges.set(paragraph.value.story, ranges);
     const locked = (owner: XmlElement) => owner.namespace === w && owner.localName === "sdt" && owner.children.some(properties => properties.namespace === w && properties.localName === "sdtPr" && properties.children.some(lock => lock.namespace === w && lock.localName === "lock" && attr(lock, "val") !== "unlocked"));
     let unsupported = ancestors.some(n => locked(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
     const flush = () => {
+      if (dummy) {
+        paragraphPieces.push(...pieces);
+        paragraphUnsafe ||= pieces.length > 0 && (unsupported || ranges.size > 0);
+        pieces = [];
+        return;
+      }
       const text = pieces.map(piece => piece.text).join("");
       budget.charge("work", text.length + 1);
       budget.charge("retainedBytes", text.length * 2);
@@ -160,23 +182,59 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     };
     visit(node, paragraph.value.path);
     flush();
+    if (dummy && targets.length) {
+      const text = paragraphPieces.map(piece => piece.text).join("");
+      budget.charge("work", text.length + 1);
+      let count = 0, inside = false;
+      for (const scalar of text) {
+        if (scalar.trim() === "") inside = false;
+        else if (!inside) { count++; inside = true; }
+      }
+      count = opts.words ?? count;
+      if (count === 0) continue;
+      const leaves = paragraphPieces.filter(leaf => leaf.node.localName === "t").map(leaf => ({ leaf, start: leaf.start, end: leaf.start + leaf.text.length }));
+      const empty = !leaves.length && targets.some(target => target.kind === "paragraph" && target.value.range === null && target.token === paragraph.token) && node.children.every(child => child.namespace === w && child.localName === "pPr") ? { node, editor: xml } : undefined;
+      if (!leaves.length && !empty) throw new UnsupportedEditError("Explicit word insertion requires an editable empty paragraph or existing text leaf.");
+      budget.check("matches", matches.length + 1);
+      budget.charge("work", count);
+      budget.charge("retainedBytes", count * 12 + leaves.length * 64 + 256);
+      budget.check("xmlPartBytes", count * 6);
+      const vocabulary = ["amber", "birch", "cedar", "delta", "elm", "fern", "grove", "heath"];
+      const seed = ((opts.seed! % 4294967296) + 4294967296) % 4294967296;
+      const words: string[] = [];
+      for (let i = 0; i < count; i++) { await budget.checkpoint(1); words.push(vocabulary[(seed + i) % 8]!); }
+      matches.push({ paragraph, leaves, unsupported: paragraphUnsafe || !!empty && unsupported, insert: words.join(" "), ...(empty ? { empty } : {}) });
+    }
   }
   const chosen = opts.first ? matches.slice(0, 1) : opts.occurrence === undefined ? matches : matches.slice(opts.occurrence - 1, opts.occurrence);
-  if (!chosen.length && !opts.allowEmpty) throw new SelectionError("missing-selection");
+  if (!chosen.length && !opts.allowEmpty && (!dummy || opts.words !== undefined)) throw new SelectionError("missing-selection");
   if (chosen.some(match => match.unsupported)) throw new UnsupportedEditError("Affected text includes protected or unsupported structures.");
-  for (const match of chosen) for (const { leaf } of match.leaves) {
-    leaf.editor.assertShapeEditAllowed(leaf.node);
-    assertOutsideRevisionRanges(leaf.editor.root, leaf.run, budget, leaf.editor.compatibility.branches);
+  for (const match of chosen) {
+    if (match.empty) {
+      match.empty.editor.assertShapeEditAllowed(match.empty.node);
+      assertOutsideRevisionRanges(match.empty.editor.root, match.empty.node, budget, match.empty.editor.compatibility.branches);
+    }
+    for (const { leaf } of match.leaves) {
+      leaf.editor.assertShapeEditAllowed(leaf.node);
+      assertOutsideRevisionRanges(leaf.editor.root, leaf.run, budget, leaf.editor.compatibility.branches);
+    }
   }
   if (chosen.some(match => document.references(match.paragraph.token).length > 1)) throw new SelectionError("ambiguous-selection");
   const explicit = opts.bold !== undefined || opts.italic !== undefined;
-  const changedMatches = chosen.filter(match => opts.find !== opts.with || explicit || match.leaves.some(item => item.leaf.run !== match.leaves[0]!.leaf.run));
+  const changedMatches = chosen.filter(match => dummy ? match.insert !== match.leaves.map(item => item.leaf.text).join("") : opts.find !== opts.with || explicit || match.leaves.some(item => item.leaf.run !== match.leaves[0]!.leaf.run));
   const edits = new Map<Leaf["node"], { leaf: Leaf; edits: Edit[] }>();
-  for (const match of changedMatches) match.leaves.forEach(({ leaf, start, end }, i) => {
-    const record = edits.get(leaf.node) ?? { leaf, edits: [] };
-    record.edits.push({ start, end, insert: i ? "" : opts.with });
-    edits.set(leaf.node, record);
-  });
+  for (const match of changedMatches) {
+    if (match.empty) match.empty.editor.insertChildren(match.empty.node, `<w:r xmlns:w="${xmlValue(match.empty.node.namespace)}"><w:t xml:space="preserve">${xmlValue(match.insert!)}</w:t></w:r>`);
+    let offset = 0;
+    match.leaves.forEach(({ leaf, start, end }, i) => {
+      const record = edits.get(leaf.node) ?? { leaf, edits: [] };
+      const length = i === match.leaves.length - 1 ? match.insert?.length ?? 0 : end - start;
+      const insert = dummy ? match.insert!.slice(offset, offset + length) : i ? "" : opts.with;
+      offset += length;
+      record.edits.push({ start, end, insert });
+      edits.set(leaf.node, record);
+    });
+  }
   if (opts.trackChanges) {
     const tracked: TrackedTextEdit[] = [];
     for (const match of changedMatches) {
@@ -225,7 +283,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
   for (const [run, { editor: xml, patches }] of runs) {
     xml.replaceElement(run, xml.sourceXml(run, patches));
   }
-  const changed = edits.size > 0;
+  const changed = changedMatches.length > 0;
   const changes = changedMatches.map(match => {
     const before = match.paragraph;
     const value = { ...before.value, generation: 1 };
@@ -236,7 +294,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     ...(opts.dryRun === undefined ? {} : { dryRun: opts.dryRun }), ...(opts.json === undefined ? {} : { json: opts.json }) };
   const prospective: TextMutationData = { changed, changes, dryRun: opts.dryRun ?? false, output: opts.dryRun ? null : {
     path: opts.inPlace ? identity?.path ?? null : opts.output === "-" ? null : opts.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
-  budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "text.replace", ok: true,
+  budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation, ok: true,
     data: prospective, affected: changes.length, locations: changes.map(c => c.after), warnings: [], errors: [] }) + "\n").length);
   const result = await publishDocumentArchive(editor.snapshot(), publication, { ...context, budget }, archive);
   return { changed, changes, dryRun: opts.dryRun ?? false, output: result.published.length ? {

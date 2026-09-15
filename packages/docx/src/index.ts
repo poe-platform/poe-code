@@ -103,7 +103,7 @@ export { getDocxDiscovery, type DocxDiscovery, type DocxHelpData, type DocxSchem
 export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
 export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest, type DocxInspectionCommandResult } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";
-export { replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
+export { setDocumentDummyText, type DummyTextOptions, replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
 export { formatDocumentRuns, type RunFormatOptions, type RunFormatData } from "./run-format.js";
 export { editDocumentParagraphs, type ParagraphEditRequest, type ParagraphEditOperation, type ParagraphEditData } from "./paragraph-edit.js";
 export type { DocxTabStop, DocxParagraphBorder, DocxParagraphBorders, DocxParagraphShading } from "./operation-types.js";

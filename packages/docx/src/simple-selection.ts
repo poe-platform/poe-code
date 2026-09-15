@@ -8,7 +8,7 @@ import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
   lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
-  headers: "story", footers: "story", comments: "story", text: "paragraph", shapes: "shape", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
+  headers: "story", footers: "story", comments: "story", text: "paragraph", lorem: "paragraph", shapes: "shape", links: "link", bookmarks: "bookmark", fields: "field", toc: "field", captions: "field"
 };
 
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
@@ -25,7 +25,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "shape" && ["text", "shapes"].includes(resource)) && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;
-  const text = resource === "text";
+  const text = resource === "text" || resource === "lorem";
   const query: LocationQuery = {
     scope: (resource === "headers" || resource === "footers" ? resource : options.scope ?? "body") as DocumentScope,
     ...(options.section !== undefined ? { section: options.section as number } : {}),

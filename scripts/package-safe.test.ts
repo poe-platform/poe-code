@@ -27,8 +27,10 @@ describe("scoped safe package artifacts", () => {
       "/repo/packages/safe-bash/README.md": "# Safe Bash\n",
       "/repo/packages/safe-js/dist/index.js": 'export { value } from "./chunks/shared.js";',
       "/repo/packages/safe-js/dist/chunks/shared.js": 'import external from "external"; export const value = external;',
-      "/repo/packages/safe-js/dist/index.d.ts": 'export type { Value } from "../../helper/dist/index.js"; export { FsError } from "../../safe-fs/dist/index.js";',
+      "/repo/packages/safe-js/dist/index.d.ts": 'export type { HostOptions } from "private-host"; export type { Value } from "../../helper/dist/index.js"; export { FsError } from "../../safe-fs/dist/index.js";',
       "/repo/packages/safe-js/dist/workerd.d.ts": 'export { value } from "./index.js";',
+      "/repo/packages/private-host/package.json": JSON.stringify({ name: "private-host", private: true, types: "./dist/index.d.ts" }),
+      "/repo/packages/private-host/dist/index.d.ts": 'export interface HostOptions { signal?: AbortSignal; }',
       "/repo/packages/helper/dist/index.d.ts": 'export interface Value { ok: boolean }',
       "/repo/packages/safe-js/dist/safe-fs.js": 'export class FsError extends Error {}',
       "/repo/packages/safe-fs/dist/index.d.ts": 'export declare class FsError extends Error {}',
@@ -78,9 +80,18 @@ describe("scoped safe package artifacts", () => {
     expect(read("/output/safe-js/dist/safe-js/index.d.ts")).toContain('"@poe-platform/safe-fs"');
     expect(read("/output/safe-js/dist/safe-js/index.d.ts")).toContain('"../helper/index.js"');
     expect(read("/output/safe-js/dist/helper/index.d.ts")).toContain("interface Value");
+    expect(read("/output/safe-js/dist/safe-js/index.d.ts")).toContain('"../private-host/index.js"');
+    expect(read("/output/safe-js/dist/private-host/index.d.ts")).toContain("signal?: AbortSignal");
+    expect(volume.existsSync("/output/safe-js/dist/private-host/index.js")).toBe(false);
+    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'import host from "private-host";');
+    await expect(packageSafeLibraries({ ...options, outDir: "/private-runtime" })).rejects.toThrow("Private or CLI dependency leaked: private-host");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { FsError } from "poe-code/safe-fs";');
+    volume.writeFileSync("/repo/packages/safe-js/dist/index.d.ts", 'export type { HostOptions } from "private-host/hidden";');
+    await expect(packageSafeLibraries({ ...options, outDir: "/unexported-private-type" })).rejects.toThrow("Missing private workspace declaration entrypoint: private-host/hidden");
     await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toMatchObject({ code: "EEXIST" });
     await expect(packageSafeLibraries({ ...options, outDir: "/repo/packages/output" })).rejects.toThrow("overwrite workspace");
     await expect(packageSafeLibraries({ ...options, outDir: "/bad-version", version: "latest" })).rejects.toThrow("valid explicit");
+    volume.writeFileSync("/repo/packages/safe-js/dist/index.d.ts", 'export type { HostOptions } from "private-host";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'import cli from "poe-code";');
     await expect(packageSafeLibraries({ ...options, outDir: "/private-leak" })).rejects.toThrow("CLI dependency leaked");
   });

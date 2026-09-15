@@ -299,6 +299,15 @@ remain open. Host authority requires explicit grants. See the
 [compatibility summary](packages/safe-js/README.md#compatibility-evidence--2026-09-15)
 and [commands and release evidence](docs/plans/safejs-gap-closure-evidence.md#compatibility-documentation-delivery--2026-09-15).
 
+SafeJS compatibility is measured against published ECMA-262 edition 16 /
+ECMA-402 edition 12 (June 2025), with newer APIs tracked separately. The
+[dated compatibility report](docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15)
+links corpus results, runtime coverage, transport restrictions and release
+receipts. An aborted corpus, unsupported required modes and remaining failures
+prevent a full-conformance claim. Published predecessor versions do not establish
+delivery of the current checkout.
+
+
 ### Update Poe Code
 
 ```sh

@@ -1,0 +1,134 @@
+[
+  {
+    "base": "/private/var/tmp/provenance-followup-root.RJd13e",
+    "ancestors": [],
+    "links": [
+      {
+        "file": "node_modules/.bin/acorn",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/acorn/bin/acorn",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/astring",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/astring/bin/astring",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/braintrust",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/braintrust/dist/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/bt",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/braintrust/bin/bt",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/esbuild",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/esbuild/bin/esbuild",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/mustache",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/mustache/bin/mustache",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/dist/bin.cjs",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-agent",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/dist/bin/poe-agent.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-code",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/dist/bin.cjs",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-safe-js",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/packages/safe-js/dist/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-safejs",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/packages/safe-js/dist/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-superintendent-mcp",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/packages/superintendent/dist/mcp.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/semver",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/semver/bin/semver.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/uuid",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/uuid/dist/esm/bin/uuid",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/yaml",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/yaml/bin.mjs",
+        "external": false
+      },
+      {
+        "file": "node_modules/poe-code/node_modules/.bin/esparse",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/node_modules/esprima/bin/esparse.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/poe-code/node_modules/.bin/esvalidate",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/node_modules/esprima/bin/esvalidate.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/poe-code/node_modules/gray-matter/node_modules/.bin/js-yaml",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/poe-code/node_modules/gray-matter/node_modules/js-yaml/bin/js-yaml.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/toolcraft/node_modules/.bin/tiny-http-mcp-server",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/toolcraft/node_modules/tiny-http-mcp-server/dist/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/toolcraft/node_modules/.bin/yaml",
+        "target": "/private/var/tmp/provenance-followup-root.RJd13e/node_modules/toolcraft/node_modules/yaml/bin.mjs",
+        "external": false
+      }
+    ]
+  },
+  {
+    "base": "/private/var/tmp/provenance-followup-scoped.9zp4uD",
+    "ancestors": [],
+    "links": [
+      {
+        "file": "node_modules/.bin/acorn",
+        "target": "/private/var/tmp/provenance-followup-scoped.9zp4uD/node_modules/acorn/bin/acorn",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-safe-js",
+        "target": "/private/var/tmp/provenance-followup-scoped.9zp4uD/node_modules/@poe-platform/safe-js/dist/safe-js/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/poe-safejs",
+        "target": "/private/var/tmp/provenance-followup-scoped.9zp4uD/node_modules/@poe-platform/safe-js/dist/safe-js/cli.js",
+        "external": false
+      },
+      {
+        "file": "node_modules/.bin/yaml",
+        "target": "/private/var/tmp/provenance-followup-scoped.9zp4uD/node_modules/yaml/bin.mjs",
+        "external": false
+      }
+    ]
+  }
+]

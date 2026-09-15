@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts (3 tests) 148ms
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 617ms
+ ✓ packages/safe-js/src/snapshot/finalization-registry.test.ts (7 tests) 483ms
+ ✓ packages/safe-js/src/interp/budget.test.ts (41 tests) 26ms
+
+ Test Files  4 passed (4)
+      Tests  56 passed (56)
+   Start at  08:15:40
+   Duration  2.80s (transform 2.56s, setup 86ms, import 3.95s, tests 1.27s, environment 0ms)
+

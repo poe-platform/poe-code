@@ -1,0 +1,14 @@
+{
+  "localRepairCommits": [
+    "b4215ce3e59ba7c79eddca005ce2aaa8f9cc2d3d",
+    "1f87298398af05b7c5a8ddbb7b213ffc7014be0e",
+    "837e81a2c5a14330c326182ffbee5e56d8bcad1e"
+  ],
+  "remoteMain": "2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4",
+  "pushPerformed": false,
+  "verifiedOnRemoteMain": false,
+  "releaseRun": null,
+  "published": false,
+  "closure": "open",
+  "reason": "Local and remote main histories diverge; working-source evidence is not clean delivered-source or release evidence."
+}

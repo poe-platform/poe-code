@@ -57,3 +57,16 @@ Initial baseline: **177 files / 2,445 tests passed**, 86.21s process. After the 
 Focused green receipts before final breadth: transaction 33 tests; scheduled-rejection 25 tests; realm accounting/budget/finalization 56 tests; pending activation 45 tests; legacy and transaction 53 tests. Final stable-source breadth, lint/typecheck and source receipts are recorded in `commands.json` and the ledger after completion.
 
 Delivery is separate from local correctness. Remote `main` fetched as `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`; initial local main and remote main have **38 local-only / 70 remote-only commits**. No force push, branch reset or merge of unrelated histories was performed. No new release is claimed. Publication and a clean delivered-source qualification remain open; local test receipts must not be relabeled as a release receipt.
+
+### Reproduction commands
+
+Run from the repository root on the recorded source state. Red logs name the pre-repair result; the same regressions pass on the repaired working source.
+
+- `npx vitest run packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts` — external/interpreter accessor and malformed-entrypoint red receipts.
+- `npx vitest run packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts` — replay metadata, charge, scheduling rejection, pending activation and duplicate-ID red receipts. Use `-t` with the exact test name to isolate a counterexample.
+- `npx vitest run packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts` — intrinsic lifetime/accounting red receipts.
+- `npx vitest run packages/safe-js/test/adversarial/snapshot-mutation.test.ts` — fixed-seed bounded mutation, with the original limits.
+
+Final stable-source acceptance: **188 files / 2,617 tests passed; zero failures, zero skips, zero unhandled errors**, 124.52s. Narrow maintained TypeScript and ESLint checks exited 0. Source hashes were checked unchanged after local commits. The three local repair commits are `b4215ce3e`, `1f8729839`, `837e81a2c`; details are in `local-commits.json`. Unrelated staged content is byte-for-byte unchanged (`staged-preservation.json`), and all pre-existing non-owned TypeScript sources are unchanged (`source-preservation.json`).
+
+**Disposition:** local Node acceptance matrix qualified; five reproduced defects repaired in three atomic local commits. Overall delivery/closure stays **open**: no push or release was performed, the histories diverge, and clean delivered-source and independently executed Workerd/Bun receipts are not established by these working-tree tests. No unspecified runtime or format is counted as passing.

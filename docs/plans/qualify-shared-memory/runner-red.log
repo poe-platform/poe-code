@@ -1,0 +1,120 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/test/conformance/shared-memory.test.ts (3 tests | 2 failed) 10ms
+   × executes shared integer and BigInt operations without requiring an agent fixture 7ms
+   × qualifies the nonblocking host agent without permitting Atomics.wait to suspend 2ms
+   ✓ retains the explicit unsupported disposition for a blocking agent requirement 1ms
+FAIL packages/safe-js/test/conformance/shared-memory.test.ts > executes shared integer and BigInt operations without requiring an agent fixture
+AssertionError: expected { kind: 'test', results: [ { …(3) } ] } to match object { results: [ { …(2) } ] }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "results": [
+      {
+        "mode": "strict",
+-       "status": "passed",
++       "status": "unsupported",
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/test/conformance/shared-memory.test.ts:17:6
+     15| if (Atomics.exchange(n, 0, 9n) !== 0n || Atomics.load(n, 0) !== 9n) th…
+     16|   expect(await executeTest262("shared.js", source, { harness, timeoutM…
+     17|     .toMatchObject({ results: [{ mode: "strict", status: "passed" }] }…
+       |      ^
+     18| });
+     19|
+
+FAIL packages/safe-js/test/conformance/shared-memory.test.ts > qualifies the nonblocking host agent without permitting Atomics.wait to suspend
+AssertionError: expected { kind: 'test', results: [ { …(3) } ] } to match object { results: [ { …(2) } ] }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "results": [
+      {
+        "mode": "strict",
+-       "status": "passed",
++       "status": "unsupported",
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/test/conformance/shared-memory.test.ts:28:6
+     26| Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Infinity)…
+     27|   expect(await executeTest262("cannot-block.js", source, { harness, ti…
+     28|     .toMatchObject({ results: [{ mode: "strict", status: "passed" }] }…
+       |      ^
+     29| });
+     30|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/conformance/shared-memory.test.ts > executes shared integer and BigInt operations without requiring an agent fixture
+AssertionError: expected { kind: 'test', results: [ { …(3) } ] } to match object { results: [ { …(2) } ] }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "results": [
+      {
+        "mode": "strict",
+-       "status": "passed",
++       "status": "unsupported",
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/test/conformance/shared-memory.test.ts:17:6
+     15| if (Atomics.exchange(n, 0, 9n) !== 0n || Atomics.load(n, 0) !== 9n) th…
+     16|   expect(await executeTest262("shared.js", source, { harness, timeoutM…
+     17|     .toMatchObject({ results: [{ mode: "strict", status: "passed" }] }…
+       |      ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/test/conformance/shared-memory.test.ts > qualifies the nonblocking host agent without permitting Atomics.wait to suspend
+AssertionError: expected { kind: 'test', results: [ { …(3) } ] } to match object { results: [ { …(2) } ] }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "results": [
+      {
+        "mode": "strict",
+-       "status": "passed",
++       "status": "unsupported",
+      },
+    ],
+  }
+
+ ❯ packages/safe-js/test/conformance/shared-memory.test.ts:28:6
+     26| Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Infinity)…
+     27|   expect(await executeTest262("cannot-block.js", source, { harness, ti…
+     28|     .toMatchObject({ results: [{ mode: "strict", status: "passed" }] }…
+       |      ^
+     29| });
+     30|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  23:11:04
+   Duration  2.14s (transform 1.57s, setup 42ms, import 1.99s, tests 10ms, environment 0ms)
+

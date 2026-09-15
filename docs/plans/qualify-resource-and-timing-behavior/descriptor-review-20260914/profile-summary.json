@@ -1,0 +1,332 @@
+[
+  {
+    "profile": "historical-replay-128.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "",
+        "milliseconds": 1329.668
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "",
+        "milliseconds": 258.836
+      },
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 159.749
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/budget.ts",
+        "function": "retainedValues",
+        "milliseconds": 111.332
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts",
+        "function": "evaluateNode",
+        "milliseconds": 100.166
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "getSandboxPrototype",
+        "milliseconds": 80.999
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "reconcileCompiledValues",
+        "milliseconds": 56.962
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/intrinsics.ts",
+        "function": "registerBuiltinIdentities",
+        "milliseconds": 46.662
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "hasManagedDescriptors",
+        "milliseconds": 43.67
+      },
+      {
+        "url": "",
+        "function": "(program)",
+        "milliseconds": 38.623
+      }
+    ]
+  },
+  {
+    "profile": "snapshot-current-96.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 232.497
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts",
+        "function": "validateGenericValue",
+        "milliseconds": 232.118
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts",
+        "function": "ownSnapshotDataEntries",
+        "milliseconds": 161.707
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/guest-heap-validation.ts",
+        "function": "validateGuestHeapNode",
+        "milliseconds": 72.415
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/guest-heap-validation.ts",
+        "function": "__name",
+        "milliseconds": 70.419
+      },
+      {
+        "url": "node:inspector",
+        "function": "post",
+        "milliseconds": 61.375
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts",
+        "function": "snapshotDataEntries",
+        "milliseconds": 53.333
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts",
+        "function": "formatKey",
+        "milliseconds": 51.834
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "hasGuestObjectState",
+        "milliseconds": 45.668
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts",
+        "function": "validateDumpHeap",
+        "milliseconds": 30.794
+      }
+    ]
+  },
+  {
+    "profile": "historical-camera-inverse-coordinate-transforms-camera-oblique-frame-typed.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "",
+        "milliseconds": 1960.627
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "",
+        "milliseconds": 176.545
+      },
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 141.126
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/scope.ts",
+        "function": "retainedDataRoots",
+        "milliseconds": 89.582
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts",
+        "function": "evaluateNode",
+        "milliseconds": 87.748
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/budget.ts",
+        "function": "retainedValues",
+        "milliseconds": 74.918
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "getSandboxPrototype",
+        "milliseconds": 71.584
+      },
+      {
+        "url": "node:inspector",
+        "function": "post",
+        "milliseconds": 54.541
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "reconcileCompiledValues",
+        "milliseconds": 37.708
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/collection-brands.ts",
+        "function": "isSandboxSet",
+        "milliseconds": 25.166
+      }
+    ]
+  },
+  {
+    "profile": "split-reported.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "node:inspector",
+        "function": "post",
+        "milliseconds": 85.834
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/intrinsics.ts",
+        "function": "registerBuiltinIdentities",
+        "milliseconds": 10.167
+      },
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 3.874
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "captureIntrinsicRecords",
+        "milliseconds": 3.584
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "",
+        "milliseconds": 3.04
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "",
+        "milliseconds": 2.5
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/temporal.ts",
+        "function": "createTemporalGlobal",
+        "milliseconds": 1.292
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/methods/regex.ts",
+        "function": "getRegexMember",
+        "milliseconds": 1.292
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "__name",
+        "milliseconds": 1.292
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/accessors.ts",
+        "function": "accessorAdapter",
+        "milliseconds": 1.291
+      }
+    ]
+  },
+  {
+    "profile": "historical-camera-inverse-coordinate-transforms-camera-axis-frustum-typed.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "",
+        "milliseconds": 2248.14
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "",
+        "milliseconds": 179.661
+      },
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 141.332
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/scope.ts",
+        "function": "retainedDataRoots",
+        "milliseconds": 113.168
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts",
+        "function": "evaluateNode",
+        "milliseconds": 110.625
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/budget.ts",
+        "function": "retainedValues",
+        "milliseconds": 94.499
+      },
+      {
+        "url": "node:inspector",
+        "function": "post",
+        "milliseconds": 42.166
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "getSandboxPrototype",
+        "milliseconds": 39.869
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "reconcileCompiledValues",
+        "milliseconds": 33.833
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/arguments.ts",
+        "function": "isSandboxArguments",
+        "milliseconds": 27.747
+      }
+    ]
+  },
+  {
+    "profile": "historical-camera-inverse-coordinate-transforms-camera-offset-handoff-typed.cpuprofile",
+    "topSelfCpu": [
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "",
+        "milliseconds": 1640.545
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "",
+        "milliseconds": 168.454
+      },
+      {
+        "url": "",
+        "function": "(garbage collector)",
+        "milliseconds": 136.334
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/scope.ts",
+        "function": "retainedDataRoots",
+        "milliseconds": 80.458
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/budget.ts",
+        "function": "retainedValues",
+        "milliseconds": 78.415
+      },
+      {
+        "url": "node:inspector",
+        "function": "post",
+        "milliseconds": 71.458
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "getSandboxPrototype",
+        "milliseconds": 69.497
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts",
+        "function": "evaluateNode",
+        "milliseconds": 54.043
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts",
+        "function": "reconcileCompiledValues",
+        "milliseconds": 32.499
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts",
+        "function": "hasManagedDescriptors",
+        "milliseconds": 31.169
+      }
+    ]
+  }
+]

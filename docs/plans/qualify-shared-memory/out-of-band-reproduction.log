@@ -1,0 +1,76 @@
+/Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:9
+`)},"createLog"),G=ut(W.bgLightYellow(W.black(" CJS "))),Tn=ut(W.bgBlue(" ESM ")),R=new Map,Sn=u(async e=>{if(R.has(e))return R.get(e);if(!await D.promises.access(e).then(()=>!0,()=>!1)){R.set(e,void 0);return}const r=await D.promises.readFile(e,"utf8");try{const n=JSON.parse(r);return R.set(e,n),n}catch{throw new Error(`Error parsing: ${e}`)}},"readPackageJson"),On=u(e=>{if(R.has(e))return R.get(e);if(!D.existsSync(e)){R.set(e,void 0);return}const t=D.readFileSync(e,"utf8");try{const r=JSON.parse(t);return R.set(e,r),r}catch{throw new Error(`Error parsing: ${e}`)}},"readPackageJsonSync"),Pn=u(async e=>{let t=new URL("package.json",e);for(;!t.pathname.endsWith("/node_modules/package.json");){const r=Q.fileURLToPath(t),n=await Sn(r);if(n)return n;const s=t;if(t=new URL("../package.json",t),t.pathname===s.pathname)break}},"findPackageJson"),ft=u(e=>{let t=new URL("package.json",e);for(;!t.pathname.endsWith("/node_modules/package.json");){const r=Q.fileURLToPath(t),n=On(r);if(n)return n;const s=t;if(t=new URL("../package.json",t),t.pathname===s.pathname)break}},"findPackageJsonSync"),An=u(async e=>(await Pn(e))?.type??"commonjs","getPackageType"),$n=u(e=>ft(e)?.type??"commonjs","getPackageTypeSync"),Ln=u(e=>ft(e)?.type,"getNearestPackageTypeSync"),dt=[".js",".json"],ht=[".ts",".tsx",".jsx"],Un=[...ht,...dt],_n=[...dt,...ht],q=Object.create(null);q[".js"]=[".ts",".tsx",".js",".jsx"],q[".jsx"]=[".tsx",".ts",".jsx",".js"],q[".cjs"]=[".cts"],q[".mjs"]=[".mts"];const mt=u(e=>{const t=e.split("?"),r=t[1]?`?${t[1]}`:"",[n]=t,s=m.extname(n),o=[],a=q[s];if(a){const d=n.slice(0,-s.length);o.push(...a.map(p=>d+p+r))}const i=!(e.startsWith(ce)||Y(n))||n.includes(pt)||n.includes("/node_modules/")?_n:Un;return o.push(...i.map(d=>n+d+r)),o},"mapTsExtensions"),Se=u(e=>Array.from(e).length>0?`?${e.toString()}`:"","urlSearchParamsStringify"),Dn=[".cts",".mts",".ts",".tsx",".jsx"],Fn=[".js",".cjs",".mjs"],gt=[".ts",".tsx",".jsx"],kt="module.exports",Rn=u(e=>{const t=m.extname(e);return t===".mjs"||t===".mts"||(t===".js"||t===".ts")&&Ln(Q.pathToFileURL(e).toString())!=="commonjs"},"isRequireEsmCandidate"),Oe=u((e,t,r,n)=>{const s=Object.getOwnPropertyDescriptor(e,t);s?.set?e[t]=r:(!s||s.configurable)&&Object.defineProperty(e,t,{value:r,enumerable:s?.enumerable||n?.enumerable,writable:n?.writable??(s?s.writable:!0),configurable:n?.configurable??(s?s.configurable:!0)})},"safeSet"),In=u((e,t,r,n)=>{const s=t[".js"],o=Le.isFeatureSupported(Le.requireEsm),a=u((i,d)=>{if(e.enabled===!1)return s(i,d);const[p,k]=d.split("?");if((new URLSearchParams(k).get("namespace")??void 0)!==n)return s(i,d);G(2,"load",{filePath:d}),i.id.startsWith("data:text/javascript,")&&(i.path=m.dirname(p)),$e.parent?.send&&$e.parent.send({type:"dependency",path:p});const w=Dn.some(l=>p.endsWith(l)),v=Fn.some(l=>p.endsWith(l));if(!w&&!v)return s(i,p);let b=D.readFileSync(p,"utf8");const E=v&&!p.endsWith(".cjs")&&!p.endsWith(".cts")&&fe.isESM(b),f=(w||E)&&r&&je(r,p)?r.config:void 0;if(p.endsWith(".cjs")){const l=fe.transformDynamicImport(d,b);l&&(b=it()?Te(l):l.code)}else if(w||E){const l=fe.transformSync(b,d,{tsconfigRaw:f});b=it()?Te(l):l.code}G(1,"loaded",{filePath:p}),i._compile(b,p),k&&A._cache[p]===i&&(A._cache[d]=i,delete A._cache[p]);const{exports:g}=i;(o&&g&&(typeof g=="object"||typeof g=="function")?Object.getOwnPropertyDescriptor(g,kt):void 0)?.get&&Rn(p)&&(i.exports=g[kt])},"transformer");Oe(t,".js",a);for(const i of gt)Oe(t,i,a,{enumerable:!n,writable:!0,configurable:!0});return Oe(t,".mjs",a,{writable:!0,configurable:!0}),()=>{t[".js"]===a&&(t[".js"]=s);for(const i of[...gt,".mjs"])t[i]===a&&delete t[i]}},"createExtensions"),Nn=u(e=>t=>{if((t==="."||t===".."||t.endsWith("/.."))&&(t+="/"),le.test(t)){let r=m.join(t,"index");t.startsWith("./")&&(r=`./${r}`);try{return e(r)}catch{}}try{return e(t)}catch(r){const n=r;if(n.code==="MODULE_NOT_FOUND")try{return e(`${t}${m.sep}index`)}catch{}throw n}},"createImplicitResolver"),ue=u((e,t,r,n)=>{if(G(3,"resolveTsFilename",{request:t,isDirectory:le.test(t),isTsParent:r,allowJs:n}),le.test(t)||!r&&!n)return;const s=mt(t);if(s)for(const o of s)try{return e(o)}catch(a){const{code:i}=a;if(i!=="MODULE_NOT_FOUND"&&i!=="ERR_PACKAGE_PATH_NOT_EXPORTED")throw a}},"resolveTsFilename"),Bn=u((e,t,r)=>n=>{if(G(3,"resolveTsFilename",{request:n,isTsParent:t,isFilePath:Y(n)}),Y(n)){const s=ue(e,n,t,r);if(s)return s}try{return e(n)}catch(s){const o=s;if(o.code==="MODULE_NOT_FOUND"){if(o.path){const i=o.message.match(/^Cannot find module '([^']+)'$/);if(i){const p=i[1],k=ue(e,p,t,r);if(k)return k}const d=o.message.match(/^Cannot find module '([^']+)'. Please verify that the package.json has a valid "main" entry$/);if(d){const p=d[1],k=ue(e,p,t,r);if(k)return k}}const a=ue(e,n,t,r);if(a)return a}throw o}},"createTsExtensionResolver"),yt="at cjsPreparseModuleExports (node:internal",Wn=u(e=>{const t=e.stack.split(`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+Error: Cannot find module '../../interp/numberformat-pluralrules.js'
+Require stack:
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/intl-data/dist/numberformat-engine.js
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/numberformat-portable.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/numberformat-backend.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/number-locale.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/bigint.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/numeric-typed-array.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-set.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/methods/regex.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/string-coercion.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-own-keys.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/object-array.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-extensibility.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-descriptor.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-get.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/promise.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/dump-format.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/promise-replay.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/host-call.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/exceptions.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/async-disposable-stack.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/realm.ts
+- /Users/kjopek/Workspace/poe-code/packages/safe-js/src/run.ts
+- /Users/kjopek/Workspace/poe-code/[eval]
+    at node:internal/modules/cjs/loader:1430:15
+    at nextResolveSimple (/Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:10:1017)
+    at /Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:9:4388
+    at /Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:9:3818
+    at resolveTsPaths (/Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:10:770)
+    at /Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-BOkp8V6j.cjs:10:1155
+    at T._resolveFilename (file:///Users/kjopek/Workspace/poe-code/node_modules/tsx/dist/register-CqMfTiWi.mjs:2:14889)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+    at Function._load (node:internal/modules/cjs/loader:1216:25) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/intl-data/dist/numberformat-engine.js',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/numberformat-portable.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/numberformat-backend.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/number-locale.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/bigint.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/numeric-typed-array.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-set.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/methods/regex.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/string-coercion.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-own-keys.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/object-array.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-extensibility.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-descriptor.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy-get.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/promise.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/dump-format.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/snapshot/validation.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/promise-replay.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/host-call.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/exceptions.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/async-disposable-stack.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/guest-proxy.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/realm.ts',
+    '/Users/kjopek/Workspace/poe-code/packages/safe-js/src/run.ts',
+    '/Users/kjopek/Workspace/poe-code/[eval]'
+  ]
+}
+
+Node.js v22.23.2

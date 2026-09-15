@@ -1,0 +1,1910 @@
+{
+  "priorUnsupported": 238,
+  "nowPassed": 238,
+  "variants": [
+    {
+      "filename": "built-ins/Atomics/notify/bigint/notify-all-on-loc.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/bigint/notify-all-on-loc.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-missing.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-missing.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-undefined.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-undefined.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/negative-count.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/negative-count.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all-on-loc.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all-on-loc.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order-one-time.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order-one-time.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-nan.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-nan.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-one.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-one.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-renotify-noop.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-renotify-noop.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-two.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-two.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-agents-waiting.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-agents-waiting.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-matching-agents-waiting.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-matching-agents-waiting.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-zero.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-zero.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/undefined-index-defaults-to-zero.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/undefined-index-defaults-to-zero.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/nan-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/nan-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/value-not-equal.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/value-not-equal.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/was-woken-before-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/good-views.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/good-views.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/nan-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/nan-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-index-defaults-to-zero.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-index-defaults-to-zero.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/value-not-equal.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/value-not-equal.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/wait-index-value-not-equal.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/wait-index-value-not-equal.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/wait/was-woken-before-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/false-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/good-views.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/good-views.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/nan-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/nan-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/negative-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/null-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/object-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-index-defaults-to-zero-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-index-defaults-to-zero-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/value-not-equal-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/value-not-equal-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/was-woken-before-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/false-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/good-views.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/good-views.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/nan-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/nan-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/negative-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/null-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/object-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/returns-result-object-value-is-promise-resolves-to-timed-out.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/returns-result-object-value-is-promise-resolves-to-timed-out.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-for-timeout-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-for-timeout-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-index-defaults-to-zero-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-index-defaults-to-zero-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/value-not-equal-agent.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/value-not-equal-agent.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "result": {
+        "mode": "sloppy",
+        "status": "passed"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/was-woken-before-timeout.js",
+      "mode": "strict",
+      "result": {
+        "mode": "strict",
+        "status": "passed"
+      }
+    }
+  ]
+}

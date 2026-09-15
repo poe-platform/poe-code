@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "npm",
+    "run",
+    "lint:workflows"
+  ],
+  "exit": 0,
+  "output": "\n> poe-code@0.0.0-dev lint:workflows\n> (command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)\n\n"
+}

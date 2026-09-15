@@ -1,0 +1,26 @@
+{
+  "version": "0.1.607",
+  "dist": {
+    "shasum": "4e3229b1287da9d1d09341213cd8ccb4963e19ff",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.607.tgz",
+    "fileCount": 141,
+    "integrity": "sha512-c51mC5Z+GFRk097t1N6uZv7FueqWffQLdwfYJ3mKimVtbffv4KYRNHsXWGO1hVyhREQxEhm5vhXfncXL5XvNBg==",
+    "signatures": [
+      {
+        "sig": "MEUCIQC1qebXmYGRVv+BPDVcibtY9TghFJA3OZClGTggTvLlpAIgMdOd12s6S9x+sKPi8GdGL5PCuX/p+NMDyz8zRMxLncc=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEQCICxtfU6zLqyo0TRKst7GABm3hNuglaMEZ26kj5kxQC0pAiB9fYL5T/08y1eWx6BNkZoI23nOlbPh1PdRCsT0zJE6VQ=="
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.607",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 717171
+  }
+}

@@ -1,0 +1,53 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts (4 tests | 1 failed) 18ms
+   × returns compile charges and imported registrations when scheduling throws after capture 7ms
+   ✓ restores the exact existing Promise property table after a later error (present=false) 1ms
+   ✓ restores the exact existing Promise property table after a later error (present=true) 0ms
+   ✓ preserves generated cyclic graph identities and leaves the source untouched 9ms
+FAIL packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > returns compile charges and imported registrations when scheduling throws after capture
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:29:55
+     27|     expect(memo.size).toBe(0);
+     28|     expect(captured).toHaveLength(1);
+     29|     expect(importedPromiseSnapshots.has(captured[0])).toBe(false);
+       |                                                       ^
+     30|     expect(importedPromises.has(captured[0])).toBe(false);
+     31|     expect(parent.tickets.size).toBe(0);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts > returns compile charges and imported registrations when scheduling throws after capture
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts:29:55
+     27|     expect(memo.size).toBe(0);
+     28|     expect(captured).toHaveLength(1);
+     29|     expect(importedPromiseSnapshots.has(captured[0])).toBe(false);
+       |                                                       ^
+     30|     expect(importedPromises.has(captured[0])).toBe(false);
+     31|     expect(parent.tickets.size).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  08:05:00
+   Duration  2.11s (transform 1.58s, setup 40ms, import 1.97s, tests 18ms, environment 0ms)
+

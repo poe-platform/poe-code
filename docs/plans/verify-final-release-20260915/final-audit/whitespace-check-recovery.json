@@ -1,0 +1,24 @@
+{
+  "initialDiffCheckExit": 2,
+  "failure": "new blank line at EOF in three command logs",
+  "originalOutputs": [
+    {
+      "file": "registry-signatures.log",
+      "rawSha256": "db0ac9c6b8010593ea6ed10ff546f0940ff1639f78afc4472c1e59f1f1cdf53f",
+      "rawText": "audited 214 packages in 1s\n\n214 packages have verified registry signatures\n\n43 packages have verified attestations\n\n",
+      "normalization": "remove terminal blank lines for git diff --check"
+    },
+    {
+      "file": "replay.log",
+      "rawSha256": "ea7f5910551a4e4927bb4390baf65ab0a05ae135daaf9aaef60cf11a538c376b",
+      "rawText": "\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code\n\n \u276f packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts (6 tests | 2 failed) 552ms\n     \u00d7 minimized disposal replay: async function f(){await using r={async [Symbol.asyncDispose](){}}}await f();return 1 156ms\n     \u00d7 minimized disposal replay: async function f(){await using r={[Symbol.asyncDispose](){}}}await f();return 1 72ms\n     \u2713 minimized disposal replay: async function f(){await 0}await f();return 1 115ms\n     \u2713 minimized disposal replay: await using r={async [Symbol.asyncDispose](){}};return 1 138ms\n     \u2713 minimal source-module admission and legacy neighbor 43ms\n   \u2713 minimized host cancellation contract 27ms\n\n Test Files  1 failed (1)\n      Tests  2 failed | 4 passed (6)\n   Start at  09:42:53\n   Duration  3.75s (transform 2.41s, setup 79ms, import 2.98s, tests 552ms, environment 0ms)\n\nFAIL packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts > pending disposal qualification > minimized disposal replay: async function f(){await using r={async [Symbol.asyncDispose](){}}}await f();return 1\nSnapshotValidationError: Invalid snapshot at $.heap[\"924\"]: Expected a guest heap array.\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\nSerialized Error: { code: 'invalidValue', path: '$.heap[\"924\"]' }\nFAIL packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts > pending disposal qualification > minimized disposal replay: async function f(){await using r={[Symbol.asyncDispose](){}}}await f();return 1\nSnapshotValidationError: Invalid snapshot at $.heap[\"920\"]: Wrong guest heap reference kind.\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\nSerialized Error: { code: 'invalidValue', path: '$.heap[\"920\"]' }\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 2 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts > pending disposal qualification > minimized disposal replay: async function f(){await using r={async [Symbol.asyncDispose](){}}}await f();return 1\nSnapshotValidationError: Invalid snapshot at $.heap[\"924\"]: Expected a guest heap array.\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/2]\u23af\n\n FAIL  packages/safe-js/test/adversarial/generated-interactions-counterexamples.test.ts > pending disposal qualification > minimized disposal replay: async function f(){await using r={[Symbol.asyncDispose](){}}}await f();return 1\nSnapshotValidationError: Invalid snapshot at $.heap[\"920\"]: Wrong guest heap reference kind.\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[2/2]\u23af\n\n",
+      "normalization": "remove terminal blank lines for git diff --check"
+    },
+    {
+      "file": "workflow-lint.log",
+      "rawSha256": "d60606c8e57c7a5fdc2875788738a6d0acd9220082feab11747179a33f2bfebc",
+      "rawText": "\n> poe-code@0.0.0-dev lint:workflows\n> (command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)\n\n",
+      "normalization": "remove terminal blank lines for git diff --check"
+    }
+  ]
+}

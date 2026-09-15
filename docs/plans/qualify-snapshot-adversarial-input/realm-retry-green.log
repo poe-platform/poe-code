@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts (2 tests | 1 failed) 149ms
+   ✓ preserves an existing realm when restoration rejects reuse of its intrinsic budget 84ms
+   × releases partially mutated intrinsics so a failed fresh budget can retry restoration 64ms
+FAIL packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts > releases partially mutated intrinsics so a failed fresh budget can retry restoration
+AssertionError: expected 4 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 4
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:51:41
+     49|     expect(Object.getOwnPropertyDescriptors(original)).toEqual(before);
+     50|     expect.soft([...budget.retainedValues()]).toEqual([]);
+     51|     expect.soft(budget.currentDataSize).toBe(0);
+       |                                         ^
+     52|     expect.soft(() => restore(saved, { source, budget })).not.toThrow(…
+     53|     expect(resolveIntrinsicIdentity(budget, '["Number","prototype"]'))…
+
+ ✓ packages/safe-js/src/snapshot/mixed-realm-intrinsics.test.ts (5 tests) 616ms
+ ✓ packages/safe-js/src/snapshot/finalization-registry.test.ts (7 tests) 503ms
+ ✓ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts (36 tests) 234ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts > releases partially mutated intrinsics so a failed fresh budget can retry restoration
+AssertionError: expected 4 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 4
+
+ ❯ packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts:51:41
+     49|     expect(Object.getOwnPropertyDescriptors(original)).toEqual(before);
+     50|     expect.soft([...budget.retainedValues()]).toEqual([]);
+     51|     expect.soft(budget.currentDataSize).toBe(0);
+       |                                         ^
+     52|     expect.soft(() => restore(saved, { source, budget })).not.toThrow(…
+     53|     expect(resolveIntrinsicIdentity(budget, '["Number","prototype"]'))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 49 passed (50)
+   Start at  08:14:06
+   Duration  3.15s (transform 2.73s, setup 84ms, import 4.22s, tests 1.50s, environment 0ms)
+

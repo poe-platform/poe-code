@@ -1,0 +1,63 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts (28 tests | 1 failed) 198ms
+     ✓ rejects restore, inspection, migration and execution before host effects 6ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 2ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 2ms
+     ✓ rejects restore, inspection, migration and execution before host effects 0ms
+     ✓ rejects restore, inspection, migration and execution before host effects 2ms
+     ✓ rejects restore, inspection, migration and execution before host effects 1ms
+     ✓ rejects restore, inspection, migration and execution before host effects 14ms
+     × rejects restore, inspection, migration and execution before host effects 2ms
+   ✓ accepts the neighboring valid record and invokes only its explicit authority 42ms
+   ✓ accepts explicit version 1 legacy scalar records 0ms
+   ✓ accepts explicit version 2 legacy scalar records 0ms
+   ✓ accepts the documented resume semantics jobs-v6 0ms
+   ✓ accepts the documented resume semantics jobs-v7 0ms
+   ✓ accepts the documented resume semantics jobs-v8 0ms
+   ✓ accepts the documented resume semantics jobs-v9 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v1 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v5 0ms
+   ✓ gives actionable unsupported-resume diagnostics for jobs-v999 0ms
+   ✓ preserves current public snapshot graph identity on replay 117ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"forged"},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"ref","id":99},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"number","value":"invalid"},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"capability","id":""},"nodes":[]} 0ms
+   ✓ rejects malformed replay atoms without capability lookup: {"root":{"tag":"promise-capability","id":7},"nodes":[]} 0ms
+FAIL packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > public malformed snapshot: foreign prototype > rejects restore, inspection, migration and execution before host effects
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:32:49
+     30|     mutate(snapshot);
+     31|     const effect = vi.fn(() => 7);
+     32|     expect(() => restore(snapshot, { source })).toThrow();
+       |                                                 ^
+     33|     expect(() => inspectSnapshotMigration(snapshot, { source })).toThr…
+     34|     expect(() => migrateSnapshot(snapshot, { source, targetSource: "re…
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts > public malformed snapshot: foreign prototype > rejects restore, inspection, migration and execution before host effects
+AssertionError: expected [Function] to throw an error
+ ❯ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts:32:49
+     30|     mutate(snapshot);
+     31|     const effect = vi.fn(() => 7);
+     32|     expect(() => restore(snapshot, { source })).toThrow();
+       |                                                 ^
+     33|     expect(() => inspectSnapshotMigration(snapshot, { source })).toThr…
+     34|     expect(() => migrateSnapshot(snapshot, { source, targetSource: "re…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 27 passed (28)
+   Start at  08:06:31
+   Duration  2.20s (transform 1.51s, setup 36ms, import 1.89s, tests 198ms, environment 0ms)
+

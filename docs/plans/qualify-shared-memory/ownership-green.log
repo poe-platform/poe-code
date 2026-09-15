@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts (2 tests) 125ms
+ ✓ packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts (16 tests) 527ms
+ ✓ packages/safe-js/src/interp/atomic-wait.test.ts (9 tests) 163ms
+
+ Test Files  3 passed (3)
+      Tests  27 passed (27)
+   Start at  23:09:20
+   Duration  2.74s (transform 2.96s, setup 82ms, import 4.09s, tests 816ms, environment 0ms)
+

@@ -1,0 +1,83 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts (31 tests) 247ms
+ ❯ packages/safe-js/src/restore.test.ts (36 tests | 1 failed) 71ms
+     ✓ rejects invalid scalar state before reading the heap: {"clock":{"next":-1}} 2ms
+     ✓ rejects invalid scalar state before reading the heap: {"random":{"seed":1,"state":-1}} 1ms
+     ✓ rejects scalar accessor clock without invoking it 1ms
+     ✓ rejects scalar accessor random without invoking it 0ms
+     ✓ rejects scalar accessor next without invoking it 0ms
+     ✓ rejects scalar accessor seed without invoking it 0ms
+     ✓ rejects scalar accessor state without invoking it 0ms
+     ✓ rejects scalar accessor initialState without invoking it 0ms
+     ✓ rejects scalar accessor resumeState without invoking it 1ms
+     ✓ rejects a proxy prototype without invoking its has trap 0ms
+     ✓ rejects payload accessors before they can mutate clock scalar state 0ms
+     ✓ rejects payload accessors before they can mutate random scalar state 0ms
+     ✓ rejects inherited scalar accessor clock without invoking it 0ms
+     ✓ rejects inherited scalar accessor initialState without invoking it 0ms
+     ✓ valid scalar state does not bypass payload validation: case 0 2ms
+     ✓ valid scalar state does not bypass payload validation: case 1 0ms
+     × does not transfer runtime snapshot trust to a copied envelope 55ms
+     ✓ rejects an execution-semantics accessor without evaluating it 0ms
+     ✓ accepts snapshots whose source hash matches the current source 0ms
+     ✓ accepts ordinary objects with a kind field 0ms
+     ✓ accepts formatting and raw literal changes outside function source 2ms
+     ✓ rejects raw literal changes observable through function toString 1ms
+     ✓ rejects snapshots when the source hash no longer matches 0ms
+     ✓ rejects snapshots when the parsed structure changes despite similar source 0ms
+     ✓ rejects malformed dump envelopes: missing version 0ms
+     ✓ rejects malformed dump envelopes: unknown version 0ms
+     ✓ rejects malformed dump envelopes: missing hash 0ms
+     ✓ rejects malformed dump envelopes: unsafe clock cursor 0ms
+     ✓ rejects malformed dump envelopes: unsupported value 0ms
+     ✓ rejects malformed dump envelopes: negative clock count 0ms
+     ✓ rejects malformed dump envelopes: non-finite loop cursor 0ms
+     ✓ rejects malformed dump envelopes: negative collection cursor 0ms
+     ✓ rejects malformed dump envelopes: dangling heap reference 0ms
+     ✓ rejects malformed dump envelopes: invalid heap tag 0ms
+     ✓ rejects malformed dump envelopes: malformed heap array 0ms
+     ✓ does not expose host stack frames 0ms
+FAIL packages/safe-js/src/restore.test.ts > restore > does not transfer runtime snapshot trust to a copied envelope
+AssertionError: expected [Function] to throw error including 'cannot be restored' but got 'Invalid snapshot at $.bindings.eval: …'
+
+Expected: "cannot be restored"
+Received: "Invalid snapshot at $.bindings.eval: snapshot data must not have symbol properties"
+
+ ❯ packages/safe-js/src/restore.test.ts:83:63
+     81|     const result = await run(source, { bindings: { host: () => 1 } });
+     82|     expect(restore(result.snapshot, { source })).toBe(result.snapshot);
+     83|     expect(() => restore({ ...result.snapshot }, { source })).toThrow(…
+       |                                                               ^
+     84|   });
+     85|
+
+ ✓ packages/safe-js/src/snapshot/obj-002-validation.test.ts (17 tests) 30ms
+ ✓ packages/safe-js/src/snapshot/dump-readiness.test.ts (2 tests) 5ms
+ ✓ packages/safe-js/src/migrate.test.ts (31 tests) 4382ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/restore.test.ts > restore > does not transfer runtime snapshot trust to a copied envelope
+AssertionError: expected [Function] to throw error including 'cannot be restored' but got 'Invalid snapshot at $.bindings.eval: …'
+
+Expected: "cannot be restored"
+Received: "Invalid snapshot at $.bindings.eval: snapshot data must not have symbol properties"
+
+ ❯ packages/safe-js/src/restore.test.ts:83:63
+     81|     const result = await run(source, { bindings: { host: () => 1 } });
+     82|     expect(restore(result.snapshot, { source })).toBe(result.snapshot);
+     83|     expect(() => restore({ ...result.snapshot }, { source })).toThrow(…
+       |                                                               ^
+     84|   });
+     85|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 116 passed (117)
+   Start at  08:08:37
+   Duration  6.57s (transform 3.26s, setup 102ms, import 5.24s, tests 4.74s, environment 0ms)
+

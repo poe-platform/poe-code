@@ -1,0 +1,74 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts (2 tests | 2 failed) 55ms
+   × rolls back a partially activated queue while its owner remains live (BigInt: false) 38ms
+   × rolls back a partially activated queue while its owner remains live (BigInt: true) 17ms
+FAIL packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts > rolls back a partially activated queue while its owner remains live (BigInt: false)
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:54:45
+     52|     expect(runResources.getStore()!.signal.aborted).toBe(false);
+     53|     const restoredView = restored.currentScope.lookup("view").value as…
+     54|     expect(Atomics.notify(restoredView, 0)).toBe(0);
+       |                                             ^
+     55|     expect(Atomics.notify(restoredView, 1)).toBe(0);
+     56|     expect(schedule.terminated).toBe(1);
+ ❯ Module.withRunResources packages/safe-js/src/interp/resources.ts:57:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:37:3
+
+FAIL packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts > rolls back a partially activated queue while its owner remains live (BigInt: true)
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:54:45
+     52|     expect(runResources.getStore()!.signal.aborted).toBe(false);
+     53|     const restoredView = restored.currentScope.lookup("view").value as…
+     54|     expect(Atomics.notify(restoredView, 0)).toBe(0);
+       |                                             ^
+     55|     expect(Atomics.notify(restoredView, 1)).toBe(0);
+     56|     expect(schedule.terminated).toBe(1);
+ ❯ Module.withRunResources packages/safe-js/src/interp/resources.ts:57:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:37:3
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts > rolls back a partially activated queue while its owner remains live (BigInt: false)
+ FAIL  packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts > rolls back a partially activated queue while its owner remains live (BigInt: true)
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:54:45
+     52|     expect(runResources.getStore()!.signal.aborted).toBe(false);
+     53|     const restoredView = restored.currentScope.lookup("view").value as…
+     54|     expect(Atomics.notify(restoredView, 0)).toBe(0);
+       |                                             ^
+     55|     expect(Atomics.notify(restoredView, 1)).toBe(0);
+     56|     expect(schedule.terminated).toBe(1);
+ ❯ Module.withRunResources packages/safe-js/src/interp/resources.ts:57:14
+ ❯ packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts:37:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  00:10:09
+   Duration  1.72s (transform 1.22s, setup 30ms, import 1.56s, tests 55ms, environment 0ms)

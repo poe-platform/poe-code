@@ -1,0 +1,41 @@
+
+> poe-code@0.0.0-dev lint
+> npm run lint:eslint && npm run lint:types && npm run lint:workflows
+
+
+> poe-code@0.0.0-dev lint:eslint
+> node --max-old-space-size=1024 scripts/lint-eslint.mjs
+
+{"complete":true,"exitCode":0,"errorCount":0,"warningCount":0,"scope":{"configured":11637,"linted":11637,"ignored":2041,"unconfigured":47133,"ignoredDirectories":195,"heldExcluded":5},"receiptCount":25,"directoryCount":7298}
+
+> poe-code@0.0.0-dev lint:types
+> tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client
+
+
+> @poe-code/safe-js@0.0.1 typecheck:contracts
+> node scripts/check-fs-type-contract.mjs
+
+Checking NodeNext Node-only: 25 cases
+NodeNext Node-only: 25 cases passed in 581.2ms
+Checking NodeNext DOM: 25 cases
+NodeNext DOM: 25 cases passed in 943.8ms
+Checking Bundler Node-only: 25 cases
+Bundler Node-only: 25 cases passed in 471.5ms
+Checking Bundler DOM: 25 cases
+Bundler DOM: 25 cases passed in 692.9ms
+
+> tiny-mcp-client@0.1.0 typecheck:contracts
+> node scripts/check-http-headers-type-contract.mjs
+
+Checking NodeNext Node-only: 9 cases
+NodeNext Node-only: 9 cases passed in 580.4ms
+Checking NodeNext DOM: 9 cases
+NodeNext DOM: 9 cases passed in 585.9ms
+Checking Bundler Node-only: 9 cases
+Bundler Node-only: 9 cases passed in 306.1ms
+Checking Bundler DOM: 9 cases
+Bundler DOM: 9 cases passed in 498.6ms
+
+> poe-code@0.0.0-dev lint:workflows
+> (command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)
+

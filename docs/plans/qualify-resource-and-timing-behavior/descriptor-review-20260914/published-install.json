@@ -1,0 +1,15 @@
+{
+  "command": [
+    "npm",
+    "install",
+    "--prefix",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-published-resource-4wb676kb",
+    "--no-audit",
+    "--no-fund",
+    "@poe-platform/safe-js@0.1.603"
+  ],
+  "exit": 0,
+  "seconds": 1.6732048988342285,
+  "stdout": "\nadded 15 packages in 2s\n",
+  "stderr": ""
+}

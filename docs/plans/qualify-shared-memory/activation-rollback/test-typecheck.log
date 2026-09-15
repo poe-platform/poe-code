@@ -1,0 +1,110 @@
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(31,51): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typedArray: BigInt64Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'Int32Array<ArrayBufferLike> | BigInt64Array<ArrayBufferLike>' is not assignable to parameter of type 'BigInt64Array<ArrayBufferLike>'.
+      Type 'Int32Array<ArrayBufferLike>' is not assignable to type 'BigInt64Array<ArrayBufferLike>'.
+        The types returned by 'entries()' are incompatible between these types.
+          Type 'ArrayIterator<[number, number]>' is not assignable to type 'ArrayIterator<[number, bigint]>'.
+            Type '[number, number]' is not assignable to type '[number, bigint]'.
+              Type at position 1 in source is not compatible with type at position 1 in target.
+                Type 'number' is not assignable to type 'bigint'.
+  Overload 2 of 2, '(typedArray: Int32Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'Int32Array<ArrayBufferLike> | BigInt64Array<ArrayBufferLike>' is not assignable to parameter of type 'Int32Array<ArrayBufferLike>'.
+      Type 'BigInt64Array<ArrayBufferLike>' is not assignable to type 'Int32Array<ArrayBufferLike>'.
+        Types of property 'every' are incompatible.
+          Type '(predicate: (value: bigint, index: number, array: BigInt64Array<ArrayBufferLike>) => boolean, thisArg?: any) => boolean' is not assignable to type '(predicate: (value: number, index: number, array: Int32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean'.
+            Types of parameters 'predicate' and 'predicate' are incompatible.
+              Types of parameters 'value' and 'value' are incompatible.
+                Type 'bigint' is not assignable to type 'number'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(48,41): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | SandboxObject | Date | BigInt64Array<ArrayBuffer> | DataView<ArrayBufferLike> | ... 7 more ... | SandboxPromise'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(49,42): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | SandboxObject | Date | BigInt64Array<ArrayBuffer> | DataView<ArrayBufferLike> | ... 7 more ... | SandboxPromise'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(52,65): error TS2322: Type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to type 'RuntimeSnapshotValue'.
+  Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'RuntimeSnapshotValue'.
+    Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'SandboxRegex | Date | BigInt64Array<ArrayBuffer> | SandboxClosure | SandboxGenerator | ... 10 more ... | { ...; }'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBuffer>'.
+        Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+          Types of property '[Symbol.toStringTag]' are incompatible.
+            Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(60,66): error TS2339: Property 'value' does not exist on type 'ScopeLookupResult'.
+  Property 'value' does not exist on type '{ found: false; }'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(73,63): error TS2339: Property 'value' does not exist on type 'ScopeLookupResult'.
+  Property 'value' does not exist on type '{ found: false; }'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(74,27): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typedArray: BigInt64Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'BigInt64Array<ArrayBufferLike>'.
+      Type 'Int32Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBufferLike>'.
+        The types returned by 'entries()' are incompatible between these types.
+          Type 'ArrayIterator<[number, number]>' is not assignable to type 'ArrayIterator<[number, bigint]>'.
+            Type '[number, number]' is not assignable to type '[number, bigint]'.
+              Type at position 1 in source is not compatible with type at position 1 in target.
+                Type 'number' is not assignable to type 'bigint'.
+  Overload 2 of 2, '(typedArray: Int32Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'Int32Array<ArrayBufferLike>'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'Int32Array<ArrayBufferLike>'.
+        Types of property 'every' are incompatible.
+          Type '(predicate: (value: bigint, index: number, array: BigInt64Array<SharedArrayBuffer>) => boolean, thisArg?: any) => boolean' is not assignable to type '(predicate: (value: number, index: number, array: Int32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean'.
+            Types of parameters 'predicate' and 'predicate' are incompatible.
+              Types of parameters 'value' and 'value' are incompatible.
+                Type 'bigint' is not assignable to type 'number'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(75,27): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typedArray: BigInt64Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'BigInt64Array<ArrayBufferLike>'.
+      Type 'Int32Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBufferLike>'.
+        The types returned by 'entries()' are incompatible between these types.
+          Type 'ArrayIterator<[number, number]>' is not assignable to type 'ArrayIterator<[number, bigint]>'.
+            Type '[number, number]' is not assignable to type '[number, bigint]'.
+              Type at position 1 in source is not compatible with type at position 1 in target.
+                Type 'number' is not assignable to type 'bigint'.
+  Overload 2 of 2, '(typedArray: Int32Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'Int32Array<ArrayBufferLike>'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'Int32Array<ArrayBufferLike>'.
+        Types of property 'every' are incompatible.
+          Type '(predicate: (value: bigint, index: number, array: BigInt64Array<SharedArrayBuffer>) => boolean, thisArg?: any) => boolean' is not assignable to type '(predicate: (value: number, index: number, array: Int32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean'.
+            Types of parameters 'predicate' and 'predicate' are incompatible.
+              Types of parameters 'value' and 'value' are incompatible.
+                Type 'bigint' is not assignable to type 'number'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(81,27): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typedArray: BigInt64Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'BigInt64Array<ArrayBufferLike>'.
+      Type 'Int32Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBufferLike>'.
+        The types returned by 'entries()' are incompatible between these types.
+          Type 'ArrayIterator<[number, number]>' is not assignable to type 'ArrayIterator<[number, bigint]>'.
+            Type '[number, number]' is not assignable to type '[number, bigint]'.
+              Type at position 1 in source is not compatible with type at position 1 in target.
+                Type 'number' is not assignable to type 'bigint'.
+  Overload 2 of 2, '(typedArray: Int32Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'Int32Array<ArrayBufferLike>'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'Int32Array<ArrayBufferLike>'.
+        Types of property 'every' are incompatible.
+          Type '(predicate: (value: bigint, index: number, array: BigInt64Array<SharedArrayBuffer>) => boolean, thisArg?: any) => boolean' is not assignable to type '(predicate: (value: number, index: number, array: Int32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean'.
+            Types of parameters 'predicate' and 'predicate' are incompatible.
+              Types of parameters 'value' and 'value' are incompatible.
+                Type 'bigint' is not assignable to type 'number'.
+packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts(82,27): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typedArray: BigInt64Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'BigInt64Array<ArrayBufferLike>'.
+      Type 'Int32Array<SharedArrayBuffer>' is not assignable to type 'BigInt64Array<ArrayBufferLike>'.
+        The types returned by 'entries()' are incompatible between these types.
+          Type 'ArrayIterator<[number, number]>' is not assignable to type 'ArrayIterator<[number, bigint]>'.
+            Type '[number, number]' is not assignable to type '[number, bigint]'.
+              Type at position 1 in source is not compatible with type at position 1 in target.
+                Type 'number' is not assignable to type 'bigint'.
+  Overload 2 of 2, '(typedArray: Int32Array<ArrayBufferLike>, index: number, count?: number | undefined): number', gave the following error.
+    Argument of type 'BigInt64Array<SharedArrayBuffer> | Int32Array<SharedArrayBuffer>' is not assignable to parameter of type 'Int32Array<ArrayBufferLike>'.
+      Type 'BigInt64Array<SharedArrayBuffer>' is not assignable to type 'Int32Array<ArrayBufferLike>'.
+        Types of property 'every' are incompatible.
+          Type '(predicate: (value: bigint, index: number, array: BigInt64Array<SharedArrayBuffer>) => boolean, thisArg?: any) => boolean' is not assignable to type '(predicate: (value: number, index: number, array: Int32Array<ArrayBufferLike>) => unknown, thisArg?: any) => boolean'.
+            Types of parameters 'predicate' and 'predicate' are incompatible.
+              Types of parameters 'value' and 'value' are incompatible.
+                Type 'bigint' is not assignable to type 'number'.

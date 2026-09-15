@@ -1,0 +1,1661 @@
+{
+  "complete": true,
+  "counts": {
+    "passed": 730,
+    "failed": 18,
+    "unsupported": 238
+  },
+  "failures": [
+    {
+      "filename": "built-ins/Atomics/add/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/add/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/and/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/and/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/compareExchange/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/compareExchange/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/exchange/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/exchange/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/immutable-buffer-returns-0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/notify/immutable-buffer-returns-0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/or/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/or/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/store/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/store/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/sub/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/sub/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/xor/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    },
+    {
+      "filename": "built-ins/Atomics/xor/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      }
+    }
+  ],
+  "unsupported": [
+    {
+      "filename": "built-ins/Atomics/notify/bigint/notify-all-on-loc.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/bigint/notify-all-on-loc.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-missing.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-missing.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-undefined.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/count-defaults-to-infinity-undefined.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/negative-count.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/negative-count.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all-on-loc.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all-on-loc.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-all.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order-one-time.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order-one-time.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-in-order.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-nan.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-nan.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-one.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-one.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-renotify-noop.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-renotify-noop.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-two.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-two.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-agents-waiting.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-agents-waiting.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-matching-agents-waiting.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-with-no-matching-agents-waiting.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-zero.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/notify-zero.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/undefined-index-defaults-to-zero.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/undefined-index-defaults-to-zero.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/false-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/nan-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/nan-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/negative-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/value-not-equal.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/value-not-equal.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/bigint/was-woken-before-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/false-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/good-views.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/good-views.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/nan-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/nan-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/negative-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/null-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/object-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/true-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-index-defaults-to-zero.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/undefined-index-defaults-to-zero.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/value-not-equal.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/value-not-equal.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/wait-index-value-not-equal.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/wait-index-value-not-equal.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/waiterlist-order-of-operations-is-fifo.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/wait/was-woken-before-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/false-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/good-views.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/good-views.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/nan-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/nan-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/negative-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/null-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/object-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/true-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-index-defaults-to-zero-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/undefined-index-defaults-to-zero-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/value-not-equal-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/value-not-equal-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/bigint/was-woken-before-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/false-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/false-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/good-views.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/good-views.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/nan-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/nan-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/negative-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/negative-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-no-operation.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-no-operation.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-add.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-add.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-and.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-and.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-compareExchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-exchange.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-exchange.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-or.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-or.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-store.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-store.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-sub.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-sub.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-xor.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/no-spurious-wakeup-on-xor.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/null-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/null-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/object-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/object-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/poisoned-object-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/returns-result-object-value-is-promise-resolves-to-timed-out.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/returns-result-object-value-is-promise-resolves-to-timed-out.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-index-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-index-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-timeout-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-timeout-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-value-throws-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/symbol-for-value-throws-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/true-for-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-for-timeout-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-for-timeout-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-index-defaults-to-zero-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/undefined-index-defaults-to-zero-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/value-not-equal-agent.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/value-not-equal-agent.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/waiterlist-block-indexedposition-wake.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/waiterlist-block-indexedposition-wake.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/was-woken-before-timeout.js",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "agent"
+    },
+    {
+      "filename": "built-ins/Atomics/waitAsync/was-woken-before-timeout.js",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "agent"
+    }
+  ],
+  "corpusRevision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "interpretingSha256": "d1aa6662ea899cc0594dc48e7424c586e557ec2dba55768834ef62d3c5660f41",
+  "head": "e044be891151cf6f4b3ff20eaaf8838b687e3869",
+  "sourceHash": "5215cd4557d06e921fa44ebc24b4e6c9064228a4577efcaff31243f4725c44e5",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "command": [
+    "--corpus",
+    "/tmp/qualify-shared-memory-test262",
+    "--include",
+    "built-ins/SharedArrayBuffer",
+    "--include",
+    "built-ins/Atomics",
+    "--timeout-ms",
+    "3000",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/qualify-shared-memory/upstream-v3.jsonl"
+  ]
+}

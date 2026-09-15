@@ -34,3 +34,12 @@ it("preserves nested JSON values and shared references without treating them as 
   await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
   expect(await server.handleMessage("tools/call", { name: "json" })).toMatchObject({ result: { structuredContent } });
 });
+
+it.each([undefined, BigInt(1)])("reports invalid declared structured outputs as protocol errors %s", async (value) => {
+  const server = createServer({ name: "results", version: "1" }).registerTool(
+    { name: "json", inputSchema: defineSchema({}), outputSchema: defineSchema({ values: { type: "array", items: { type: "string" } } }) },
+    () => ({ content: [], structuredContent: { values: [value] } })
+  );
+  await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+  expect(await server.handleMessage("tools/call", { name: "json" })).toMatchObject({ error: { code: -32603 } });
+});

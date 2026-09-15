@@ -1329,6 +1329,7 @@ function normalizeToolResult(
   modern: boolean
 ): CallToolResult {
   if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult, modern)) {
+    if (outputSchema !== undefined) throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, "Invalid tool result");
     throw new Error("Invalid tool result");
   }
 

@@ -51,9 +51,17 @@ operands. Empty lines are ignored; trailing carriage returns are removed, while
 spaces, tabs and leading dashes are preserved. An unterminated final line is
 accepted. Repeated `-@` flags consume stdin once. Filename input is bounded by
 `maxFilesFromBytes`, with the usual combined operand, path and work limits.
-The input stream is owned and drained before cancellation settlement. This option
-reads filename lists; stdin file payloads and stdout archives remain separate
-streaming work.
+The input stream is owned and drained before cancellation settlement.
+
+`zip ARCHIVE -` stores stdin's binary payload as member `-`. Repeated stdin
+operands consume it once; excluded stdin members do not acquire the input iterator.
+Filename-list input and payload input share one owned iterator, so a completed
+`-@` list leaves EOF for any subsequent payload. Payload input is bounded by
+`maxEntryBytes` and the remaining aggregate payload budget. Pipe-mode Unix
+metadata is preserved; extraction creates a regular file with the payload and
+permission bits, matching native UnZip rather than creating a FIFO. Invocation
+cancellation drains admitted input reads before settlement. Stdout archives and
+default filter-mode invocation remain streaming implementation work.
 
 `-u` updates existing members only when the source has a newer whole-second
 modification time, and adds new members. `-f` freshens only existing newer members.

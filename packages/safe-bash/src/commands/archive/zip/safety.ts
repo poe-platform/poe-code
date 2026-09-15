@@ -10,6 +10,7 @@ export class ZipScope {
   private readonly closedReason = new Error("ZIP command is closed");
   private drain: Promise<void> | undefined;
   private work = 0;
+  private stdinSource: ByteSource | undefined;
   constructor(private readonly original: CommandContext, readonly limits: ArchiveLimits) {
     this.context = { ...original, signal: AbortSignal.any([original.signal, this.controller.signal]) };
     original.registerCleanup?.(this.close);
@@ -45,6 +46,9 @@ export class ZipScope {
       if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") return undefined;
       throw error;
     }
+  }
+  get stdin(): ByteSource {
+    return this.stdinSource ??= this.source(this.original.stdin);
   }
   source(source: ByteSource): ByteSource {
     const iterator = source[Symbol.asyncIterator]();

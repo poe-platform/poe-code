@@ -157,7 +157,8 @@ function entryBounds(entry: ZipEntry, limits: ArchiveLimits): void {
   format(entry.method, entry.flags ?? 0x800, entry.method === 8 || (entry.flags ?? 0) & 8 ? 20 : 10);
   if (entry.directory !== entry.name.endsWith("/") || entry.directory && (entry.symlink || entry.size !== 0)) fail("ZIP inconsistent directory metadata");
   const type = entry.mode & 0o170000;
-  if (type !== 0 && type !== (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000)) fail("ZIP unsupported or conflicting file type");
+  const pipePayload = !entry.directory && !entry.symlink && type === 0o010000;
+  if (type !== 0 && !pipePayload && type !== (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000)) fail("ZIP unsupported or conflicting file type");
   if (!Number.isFinite(entry.modified.getTime())) fail("ZIP invalid modification time");
 }
 
@@ -460,7 +461,8 @@ export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits
     view.setUint16(central + 30, centralExtra.length, true);
     view.setUint16(central + 32, comment.length, true);
     view.setUint16(central + 36, entry.internalAttributes ?? 0, true);
-    view.setUint32(central + 38, entry.externalAttributes ?? ((entry.mode | (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000)) * 65536 + (entry.directory ? 16 : 0)), true);
+    const mode = entry.mode & 0o170000 ? entry.mode : entry.mode | (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000);
+    view.setUint32(central + 38, entry.externalAttributes ?? (mode * 65536 + (entry.directory ? 16 : 0)), true);
     view.setUint32(central + 42, offset, true);
     bytes.set(rawName, central + 46);
     bytes.set(centralExtra, central + 46 + rawName.length);

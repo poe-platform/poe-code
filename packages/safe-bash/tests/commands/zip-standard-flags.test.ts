@@ -12,6 +12,97 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip stdin payload preserves binary bytes and pipe metadata", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qT", "output.zip", "-"], {}, { stdin: toByteSource(binary) });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => [entry.name, entry.mode]), [["-", 0o010660]]);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, binary);
+  const extracted = await execute("unzip", fs, ["-o", "output.zip"]);
+  assert.equal(extracted.exitCode, 0, extracted.stdout.toString() + extracted.stderr);
+  assert.equal((await fs.stat("/work/-")).type, "file");
+  assert.deepEqual(Buffer.from(await fs.readFile("/work/-")), binary);
+});
+
+test("zip duplicate stdin operands consume one iterator once", async () => {
+  const fs = await fixture();
+  let iterators = 0;
+  const result = await execute("zip", fs, ["-q", "output.zip", "-", "-"], {}, {
+    stdin: { async *[Symbol.asyncIterator]() { iterators++; yield compressed; } },
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  assert.equal(iterators, 1);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, compressed);
+});
+
+test("zip stdin colliding with a literal dash filename preserves the archive", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/-", binary);
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-q", "sample.zip", "./-", "-"], {}, { stdin: toByteSource(compressed) });
+  assert.equal(result.exitCode, 16);
+  assert.match(result.stdout.toString(), /cannot repeat names/u);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+test("zip excluded stdin payload does not acquire the input iterator", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-q", "output.zip", "-", "binary", "-x", "-"], {}, {
+    stdin: { [Symbol.asyncIterator]() { throw new Error("excluded input acquired"); } },
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, binary);
+});
+
+test("zip stdin filename consumption leaves EOF for a later payload", async () => {
+  const fs = await fixture();
+  let iterators = 0;
+  const result = await execute("zip", fs, ["-q@", "output.zip", "-"], {}, {
+    stdin: { async *[Symbol.asyncIterator]() { iterators++; yield Buffer.from("binary\n"); } },
+  });
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  assert.equal(iterators, 1);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => [entry.name, entry.size]), [["binary", binary.length], ["-", 0]]);
+});
+
+test("zip oversized stdin payload preserves the existing archive", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "small", body: Buffer.from("a") }]));
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-q", "sample.zip", "-"], { limits: { maxEntryBytes: 4 } }, { stdin: toByteSource(binary) });
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes("maxBytes"), result.stderr);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+test("zip stdin payload drains a held read before cancellation settles", async () => {
+  const fs = await fixture();
+  let entered!: () => void;
+  let release!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const controller = new AbortController();
+  let settled = false;
+  let closed = false;
+  const pending = execute("zip", fs, ["-q", "output.zip", "-"], {}, {
+    signal: controller.signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      try { entered(); await held; yield binary; }
+      finally { closed = true; }
+    } },
+  }).then(value => { settled = true; return value; }, reason => { settled = true; return reason; });
+  try {
+    await started;
+    controller.abort(null);
+    await setImmediate();
+    assert.equal(settled, false);
+  } finally { release(); }
+  assert.equal(await pending, null);
+  assert.equal(closed, true);
+  await assert.rejects(fs.stat("/work/output.zip"), { code: "ENOENT" });
+});
+
 for (const { flags, method } of [
   { flags: ["-0", "-9"], method: 0 },
   { flags: ["-Z", "store", "-9"], method: 0 },

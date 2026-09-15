@@ -147,3 +147,19 @@ round trips, unknown/missing method values, disabled bzip2 status 19 and native
 level-zero/DEFLATE status 5 preserving old archive bytes. The current native Unix
 Zip build also lacks bzip2, but adding method-12 format support remains in scope
 for the broader ZIP objective and other enabled native profiles.
+
+## Stdin member payloads
+
+`zip ARCHIVE -` now collects bounded binary stdin into the `-` member through one
+lazily acquired, invocation-owned iterator shared with filename-list consumption.
+Repeated operands do not reacquire input; filtered payloads do not acquire it at
+all. Native pipe mode `010660` is serialized without adding incompatible regular
+type bits. FIFO-mode ZIP payloads are admitted as data and extracted as regular
+files, retaining permission bits and never creating a FIFO. Native Zip/UnZip
+captures validate member naming, repeated operands, pipe metadata and regular-file
+extraction. Seven stdin memory cases cover binary integrity/extraction, duplicates,
+excluded input, EOF after filename lists, bounded rejection preserving an archive
+draining cancellation and a native-validated collision with a literal `./-` source.
+Format and extraction cases also cover FIFO admission
+while continuing to reject device/socket modes. Native stdin ZIP64 records,
+stdout archives and default filter invocation remain in scope and unimplemented.

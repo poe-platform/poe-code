@@ -128,7 +128,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         }
         let path = extraction.member(root, entry.name);
         const fileType = entry.mode & 0o170000;
-        if (fileType && fileType !== 0o100000 && fileType !== 0o040000 && fileType !== 0o120000) fail("unsupported special ZIP entry");
+        if (fileType && fileType !== 0o100000 && fileType !== 0o040000 && fileType !== 0o120000 && fileType !== 0o010000) fail("unsupported special ZIP entry");
         if (path === root && !entry.directory) fail("entry would replace extraction root");
         let shown = parsed.destination === undefined ? entry.name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${entry.name}`;
         await extraction.parents(root, path, true);

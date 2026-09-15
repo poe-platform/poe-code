@@ -146,12 +146,12 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]");
-  if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
+  if (archive === "-") throw new ZipFailure(16, "Invalid command arguments", "standard output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
   const names: string[] = [];
   if (stdinNames) {
-    const input = await collectBytes(scope.source(context.stdin), { maxBytes: limits.maxFilesFromBytes, signal: context.signal });
+    const input = await collectBytes(scope.stdin, { maxBytes: limits.maxFilesFromBytes, signal: context.signal });
     let start = 0;
     let lines = 0;
     for (let end = 0; end <= input.length; end++) {
@@ -245,12 +245,35 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   let visits = 0;
   let work = 0;
   let compressedBytes = 0;
+  const encodeSelected = async (source: string, name: string, bytes: Uint8Array, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">) => {
+    const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
+    if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
+    const level = store ? 0 : parsed.level;
+    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level);
+    const prior = old.get(name);
+    if (prior?.comment) entry = { ...entry, comment: prior.comment };
+    if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
+    compressedBytes += entry.data.length;
+    selected.set(name, { entry, source });
+  };
   const visit = async (source: string, name: string, depth: number): Promise<void> => {
     context.signal.throwIfAborted();
     if (++visits > limits.maxMembers) fail("traversal member limit exceeded");
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
     if (visits % 128 === 0) await yieldTurn(context.signal);
     if (depth > limits.maxDepth) fail("archive recursion depth limit exceeded");
+    if (source === "-") {
+      const previous = selected.get(name);
+      if (previous && previous.source !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
+      if (previous || !await filterName(name, selection, parsed.includes.length)) return;
+      const prior = old.get(name);
+      const modified = new Date();
+      if (parsed.action === "freshen" && !prior || prior && (parsed.action === "update" || parsed.action === "freshen") && Math.floor(modified.getTime() / 1000) <= Math.floor(prior.modified.getTime() / 1000)) return;
+      const bytes = await collectBytes(scope.stdin, { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
+      await budget.member(bytes.length);
+      await encodeSelected(source, name, bytes, { modified, mode: 0o010660, directory: false, symlink: false });
+      return;
+    }
     const path = vfsPath(context.cwd, source);
     checkPath(path, limits);
     let canonical: string;
@@ -299,14 +322,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
         const current = await inspectSource(scope, path, parsed.storeLinks);
         if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
-        const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
-        if (!store && parsed.level === 0 && stat.size && !directory && !symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
-        const level = store ? 0 : parsed.level;
-        let entry = await makeZipEntry(name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, limits, context.signal, level);
-        if (prior?.comment) entry = { ...entry, comment: prior.comment };
-        if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
-        compressedBytes += entry.data.length;
-        selected.set(name, { entry, source });
+        await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink });
       }
     }
     if (directory && parsed.recursive) {

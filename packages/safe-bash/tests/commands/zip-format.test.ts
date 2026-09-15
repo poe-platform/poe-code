@@ -324,12 +324,14 @@ test("ZIP writer rejects truncating or contradictory retained metadata", async (
   ]) await assert.rejects(writeZipArchive({ entries: [invalid], comment: new Uint8Array() }, limits, signal));
 });
 
-test("ZIP accepts deflated empty directories and rejects special-file modes", async () => {
+test("ZIP accepts deflated empty directories and pipe payloads but rejects device/socket modes", async () => {
   const directory = await makeZipEntry("dir/", new Uint8Array(), { ...attributes, directory: true, mode: 0o40755 }, limits, signal);
   const entry = { ...directory, method: 8, data: new Uint8Array(deflateRawSync(new Uint8Array())) };
   const archive = await readZipArchive(await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal), limits, signal);
   assert.equal((await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions)).length, 0);
-  for (const mode of [0o010644, 0o020644, 0o060644, 0o140644]) await assert.rejects(readZipArchive(fixture({ mode }), limits, signal));
+  const pipe = await readZipArchive(fixture({ mode: 0o010644 }), limits, signal);
+  assert.equal(pipe.entries[0]!.mode, 0o010644);
+  for (const mode of [0o020644, 0o060644, 0o140644]) await assert.rejects(readZipArchive(fixture({ mode }), limits, signal));
 });
 
 test("ZIP ignores structurally impossible end signatures inside archive comments", async () => {

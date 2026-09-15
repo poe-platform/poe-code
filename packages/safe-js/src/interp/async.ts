@@ -11,8 +11,8 @@ import { createGeneratorChannel, type GeneratorCompletion } from "./generator.js
 import { startAsyncFunction } from "./async-function-driver.js";
 import { asyncGeneratorDrivers, bindAsyncGeneratorSignal } from "./async-generator-driver.js";
 import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
-import type { Budget } from "./budget.js";
-import type { EvaluationResult } from "./exceptions.js";
+import { isFatalSandboxError, type Budget } from "./budget.js";
+import { createThrowCompletion, type EvaluationResult } from "./exceptions.js";
 import type {
   InterpreterError,
   InterpreterSnapshot,
@@ -333,7 +333,8 @@ export function executeAsyncFunction(
             : allocateProducedSandboxValue(value, budget)
         );
       } catch (error) {
-        reject(error);
+        reject(isFatalSandboxError(error) ? error
+          : createThrowCompletion(error, budget, callContext?.stack ?? []).value);
       } finally {
         completePrefix();
       }

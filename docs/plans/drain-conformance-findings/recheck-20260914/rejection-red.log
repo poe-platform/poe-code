@@ -1,0 +1,95 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts (2 tests | 2 failed) 151ms
+   × preserves guest rejection identity in reactions: get length(){throw reason} 100ms
+   × preserves guest rejection identity in reactions: get [Symbol.asyncIterator](){throw reason} 49ms
+FAIL packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts > preserves guest rejection identity in reactions: get length(){throw reason}
+AssertionError: expected [ [ false, false, false ], true ] to deeply equal [ [ true, true, true ], true ]
+
+- Expected
++ Received
+
+  [
+    [
+-     true,
+-     true,
+-     true,
++     false,
++     false,
++     false,
+    ],
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts:19:32
+     17|     `);
+     18|     assert(result.ok);
+     19|     expect(result.returnValue).toEqual([[true, true, true], true]);
+       |                                ^
+     20|   }
+     21| );
+
+FAIL packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts > preserves guest rejection identity in reactions: get [Symbol.asyncIterator](){throw reason}
+AssertionError: expected [ [ false, false, false ], true ] to deeply equal [ [ true, true, true ], true ]
+
+- Expected
++ Received
+
+  [
+    [
+-     true,
+-     true,
+-     true,
++     false,
++     false,
++     false,
+    ],
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts:19:32
+     17|     `);
+     18|     assert(result.ok);
+     19|     expect(result.returnValue).toEqual([[true, true, true], true]);
+       |                                ^
+     20|   }
+     21| );
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts > preserves guest rejection identity in reactions: get length(){throw reason}
+ FAIL  packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts > preserves guest rejection identity in reactions: get [Symbol.asyncIterator](){throw reason}
+AssertionError: expected [ [ false, false, false ], true ] to deeply equal [ [ true, true, true ], true ]
+
+- Expected
++ Received
+
+  [
+    [
+-     true,
+-     true,
+-     true,
++     false,
++     false,
++     false,
+    ],
+    true,
+  ]
+
+ ❯ packages/safe-js/src/interp/globals/array-from-async-rejection-identity.test.ts:19:32
+     17|     `);
+     18|     assert(result.ok);
+     19|     expect(result.returnValue).toEqual([[true, true, true], true]);
+       |                                ^
+     20|   }
+     21| );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  23:39:12
+   Duration  3.33s (transform 2.35s, setup 61ms, import 2.98s, tests 151ms, environment 0ms)

@@ -1,6 +1,6 @@
 import { getTheme } from "../../internal/theme-detect.js";
 import { ScreenBuffer } from "../buffer.js";
-import { displayWidth, graphemes, graphemeWidth } from "../terminal-width.js";
+import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
 import { computeVisualLines, type VisualLine } from "./output-pane.js";
 
@@ -13,7 +13,23 @@ export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: Dashboa
     return;
   }
 
-  const lines = statsToLines(stats, rect.width);
+  let lines = statsToLines(stats, rect.width);
+  if (lines.length > rect.height) {
+    const actions = stats.currentAction === undefined ? [] : lines.slice(9);
+    const visibleActions = actions.slice(0, Math.max(0, rect.height - 1));
+    if (visibleActions.length > 0 && visibleActions.length < actions.length) {
+      const last = visibleActions[visibleActions.length - 1]!;
+      visibleActions[visibleActions.length - 1] = {
+        ...last,
+        text: truncateToWidth(`${last.text}…`, Math.max(0, rect.width - displayWidth(last.prefix)))
+      };
+    }
+    lines = [
+      lines[0]!,
+      ...visibleActions,
+      ...lines.slice(1, 7).filter((line) => line.prefix.length > 0 || line.text.length > 0)
+    ];
+  }
 
   for (let row = 0; row < rect.height; row += 1) {
     const line = lines[row];

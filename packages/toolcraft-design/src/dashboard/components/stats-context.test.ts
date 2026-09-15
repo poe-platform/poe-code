@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { statsToLines } from "./stats-pane.js";
+import { renderStatsPane, statsToLines } from "./stats-pane.js";
+import { ScreenBuffer } from "../buffer.js";
 import { displayWidth } from "../terminal-width.js";
 import type { DashboardStats } from "../types.js";
 
@@ -12,6 +13,39 @@ const stats: DashboardStats = {
 };
 
 describe("persistent task context", () => {
+  it("keeps the active stage visible ahead of secondary metrics in short panes", () => {
+    const buffer = new ScreenBuffer(40, 3);
+    renderStatsPane(
+      buffer,
+      { x: 0, y: 0, width: 40, height: 3 },
+      {
+        ...stats,
+        currentAction: "Task 2/8 failed (implement)"
+      }
+    );
+    const rows = Array.from({ length: 3 }, (_, y) =>
+      Array.from({ length: 40 }, (_, x) => buffer.get(x, y).ch).join("")
+    );
+    expect(rows[0]).toContain("Running");
+    expect(rows[1]).toContain("Task 2/8 failed (implement)");
+    expect(rows[2]).toContain("Iteration");
+  });
+
+  it("signals when short panes cannot fit the complete current action", () => {
+    const buffer = new ScreenBuffer(15, 2);
+    renderStatsPane(
+      buffer,
+      { x: 0, y: 0, width: 15, height: 2 },
+      {
+        ...stats,
+        currentAction: "Improve streaming output (implement)"
+      }
+    );
+    const row = Array.from({ length: 15 }, (_, x) => buffer.get(x, 1).ch).join("");
+    expect(row).toContain("Improve");
+    expect(row).toContain("…");
+  });
+
   it("wraps long current actions instead of silently discarding the stage", () => {
     const action = "Improve streaming output (implement)";
     for (const width of [15, 25, 32]) {

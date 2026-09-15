@@ -218,3 +218,9 @@ All 235 maintained pipeline tests, touched-file ESLint and selected pipeline bui
 Actual failure summaries counted setup failure as one completed step, review failure as three, and teardown failure as four. Four failing engine assertions covered setup, teardown, intermediate task failure and failed task usage. Both phase and task execution now increment stepsCompleted only after success; reported usage and failed-task counters remain available.
 
 All 235 maintained pipeline tests, 97 CLI/shared tests, touched-file ESLint and selected pipeline build closure passed. Actual isolated failure reruns restored terminals and correctly reported 0/2/3 completed steps for setup/review/teardown failure, with exit 1 and unchanged expected persisted state. Final screenshot inspected. No release or remote delivery performed.
+
+## Phase retry QA
+
+Executed same-plan one-shot failure/retry pairs for setup, review and teardown. All second runs exited zero and finalized completed. Setup retry ran all four executions (five cumulative jobs, 480/180/40 usage). Review retry ran setup, review and teardown without rerunning completed implement (six cumulative jobs, one task run, three completed steps, 360/135/30 usage). Teardown retry ran only teardown (five cumulative jobs, zero task runs, one completed step, 120/45/10). Restored retry screenshot inspected. No retry implementation change was needed.
+
+Current unresolved audit includes session/event transcript retention, slow-consumer line/event queues, pathological terminal input, and remaining manual QA cases. Existing broad npm test/lint failures recorded above are not successful full validation; focused tests and builds for the new fixes pass. Work remains active and local-only.

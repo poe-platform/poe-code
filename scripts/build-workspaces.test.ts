@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastGlob from "fast-glob";
+import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
@@ -244,12 +245,26 @@ describe("workspace graph admission", () => {
 });
 
 describe("finite workspace range matching", () => {
+  it("orders a prepared lockstep release dependency before its consumer", () => {
+    const fileSystem = createFsFromVolume(Volume.fromJSON({
+      "/release/package.json": JSON.stringify({ name: "release-root", private: true, workspaces: ["packages/*"] }),
+      "/release/turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"], outputs: ["dist/**"] } } }),
+      "/release/packages/toolcraft/package.json": JSON.stringify({ name: "toolcraft", version: "0.0.233", scripts: { build: "tsc" }, dependencies: { "toolcraft-schema": "0.0.233" } }),
+      "/release/packages/schema/package.json": JSON.stringify({ name: "toolcraft-schema", version: "0.0.233", scripts: { build: "tsc" } })
+    }));
+    const plan = createWorkspaceBuildPlan("/release", fileSystem);
+    expect(plan.edges).toEqual([{ from: "toolcraft", to: "toolcraft-schema" }]);
+    expect(plan.layers).toEqual([["toolcraft-schema"], ["toolcraft"]]);
+  });
+
   for (const [range, version, expected] of [
     ["*", undefined, true], ["*", "0.0.0-dev", true],
+    ["0.0.233", "0.0.233", true], ["0.0.233", "0.0.234", false],
+    ["1.2.3", "1.2.3", true], ["1.2.3", "1.2.4", false], ["1.2.3", "2.2.3", false],
     ["^1.2.3", "1.2.3", true], ["^1.2.3", "1.9.0", true], ["^1.2.3", "1.2.2", false], ["^1.2.3", "2.0.0", false],
     ["^0.2.3", "0.2.4", true], ["^0.2.3", "0.3.0", false], ["^0.0.3", "0.0.3", true], ["^0.0.3", "0.0.4", false]
   ] as const) it(`${range} versus ${String(version)}`, () => expect(matchesWorkspaceRange(range, version)).toBe(expected));
-  for (const range of ["~1.0.0", "1.0.0", "^1", "^01.0.0", "^1.0.0-beta", "workspace:*", "file:../beta", "^9007199254740992.0.0"]) {
+  for (const range of ["~1.0.0", "01.0.0", "1.0.0-beta", "^1", "^01.0.0", "^1.0.0-beta", "workspace:*", "file:../beta", "^9007199254740992.0.0"]) {
     it(`refuses unsupported ${range}`, () => expect(() => matchesWorkspaceRange(range, "1.0.0")).toThrow());
   }
 });

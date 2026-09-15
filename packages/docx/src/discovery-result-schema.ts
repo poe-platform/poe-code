@@ -403,3 +403,16 @@ export const objectOperationContracts = Object.fromEntries([
   object({ version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema, warnings: array(diagnostic), errors: empty, affected: { const: 0 }, locations: array(location) }),
   object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: id === "objects.extract" ? { oneOf: [{ type: "null" }, object({ ...imageExtractionData.properties, complete: { const: false } })] } : { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: id === "objects.extract" ? array(location) : empty })
 ] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
+
+const archiveExtractionData = object({ outputDir: string, complete: boolean, possiblePartialOutput: boolean,
+  entries: array(object({ path: string, bytes: number, sha256: string, published: boolean })), manifestPublished: boolean });
+export const archiveExtractionContract = {
+  featureIds: ["F50"],
+  description: "Extract admitted archive resources into a new explicit VFS tree, with a relative SHA-256 manifest.",
+  result: { oneOf: [object({ version: { const: 1 }, operation: { const: "extract" }, ok: { const: true },
+    data: object({ ...archiveExtractionData.properties, complete: { const: true }, possiblePartialOutput: { const: false } }),
+    affected: { const: 0 }, locations: empty, warnings: empty, errors: empty }),
+    object({ version: { const: 1 }, operation: { const: "extract" }, ok: { const: false },
+      data: { oneOf: [{ type: "null" }, object({ ...archiveExtractionData.properties, complete: { const: false } })] },
+      affected: { const: 0 }, locations: empty, warnings: empty, errors: { ...array(diagnostic), minItems: 1 } })] } as DocxJsonSchema
+};

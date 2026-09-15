@@ -273,3 +273,12 @@ diff scope/default contract without promoting Document/Package/Part/XmlPart,
 inherited, collection, helper, enum or public underscore-prefixed obligations.
 The pinned inventory and documentation-error dispositions remain historical;
 later tasks and whole-model coverage remain pending.
+
+The [bounded archive extraction record](archive-extraction.md) adds explicit async
+byte/VFS mappings, all/media-only selection, optional pretty XML and conditional
+new-tree publication with truthful partial receipts. It supersedes only the
+unimplemented general extract utility status. Packing remains pending. Package,
+Part/XmlPart, inherited protocols, enums, collections, helpers and public
+underscore-prefixed owners retain their inventoried dispositions; neutral model
+spellings, historical research evidence and documentation-error decisions are
+unchanged. This milestone is not whole-public-API conformance.

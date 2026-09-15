@@ -1,3 +1,4 @@
+import { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";
 import { compareDocument, type DocumentDiffOptions } from "./diff.js";
 import { executeContentRemovalCommand } from "./removal-command.js";
 import { executeObjectsCommand, ObjectCommandPublicationError } from "./objects-command.js";
@@ -65,7 +66,7 @@ export interface DocxInspectionCommandRequest extends DocxCommandRequest {
 }
 export interface DocxInspectionCommandResult {
   readonly exitCode: number;
-  readonly extraction?: ImageExtractionData | ObjectExtractionData;
+  readonly extraction?: ImageExtractionData | ObjectExtractionData | ArchiveExtractionData;
 }
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
@@ -90,8 +91,14 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let writingDiagnostics = false;
       let output: Uint8Array;
       let exitCode = 0;
+      let archiveReceipt: ArchiveExtractionData | undefined;
       let imageReceipt: ImageExtractionData | ObjectExtractionData | undefined;
       const sinkFailure = (cause: unknown): DocxInspectionCommandResult => {
+        if (archiveReceipt) {
+          const extraction = { ...archiveReceipt, complete: false, possiblePartialOutput: archiveReceipt.complete || archiveReceipt.possiblePartialOutput };
+          if (request.signal.aborted || cause instanceof CancellationError) throw new ArchiveExtractionError(cause, extraction, true);
+          return { exitCode: 3, extraction };
+        }
         if (!imageReceipt) { request.signal.throwIfAborted(); return { exitCode: invocation.operation === "diff" ? 2 : 3 }; }
         const extraction = { ...imageReceipt, complete: false };
         if (request.signal.aborted || cause instanceof CancellationError) {
@@ -145,7 +152,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (!shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (invocation.operation !== "extract" && !shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
@@ -169,7 +176,13 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sanitize", "sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "lorem.set", "runs.set", "paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
+        if (invocation.operation === "extract") {
+          const extraction = await extractDocumentArchive(bytes, { ...invocation.options, outputDir: resolvePath(request.cwd, invocation.options.outputDir as string) }, { ...context, filesystem: request.filesystem as FileSystem });
+          archiveReceipt = extraction;
+          const envelope = { version: 1, operation: "extract", ok: true, data: extraction, affected: 0, locations: [], warnings: [], errors: [] };
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify(envelope) + "\n" : `Extracted: ${extraction.entries.length}; complete: true\n`);
+          budget.check("serializedOutput", output.length);
+        } else if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sanitize", "sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "lorem.set", "runs.set", "paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
           output = invocation.operation === "sanitize" ? await executeSanitizeCommand(invocation, bytes, inputIdentity, request, context)
             : signatureOperation ? await executeSignaturesCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation === "settings.list" ? await executeSettingsCommand(invocation, bytes, context)
@@ -277,6 +290,17 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         }
         }
       } catch (error) {
+        if (error instanceof ArchiveExtractionError) {
+          archiveReceipt = error.data;
+          const diagnostic = commandDiagnostic(error.message, error.code, budget.limits.diagnosticBytes);
+          const envelope = { version: 1, operation: "extract", ok: false, data: error.data, affected: 0, locations: [], warnings: [], errors: [{ code: error.code, message: error.message }] };
+          try {
+            if (invocation.options.json) await request.stdout.write(new TextEncoder().encode(JSON.stringify(envelope) + "\n"));
+            await request.stderr.write(new TextEncoder().encode(diagnostic.human));
+          } catch (cause) { return sinkFailure(cause); }
+          if (error.code === "cancelled") throw error;
+          return { exitCode: error.code === "limit-exceeded" ? 4 : error.code === "conflict" ? 1 : 3, extraction: error.data };
+        }
         if (["images.extract", "objects.extract"].includes(invocation.operation) && (error instanceof ImageExtractionCancellationError || error instanceof ObjectExtractionCancellationError)) throw error;
         request.signal.throwIfAborted();
         if (error instanceof CancellationError) throw error;
@@ -299,7 +323,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       } finally { await io.cleanup(); }
       try { if (output.length) await request.stdout.write(output); }
       catch (cause) { return sinkFailure(cause); }
-      return { exitCode };
+      return { exitCode, ...(archiveReceipt ? { extraction: archiveReceipt } : {}) };
     }
   }, { compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes, zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes, xmlPartBytes: limits.maxEntryBytes, xmlDepth: limits.maxDepth });
 }

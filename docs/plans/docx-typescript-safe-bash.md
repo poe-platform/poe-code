@@ -4083,8 +4083,8 @@ tasks:
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
   - id: validated-docx-packing
     title: Reconstruct a DOCX from an explicit virtual directory
     prompt: |

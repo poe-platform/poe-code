@@ -140,6 +140,8 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
       if (border.space && paragraphUnits(border.space, 12700) > 31) reject("Border spacing must round to 0 through 31 points.");
     }
   }
+  if (operation === "extract" && options.allowPartialOutput !== true)
+    reject("Archive extraction requires explicit allow-partial-output consent.");
   if (operation === "sanitize") {
     const revisions = Array.isArray(options.remove) && options.remove.includes("revisions");
     if (revisions !== has("revisionPolicy")) reject("Revision policy is required only when removing revisions.");

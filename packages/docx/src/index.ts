@@ -175,3 +175,5 @@ export { applyDocumentTemplate } from "./template.js";
 export type { DocxTemplateRecord } from "./operation-types.js";
 
 export { compareDocument, type DocumentDiffData, type DocumentDiffOptions, type DocumentDiffScope } from "./diff.js";
+
+export { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";

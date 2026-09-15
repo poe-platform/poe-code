@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
+import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
 import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
 it("ships the optional document API and command with matching portable runtime and type routes", async () => {
@@ -57,6 +58,36 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.setDocumentImageLayout).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentShapes).toBeTypeOf("function");
   expect.soft(runtime.editDocumentShapes).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentCharts).toBeTypeOf("function");
+  if (runtime.inspectDocumentCharts) {
+    const workbook = new Uint8Array([19, 23, 29]);
+    const chartSource = await chartFixture({
+      definitions: [{ name: "word/charts/plot.xml", xml: chartSpace("<c:barChart>" + series("Coastal totals", "12.50") + "</c:barChart>", false, '<c:externalData r:id="values"/>') }],
+      resources: [{ name: "word/embeddings/values.xlsx", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes: workbook }],
+      relationships: [{ owner: "/word/charts/plot.xml", id: "values", type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package", target: "../embeddings/values.xlsx" }]
+    });
+    const chartList = await runtime.inspectDocumentCharts(chartSource, {}, chartContext);
+    expect(chartList.items).toHaveLength(1);
+    expect(chartList.items[0].location.kind).toBe("part");
+    expect(chartList.items[0].details.chartTypes).toEqual(["barChart"]);
+    expect(chartList.items[0].details.series[0].name).toBe("Coastal totals");
+    expect(chartList.items[0].details.series[0].cachedValues).toEqual(["12.50"]);
+    expect(chartList.items[0].details.workbookParts).toEqual(["/word/embeddings/values.xlsx"]);
+    const chartChunks: Uint8Array[] = [];
+    const changed = await runtime.replaceDocumentText(chartSource, { find: "coast", with: "shore", first: true, output: "-" }, {
+      ...chartContext, encoding: { order: "input", compression: "store" },
+      stdout: { async write(bytes: Uint8Array) { chartChunks.push(new Uint8Array(bytes)); } }
+    });
+    expect(changed.changed).toBe(true);
+    const chartOutput = new Uint8Array(Buffer.concat(chartChunks));
+    const beforeChart = await runtime.readDocumentArchive(chartSource, chartContext);
+    const afterChart = await runtime.readDocumentArchive(chartOutput, chartContext);
+    expect(afterChart.members.map((member: { name: string }) => member.name)).toEqual(beforeChart.members.map((member: { name: string }) => member.name));
+    for (const member of beforeChart.members) if (member.name !== "word/document.xml")
+      expect(afterChart.members.find((candidate: { name: string }) => candidate.name === member.name).bytes).toEqual(member.bytes);
+    expect(afterChart.members.find((member: { name: string }) => member.name === "word/embeddings/values.xlsx").bytes).toEqual(workbook);
+    expect((await runtime.inspectDocumentCharts(chartOutput, {}, chartContext)).items[0].details.series[0].cachedValues).toEqual(["12.50"]);
+  }
   if (runtime.inspectDocumentShapes && runtime.editDocumentShapes) {
     const shapeBody = '<w:p><w:r><w:pict><v:shape xmlns:v="urn:schemas-microsoft-com:vml" id="coastal-box" style="width:10pt;height:20pt"><v:textbox><w:txbxContent><w:p><w:r><w:t>Draft coastal note</w:t></w:r></w:p></w:txbxContent></v:textbox></v:shape></w:pict></w:r></w:p>';
     const shapeSource = await textFixture(shapeBody);

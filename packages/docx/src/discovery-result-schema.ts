@@ -137,6 +137,39 @@ export const shapeOperationContracts = Object.fromEntries([
   object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" },
     warnings: empty, errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: empty })
 ] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;
+const chartPath = array(number);
+const chartIssue = object({ code: string, part: string, path: chartPath, message: string });
+const chartPoint = object({ path: chartPath, index: nullableString, values: array(nullableString), issues: array(chartIssue) });
+const chartCache = object({ kind: { enum: ["string", "numeric", "multilevel-string"] }, path: chartPath,
+  cached: boolean, freshness: { enum: ["unknown", null] }, counts: array(nullableString), formatCodes: array(nullableString),
+  points: array(chartPoint), levels: array(object({ path: chartPath, points: array(chartPoint) })), issues: array(chartIssue) });
+const chartSource = object({ role: { enum: ["label", "category", "value", "x", "y", "bubble"] }, namespace: string,
+  localName: string, path: chartPath, kind: { enum: ["literal", "reference", "opaque"] }, literals: array(nullableString),
+  formulas: array(nullableString), caches: array(chartCache), issues: array(chartIssue) });
+const chartSeries = object({ group: number, path: chartPath, indices: array(nullableString), orders: array(nullableString),
+  name: nullableString, label: object({ provenance: { enum: ["literal", "cached", "missing", "ambiguous", "opaque"] } }),
+  cachedValues: array(nullableString), sources: array(chartSource), issues: array(chartIssue) });
+const chartBinding = object({ role: { enum: ["workbook", "style", "color"] }, relationshipId: nullableString,
+  reference: { oneOf: [reference, { type: "null" }] }, status: { enum: ["internal", "external", "missing-id", "missing-relationship", "wrong-relationship-type", "wrong-resource-type", "opaque"] },
+  target: { oneOf: [part, { type: "null" }] }, issues: array(chartIssue) });
+const chartDetails = object({ kind: { const: "charts" }, definition: part, root: object({ namespace: string, localName: string }),
+  status: { enum: ["decoded", "opaque"] }, chartType: nullableString, chartTypes: strings,
+  plotGroups: array(object({ type: string, path: chartPath })), series: array(chartSeries),
+  externalData: array(object({ path: chartPath, relationshipId: nullableString, autoUpdate: array(nullableString), binding: chartBinding })),
+  workbookParts: strings, resources: array(chartBinding), graphParts: array(part), issues: array(chartIssue) });
+const chartRecord = object({ kind: { const: "charts" }, location: resourcePartLocation, name: string, properties: empty,
+  references: array(reference), support: { enum: ["read", "preserve"] }, details: chartDetails });
+export const chartOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
+  "charts.list": {
+    description: "Read package-wide physical chart definitions once in canonical part order, including unreferenced and opaque parts. Report inert workbook/style/color bindings, grouped sources and indexed cached values with unknown freshness. No selected drawing visibility, formula evaluation, rendering or external refresh. Direct utility inventory is supported; utility batch execution and live chart/workbook models remain unsupported.",
+    featureIds: ["F37"], result: { oneOf: [
+      object({ version: { const: 1 }, operation: { const: "charts.list" }, ok: { const: true }, data: object({ items: array(chartRecord) }),
+        warnings: array(diagnostic), errors: empty, affected: { const: 0 }, locations: array(resourcePartLocation) }),
+      object({ version: { const: 1 }, operation: { const: "charts.list" }, ok: { const: false }, data: { type: "null" },
+        warnings: empty, errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: empty })
+    ] }
+  }
+};
 export const rasterInsertionOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
   "images.add": {
     description: "Insert admitted PNG/JPEG or static safe SVG with an explicit validated PNG/JPEG/GIF/BMP/TIFF fallback inline into one paragraph or a new trailing container paragraph; no rasterization or rendering is performed.",

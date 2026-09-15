@@ -239,3 +239,10 @@ it("does not invent typed property values from unrelated namespace-shaped XML", 
   const data = await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), context());
   expect(data.properties.find(p => p.part === "/payload/data.xml")).toBeUndefined();
 });
+
+it('reports physical chart definitions as bounded F37 inventory without counting support parts',async()=>{
+ const {chartFixture,chartContext,chartSpace}=await import('../tests/fixtures/charts.js');
+ const data=await inspectDocument(await chartFixture(),chartContext);expect(data.features.find(f=>f.id==='F37')).toMatchObject({detected:true,level:'read'});
+ const opaque=await inspectDocument(await chartFixture({definitions:[{name:'word/charts/plot.xml',xml:chartSpace('<c:layout/>')}]}),chartContext);expect(opaque.features.find(f=>f.id==='F37')).toMatchObject({detected:true,level:'preserve'});
+ const none=await inspectDocument(await chartFixture({definitions:[],resources:[{name:'word/charts/style.xml',type:'application/vnd.ms-office.chartstyle+xml',bytes:'<s:chartStyle xmlns:s="urn:original"/>'}]}),chartContext);expect(none.features.find(f=>f.id==='F37')).toMatchObject({detected:false,level:'preserve'});
+});

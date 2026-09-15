@@ -158,3 +158,5 @@ export { setDocumentImageLayout, type ImageLayoutRequest, type ImageLayoutData, 
 export { Image, type ImageModelContext, type ImageModelInput } from "./image-model.js";
 
 export { inspectDocumentShapes, editDocumentShapes, type ShapeRecord, type ShapeInspectionData, type ShapeEditRequest, type ShapeEditData, type ShapeEditContext } from "./shape-edit.js";
+export { inspectDocumentCharts, type ChartPart, type ChartBinding, type ChartExternalData, type ChartDetails, type ChartRecord, type ChartInspectionData } from "./charts.js";
+export type { ChartIssue, ChartPoint, ChartCache, ChartSource, ChartSeries } from "./chart-values.js";

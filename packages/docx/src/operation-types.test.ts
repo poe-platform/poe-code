@@ -1,6 +1,13 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps physical chart inventory options package-wide in direct and batch types", () => {
+  expectTypeOf<keyof DocxOperationArguments<"charts.list">>().toEqualTypeOf<"json" | "limit">();
+  expectTypeOf<DocxBatchArgumentMap["charts.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
+  // @ts-expect-error Package-wide chart inventory has no batch selection fields.
+  const invalid: DocxBatchArgumentMap["charts.list"] = { scope: "body" };
+  expectTypeOf(invalid).toMatchTypeOf<DocxBatchArgumentMap["charts.list"]>();
+});
 it("keeps shape utility transports limited to applicable owners and plain text assignment", () => {
   type Invalid = "image" | "link" | "control" | "revision" | "field" | "bookmark" | "shared" | "width" | "height";
   expectTypeOf<Extract<keyof DocxOperationArguments<"shapes.list">, Invalid>>().toEqualTypeOf<never>();

@@ -550,6 +550,34 @@ describe("SDK spawn()", () => {
     expect(final.sessionResult?.output).toBe("delivered after done");
   });
 
+  it.each(["cli", "acp"])("reports a deferred %s log failure after child completion", async (transport) => {
+    if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+    else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+    vi.mocked(nativeSpawn).mockReturnValue({
+      events: (async function* () { yield { event: "agent_message", text: "delivered" }; })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
+      ctx.logFile = "/logs/held.jsonl";
+      const source = ctx.eventStream!;
+      ctx.eventStream = (async function* () {
+        // spawnLog opens lazily on first delivery and removes an unusable log path.
+        delete ctx.logFile;
+        ctx.logError = "Unable to write /logs/held.jsonl: permission denied";
+        yield* source;
+      })();
+    });
+    const { events, result } = spawn("codex", "test prompt");
+    const final = await result;
+    expect(final.logFile).toBe("/logs/held.jsonl");
+    expect(final.logError).toBeUndefined();
+    await collectEvents(events);
+    expect(final.logError).toBe("Unable to write /logs/held.jsonl: permission denied");
+    expect(final.logFile).toBeUndefined();
+    expect(final.exitCode).toBe(0);
+  });
+
   it("falls back to middleware-captured usage in the streaming path", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

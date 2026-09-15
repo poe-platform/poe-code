@@ -310,8 +310,8 @@ export function spawn(
           exitCode: final.exitCode,
           ...(threadId ? { threadId } : {}),
           ...(final.usage ? { usage: final.usage } : {}),
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
-          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
+          get logFile() { return middlewareContext.logFile; },
+          get logError() { return middlewareContext.logError; },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})
@@ -382,8 +382,8 @@ export function spawn(
           // The child may finish before a buffered event stream is consumed.
           get threadId() { return middlewareContext.threadId ?? final.threadId; },
           get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
-          ...(middlewareContext.logFile ? { logFile: middlewareContext.logFile } : {}),
-          ...(middlewareContext.logError ? { logError: middlewareContext.logError } : {}),
+          get logFile() { return middlewareContext.logFile; },
+          get logError() { return middlewareContext.logError; },
           ...(middlewareContext.sessionResult
             ? { sessionResult: middlewareContext.sessionResult }
             : {})

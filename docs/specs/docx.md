@@ -653,7 +653,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `images get`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F31, F33                                                                                           |
 | `images add`            | selectedEdit | `file!`: VfsInput; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `placement?`: inline / floating; `fallback?`: VfsInput; `alt?`: string; `decorative?`: boolean                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F06, F08, F11, F12, F31, F32, F35                                                                  |
 | `images replace`        | selectedEdit | `file!`: VfsInput; `shared?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `fallback?`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F32, F35                                                                                           |
-| `images set`            | selectedEdit | `x?`: Length (explicit emu/in/cm/mm/pt); `y?`: Length (explicit emu/in/cm/mm/pt); `relativeTo?`: page / margin / column / paragraph / character; `wrap?`: none / square / tight / through / top-bottom; `zOrder?`: safe integer; `cropLeft?`: fraction 0..1; `cropRight?`: fraction 0..1; `cropTop?`: fraction 0..1; `cropBottom?`: fraction 0..1; `rotation?`: finite degrees; `flipHorizontal?`: boolean; `flipVertical?`: boolean; `alt?`: string; `decorative?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch | MutationData     | F33                                                                                                |
+| `images set`            | selectedEdit | `x?`, `y?`: signed32-EMU Length; `horizontalRelativeFrom?`: native horizontal frame; `verticalRelativeFrom?`: native vertical frame; `horizontalAlignment?`, `verticalAlignment?`: axis-native alignment; `relativeTo?`: page / margin / insideMargin / outsideMargin; `wrap?`: none / square / tight / through / top-bottom; `wrapText?`: bothSides / left / right / largest; `wrapPolygonJson?`: ImageWrapPolygon; `distanceTop?`, `distanceBottom?`, `distanceLeft?`, `distanceRight?`: unsigned32-EMU Length; `allowOverlap?`, `behindText?`, `lockAspect?`: boolean; `zOrder?`: integer 0..4294967295; `cropLeft?`, `cropRight?`, `cropTop?`, `cropBottom?`: fraction 0..1; `rotation?`: finite degrees -360..360; `flipHorizontal?`, `flipVertical?`: boolean; `alt?`: string; `decorative?`: boolean; `width?`, `height?`: positive Length <=2147483647 EMU; `fit?`: contain / cover / stretch | MutationData     | F33                                                                                                |
 | `images extract`        | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F31, F34                                                                                           |
 | `shapes list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F36                                                                                                |
 | `charts list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F37                                                                                                |
@@ -1250,6 +1250,139 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   not invented semantic editing commands. Equations add/replace require one
   bounded OMML math root, reject arbitrary surrounding WordprocessingML. Objects
   extract emits inert admitted bytes only, never activation.
+- **Bounded image layout.**
+
+`images set` edits the selected physical picture drawing's stored metadata. Its
+bounded profile admits one unambiguous native picture with one inline or anchor
+frame, one direct `pic:spPr/a:xfrm`, and coherent common picture geometry. It
+MUST NOT convert inline to anchor, acquire linked image bytes, reinterpret image
+DPI, replace media, rebind image relationships, or alter unrelated package parts.
+Existing media, alternate/fallback associations and relationship bytes MUST
+remain unchanged. Unsupported or ambiguous selected representations MUST fail
+with unsupported-edit before publication. Tracked containers/ranges and generic
+faithful-XML edit guards MUST remain enforced. A story part with multiple section
+appearances MUST fail ambiguous-selection; image layout has no shared-resource
+expansion or shared-story override in this profile. Explicit all-selection selects distinct physical drawings, subject to the same
+per-drawing guards. Every selected drawing MUST be semantically preadmitted before
+publication; one unsupported selection rejects the entire ordinary write.
+
+In addition to its existing fields, the setter admits `horizontalRelativeFrom`,
+`verticalRelativeFrom`, `horizontalAlignment`, `verticalAlignment`, `distanceTop`,
+`distanceBottom`, `distanceLeft`, `distanceRight`, `allowOverlap`, `behindText`,
+`lockAspect`, `wrapText`, and `wrapPolygon`. All have identical SDK/CLI semantics. CLI --wrap-polygon-json carries the
+closed JSON value corresponding to SDK wrapPolygon; the transport key
+wrapPolygonJson is not an additional SDK property.
+The distance fields and x/y use the shared explicit emu/in/cm/mm/pt lengths.
+Positions and distances are converted once with halfway values away from zero.
+This writer profile bounds x/y to signed 32-bit integer EMUs
+[-2147483648,2147483647] and distances/zOrder to unsigned 32-bit integers
+[0,4294967295]. These offset bounds are explicit utility limits, not a claim that
+the reviewed schema metadata resolves the external simple type's primitive.
+Width/height and both stored drawing extents MUST be positive integer EMUs no
+greater than 2147483647 when read for a geometry-dependent write or newly written.
+Every finite/range check applies before and after conversion; values never clamp.
+
+Horizontal relative frames are page, margin, column, character, leftMargin,
+rightMargin, insideMargin and outsideMargin. Vertical frames are page, margin,
+paragraph, line, topMargin, bottomMargin, insideMargin and outsideMargin.
+Horizontal alignment is left, right, center, inside or outside. Vertical alignment
+is top, bottom, center, inside or outside. x conflicts with horizontalAlignment;
+y conflicts with verticalAlignment. An explicit offset selects posOffset for
+that axis and an explicit alignment selects align; either replaces the existing
+axis choice without altering the opposite axis. A frame-only edit preserves the
+existing unambiguous admitted axis choice. Unsupported percentage positioning,
+conflicting/multiple choices, and simple-position mode MUST reject axis edits;
+no implicit coordinate or frame is invented.
+
+relativeTo is a both-axis compatibility alias and admits only page, margin,
+insideMargin or outsideMargin, the native intersection of the axis enums. It
+conflicts with explicit horizontalRelativeFrom/verticalRelativeFrom and sets both
+axis frames while preserving each admitted axis choice except an explicitly
+requested offset/alignment. Former axis-specific paragraph/column/character
+spellings MUST reject; callers use the corresponding independent frame field.
+No silent mapping to another native frame is allowed.
+
+x/y, all relative-frame/alignment fields, wrap/wrapText/wrapPolygon, distances,
+allowOverlap, behindText and zOrder are anchor-only and MUST reject on inline
+pictures. Inline pictures may use coherent extent, crop, rotation, flip, aspect
+lock and alt/decorative edits. No rendered coordinate accuracy is implied.
+Anchor writes preserve required child ordering and all unaffected attributes,
+effect extents, anchor identifiers and relative-size metadata. allowOverlap maps
+to allowOverlap, behindText to behindDoc and zOrder to relativeHeight.
+
+wrap admits none, square, tight, through and top-bottom and MUST preserve exactly
+one native wrap choice. wrapText admits bothSides, left, right and largest and
+is applicable only to square/tight/through. Creating one of those modes requires
+an explicit wrapText or an existing unambiguous applicable native value; no
+wrapping-side default is invented. tight/through require a supplied wrapPolygon
+or an existing admitted polygon retained exactly. Switching between tight and
+through MAY retain that polygon. Other new modes MUST NOT fabricate polygons.
+Supplying wrapPolygon requires a resulting tight/through mode; an inapplicable
+wrapText/polygon MUST reject. Removing/replacing a wrap mode MUST reject when its
+unknown children/metadata cannot be faithfully preserved coherently.
+
+ImageWrapPolygon (SDK wrapPolygon) is closed plain data `{start:{x:number,y:number},lineTo:[{x:number,
+y:number},...]}`. It has exactly one start and at least two lineTo points. Every
+coordinate is an integer in [-27273042329600,27273042316900]. These are native
+integer coordinates, not implicit pixels, inferred normalized points or lengths.
+The point count is bounded by normal operation/XML/work/retention budgets.
+An explicitly authored polygon records edited=true. No native closure equality,
+nonintersection, distinctness or nonzero-area rule is claimed or added by this
+profile. Existing unsupplied polygon coordinates/edited spelling remain exact.
+
+Distance setters write the anchor distance and every existing applicable override
+on its selected wrap choice, so a conflicting stored override cannot negate the
+requested value. Square admits all four overrides, tight/through left/right,
+and top-bottom top/bottom; no other wrap attributes are authored. Unselected
+sides and stored effect extents MUST remain unchanged. When a wrap switch would
+silently discard existing distance/effect metadata without a coherent equivalent,
+the write MUST reject rather than normalize it without explicit intent.
+
+With neither width nor height, images set preserves extents. One explicit
+size scales the existing coherent unrotated drawing extent ratio; two explicit
+sizes set both. This is distinct from images replace, whose one-size ratio uses
+its newly admitted media's native physical dimensions. Fit requires both box
+sizes and conflicts with manual crop fields. Contain scales the existing extent
+ratio into the box, cover fills it with centered crop, stretch sets both box
+extents independently. Explicit contain/stretch clear crop; cover replaces crop
+with the centered crop. Ordinary size changes preserve crop. Outer wp:extent and
+the selected direct a:xfrm/a:ext MUST agree and update together; contradictory,
+missing or multiple geometry and group/child transforms MUST reject dependent
+writes. Rotation does not become a width/height bounding-box computation.
+
+Manual crop fields merge with the selected native srcRect's unspecified sides;
+absent native sides have their schema zero value. Each merged side is finite in
+[0,1] and opposing sums MUST be less than one before and after quantization to
+native hundred-thousandths. Only explicitly changed crop attributes are rewritten;
+a missing srcRect is authored in its correct blipFill order when needed. Invalid
+or ambiguous required existing crop values MUST reject dependent crop edits.
+Unrelated layout edits preserve unsupplied crop markup exactly.
+
+Rotation is finite degrees [-360,360], written to the unique selected direct
+picture transform as an integer number of 1/60000 degrees with halfway values
+away from zero. flipHorizontal/flipVertical map to that transform's flipH/flipV.
+lockAspect explicitly sets noChangeAspect coherently on both native
+cNvGraphicFramePr/a:graphicFrameLocks and pic:cNvPicPr/a:picLocks, creating an
+absent supported lock container in its native order without dropping unrelated
+lock fields. Multiple, opaque or conflicting carrier structures that cannot be
+kept coherent MUST reject; unrelated lock properties remain unchanged.
+
+Alt/decorative validation uses merged existing and requested values. Decorative
+true conflicts with nonempty alt, including retained nonempty alt; new nonempty
+alt conflicts with retained decorative true. Explicit alt empty or decorative
+false may resolve that conflict. Metadata changes preserve unrelated docPr and
+extension data. Alternate representations may remain exact when a narrow edit
+of shared common geometry is admitted and keeps all representations coherent.
+Separate active/opaque branch geometry requiring unsupported coordinated edits
+MUST reject. No SVG/native-format activation or fallback creation is added.
+
+An unchanged typed write retains exact input package bytes and reports no changed
+Locations. Changed results use the shared MutationData contract with current
+before/after physical image Locations; directly targeted drawings count once.
+Publication, capability budgets, cancellation and error envelopes follow the
+shared contracts. No live InlineShape/collection API or rendering parity is
+qualified by this bounded utility.
+
 - **Image inventory and extraction.** Images list/get use kind images records,
   current image Locations and exact owner-local relationship references. The
   record name is the canonical primary internal part name when available; linked
@@ -1263,6 +1396,13 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   stored offsetEmu or alignment; frames/alignments use admitted native enumeration
   spellings. Unsupported or conflicting axis modes read null with warnings.
   Inline carriers have null axis positions; no anchor coordinates are inferred.
+  Effective anchor distances are emitted as integer EMUs and read applicable
+  wrap overrides before anchor values;
+  unsupported/missing values read null. Inline anchor-only fields read null.
+  Aspect-lock reads require coherent admitted native frame/picture values, otherwise
+  null with warnings. Polygon reads use the bounded native point shape; no outline
+  or rendered frame is inferred. Axis alignments MUST use their separate native
+  horizontal/vertical vocabularies.
   Pixel dimensions
   remain null unless independently admitted by the bounded media header codec;
   inventory does not render, decode pixel payloads or establish native-size parity.
@@ -1960,6 +2100,14 @@ type ResourceDetails =
       flipVertical: boolean | null;
       wrap: "none" | "square" | "tight" | "through" | "top-bottom" | null;
       zOrder: number | null;
+      wrapText: "bothSides" | "left" | "right" | "largest" | null;
+      wrapPolygon: { start: { x: number; y: number };
+        lineTo: { x: number; y: number }[] } | null;
+      distances: { top: number | null; bottom: number | null;
+        left: number | null; right: number | null } | null;
+      allowOverlap: boolean | null;
+      behindText: boolean | null;
+      lockAspect: boolean | null;
       horizontalPosition: {
         relativeFrom: string | null; offsetEmu: number | null; alignment: string | null;
       } | null;

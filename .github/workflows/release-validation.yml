@@ -140,6 +140,13 @@ jobs:
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - name: Install Zsh for native completion tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+          test -x /bin/zsh
+      - name: Verify OP native tests before the full unit gate
+        run: npm run test:unit --workspace=@poe-platform/op
       - name: Run fresh unit and native checks
         run: npm run test:ci:fresh
   unit-cached:

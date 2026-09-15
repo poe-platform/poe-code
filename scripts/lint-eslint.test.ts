@@ -1056,6 +1056,13 @@ describe("guard refusal and policy regression controls", () => {
     expect(lintText).not.toHaveBeenCalled();
     expect(guard.snapshot().opens).toBe(guard.snapshot().closes);
   });
+  it("admits the expanded repository subject budget without removing its bound", () => {
+    const state = model({ "src/member.js": "export {};" });
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { subjects: 16000 } });
+    expect(guard.read("src/member.js", "subject").toString()).toBe("export {};");
+    expect(guard.snapshot().subjects).toBe(1);
+    expect(() => createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { subjects: guardedInputs.LIMITS.subjects + 1 } })).toThrow();
+  });
   it("tracks a cap stop as incomplete rather than a complete shorter selection", async () => {
     const state = model({ "src/a.js": "export {};", "src/b.js": "export {};" });
     const guard = createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { subjects: 1 } });

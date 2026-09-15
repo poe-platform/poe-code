@@ -8,10 +8,10 @@
   },
   "counts": {
     "rows": 369,
-    "passing": 9,
-    "pending": 360
+    "passing": 31,
+    "pending": 338
   },
-  "scope_note": "369 selected source rows; this commit closes 9 URI rows. XML sequence tests are a separately reviewable tested working increment, not delivered in this commit. All remaining cases and whole API/CLI coverage stay pending.",
+  "scope_note": "369 selected source rows; 9 URI and 22 XML sequence rows pass dedicated original tests. All 338 remaining cases and general public API/CLI coverage stay pending. Historical inventories are not promoted.",
   "plan": "../plans/docx-opc-xml-image-adaptation.md",
   "legal_notice": "upstream-license-notice.txt",
   "checks": {
@@ -3914,10 +3914,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for middle match"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3927,10 +3936,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for last match"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3940,10 +3958,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for missing last"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3953,10 +3980,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture3]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for missing alternatives"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3966,10 +4002,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture4]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for first among all"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3979,10 +4024,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture5]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > observes the first selected child for empty sequence"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -3992,10 +4046,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > inserts an owned child for two successors"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4005,10 +4068,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > inserts an owned child for last successor"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4018,10 +4090,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > inserts an owned child for empty parent"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4031,10 +4112,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture3]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > inserts an owned child for middle insertion"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4044,10 +4134,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture4]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > inserts an owned child for append"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4057,10 +4156,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for remove all once"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4070,10 +4178,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for retain last"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4083,10 +4200,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for remove repeated middle"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4096,10 +4222,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture3]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for remove middle"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4109,10 +4244,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture4]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for retain middle"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4122,10 +4266,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture5]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for no names"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4135,10 +4288,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture6]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for remove last"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4148,10 +4310,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture7]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for remove reversed names"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4161,10 +4332,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture8]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for retain repeated last"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4174,10 +4354,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture9]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for absent name"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -4187,10 +4376,19 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture10]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-sequence-cases.test.ts",
+        "title": "ordered XML child observations > removes selected children for empty children"
+      },
+      "red_evidence": {
+        "status": "existing-behavior; no product-code change or invented failure"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      },
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
     {
       "source": {
@@ -5028,7 +5226,8 @@
     "packages/docx/src/style-model-batch-operations.ts": "5fcf5464f75a9bfdc9cc7026dc1e38bfaa73f471d52fa2db7cc0ecb6822c697f",
     "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
     "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
-    "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653"
+    "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653",
+    "packages/docx/src/xml-sequence-cases.test.ts": "91e13d1577e7acc40192532a9bca5aa16971633417b530f0b592f6b692b2a815"
   },
   "batch_tdd": [
     {
@@ -5067,5 +5266,12 @@
     "method": "built command engine detailed help; maintained screenshot-poe-code renders exact transcript",
     "inspection": "heading, description, support, fixed operation ID, receiver and required argument visually inspected"
   },
-  "typecheck_correction": "Maintained lint found new schema test cast ignored readonly discovery types; corrected to the declared DocxSchemaData type with no runtime change."
+  "typecheck_correction": "Maintained lint found new schema test cast ignored readonly discovery types; corrected to the declared DocxSchemaData type with no runtime change.",
+  "local_commits": [
+    {
+      "hash": "549d639ae",
+      "scope": "checked URI value API, fixed typed batch CLI/schema/capability routes and 9 source URI rows",
+      "delivery": "local main only; no push or release"
+    }
+  ]
 }

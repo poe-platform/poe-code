@@ -109,9 +109,8 @@ selectors, JSON and exit contracts remain authoritative.
 
 ## Completion gate
 
-The nine URI rows have passing original tests in the first owned commit.
-The separately tested XML sequence increment has not yet been committed or
-promoted in the evidence map. All 360 remaining source rows retain pending
+The nine URI and 22 XML sequence rows have passing original tests and
+separately staged owned increments. All 338 remaining source rows retain pending
 delivery dispositions and require exact observable tests and executed receipts. Existing broad tests do not automatically satisfy dedicated variant
 accounting. The task must remain open until every selected row is reconciled to
 a passing target, relevant API drift is resolved, and maintained checks pass.
@@ -126,3 +125,10 @@ passes. Detailed built URI help screenshot was generated through the maintained
 command and visually inspected; operation, receiver and required argument are
 readable and present. Earlier broad runs observed active red tests and are not
 final gates. No final test timeout or failure remains.
+
+## Owned local delivery
+
+`549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
+The next atomic test commit delivers the 22 original XML sequence variants and
+their passing row reconciliations. Both use the final maintained checks above.
+Task status remains in progress; later tasks remain pending. No push or release.

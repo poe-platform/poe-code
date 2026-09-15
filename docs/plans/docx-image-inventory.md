@@ -1,7 +1,7 @@
 # Image inventory and extraction
 
-Ordered task67 active after task66 local feature 6ff81ce58 and verification
-a1b043fe7. Main at a1b043fe7; index empty. Preserve the unrelated 48-line
+Ordered task67 verified after task66 local feature 6ff81ce58 and verification
+a1b043fe7. Initial main at a1b043fe7; index empty. Preserve the unrelated 48-line
 task48–59 pipeline status diff and untracked independent pyodide plan. No push,
 release, branches, README edits or task68 work.
 
@@ -369,3 +369,21 @@ Local atomic neutral result typing committed as8b6852a7c; index empty afterward,
 main retained and unrelated48-line pipeline diff byte-identical to its initial
 snapshot. Verified image utility/integration commit remains next. No push or
 release. Product source hashes remain equal to independent frozen candidate.
+
+Verified image utility/integration locally committed as783fe8fd6 after all current
+gates and34-file frozen hash equality. No ignored/unrelated paths staged. Root
+will isolate only task67 implement/test done from a HEAD-based parsed pipeline
+blob, preserving the unrelated task48–59 working/index separation and independent
+untracked plan. No remote-main delivery or release was attempted. Specification
+status remains Proposed/Implemented Through Not applicable for the unfinished
+whole pipeline; task68 and the live image model/native codec remain pending.
+
+Parsed status isolation changes only task67 implement/test to done among107
+tasks. Initial bookkeeping guard rejects a missing trailing-newline assumption
+before any mutation; exact parsed line replacement then succeeds. Repository's
+maintained yaml parser is reused, with no dependency installation or product
+change. Isolated HEAD-based blob56c15e3c2e6f812273d359dfb24d9e32d5deabb0
+is staged; unrelated pipeline hunks are byte-identical after expected blob-header
+identity changes. Only this plan and the two owned task67 status lines belong to
+the remaining verification commit. Implementation and test are complete for this
+bounded task; the remaining ordered pipeline and README permission stay pending.

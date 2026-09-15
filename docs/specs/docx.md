@@ -656,7 +656,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `images set`            | selectedEdit | `x?`, `y?`: signed32-EMU Length; `horizontalRelativeFrom?`: native horizontal frame; `verticalRelativeFrom?`: native vertical frame; `horizontalAlignment?`, `verticalAlignment?`: axis-native alignment; `relativeTo?`: page / margin / insideMargin / outsideMargin; `wrap?`: none / square / tight / through / top-bottom; `wrapText?`: bothSides / left / right / largest; `wrapPolygonJson?`: ImageWrapPolygon; `distanceTop?`, `distanceBottom?`, `distanceLeft?`, `distanceRight?`: unsigned32-EMU Length; `allowOverlap?`, `behindText?`, `lockAspect?`: boolean; `zOrder?`: integer 0..4294967295; `cropLeft?`, `cropRight?`, `cropTop?`, `cropBottom?`: fraction 0..1; `rotation?`: finite degrees -360..360; `flipHorizontal?`, `flipVertical?`: boolean; `alt?`: string; `decorative?`: boolean; `width?`, `height?`: positive Length <=2147483647 EMU; `fit?`: contain / cover / stretch | MutationData     | F33                                                                                                |
 | `images extract`        | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F31, F34                                                                                           |
 | `shapes list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F36                                                                                                |
-| `charts list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F37                                                                                                |
+| `charts list` | read | none | ResourceListData | F37 |
 | `diagrams list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F38                                                                                                |
 | `equations list`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F39                                                                                                |
 | `objects list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F40                                                                                                |
@@ -1791,6 +1791,213 @@ linked/opaque/multiple bodies; active fallback deduplication; shared headers;
 setter versus preserving replacement; and exact unaffected geometry/alternate
 retention through public CLI, typed operations and the SDK.
 
+### 6.5.2 Bounded chart-part and workbook inventory
+
+The following is the exhaustive F37 resource-role register. Content-type matching
+is case-insensitive while descriptors retain the declared spelling. Relationship
+type matching is exact. No suffix inference or implicit resource loading is
+permitted.
+
+| Role | Declared content types | Relationship types |
+| --- | --- | --- |
+| Standard definition | `application/vnd.openxmlformats-officedocument.drawingml.chart+xml` | `http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart`; `http://purl.oclc.org/ooxml/officeDocument/relationships/chart` |
+| Opaque extended definition | `application/vnd.ms-office.chartex+xml` | `http://schemas.microsoft.com/office/2014/relationships/chartEx` |
+| Style resource | `application/vnd.ms-office.chartstyle+xml` | `http://schemas.microsoft.com/office/2011/relationships/chartStyle` |
+| Color resource | `application/vnd.ms-office.chartcolorstyle+xml` | `http://schemas.microsoft.com/office/2011/relationships/chartColorStyle` |
+| Inert workbook | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`; `application/vnd.openxmlformats-officedocument.spreadsheetml.template`; `application/vnd.ms-excel.sheet.macroEnabled.12`; `application/vnd.ms-excel.template.macroEnabled.12`; `application/vnd.ms-excel.sheet.binary.macroEnabled.12` | `http://schemas.openxmlformats.org/officeDocument/2006/relationships/package`; `http://purl.oclc.org/ooxml/officeDocument/relationships/package` |
+
+F37 is a package-wide physical inventory. `charts.list` uses the `read` profile
+with `json` and `limit` only. Scope, token, ordinal and other selection flags MUST
+fail usage before input acquisition; this operation introduces no chart ordinal,
+story scope or active drawing-location contract. The SDK MUST expose the same
+supported snapshot operation and options. Read results have affected zero and
+revision-bound `part` locations. Neither utility inventory nor its typed snapshot
+establishes a live chart/workbook object model or batch execution.
+
+The inventory MUST contain each distinct admitted chart-definition part once,
+including unreferenced definitions, in canonical part-name order. Equal hashes,
+reused incoming relationships and inactive drawings MUST NOT merge distinct part
+identities or imply active rendered occurrences. Candidates comprise declared
+standard/extension chart content types and admitted internal targets of exact
+chart-definition relationship types; filenames/directories alone confer no chart
+authority. Raw incoming/outgoing relationship metadata MUST retain physical owner,
+ID, type, target and external status. It is physical graph evidence, not proof of
+selected branch, visibility, refresh or rendering. Chart style/color support parts
+MUST NOT be counted as additional chart definitions.
+
+Standard decoded content requires the declared standard chart content type and
+exact `chartSpace` root in either
+`http://schemas.openxmlformats.org/drawingml/2006/chart` or
+`http://purl.oclc.org/ooxml/drawingml/chart`. Descendants MUST use that root's chart
+namespace and native ancestry. Each chart namespace MUST be tested within its
+matching admitted document dialect; F37 does not relax existing opposite-dialect
+part-root admission. Wrong roots/types, foreign
+wrappers and modern extension chart vocabulary MUST remain opaque inventory with
+bounded reasons, not local-name-decoded series. Malformed XML/OPC remains the
+existing invalid-document failure; well-formed unsupported semantics MUST NOT be
+silently reported as a successfully decoded empty chart.
+
+The bounded standard profile MUST retain the ordered plot groups under the
+selected native `chart/plotArea`, including area/area3D, line/line3D, stock, radar,
+scatter, pie/pie3D, doughnut, bar/bar3D, ofPie, surface/surface3D and bubble forms.
+`chartTypes` uses their exact native element names in XML order, retaining repeated
+groups. `chartType` is that name for exactly one group and null otherwise. Series
+MUST retain their group association, XML order and stored index/order metadata.
+The generated series group index is zero-based into `plotGroups`; native series
+index/order spellings are separate metadata. A standard root with no admitted
+native plot group is opaque/preserve-only with an explicit issue. Unknown native
+plot children/extensions MUST have explicit opaque evidence without being decoded
+as a supported type; ordinary native layout/axis/formatting children are not plot
+groups. Namespace recognition
+MUST NOT expand core-v1 MCE understood namespaces; only selected content contributes
+decoded plot groups/caches, while inactive bytes remain preserved physical data.
+
+Series data MUST distinguish literal versus reference sources, stored formula/
+address text, string/numeric/multilevel categories, value/y/x/bubble sources and
+label provenance. Formula/address strings are inert metadata, never evaluated,
+followed or refreshed. Referenced cache data MUST be labeled cached with freshness
+unknown; literal values MUST NOT be described as refreshed workbook results.
+Indexed point records MUST preserve XML order, raw stored index/count spellings,
+duplicate/sparse indices, empty versus absent values and numeric value spellings.
+The utility MUST NOT allocate holes from untrusted `ptCount` or point indices,
+renumber/sort/deduplicate points, coerce nonfinite/unsafe numeric values, or silently
+substitute zero for unsupported/malformed cache content. Malformed well-formed
+cache semantics MUST have bounded issues and retain stored metadata; no full
+schema certification is implied. A compact name/value projection is nonauthoritative:
+ambiguous label sources yield null, and absent/ambiguous primary cached-value
+sources yield an empty projection with explicit source/issue evidence.
+
+`name` is decoded stored text from exactly one admitted series `tx` source: one
+literal native `v`, or a native string-reference cache containing exactly one
+point with stored index `0` and exactly one admitted native `v`. Otherwise it is
+null with missing/ambiguous/opaque provenance and issue evidence where malformed.
+The primary values source is native `val` for ordinary groups and native `yVal`
+for scatter/bubble groups. `cachedValues` projects exactly one admitted numeric
+reference cache on that source in point XML order; each point projects its sole
+admitted native value or null with an issue. No count/index holes are synthesized.
+Literal numeric data is retained in its explicit source/cache record, not passed
+off as cached values. Multiple sources/caches make the compact projection empty
+and ambiguous; x/category/bubble data remain separate source records.
+
+Every selected native `externalData` MUST retain its owner-local relationship ID,
+stored `autoUpdate` declaration and binding status. Resolution MUST use only that
+chart owner's exact package relationship and canonical admitted target. Missing
+IDs, wrong relationship/resource types, external targets and opaque resources
+MUST be distinguished from admitted internal workbook bindings. An internal
+package target's declared content type, original bytes and hash are evidence of
+an inert resource binding, not proof of a valid spreadsheet or consistent formulas.
+Workbook classification MUST use explicit declared workbook content types, never
+filename suffixes or arbitrary relationship position. Stored auto-update does not
+authorize execution or network access.
+
+The inventory MUST separately report chart style/color resource relationships and
+their admitted target metadata, including external/wrong-type/opaque dispositions.
+Definition and internal graph resources MUST retain canonical names, declared
+content types, byte lengths and hashes; repeated/cyclic graph edges MUST remain
+bounded by visited-part guards. External targets are descriptive only. No nested
+workbook unzip, spreadsheet editing, formula engine, external refresh, renderer,
+asset activation or implicit network/native tool is part of F37.
+
+Malformed duplicate singleton declarations use arrays rather than silently taking
+the first value. In the documentary types below, absent native values use `[]`,
+empty stored values use `[""]`, multiple values retain XML order, and an opaque
+scalar declaration uses null with an issue. Point indices and native counts/order
+remain strings; generated path/group/level indices are bounded zero-based integers.
+All paths are physical element-child paths relative to the definition root.
+`autoUpdate` is the array of stored native `val` spellings, including missing/opaque
+declarations as null, and MUST NOT be defaulted into refresh authority.
+
+Binding status precedence is missing ID, missing owner-local relationship, wrong
+relationship type, external target, wrong resource type, then admitted internal
+resource. Well-formed unsupported semantics in an otherwise matching XML resource
+use opaque. A dangling internal OPC target fails existing package admission rather
+than producing a fabricated descriptor. Workbook internal status classifies only
+declared MIME and inert bytes, never nested ZIP validity or formula consistency.
+`graphParts` contains the definition and its bounded transitive internal outgoing
+resource closure in canonical part-name order. Raw references retain all physical
+incoming definition edges and outgoing closure edges, deterministically ordered
+by owner then ID, including external and unrelated edge types. `resources` lists
+workbook/style/color role edges separately; every native externalData has its own
+binding even when no relationship resolves.
+
+These closed documentary types define the exact nested snapshot fields:
+
+```typescript
+type ChartPart = { name: string; contentType: string; bytes: number; sha256: string };
+type ChartIssue = { code: string; part: string; path: number[]; message: string };
+type ChartPoint = { path: number[]; index: string | null;
+  values: (string | null)[]; issues: ChartIssue[] };
+type ChartCache = {
+  kind: "string" | "numeric" | "multilevel-string"; path: number[];
+  cached: boolean; freshness: "unknown" | null;
+  counts: (string | null)[]; formatCodes: (string | null)[];
+  points: ChartPoint[]; levels: { path: number[]; points: ChartPoint[] }[];
+  issues: ChartIssue[];
+};
+type ChartSource = {
+  role: "label" | "category" | "value" | "x" | "y" | "bubble";
+  namespace: string; localName: string; path: number[];
+  kind: "literal" | "reference" | "opaque";
+  literals: (string | null)[]; formulas: (string | null)[];
+  caches: ChartCache[]; issues: ChartIssue[];
+};
+type ChartSeries = {
+  group: number; path: number[]; indices: (string | null)[];
+  orders: (string | null)[]; name: string | null;
+  label: { provenance: "literal" | "cached" | "missing" | "ambiguous" | "opaque" };
+  cachedValues: (string | null)[]; sources: ChartSource[]; issues: ChartIssue[];
+};
+type ChartBinding = {
+  role: "workbook" | "style" | "color"; relationshipId: string | null;
+  reference: Reference | null;
+  status: "internal" | "external" | "missing-id" | "missing-relationship" |
+    "wrong-relationship-type" | "wrong-resource-type" | "opaque";
+  target: ChartPart | null; issues: ChartIssue[];
+};
+type ChartExternalData = { path: number[]; relationshipId: string | null;
+  autoUpdate: (string | null)[]; binding: ChartBinding };
+type ChartDetails = {
+  kind: "charts"; definition: ChartPart;
+  root: { namespace: string; localName: string }; status: "decoded" | "opaque";
+  chartType: string | null; chartTypes: string[];
+  plotGroups: { type: string; path: number[] }[]; series: ChartSeries[];
+  externalData: ChartExternalData[]; workbookParts: string[];
+  resources: ChartBinding[]; graphParts: ChartPart[]; issues: ChartIssue[];
+};
+type ChartRecord = { kind: "charts"; location: Location; name: string;
+  properties: []; references: Reference[]; support: "read" | "preserve";
+  details: ChartDetails };
+type ChartInspectionData = { items: ChartRecord[];
+  warnings: { code: string; message: string }[] };
+```
+
+Cache freshness is unknown for referenced caches and null for literal data;
+`cached` MUST agree with that source distinction. `ChartInspectionData` is the
+SDK snapshot; the CLI moves warnings to the standard envelope and exposes
+`data: {items}`, affected zero and those records' part locations. Opaque records
+retain root/part/binding descriptors but have no invented native decoded groups.
+Issues/messages MUST be bounded static descriptions without source passages or
+formula text; stored source data appears only in the explicitly requested result.
+
+The existing resource record envelope applies, with details containing physical
+definition status/namespace, `chartType`, ordered `chartTypes`, grouped series and
+their source/cache/index metadata, `externalData`, inert workbook/style/color
+bindings, original part descriptors and bounded issues. `workbookParts` contains
+distinct resolved declared workbook targets in canonical order. Standard bounded
+decoded records are read-only; opaque definitions/resources are preserve-only.
+Generated result schemas MUST expose these distinctions and all nested fields
+explicitly. Empty inventory is a successful read, not unsupported-profile success.
+
+Unrelated admitted edits MUST preserve every chart/workbook/style/color payload,
+relationship/content-type declaration, member order and inactive/opaque/unreferenced
+bytes exactly. Tests MUST cover both chart namespaces, mixed plot groups, literal/
+reference labels/categories/values, sparse/duplicate/malformed cache indices,
+owner-local internal/external/wrong-type bindings, reused/unreferenced/opaque parts,
+MCE branch preservation, bounded output/cancellation and paired public SDK/CLI
+results. Original tests MUST prove unrelated edit preservation independently of
+downloaded corpus or native tooling. Corpus/resource failures and unavailable
+rendering/consistency profiles MUST remain separately qualified.
+
 ### 6.6 Closed JSON input types
 
 These are documentary type declarations for schema generation, not product code.
@@ -2382,12 +2589,7 @@ type ResourceDetails =
       type: "PAGE" | "NUMPAGES" | "REF" | "PAGEREF" | "SEQ" | "TOC" | "unsupported";
       update: boolean;
     }
-  | {
-      kind: "charts";
-      chartType: string;
-      series: { name: string | null; cachedValues: (string | number | null)[] }[];
-      workbookParts: string[];
-    }
+  | ChartDetails
   | {
       kind: "headers" | "footers";
       section: number;

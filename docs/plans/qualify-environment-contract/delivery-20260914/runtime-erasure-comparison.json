@@ -1,0 +1,10 @@
+[
+  {
+    "file": "packages/safe-js/src/modules/mcp.ts",
+    "erasedRuntimeJavaScriptIdentical": true
+  },
+  {
+    "file": "packages/safe-js/src/modules/mcp-transport.ts",
+    "erasedRuntimeJavaScriptIdentical": true
+  }
+]

@@ -258,7 +258,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
         assert.deepEqual(metadata.dependencies ?? {}, {}, "op build dependency requires explicit transitive closure");
         if (name === nativeTool) assert.equal(candidate.lock.packages["node_modules/esbuild"]?.optionalDependencies?.[name], metadata.version, "native bundler must match committed esbuild");
         const destination = join(snapshotRoot, "node_modules", name);
-        const files = copyRegularTree(root, destination);
+        const files = copyRegularTree(root, destination, undefined, name === nativeTool ? ["bin/esbuild"] : []);
         opToolTrees.push({ root: destination, files });
         for (const { path, sha256 } of files) opTools.set(`node_modules/${name}/${path}`, sha256);
       }

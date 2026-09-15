@@ -1,0 +1,62 @@
+{
+  "safe-fs": {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-fs@0.1.604",
+      "version",
+      "dist.integrity",
+      "dist.attestations",
+      "gitHead",
+      "--prefer-online",
+      "--json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"version\": \"0.1.604\",\n  \"dist.integrity\": \"sha512-MENmb1GQosbRXBZ3vClfXkSEmfiX4k5eFF7zXRh1hVq1OSdA8VAU6vpnBaJHpY3S5X4GUHdUURK7IjH2pi7HNw==\",\n  \"dist.attestations\": {\n    \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.604\",\n    \"provenance\": {\n      \"predicateType\": \"https://slsa.dev/provenance/v1\"\n    }\n  }\n}\n",
+    "stderr": "",
+    "metadata": {
+      "version": "0.1.604",
+      "dist.integrity": "sha512-MENmb1GQosbRXBZ3vClfXkSEmfiX4k5eFF7zXRh1hVq1OSdA8VAU6vpnBaJHpY3S5X4GUHdUURK7IjH2pi7HNw==",
+      "dist.attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.604",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      }
+    }
+  },
+  "safe-js": {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-js@0.1.604",
+      "version",
+      "dist.integrity",
+      "dist.attestations",
+      "gitHead",
+      "--prefer-online",
+      "--json"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.604\",\n    \"detail\": \"'@poe-platform/safe-js@0.1.604' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\n",
+    "stderr": "npm error code E404\nnpm error 404 No match found for version 0.1.604\nnpm error 404\nnpm error 404  '@poe-platform/safe-js@0.1.604' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T23_20_05_720Z-debug-0.log\n",
+    "metadata": null
+  },
+  "safe-bash": {
+    "command": [
+      "npm",
+      "view",
+      "@poe-platform/safe-bash@0.1.604",
+      "version",
+      "dist.integrity",
+      "dist.attestations",
+      "gitHead",
+      "--prefer-online",
+      "--json"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.604\",\n    \"detail\": \"'@poe-platform/safe-bash@0.1.604' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\n",
+    "stderr": "npm error code E404\nnpm error 404 No match found for version 0.1.604\nnpm error 404\nnpm error 404  '@poe-platform/safe-bash@0.1.604' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T23_20_05_720Z-debug-0.log\n",
+    "metadata": null
+  }
+}

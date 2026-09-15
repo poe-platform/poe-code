@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/safejs-environment-main-itld68sy
+
+ ✓ packages/safe-js/src/modules/agent.test.ts (45 tests) 40ms
+ ✓ packages/safe-js/src/modules/harness.test.ts (12 tests) 9ms
+ ✓ packages/safe-js/src/modules/time.test.ts (19 tests) 152ms
+ ✓ packages/safe-js/src/modules/log.test.ts (10 tests) 8ms
+ ✓ packages/safe-js/src/modules/agent-result-policy.test.ts (32 tests) 680ms
+ ✓ packages/safe-js/src/modules/metric.test.ts (10 tests) 5ms
+ ✓ packages/safe-js/src/modules/fail.test.ts (3 tests) 3ms
+
+ Test Files  7 passed (7)
+      Tests  131 passed (131)
+   Start at  21:18:32
+   Duration  2.67s (transform 2.60s, setup 116ms, import 3.81s, tests 897ms, environment 0ms)

@@ -1,0 +1,112 @@
+
+ RUN  v4.1.11 /private/tmp/poe-resource-delivery
+
+ ❯ packages/safe-js/src/interp/methods/string-replacement-validation.test.ts (63 tests | 1 failed) 285ms
+     × matches workflow 06 replacement/control fields, not STR-01 token metadata 193ms
+     ✓ retains exact native return values for 'strings/reductions/r03-replacement-ca…' 25ms
+     ✓ retains exact native return values for 'strings/reductions/r04-replacement-co…' 21ms
+     ✓ anchors and enumerates numeric tokens: 'no captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'one capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'empty capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'nine captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'ten captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset tenth capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'twelve captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'ninety-nine captures' 1ms
+     ✓ anchors and enumerates numeric tokens: 'hundredth capture is not addressable' 1ms
+     ✓ uses original input, never prior output or recursively expanded token text 0ms
+     ✓ anchors '$&' /'(.+)'/ -> '$1' 0ms
+     ✓ anchors 'a' /'(a)'/ -> '$$1|$$&|$$`|$$\'' 0ms
+     ✓ anchors 'abc' /'z'/ -> '$&|$1|$`|$\'' 0ms
+     ✓ anchors 'abc' /'b'/ -> '' 0ms
+     ✓ anchors 'abc' /'b'/ -> 'plain' 0ms
+     ✓ anchors 'ab' /'(?:)'/ -> '<$`|$\'>' 0ms
+     ✓ anchors and enumerates numeric tokens: 'no captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'one capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'empty capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'nine captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'ten captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset tenth capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'twelve captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'ninety-nine captures' 4ms
+     ✓ anchors and enumerates numeric tokens: 'hundredth capture is not addressable' 2ms
+     ✓ uses original input, never prior output or recursively expanded token text 0ms
+     ✓ anchors '$&' /'(.+)'/ -> '$1' 0ms
+     ✓ anchors 'a' /'(a)'/ -> '$$1|$$&|$$`|$$\'' 0ms
+     ✓ anchors 'abc' /'z'/ -> '$&|$1|$`|$\'' 0ms
+     ✓ anchors 'abc' /'b'/ -> '' 0ms
+     ✓ anchors 'abc' /'b'/ -> 'plain' 0ms
+     ✓ anchors 'ab' /'(?:)'/ -> '<$`|$\'>' 0ms
+     ✓ anchors and enumerates numeric tokens: 'no captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'one capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'empty capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'nine captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'ten captures' 0ms
+     ✓ anchors and enumerates numeric tokens: 'unset tenth capture' 0ms
+     ✓ anchors and enumerates numeric tokens: 'twelve captures' 1ms
+     ✓ anchors and enumerates numeric tokens: 'ninety-nine captures' 2ms
+     ✓ anchors and enumerates numeric tokens: 'hundredth capture is not addressable' 2ms
+     ✓ uses original input, never prior output or recursively expanded token text 0ms
+     ✓ anchors '$&' /'(.+)'/ -> '$1' 0ms
+     ✓ anchors 'a' /'(a)'/ -> '$$1|$$&|$$`|$$\'' 0ms
+     ✓ anchors 'abc' /'z'/ -> '$&|$1|$`|$\'' 0ms
+     ✓ anchors 'abc' /'b'/ -> '' 0ms
+     ✓ anchors 'abc' /'b'/ -> 'plain' 0ms
+     ✓ anchors 'ab' /'(?:)'/ -> '<$`|$\'>' 0ms
+     ✓ retains native tokens for 'aba' / 'a' 0ms
+     ✓ retains native tokens for 'abc' / 'z' 0ms
+     ✓ retains native tokens for 'ab' / '' 0ms
+     ✓ retains native tokens for '' / '' 0ms
+     ✓ retains native tokens for 'aba' / 'a' 0ms
+     ✓ retains native tokens for 'abc' / 'z' 0ms
+     ✓ retains native tokens for 'ab' / '' 0ms
+     ✓ retains native tokens for '' / '' 0ms
+   ✓ keeps callback return tokens literal on regex and literal routes 20ms
+FAIL packages/safe-js/src/interp/methods/string-replacement-validation.test.ts > STR-03 independent original-source validation > matches workflow 06 replacement/control fields, not STR-01 token metadata
+SandboxError: Sandbox budget exceeded for steps: 10001 > 10000.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'budgetExceeded', budget: 'steps', current: 10001, limit: 10000, span: { start: { line: 20, column: 13, offset: 1057 }, end: { line: 20, column: 47, offset: 1091 } } }
+ ✓ packages/safe-js/src/interp/regexp-iterator-prototype.test.ts (35 tests) 906ms
+ ✓ packages/safe-js/src/interp/regexp-match-payload-realm.test.ts (11 tests) 725ms
+ ✓ packages/safe-js/src/interp/regex/compile-policy.test.ts (36 tests) 534ms
+ ✓ packages/safe-js/src/interp/regexp-properties.test.ts (17 tests) 478ms
+ ✓ packages/safe-js/src/interp/regex/compile-ownership.test.ts (11 tests) 329ms
+ ✓ packages/safe-js/src/interp/regex/compile-helper-ownership.test.ts (10 tests) 202ms
+ ✓ packages/safe-js/src/interp/regex/aggregate-scan-budget.test.ts (17 tests) 149ms
+ ✓ packages/safe-js/src/interp/regexp-presence.test.ts (7 tests) 191ms
+ ✓ packages/safe-js/src/interp/regex/public-scan-accounting-qualification.test.ts (3 tests) 72ms
+ ✓ packages/safe-js/src/interp/regex/compile-helper-policy.test.ts (20 tests) 73ms
+ ❯ packages/safe-js/src/interp/regex/sequence-accounting.test.ts (2 tests | 1 failed) 3ms
+   × charges literal sequence nodes and continuations without empty generator frames 1ms
+   ✓ still rejects before the final literal when useful sequence work exceeds the limit 1ms
+FAIL packages/safe-js/src/interp/regex/sequence-accounting.test.ts > charges literal sequence nodes and continuations without empty generator frames
+SandboxError: Sandbox budget exceeded for steps: 10 > 9.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'budgetExceeded', budget: 'steps', current: 10, limit: 9 }
+ ✓ packages/safe-js/src/interp/regex/compile-callback-receiver.test.ts (1 test) 65ms
+ ✓ packages/safe-js/src/interp/regex/compile-callback-stack.test.ts (1 test) 52ms
+ ✓ packages/safe-js/src/interp/regex/compile-ingress.test.ts (3 tests) 44ms
+ ✓ packages/safe-js/src/interp/regex/engine.test.ts (33 tests) 12ms
+ ✓ packages/safe-js/src/interp/regex/parse.test.ts (18 tests) 5ms
+ ✓ packages/safe-js/src/interp/methods/string-split.independent.test.ts (808 tests) 13322ms
+     ✓ preserves typed slots for /'($)'/'gims' on ''a\nb'', limit 2  322ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/regex/sequence-accounting.test.ts > charges literal sequence nodes and continuations without empty generator frames
+SandboxError: Sandbox budget exceeded for steps: 10 > 9.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/safe-js/src/interp/methods/string-replacement-validation.test.ts > STR-03 independent original-source validation > matches workflow 06 replacement/control fields, not STR-01 token metadata
+SandboxError: Sandbox budget exceeded for steps: 10001 > 10000.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 16 passed (18)
+      Tests  2 failed | 1094 passed (1096)
+   Start at  17:47:09
+   Duration  15.05s (transform 2.74s, setup 190ms, import 7.61s, tests 17.45s, environment 1ms)
+

@@ -1,3 +1,4 @@
+import { retainedAccessorClosures } from "../interp/accessors.js";
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
 import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
@@ -1111,7 +1112,7 @@ export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
     seen.add(value);
     if (depth > MAX_DATA_DEPTH)
       fail("budgetExceeded", path, `exceeds nesting limit ${MAX_DATA_DEPTH}`);
-    for (const [key, entry] of ownSnapshotDataEntries(value, path, true)) {
+    for (const [key, entry] of ownSnapshotDataEntries(value, path, true, true)) {
       if (++entries > DEFAULT_MAX_ENTRIES)
         fail("budgetExceeded", path, `exceeds aggregate entry limit ${DEFAULT_MAX_ENTRIES}`);
       if (entry !== null && typeof entry === "object")
@@ -1141,7 +1142,7 @@ function snapshotDataEntries(value: object, path: string, checkedPrototypes?: We
   return ownSnapshotDataEntries(value, path);
 }
 
-function ownSnapshotDataEntries(value: object, path: string, runtime = false): Array<[string, unknown]> {
+function ownSnapshotDataEntries(value: object, path: string, runtime = false, guestDescriptors = false): Array<[string, unknown]> {
   const entries: Array<[string, unknown]> = [];
   for (const key of Object.getOwnPropertyNames(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
@@ -1149,6 +1150,16 @@ function ownSnapshotDataEntries(value: object, path: string, runtime = false): A
     // Caller accessors, including non-enumerable ones, never gain that authority.
     const runtimeGetter = runtime && descriptor.get !== undefined &&
       descriptor.set === undefined && snapshotRuntimeGetters.has(descriptor.get);
+    if (guestDescriptors && !("value" in descriptor) && !runtimeGetter) {
+      const closures = retainedAccessorClosures(descriptor);
+      const adapters = [descriptor.get, descriptor.set].filter(adapter => adapter !== undefined);
+      if (closures.length > 0 && closures.length === adapters.length) {
+        // Only private engine-registered identities have this authority.
+        // Inspect retained closures without executing the accessor adapters.
+        closures.forEach((closure, index) => entries.push([`${key}.accessor${index}`, closure]));
+        continue;
+      }
+    }
     if (!("value" in descriptor) && !runtimeGetter)
       fail("invalidType", `${path}${formatKey(key)}`, "must be a data property; snapshot data must not have accessors");
     if (!runtime || descriptor.enumerable)

@@ -14,6 +14,8 @@ separate browser op graph removed compression chunks still imported by the shell
 
 - The new regression failed before the fix because the shell graph omitted op.
 - All 47 bundle, package preparation, and output publication tests pass.
+- The root bundle orchestration inventory now expects the same combined graph;
+  all nine orchestration tests pass after updating that stale expectation.
 - The maintained workspace build and root type check pass.
 - Actual scoped artifact preparation succeeds for all three safe packages.
   On macOS its output uses /private/tmp because /tmp is a symlink, which the

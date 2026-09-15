@@ -1,0 +1,10 @@
+{
+  "version": "0.1.604",
+  "dist.integrity": "sha512-OQOwxim5FNLhKWWJeJ1ZI52jfVcpcERouJMdZe9IgRD3lI0DwJVd69htaeBESgYaCL4vXChpsCeimo1su3cvQg==",
+  "dist.attestations": {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.604",
+    "provenance": {
+      "predicateType": "https://slsa.dev/provenance/v1"
+    }
+  }
+}

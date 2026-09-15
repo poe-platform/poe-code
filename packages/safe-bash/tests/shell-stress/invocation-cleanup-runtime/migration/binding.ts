@@ -366,7 +366,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     assert.equal(build.error, undefined, build.error?.message);
     assert.equal(build.status, 0, build.stdout + build.stderr);
     // The root build bundles this private command; the public probe must never admit private runtime imports.
-    const opBundle = spawnSync(process.execPath, [join(outer, "node_modules/esbuild/bin/esbuild"), join(snapshot, "src/commands/op/index.ts"),
+    const opBundle = spawnSync(join(outer, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`), [join(snapshot, "src/commands/op/index.ts"),
       "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
       `--alias:@poe-platform/op=${join(outer, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`], {
       cwd: snapshot, encoding: "utf8", timeout: 45000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,

@@ -1,0 +1,10 @@
+{
+  "version": "0.1.604",
+  "dist.integrity": "sha512-MENmb1GQosbRXBZ3vClfXkSEmfiX4k5eFF7zXRh1hVq1OSdA8VAU6vpnBaJHpY3S5X4GUHdUURK7IjH2pi7HNw==",
+  "dist.attestations": {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.604",
+    "provenance": {
+      "predicateType": "https://slsa.dev/provenance/v1"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-delivery-recheck-0js4e8eg",
+  "fixturesSource": "ff1923235ea1e0fa0a40bdeb06468fda13cc8d8b",
+  "commands": [
+    {
+      "argv": [
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "@poe-platform/safe-fs@0.1.607",
+        "@poe-platform/safe-js@0.1.607",
+        "@poe-platform/safe-bash@0.1.607",
+        "poe-code@15.0.41"
+      ],
+      "exit": 0,
+      "output": "\nadded 191 packages in 11s\n"
+    },
+    {
+      "argv": [
+        "node",
+        "safe-packages-smoke.mjs"
+      ],
+      "exit": 1,
+      "output": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-delivery-recheck-0js4e8eg/safe-packages-atomic.mjs' imported from /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-delivery-recheck-0js4e8eg/safe-packages-smoke.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:724:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:320:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-delivery-recheck-0js4e8eg/safe-packages-atomic.mjs'\n}\n\nNode.js v22.23.2\n"
+    },
+    {
+      "argv": [
+        "node",
+        "safe-packages-legacy.mjs"
+      ],
+      "exit": 0,
+      "output": "Legacy filesystem errors normalize at the canonical adapter boundary\n"
+    },
+    {
+      "argv": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import assert from \"node:assert/strict\"; import {run} from \"poe-code/safe-js\"; const r=await run(\"return [1+2,typeof process,typeof fetch]\");assert.equal(r.ok,true);assert.deepEqual(r.returnValue,[3,\"undefined\",\"undefined\"]);console.log(\"root SafeJS authority smoke passed\")"
+      ],
+      "exit": 0,
+      "output": "root SafeJS authority smoke passed\n"
+    },
+    {
+      "argv": [
+        "npm",
+        "audit",
+        "signatures"
+      ],
+      "exit": 0,
+      "output": "audited 214 packages in 2s\n\n214 packages have verified registry signatures\n\n43 packages have verified attestations\n\n"
+    },
+    {
+      "argv": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import fs from \"node:fs\"; for(const [n,v] of [[\"@poe-platform/safe-fs\",\"0.1.607\"],[\"@poe-platform/safe-js\",\"0.1.607\"],[\"@poe-platform/safe-bash\",\"0.1.607\"],[\"poe-code\",\"15.0.41\"]]){const p=JSON.parse(fs.readFileSync(\"node_modules/\"+n+\"/package.json\"));if(p.version!==v)throw Error(n);console.log(n,p.version,p.engines)}"
+      ],
+      "exit": 0,
+      "output": "@poe-platform/safe-fs 0.1.607 { node: '>=18.18' }\n@poe-platform/safe-js 0.1.607 { node: '>=18.18' }\n@poe-platform/safe-bash 0.1.607 { node: '>=22' }\npoe-code 15.0.41 { node: '>=18.18' }\n"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "source": "import assert from \"node:assert/strict\";import {run} from \"@poe-platform/safe-js\";console.log(JSON.stringify(process.versions));const neighbor=await run('const k={};const w=new WeakMap([[k,3]]);return w.get(k);');assert.equal(neighbor.returnValue,3);const r=await run('const k=Symbol(\"x\");const w=new WeakMap([[k,3]]);return w.get(k);');console.log(JSON.stringify(r));assert.equal(r.ok,true);assert.equal(r.returnValue,3);",
+      "exit": 1,
+      "output": "{\"node\":\"18.18.0\",\"acorn\":\"8.10.0\",\"ada\":\"2.6.0\",\"ares\":\"1.19.1\",\"brotli\":\"1.0.9\",\"cldr\":\"43.1\",\"icu\":\"73.2\",\"llhttp\":\"6.0.11\",\"modules\":\"108\",\"napi\":\"9\",\"nghttp2\":\"1.55.0\",\"nghttp3\":\"0.7.0\",\"ngtcp2\":\"0.8.1\",\"openssl\":\"3.0.10+quic\",\"simdutf\":\"3.2.14\",\"tz\":\"2023c\",\"undici\":\"5.22.1\",\"unicode\":\"15.0\",\"uv\":\"1.46.0\",\"uvwasi\":\"0.0.18\",\"v8\":\"10.2.154.26-node.26\",\"zlib\":\"1.2.13.1-motley\"}\n\nnode:internal/process/esm_loader:108\n    internalBinding('errors').triggerUncaughtException(\n                              ^\n{ name: 'TypeError' }\n\nNode.js v18.18.0\n"
+    },
+    {
+      "argv": [
+        "node",
+        "safe-packages-smoke.mjs"
+      ],
+      "exit": 0,
+      "output": "Public retained arguments preserve deferred identity, cycles, closures and live objects\nPublic named collections preserve identity, removal, indexed composition and revocation\nPublic indexed collections preserve liveness, identity, iteration and revocation\nPublic realm DOM-like adapter, callbacks, nested ordering and cleanup passed\nPublic root/core named mutation, quotas, identity and revocation passed\nPublic Date construction, reported jQuery expressions, realm mutation and clock replay passed\nPublic owned console authorization, aliases, isolation and cleanup passed\nPublic Object type inspection, jQuery-style lookup, replay and realm isolation passed\nPublic realm callback phases, identity, nesting, yields, failures and cleanup passed\nPublic curl buffered/mixed output preserves bytes, cancellation and non-replay failures\nPacked curl preserves body intent, HTTP-error omission and conflicting-flag admission\nScoped SafeJS, shell, canonical filesystem, copy options and input limits passed\n",
+      "recovery": "Copied complete maintained safe-packages fixture dependency closure; initial missing-fixture attempt retained."
+    }
+  ]
+}

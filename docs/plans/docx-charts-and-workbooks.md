@@ -2,7 +2,8 @@
 
 Status: Corrected bounded TypeScript candidate-v2 passes maintained scoped gates
 and independent product/corpus review. Exact cleanup and final root lint pass;
-local product delivery remains pending. Full model/API, workbook consistency and rendering are
+local product commit is verified. Evidence/status delivery follows separately.
+Full model/API, workbook consistency and rendering are
 not established.
 
 Authority: docs/specs/docx.md; office-cli.md and office-sdk.md govern shared
@@ -333,3 +334,13 @@ retain that verifier-only correction without rerunning or relabeling the passing
 lint. Product delivery GO follows these authenticated gates, with explicit21
 product paths and this plan in one atomic Conventional Commit; evidence and only
 task74 scalars follow separately. No push or release is authorized.
+
+Verified local product commit:
+d5b8521122d41a7533b5dcd08f49b7c8a757367c,
+`feat(docx): add bounded chart inventory`, exactly21 frozen product paths plus
+this task plan. Product blobs must authenticate against candidate-v2 before the
+separate evidence/status commit. Only task74 implement/test scalars may enter the
+thin pipeline index; preserve unrelated task48–59 working scalars and untracked
+plan bytes. This task's bounded implementation/test gates are complete; broad
+sole metadata and all pending model/API/consistency/rendering obligations stay
+unchanged. Task75 remains pending until local evidence delivery authentication.

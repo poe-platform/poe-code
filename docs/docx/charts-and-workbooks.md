@@ -1,7 +1,8 @@
 # Chart and workbook inventory evidence
 
-Status: Task74 sole wording is independently approved. Original TypeScript tests,
-implementation and product QA are pending.
+Status: Task74 bounded original TypeScript candidate-v2 passes maintained scoped
+checks and independent product/corpus review. Local product commit is verified;
+full model/API coverage, workbook consistency and rendering are not established.
 
 The sole format contract is [docx.md](../specs/docx.md); shared behavior follows
 office-cli.md and office-sdk.md. Execution/QA procedures belong only in
@@ -92,5 +93,100 @@ An original cross-dialect probe throws invalid-package because a chart root uses
 the opposite package dialect. The sole reconciliation retains that admission
 guard and tests both namespaces in matching documents; no conversion or expanded
 compatibility/source ownership is authorized. The domain's8-byte opaque workbook
-probe proves inert binding preservation only, never XLSX validity. Both facts
-remain preparation evidence until original TypeScript product tests pass.
+probe proves inert binding preservation only, never XLSX validity. Those probes
+were preparation; the original TypeScript evidence below separately verifies
+bounded product behavior.
+
+## Original bounded implementation and independent verification
+
+The public inspector and charts.list return package-global physical definitions,
+ordered native groups, stored lexical cache/source evidence and inert resource
+bindings. Only json/limit apply. Unreferenced and opaque definitions remain visible;
+style/color resources are not extra definitions. No model, utility batch,
+spreadsheet validity, formula calculation, refresh or rendering is promoted.
+
+Original recognition analogues are
+packages/docx/src/charts.test.ts (chart graphics excluded from image inventory and
+physical chart classification) and both matching-dialect inventory cases. They
+cover utility recognition, not the pending live InlineShape.type or CHART enum.
+Exact source case/API identities and historical dispositions above are unchanged.
+
+Canonical originals cover all16 native groups, mixed/repeated groups, both
+dialects, lexical sparse/duplicate/malformed caches, label and literal/reference
+provenance, inert workbook MIME roles, style/color opacity, owner-local/cyclic
+graph edges, scope poison, copied invocation bytes/options, output/cancellation
+bounds and unrelated body/property edits. Downloaded data is not a unit dependency.
+
+Independent review found duplicate empty source containers allowed compact
+projections and missing autoUpdate values lacked issue evidence. Both were reduced
+to seven original canonical failures before corrections. Empty containers now
+retain opaque source evidence and make projections ambiguous; missing scalars
+retain null with located issues. Earlier closure/order and inherited-key defects
+also retain original REDs. A readonly Shell fixture type failure was corrected
+immutably; construction/type-harness mistakes remain separately qualified.
+
+Frozen candidate-v2 has21 owned product inputs. Maintained
+/tmp/docx74-root-maintained-proof-v3.json authenticates DOCX2717/2717 across125
+files, selected5builds, package lint/source/test types, portable public2/2 and
+virtual-bash one-build26consumer-group compile-only success. Actual focused Shell
+cohort passes125/125 across20 maintained-discovered files. Independent
+/tmp/docx74-reviewer-final-approval-v2.json, SHA-256
+b10a24ad2aaf83efced24b3fce7a6ef5ccecf78973c5b02667aac1d052e49b84,
+approves four public SDK correction probes, focused55/55 and independent actual
+Shell125/125 with exact296 captured paths/21owned append-aware bindings. This is
+bounded feature evidence, not a full virtual-bash unit or full API gate. Corpus
+qualification is recorded below; final root guarded lint and local product commit pass.
+
+## Bounded corpus outcomes
+
+Reduced evidence is [charts-and-workbooks-qa.json](./charts-and-workbooks-qa.json).
+Ordinary SDK and normal Shell annex reads retain their limit failures. The fixed
+dense SDK profile reads three physical definitions, nine series, 26 stored caches
+and 13 inert graph parts. Independent outer ZIP/XML inspection agrees with the
+physical references and graph inventory. The declared 120,626-byte workbook stays
+opaque. No workbook validity or consistency follows from those bindings.
+
+The full-annex body edit fails the validation byte limit with zero publication;
+its initial cardinality setup error is retained separately. Full-annex editing,
+round-trip and same-profile SDK/Shell parity remain unqualified.
+
+A separate 255,101-byte authored QA carrier has 20 members, including 16 exact
+copied chart/resource/relationship closure members and three semantic incoming
+edges. Its ordinary SDK and normal Shell reads match complete data, warnings and
+revision-bound locations. Dense SDK, ordinary SDK and normal Shell body edits
+produce identical 255,192-byte outputs, SHA-256
+a99d0f76ba40c8902b3cd70eb7a1b24f4a528505624ef0a4432b39efcd6fa1f4.
+Member order, all 19 other members, copied closure bytes and relationship graphs
+remain exact. This carrier is disposable corpus-derived QA, not a canonical unit
+fixture or a qualification of the full annex. A genuine virtual .sh chart read
+also matches direct Shell stdout exactly.
+
+Four fixed 100-column terminal screenshot replays were actually inspected by root
+and the QA owner. The original wide help image fails the unchanged 8192-pixel
+dimension admission before display; that failure survives. Replays preserve all
+non-newline transcript text without clipping. Root's external display watchdog
+acknowledges all four at 106.493 seconds under the 120-second ceiling; opaque image
+tools cannot be forcibly preempted by that observer. Different-worker QA approval
+/tmp/docx74-reviewer-qa-final-approval-v1.json, SHA-256
+eb5023cce16abb04dd9c96ce8f4ec28bd2d8ca75cd90db2a803497e0238b0a10,
+independently authenticates all 15 operations, 21 product inputs, 27 campaign files,
+carrier parity/preservation and four actual images. Exact cleanup removes all 27
+manifest campaign files (10,586,275 logical bytes), leaving the empty directory and
+original corpus source untouched. Reduced hashes, profiles, failures and findings
+survive in the QA record; no downloaded asset enters the commit. No chart rendering
+is claimed.
+
+Different-worker post-cleanup authentication:
+/tmp/docx74-reviewer-post-cleanup-authentication-v1.json, SHA-256
+f0e4e0a08587415018ef6e3166e2ef51c05a23aa78012c1c4fee8ad664ee88f8.
+Final maintained root guarded lint passes in 508.847 seconds with 12,659 subjects,
+zero errors, 12 warnings, all 25 receipts complete and no gaps. Complete JSON and
+separate-stream proof is /tmp/docx74-root-final-lint-proof-v1.json, SHA-256
+b3f281d003fce8eeedc655be6778d55f048c17ab810df48b2d1c2431fd397799.
+Original TS tests, public probes and canonical fixtures remain independent of the
+cleaned campaign. Local product commit is
+d5b8521122d41a7533b5dcd08f49b7c8a757367c,
+`feat(docx): add bounded chart inventory`, exactly the 21 frozen product paths and
+task plan. QA/status evidence is delivered separately. No push, remote-main
+delivery or release publication occurred. This closes bounded task74; full
+model/API, workbook consistency and rendering remain pending.

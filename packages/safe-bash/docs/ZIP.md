@@ -164,6 +164,9 @@ members remain unchanged. The Unix first-buffer binary check uses 8 KiB for
 stored sources and 32 KiB for deflated sources. Blacklisted control bytes disable
 conversion; control-only input is also left unchanged. Conversion expansion is
 charged against entry and aggregate payload limits before allocating output.
+DEFLATE attempts set the ZIP text attribute from the payload control-byte
+classification, including when compression falls back to storage. Explicitly
+stored sources retain a binary attribute.
 Native binary warning/progress formatting and reverse conversion (`-ll`) remain
 unimplemented.
 

@@ -390,7 +390,7 @@ function formatDashboardCurrentAction(progress: TaskProgress): string {
     return progress.taskTitle;
   }
 
-  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskId];
+  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskTitle || progress.taskId];
   if (progress.stepName) {
     parts.push(progress.stepName);
   }

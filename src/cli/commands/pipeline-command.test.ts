@@ -1390,7 +1390,7 @@ describe("pipeline run command", () => {
         iterations: 1,
         tokensIn: 120,
         tokensOut: 45,
-        currentAction: "Task 2/3 · auth-hardening · implement · step 1/2"
+        currentAction: "Task 2/3 · Auth hardening · implement · step 1/2"
       })
     );
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(

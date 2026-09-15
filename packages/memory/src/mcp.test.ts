@@ -122,7 +122,7 @@ describe("memory MCP helpers", () => {
     expect(appendResult.error).toBeUndefined();
   });
 
-  it("rejects negative search result limits", async () => {
+  it.each([-1, 1.5])("rejects invalid search result limit %s as an input error", async (limit) => {
     const handle = createHandle();
     handle.searchMemory = vi.fn().mockResolvedValue([
       { relPath: "pages/one.md", lineNumber: 1, line: "one" },
@@ -132,11 +132,21 @@ describe("memory MCP helpers", () => {
 
     const result = await server.handleMessage("tools/call", {
       name: "search_memory",
-      arguments: { query: "one", limit: -1 },
+      arguments: { query: "one", limit },
     });
 
-    expect(result.result).toMatchObject({ isError: true });
+    expect(result.error).toMatchObject({ code: -32602 });
     expect(handle.searchMemory).not.toHaveBeenCalled();
+  });
+
+  it("advertises the declared search limit constraints", async () => {
+    const { server } = await startMemoryMcpServer(createHandle(), { allowWrites: false });
+    const _meta = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
+    expect(await server.handleMessage("tools/list", { _meta })).toMatchObject({ result: { tools: expect.arrayContaining([
+      expect.objectContaining({ name: "search_memory", inputSchema: expect.objectContaining({ properties: expect.objectContaining({
+        limit: { type: "integer", minimum: 0 }
+      }) }) })
+    ]) } });
   });
 
   it("returns search hits as typed snake_case MCP output", async () => {

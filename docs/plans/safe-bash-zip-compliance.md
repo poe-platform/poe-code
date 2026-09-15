@@ -542,3 +542,22 @@ first-block hint variation remains a qualification item for large mixed inputs.
 https://github.com/LuaDist/zip/blob/master/trees.c
 Native UnZip integrity and Python text/fallback hints plus exact UTF-8 payload
 checks pass for /tmp/safe-bash-zip-text-attributes.zip.
+
+## Archive-name source operand fallback
+
+Native Unix Zip does not glob quoted operands against new sources; an existing
+literal wildcard filename takes precedence. Missing operands match existing
+archive names and reread those sources. Captures validate cross-directory stars,
+nw/ws, MM, update/freshen and junk-path preservation. Seven initially failing
+memory cases reproduce missing rereads; a further failing directory case proves
+r must not discover new children through archive fallback. Reuse the bounded
+Selection grammar, preserve stored names and source inspections, and disable
+recursive discovery for fallback matches. Tests also cover excluded payload reads,
+new-archive nonexpansion and literal wildcard precedence. 731 focused ZIP/unzip
+tests and scoped lint pass. Reverse conversion, move, streaming, formats and the
+remaining grammar/metadata requirements stay open. Text-attribute delivery
+ac4598dcf is verified on remote main; its publication remains monitored.
+Native UnZip and Python verify exact updated payload and preserved stored paths
+in /tmp/safe-bash-zip-archive-source-patterns.zip. Conversion scoped release
+35021106947 failed at SafeFS publication on version 0.1.627 collision; build
+checks succeeded. Text-attribute scoped release 35021462848 remains live.

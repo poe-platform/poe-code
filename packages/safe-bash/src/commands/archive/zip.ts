@@ -405,7 +405,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     selected.set(name, { entry, source });
     if (parsed.entryComments) commentNames.add(name);
   };
-  const visit = async (source: string, name: string, depth: number): Promise<void> => {
+  const visit = async (source: string, name: string, depth: number, storedName = false): Promise<void> => {
     context.signal.throwIfAborted();
     if (++visits > limits.maxMembers) fail("traversal member limit exceeded");
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
@@ -440,6 +440,17 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (typeof error !== "object" || error === null || !("code" in error)) throw error;
       if (parsed.mustMatch && error.code === "EACCES") throw new ZipFailure(18, "File not found or no read permission", source);
       if (error.code !== "ENOENT") throw error;
+      if (!storedName && !old.has(name)) {
+        const pattern = new Selection([memberName(source, limits)], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
+        let matched = false;
+        for (const entry of archive.entries) {
+          if (await pattern.matches(entry.name, true)) {
+            matched = true;
+            await visit(entry.name, entry.name, depth, true);
+          }
+        }
+        if (matched) return;
+      }
       if (parsed.entryComments && old.has(name) && await filterName(name, selection, parsed.includes.length)) commentNames.add(name);
       if (parsed.mustMatch && !old.has(name)) {
         if (!archiveOperandMatches) {
@@ -471,7 +482,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const nameIncluded = (dateIncluded || parsed.entryComments) && await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
     const included = dateIncluded && nameIncluded;
     const sourceName = name;
-    if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
+    if (parsed.junkPaths && !storedName) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     const prior = old.get(name);
     if (parsed.entryComments && prior && nameIncluded) commentNames.add(name);
     if (parsed.filesync && name && included && !(directory && parsed.omitDirectories)) {
@@ -512,7 +523,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink });
       }
     }
-    if (directory && (parsed.recursive || parsed.recursivePatterns)) {
+    if (directory && !storedName && (parsed.recursive || parsed.recursivePatterns)) {
       if (ancestors.some(ancestor => ancestor.path === canonical || sameIdentity(ancestor.stat, stat))) fail(`directory cycle while archiving: ${source}`);
       ancestors.push({ path: canonical, stat });
       try {

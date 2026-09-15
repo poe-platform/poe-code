@@ -183,6 +183,13 @@ under the archive limits rather than written or charged as stdout. Corruption
 uses the native ZIP failure status and final diagnostic; embedded UnZip diagnostic
 text and temporary filenames are not reproduced by this implementation.
 
+When a source operand does not exist, ZIP matches it against existing archive
+names and rereads matching sources using their stored names. `-nw` and `-ws`
+control this fallback; `-j` retains the matched archive names. A directory matched
+this way does not discover new children with `-r`. Existing literal filenames
+containing wildcard characters take precedence. Quoted wildcards do not expand
+against new filesystem sources in the Unix profile.
+
 `-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
 `?`, bracket classes and backslash escapes; `*` can span directories. Quote
 patterns to prevent shell expansion, for example

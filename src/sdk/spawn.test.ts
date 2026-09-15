@@ -620,6 +620,35 @@ describe("SDK spawn()", () => {
     });
   });
 
+  it.each(["cli", "acp"].flatMap(transport => [undefined, false].map(captureSession => ({ transport, captureSession }))))("keeps streamed $transport metadata with captureSession=$captureSession", async ({ transport, captureSession: retainSession }) => {
+    const { sessionMetadataCapture } = await import("@poe-code/agent-spawn");
+    const { sessionMetadataCapture: captureMetadata } = await import("../../packages/agent-spawn/src/acp/middlewares/session-capture.js");
+    if (transport === "acp") vi.mocked(getAcpSpawnConfig).mockReturnValue({ kind: "acp", agentId: "codex", acpArgs: ["acp"] });
+    else vi.mocked(getSpawnConfig).mockReturnValue({ kind: "cli", agentId: "codex", adapter: "codex" } as any);
+    const nativeSpawn = transport === "acp" ? spawnAcp : spawnStreaming;
+    const source = [
+      { event: "session_start", threadId: "metadata-thread" },
+      { event: "agent_message", text: "Streaming message" },
+      { event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 }
+    ];
+    vi.mocked(nativeSpawn).mockReturnValue({ events: (async function* () { yield* source; })(), done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 }) } as any);
+    vi.mocked(applyMiddlewares).mockImplementation(async (middlewares, ctx) => {
+      for (const middleware of middlewares) {
+        if (middleware === sessionCapture) await captureSession(ctx, async () => {});
+        if (middleware === sessionMetadataCapture) await captureMetadata(ctx, async () => {});
+        if (middleware === usageCapture) await captureUsage(ctx, async () => {});
+      }
+    });
+    const { events, result } = spawn("codex", "test prompt", { ...(retainSession === false ? { captureSession: false } : {}) });
+    const final = await result;
+    expect(await collectEvents(events)).toEqual(source);
+    if (retainSession === false) expect(final.sessionResult).toBeUndefined();
+    else expect(final.sessionResult?.output).toBe("Streaming message");
+    expect(final.threadId).toBe("metadata-thread");
+    expect(final.usage).toEqual({ inputTokens: 120, outputTokens: 45, cachedTokens: 10 });
+    expect(applyMiddlewares).toHaveBeenCalledWith([retainSession === false ? sessionMetadataCapture : sessionCapture, usageCapture, spawnLog], expect.objectContaining({ events: retainSession === false ? [] : source }));
+  });
+
   it("exposes middleware-captured sessionResult on the spawn result", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

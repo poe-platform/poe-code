@@ -17,6 +17,7 @@ import {
   renderAcpStream,
   applyMiddlewares,
   sessionCapture,
+  sessionMetadataCapture,
   usageCapture,
   spawnLog,
   runCommand,
@@ -197,7 +198,7 @@ export function spawn(
         ...(options.traceSink ? [createTraceSinkMiddleware(options.traceSink)] : [])
       ];
       const middlewares = [
-        sessionCapture,
+        options.captureSession === false ? sessionMetadataCapture : sessionCapture,
         usageCapture,
         spawnLog,
         ...(!captureOtel ? consumerMiddlewares : [])
@@ -302,14 +303,12 @@ export function spawn(
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
-        const threadId = middlewareContext.threadId ?? final.threadId;
-
         return {
           stdout: final.stdout,
           stderr: final.stderr,
           exitCode: final.exitCode,
-          ...(threadId ? { threadId } : {}),
-          ...(final.usage ? { usage: final.usage } : {}),
+          get threadId() { return middlewareContext.threadId ?? final.threadId; },
+          get usage() { return final.usage ?? getCapturedUsage(middlewareContext.usage); },
           get logFile() { return middlewareContext.logFile; },
           get logError() { return middlewareContext.logError; },
           ...(middlewareContext.sessionResult

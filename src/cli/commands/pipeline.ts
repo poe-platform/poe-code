@@ -427,6 +427,7 @@ function createPipelineDashboardRunAgent(options: {
 
       try {
         const { events, result } = sdkSpawn(input.agent, {
+          captureSession: false,
           prompt: input.prompt,
           cwd: input.cwd,
           logDir: input.logDir,

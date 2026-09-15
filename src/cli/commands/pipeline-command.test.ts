@@ -1990,6 +1990,7 @@ describe("pipeline run command", () => {
     expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith(
       agent,
       expect.objectContaining({
+        captureSession: false,
         prompt: "Inspect the repo",
         cwd,
         model: "gpt-5.2",

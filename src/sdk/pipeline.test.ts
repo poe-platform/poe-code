@@ -543,6 +543,7 @@ describe("SDK pipeline", () => {
     expect(sdkSpawnAutonomousMock).toHaveBeenCalledWith(
       "codex",
       expect.objectContaining({
+        captureSession: false,
         prompt: "Ship it.",
         cwd,
         mode: "yolo",

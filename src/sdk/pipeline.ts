@@ -163,6 +163,7 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
     options.runAgent ??
     (async (input: PipelineAgentRunnerInput) => {
       return await sdkSpawn.autonomous(input.agent, {
+        captureSession: false,
         prompt: input.prompt,
         cwd: input.cwd,
         logDir: input.logDir,

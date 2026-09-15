@@ -15,6 +15,7 @@ export interface SpawnCommandOptions {
   logDir?: string;
   logFileName?: string;
   logContent?: boolean;
+  captureSession?: boolean;
   activityTimeoutMs?: number;
   captureOtel?: boolean;
   captureOtelContent?: boolean;

@@ -37,6 +37,50 @@ function createContext(overrides: Partial<SpawnContext> = {}): SpawnContext {
   };
 }
 
+describe("acp/middlewares/sessionMetadataCapture", () => {
+  it("streams messages and tools without retaining history while capturing the thread", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const sourceEvents: AcpEvent[] = [
+      { event: "session_start", threadId: "metadata-thread" },
+      { event: "agent_message", text: "Message" },
+      { event: "tool_start", id: "one", kind: "exec", title: "inspect" },
+      { event: "tool_complete", id: "one", kind: "exec", path: "done" }
+    ];
+    const ctx = createContext({ eventStream: (async function* () { yield* sourceEvents; })() });
+    await sessionMetadataCapture(ctx, async () => {});
+    expect(await collect(ctx.eventStream!)).toEqual(sourceEvents);
+    expect(ctx.threadId).toBe("metadata-thread");
+    expect(ctx.sessionId).toBe("metadata-thread");
+    expect(ctx.events).toEqual([]);
+    expect(ctx.sessionResult).toBeUndefined();
+  });
+
+  it("captures valid preloaded thread metadata without rewriting caller-owned history", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const events: AcpEvent[] = [
+      { event: "session_start", threadId: "preloaded-thread" },
+      { event: "session_start", threadId: "" },
+      { event: "agent_message", text: "Message" }
+    ];
+    const ctx = createContext({ events });
+    await sessionMetadataCapture(ctx, async () => {});
+    expect(ctx.threadId).toBe("preloaded-thread");
+    expect(ctx.events).toBe(events);
+    expect(ctx.sessionResult).toBeUndefined();
+  });
+
+  it("preserves a session result explicitly supplied by other middleware", async () => {
+    const { sessionMetadataCapture } = await import("./session-capture.js");
+    const result = { output: "Caller result", messages: ["Caller result"], toolCalls: [] };
+    const ctx = createContext({ sessionResult: result, eventStream: (async function* () { yield { event: "agent_message", text: "Uncaptured" } as AcpEvent; })() });
+    await sessionMetadataCapture(ctx, async () => {});
+    await collect(ctx.eventStream!);
+    expect(ctx.sessionResult).toBe(result);
+    expect(result.output).toBe("Caller result");
+    expect(result.messages).toEqual(["Caller result"]);
+  });
+});
+
 describe("acp/middlewares/sessionCapture", () => {
   it("captures a large live text burst within the interactive latency budget", async () => {
     const ctx = createContext();

@@ -108,7 +108,7 @@ export type {
   SessionToolCall,
   SpawnContext as AcpSpawnContext
 } from "./acp/middleware.js";
-export { sessionCapture } from "./acp/middlewares/session-capture.js";
+export { sessionCapture, sessionMetadataCapture } from "./acp/middlewares/session-capture.js";
 export { usageCapture } from "./acp/middlewares/usage-capture.js";
 export { spawnLog } from "./acp/middlewares/spawn-log.js";
 

@@ -1402,6 +1402,56 @@ describe("acp/spawnStreaming", () => {
     expect((await done).exitCode).toBe(0);
   });
 
+  it("discards buffered native delivery when its iterator is closed", async () => {
+    const mock = createMockChildProcess({ stdoutLines: [
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "first" } }),
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "buffered" } })
+    ] });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo" });
+    await done;
+    const iterator = events[Symbol.asyncIterator]();
+    expect((await iterator.next()).done).toBe(false);
+    expect(await iterator.return?.()).toEqual({ done: true, value: undefined });
+    expect(await iterator.next()).toEqual({ done: true, value: undefined });
+  });
+
+  it("settles pending native reads when its iterator closes without stopping the producer", async () => {
+    const mock = createMockChildProcess({ stdoutLines: [
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "event after close" } })
+    ] });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo" });
+    const iterator = events[Symbol.asyncIterator]();
+    const pending = iterator.next();
+    expect(await iterator.return?.()).toEqual({ done: true, value: undefined });
+    expect(await pending).toEqual({ done: true, value: undefined });
+    expect((await done).exitCode).toBe(0);
+    expect(await iterator.next()).toEqual({ done: true, value: undefined });
+  });
+
+  it("preserves native transcript and usage after delivery is abandoned", async () => {
+    const mock = createMockChildProcess({ stdoutLines: [
+      JSON.stringify({ type: "text", sessionID: "closed", part: { text: "event after close" } }),
+      JSON.stringify({ type: "step_finish", sessionID: "closed", part: { tokens: { input: 120, output: 45, cache: { read: 10, write: 0 } } } })
+    ] });
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    let captured: SpawnContext | undefined;
+    const middleware: AcpMiddleware = async (ctx, next) => {
+      captured = ctx;
+      await ctx.eventStream![Symbol.asyncIterator]().return?.();
+      await next();
+    };
+    const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo", middlewares: [middleware] });
+    expect((await done).exitCode).toBe(0);
+    expect(await collect(events)).toEqual([]);
+    expect(captured?.events).toEqual(expect.arrayContaining([
+      expect.objectContaining({ event: "agent_message", text: "event after close" }),
+      expect.objectContaining({ event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 })
+    ]));
+    expect(captured?.usage).toMatchObject({ inputTokens: 120, outputTokens: 45, cachedTokens: 10 });
+  });
+
   it("ignores inherited streaming spawn option fields", async () => {
     const stdoutLines = [
       JSON.stringify({

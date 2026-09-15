@@ -326,6 +326,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     reject(error: unknown): void;
   }> = [];
   let eventsDone = false;
+  let eventsAbandoned = false;
   let eventStreamError: unknown;
   const ctx: SpawnContext = {
     sessionId: "unknown",
@@ -356,6 +357,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     }
     ctx.events.push(event);
     accumulateUsage(ctx, event);
+    if (eventsAbandoned) return;
     const waiter = waiters.shift();
     if (waiter) {
       waiter.resolve({ done: false, value: event });
@@ -385,6 +387,9 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
       return {
         next(): Promise<IteratorResult<AcpEvent>> {
+          if (eventsAbandoned) {
+            return Promise.resolve({ done: true, value: undefined });
+          }
           if (eventIndex < eventQueue.length) {
             const value = eventQueue[eventIndex]!;
             eventQueue[eventIndex++] = undefined;
@@ -406,6 +411,15 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
           return new Promise((resolve, reject) => {
             waiters.push({ resolve, reject });
           });
+        },
+        return(): Promise<IteratorResult<AcpEvent>> {
+          eventsAbandoned = true;
+          eventQueue.length = 0;
+          eventIndex = 0;
+          while (waiters.length > 0) {
+            waiters.shift()?.resolve({ done: true, value: undefined });
+          }
+          return Promise.resolve({ done: true, value: undefined });
         }
       };
     }

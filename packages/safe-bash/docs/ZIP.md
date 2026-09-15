@@ -225,6 +225,13 @@ omit descriptors. The option is not negatable. Untouched members do not receive 
 are normalized to ordinary file headers during archive updates. Forced ZIP64 descriptors use 64-bit
 sizes and valid ZIP64 end records.
 
+`-ws` / `--wild-stop-dirs` keeps single `*` and `?` within a directory;
+`**` can cross directories. An explicit slash in a character class still
+matches a slash. `-nw` / `--no-wild` treats stars, brackets and backslashes
+literally; `?` retains wildcard behavior, matching the native Unix build.
+These controls apply to include, exclude and archive-delete patterns and
+are not negatable. Default UnZip pattern behavior is unchanged.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

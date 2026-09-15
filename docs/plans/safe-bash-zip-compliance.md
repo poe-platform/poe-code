@@ -263,3 +263,18 @@ normalization. Scoped lint passed. Native UnZip integrity and Python exact
 payload/descriptor/DEFLATE checks pass for actual one-byte file output.
 The X metadata release (35009959837) succeeded; remaining compliance work is
 still active.
+
+## Wildcard matching controls
+
+Native captures establish -ws/--wild-stop-dirs: single star and question mark
+stop at slash, double star crosses slash, explicit slash character classes
+remain legal. -nw/--no-wild disables stars, brackets and backslash escaping
+but native Unix question-mark matching remains active. Neither is negatable.
+Added optional matcher configuration without changing default UnZip semantics,
+and applied controls to include/exclude and archive-delete selection.
+461 focused ZIP/unzip tests pass, covering nested depths, literal metacharacters,
+question marks, slash classes, double stars, aliases, exclusions, deletion and
+nonnegation. Scoped ESLint passed. Independent native/actual virtual stdout
+archive comparison confirms identical selected names and payloads for single
+and double-star patterns. Filesystem operand glob expansion and recursive-pattern
+mode remain open, alongside streaming and other option/format areas.

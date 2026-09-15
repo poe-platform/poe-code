@@ -53,20 +53,24 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
   return { list: list && !pipe, pipe, overwrite, destination, archive, patterns };
 }
 
-type Token = { kind: "star" | "any" | "never" } | { kind: "literal"; value: string }
+type Token = { kind: "star"; crossDirectories: boolean } | { kind: "any" | "never" } | { kind: "literal"; value: string }
   | { kind: "class"; ranges: readonly [number, number][]; negative: boolean };
 
-function tokenize(pattern: string): Token[] {
+function tokenize(pattern: string, noWild: boolean, stopAtDirectories: boolean): Token[] {
   const characters = Array.from(pattern);
   const tokens: Token[] = [];
   for (let index = 0; index < characters.length; index++) {
     const character = characters[index]!;
-    if (character === "*") { if (tokens.at(-1)?.kind !== "star") tokens.push({ kind: "star" }); }
+    if (character === "*" && !noWild) {
+      let count = 1;
+      while (characters[index + 1] === "*") { count++; index++; }
+      tokens.push({ kind: "star", crossDirectories: !stopAtDirectories || count > 1 });
+    }
     else if (character === "?") tokens.push({ kind: "any" });
-    else if (character === "\\") {
+    else if (character === "\\" && !noWild) {
       const escaped = characters[++index];
       tokens.push(escaped === undefined ? { kind: "never" } : { kind: "literal", value: escaped });
-    } else if (character === "[") {
+    } else if (character === "[" && !noWild) {
       const negative = characters[index + 1] === "!" || characters[index + 1] === "^";
       if (negative) index++;
       const ranges: [number, number][] = [];
@@ -93,8 +97,8 @@ export class Selection {
   private work = 0;
   private readonly patterns: readonly Token[][];
   readonly matched = new Set<number>();
-  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal) {
-    this.patterns = patterns.map(tokenize);
+  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal, private readonly options: { noWild?: boolean; stopAtDirectories?: boolean } = {}) {
+    this.patterns = patterns.map(pattern => tokenize(pattern, options.noWild === true, options.stopAtDirectories === true));
   }
   private step(): void {
     if (++this.work > this.limits.maxPatternSteps) fail("pattern work limit exceeded");
@@ -111,10 +115,10 @@ export class Selection {
         const next = new Uint8Array(states.length);
         for (let index = 0; index < states.length; index++) {
           this.step();
-          if (token.kind === "star") next[index] = states[index]! || (index > 0 ? next[index - 1]! : 0);
+          if (token.kind === "star") next[index] = states[index]! || (index > 0 && (token.crossDirectories || characters[index - 1] !== "/") ? next[index - 1]! : 0);
           else if (states[index] && index < characters.length) {
             const character = characters[index]!;
-            let match = token.kind === "any" || (token.kind === "literal" && token.value === character);
+            let match = token.kind === "any" && (!this.options.stopAtDirectories || character !== "/") || (token.kind === "literal" && token.value === character);
             if (token.kind === "class") {
               let inRange = false;
               for (const [first, last] of token.ranges) {

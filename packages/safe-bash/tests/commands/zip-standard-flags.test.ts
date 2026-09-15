@@ -278,7 +278,7 @@ for (const action of ["--update", "--freshen", "--delete"]) {
   });
 }
 
-for (const option of ["--rec", "--quiet=yes", "--no-wild", "--unknown"]) {
+for (const option of ["--rec", "--quiet=yes", "--no-wild=yes", "--unknown"]) {
   test(`zip rejects ${option} without publication`, async () => {
     const fs = await fixture();
     const result = await execute("zip", fs, [option, "output.zip", "binary"]);
@@ -1146,4 +1146,59 @@ test("zip updates normalize existing descriptors on untouched members", async ()
   const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
   assert.equal(archive.entries.find(entry => entry.name === "binary")!.flags! & 8, 0);
   assert.equal(archive.entries.find(entry => entry.name === "folder/data")!.flags! & 8, 0);
+});
+
+for (const [options, pattern, expected] of [
+  [["-ws"], "*.txt", ["a*b.txt", "a?b.txt", "a[b].txt", "one.txt"]],
+  [["--wild-stop-dirs"], "folder/*.txt", ["folder/two.txt"]],
+  [["-ws"], "**.txt", ["a*b.txt", "a?b.txt", "a[b].txt", "folder/sub/three.txt", "folder/two.txt", "one.txt"]],
+  [["-ws"], "folder/**.txt", ["folder/sub/three.txt", "folder/two.txt"]],
+  [["-ws"], "folder?two.txt", []],
+  [["-ws"], "folder[t/]two.txt", ["folder/two.txt"]],
+  [["-nw"], "*.txt", []],
+  [["--no-wild"], "a*b.txt", ["a*b.txt"]],
+  [["-nw"], "a[b].txt", ["a[b].txt"]],
+  [["-nw"], "a?b.txt", ["a*b.txt", "a?b.txt"]],
+  [["-nw", "-ws"], "folder?two.txt", []],
+  [["-nw"], "a\\*b.txt", []],
+] as const) {
+  test(`zip wildcard controls ${options.join(" ")} ${pattern}`, async () => {
+    const fs = await fixture();
+    await fs.mkdir("/work/folder/sub", { recursive: true });
+    for (const name of ["one.txt", "folder/two.txt", "folder/sub/three.txt", "a?b.txt", "a*b.txt", "a[b].txt"]) await fs.writeFile(`/work/${name}`, Buffer.from("x"));
+    const result = await execute("zip", fs, ["-qrD", ...options, "selected.zip", ".", "-i", pattern]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/selected.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name).sort(), [...expected].sort());
+  });
+}
+for (const option of ["-nw-", "-ws-", "--no-wild-", "--wild-stop-dirs-"]) {
+  test(`zip rejects nonnegatable wildcard control ${option}`, async () => {
+    assert.equal((await execute("zip", await fixture(), ["-q", option, "selected.zip", "binary"])).exitCode, 16);
+  });
+}
+
+for (const [options, pattern, remaining] of [
+  [["-nw"], "a*b.txt", ["a?b.txt", "folder/sub/three.txt", "folder/two.txt"]],
+  [["-ws"], "folder/*.txt", ["a*b.txt", "a?b.txt", "folder/sub/three.txt"]],
+  [["-ws"], "folder/**.txt", ["a*b.txt", "a?b.txt"]],
+] as const) {
+  test(`zip delete wildcard controls ${options.join(" ")} ${pattern}`, async () => {
+    const initial = await archiveBytes(["a*b.txt", "a?b.txt", "folder/two.txt", "folder/sub/three.txt"].map(name => ({ name, body: binary })));
+    const fs = await fixture(initial);
+    const result = await execute("zip", fs, ["-qd", ...options, "sample.zip", pattern]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name).sort(), [...remaining].sort());
+  });
+}
+test("zip wildcard directory control applies to exclusion patterns", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/top.txt", Buffer.from("x"));
+  await fs.writeFile("/work/folder/nested.txt", Buffer.from("y"));
+  const result = await execute("zip", fs, ["-qrDws", "selected.zip", ".", "-x", "*.txt"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/selected.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.some(entry => entry.name === "top.txt"), false);
+  assert.equal(archive.entries.some(entry => entry.name === "folder/nested.txt"), true);
 });

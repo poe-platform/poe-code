@@ -15,6 +15,8 @@ interface ZipOptions {
   readonly action: "add" | "delete" | "update" | "freshen";
   readonly archive: string;
   readonly recursive: boolean;
+  readonly noWild: boolean;
+  readonly stopAtDirectories: boolean;
   readonly quiet: boolean;
   readonly junkPaths: boolean;
   readonly omitDirectories: boolean;
@@ -56,6 +58,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let archive: string | undefined;
   let action: ZipOptions["action"] = "add";
   let recursive = false;
+  let noWild = false;
+  let stopAtDirectories = false;
   let quiet = false;
   let junkPaths = false;
   let omitDirectories = false;
@@ -97,6 +101,12 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           const next = flag === "d" ? "delete" : flag === "u" ? "update" : "freshen";
           if (action !== "add" && action !== next) throw new ZipFailure(16, "Invalid command arguments", "specify just one action");
           action = next;
+        }
+        else if (flag === "n" && argument[offset + 1] === "w" || flag === "w" && argument[offset + 1] === "s") {
+          if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "wildcard control is not negatable");
+          if (flag === "n") noWild = true;
+          else stopAtDirectories = true;
+          offset++;
         }
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
@@ -193,7 +203,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { action, archive, recursive, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -271,7 +281,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
   const deleted = new Set<string>();
-  const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal);
+  const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
@@ -376,7 +386,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (parsed.action === "delete") {
     if (!parsed.quiet && parsed.recursive) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
     if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
-    const operands = new Selection(parsed.operands, limits, context.signal);
+    const operands = new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     if (parsed.operands.length) {
       for (const entry of archive.entries) {
         if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length)) deleted.add(entry.name);

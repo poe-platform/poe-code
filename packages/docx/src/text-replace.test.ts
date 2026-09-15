@@ -119,6 +119,22 @@ it("refuses matching edits inside locked controls", async () => {
   await expect(replace(body)).rejects.toMatchObject({ code: "unsupported-edit" });
 });
 
+it("edits ordinary text around an unchanged locked control", async () => {
+  const locked = '<w:sdt><w:sdtPr><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent>' + paragraph("reserved") + '</w:sdtContent></w:sdt>';
+  const result = await replace(paragraph("coast") + locked + paragraph("coast"));
+  expect(result.text.text).toBe("shore\nreserved\nshore");
+  expect(result.xml).toContain(locked);
+});
+
+it("rejects removal of a baseline locked owner", async () => {
+  const locked = '<w:sdt><w:sdtPr><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent>' + paragraph("reserved") + '</w:sdtContent></w:sdt>';
+  const original = await docx.readDocumentArchive(await textFixture(locked), textContext);
+  const candidate = { ...original, members: original.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(`<w:document xmlns:w="${w}"><w:body>${paragraph("ordinary")}</w:body></w:document>`) } : member) };
+  const { assertDocumentEditable } = await import("./publication.js");
+  const { archiveSettings } = await import("./archive.js");
+  expect(() => assertDocumentEditable(candidate, archiveSettings(textContext), original)).toThrow(docx.UnsupportedEditError);
+});
+
 it("keeps locally declared formatting namespaces when splitting a run", async () => {
   const body = `<w:p><w:r><w:rPr xmlns:q="${w}"><q:b/><q:color q:val="224466"/></w:rPr><w:t>coast</w:t></w:r></w:p>`;
   const result = await replace(body, { italic: true });

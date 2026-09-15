@@ -54,7 +54,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
   const archive = document.snapshot();
-  assertDocumentEditable(archive, { ...settings, budget });
+  assertDocumentEditable(archive, { ...settings, budget }, archive);
   const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
   const matches: Match[] = [];
   const fields = new Map<string, boolean[]>();
@@ -76,7 +76,8 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     let pieces: Leaf[] = [], logicalOffset = 0;
     const ranges = reviewRanges.get(paragraph.value.story) ?? new Set<string>();
     reviewRanges.set(paragraph.value.story, ranges);
-    let unsupported = ancestors.some(n => !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
+    const locked = (owner: XmlElement) => owner.namespace === w && owner.localName === "sdt" && owner.children.some(properties => properties.namespace === w && properties.localName === "sdtPr" && properties.children.some(lock => lock.namespace === w && lock.localName === "lock" && attr(lock, "val") !== "unlocked"));
+    let unsupported = ancestors.some(n => locked(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
     const flush = () => {
       const text = pieces.map(piece => piece.text).join("");
       budget.charge("work", text.length + 1);
@@ -151,7 +152,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
       if (!visible(name)) return;
       if (!["p", "r"].includes(name) && !container) { flush(); return; }
       const previous = unsupported;
-      unsupported ||= changedProperties || ["moveTo", "moveFrom"].includes(name);
+      unsupported ||= locked(current) || changedProperties || ["moveTo", "moveFrom"].includes(name);
       const childOffset = name === "r" ? { value: 0 } : runOffset;
       current.children.forEach((child, i) => visit(child, [...path, i], name === "r" ? current : run, childOffset));
       if (container || changedProperties) flush();
@@ -162,7 +163,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
   }
   const chosen = opts.first ? matches.slice(0, 1) : opts.occurrence === undefined ? matches : matches.slice(opts.occurrence - 1, opts.occurrence);
   if (!chosen.length && !opts.allowEmpty) throw new SelectionError("missing-selection");
-  if (chosen.some(match => match.unsupported)) throw new UnsupportedEditError("Complex revision text cannot be edited.");
+  if (chosen.some(match => match.unsupported)) throw new UnsupportedEditError("Affected text includes protected or unsupported structures.");
   for (const match of chosen) for (const { leaf } of match.leaves) {
     leaf.editor.assertShapeEditAllowed(leaf.node);
     assertOutsideRevisionRanges(leaf.editor.root, leaf.run, budget, leaf.editor.compatibility.branches);
@@ -237,7 +238,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     path: opts.inPlace ? identity?.path ?? null : opts.output === "-" ? null : opts.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "text.replace", ok: true,
     data: prospective, affected: changes.length, locations: changes.map(c => c.after), warnings: [], errors: [] }) + "\n").length);
-  const result = await publishDocumentArchive(editor.snapshot(), publication, { ...context, budget });
+  const result = await publishDocumentArchive(editor.snapshot(), publication, { ...context, budget }, archive);
   return { changed, changes, dryRun: opts.dryRun ?? false, output: result.published.length ? {
     path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
 }

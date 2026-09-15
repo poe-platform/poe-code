@@ -5,7 +5,7 @@ import { CancellationError, DocumentBudget, createDocument, createDocumentArchiv
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 import { assertDocumentEditable } from "./publication.js";
 import { archiveSettings, readArchive } from "./archive.js";
-import { textContext, textFixture } from "../tests/fixtures/text.js";
+import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 
 it("keeps publication lock guards default-closed while admitting only verified unchanged control owners", async () => {
   const body = '<w:p><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Keep</w:t></w:r></w:sdtContent></w:sdt></w:p>';
@@ -20,6 +20,12 @@ it("refuses unchanged locked controls whose inherited XML semantics changed", as
   const archive = await readArchive(await textFixture(body), textContext);
   const changed = { ...archive, members: archive.members.map(member => member.name === "word/document.xml" ? { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).split('xml:lang="ar"').join('xml:lang="en"')) } : member) };
   expect(() => assertDocumentEditable(changed, archiveSettings(textContext), archive)).toThrow("Protected");
+});
+
+it("refuses stripping baseline document protection", async () => {
+  const original = await readArchive(await textFixture('<w:p><w:r><w:t>ordinary</w:t></w:r></w:p>', { settings: { kind: "settings", xml: `<w:settings xmlns:w="${w}"><w:writeProtection/></w:settings>` } }), textContext);
+  const candidate = { ...original, members: original.members.filter(member => member.name !== "word/settings.xml" && member.name !== "word/_rels/document.xml.rels").map(member => member.name === "[Content_Types].xml" ? { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace('<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>', "")) } : member) };
+  expect(() => assertDocumentEditable(candidate, archiveSettings(textContext), original)).toThrow("Protected");
 });
 
 const context = (): ArchiveContext => ({ signal: new AbortController().signal, limits: {

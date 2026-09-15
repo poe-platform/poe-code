@@ -148,6 +148,27 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
 export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>, controlSource?: DocumentArchive): void {
   // Until feature-specific authorization is implemented, protected packages fail closed.
   const packageView = new DocumentPackage(archive, limits, budget);
+  const sourcePackage = controlSource ? new DocumentPackage(controlSource, limits, budget) : undefined;
+  if (controlSource) for (const sourcePart of sourcePackage!.parts) {
+    if (!sourcePart.content_type.toLowerCase().startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourcePart.content_type.toLowerCase().endsWith("+xml")) continue;
+    const member = controlSource.members.find(member => "/" + member.name === sourcePart.partname)!;
+    const source = new DocumentXmlEditor(member.bytes, {}, undefined, budget);
+    const role = documentPartRole(sourcePart.content_type, source.root);
+    if (role === "settings" && source.root.children.some(node => node.namespace === source.root.namespace && ["documentProtection", "writeProtection"].includes(node.localName))) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
+    if (role !== "story" && role !== "glossary") continue;
+    const candidate = archive.members.find(part => part.name === member.name);
+    const current = candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
+    const visit = (node: XmlElement, path: readonly number[]) => {
+      budget.charge("work", 1);
+      if (node.namespace === source.root.namespace && node.localName === "sdt" && node.children.some(properties => properties.namespace === node.namespace && properties.localName === "sdtPr" && properties.children.some(lock => lock.namespace === node.namespace && lock.localName === "lock" && lock.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value !== "unlocked"))) {
+        let target: XmlElement | undefined = current?.root;
+        for (const index of path) target = target?.children[index];
+        if (!target || !current || current.sourceXml(target) !== source.sourceXml(node)) throw new UnsupportedEditError("Protected content controls must remain unchanged.");
+      }
+      node.children.forEach((child, index) => visit(child, [...path, index]));
+    };
+    visit(source.root, []);
+  }
   for (const owner of ["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of packageView.relationships(owner)) if (signatureRelationshipTypes.includes(edge.reltype)) throw new UnsupportedEditError("Signed package publication is not supported.");
   for (const part of packageView.parts) {
     const type = part.content_type.toLowerCase();

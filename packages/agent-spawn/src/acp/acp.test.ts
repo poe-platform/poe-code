@@ -1724,6 +1724,7 @@ describe("acp/spawnStreaming", () => {
     });
 
     expect(spawnChildProcess).not.toHaveBeenCalled();
+    expect(capturedOpenSpec?.execution?.captureStdout).toBe(false);
     expect(capturedOpenSpec?.runtime).toMatchObject({
       type: "docker",
       image: "poe-code:test"

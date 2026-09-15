@@ -461,6 +461,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
                   env: processEnv as Record<string, string> | undefined,
                   input: useStdin ? options.prompt : "",
                   captureOutput: true,
+                  captureStdout: false,
                   activityTimeoutMs: options.activityTimeoutMs,
                   activityTimeoutSource: "stdout",
                   onStdout(chunk: string) {

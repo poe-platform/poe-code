@@ -76,6 +76,7 @@ export type {
   JSONRPCMessage,
   JSONRPCNotification,
   InitializeResult,
+  Implementation,
   DiscoverResult
 } from "./types.js";
 

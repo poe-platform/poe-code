@@ -7,7 +7,10 @@ describe("subscription URI admission", () => {
       Array.from({ length: 1025 }, () => "memo://item"),
       ["memo://" + "x".repeat(8192)],
       ["relative/path"],
-      [""]
+      [""],
+      [" file:///data"],
+      ["file:///bad%zz"],
+      ["file:///a\nb"]
     ].map((uris) => [uris])
   )("rejects invalid or excessive URI filters before acknowledgement", async (uris) => {
     const listener = vi.fn();

@@ -83,7 +83,7 @@ describe("modern MCP result validation", () => {
     expect(await server.handleMessage("custom", params)).toMatchObject({ error: { code: -32603 } });
   });
 
-  it.each([-1, 1.5, Infinity, "100", Number.MAX_SAFE_INTEGER + 1])(
+  it.each([-1, 1.5, Infinity, "100", Number.MAX_SAFE_INTEGER + 1, null])(
     "rejects invalid resource cache TTL %s",
     async (ttlMs) => {
       const server = createServer({ name: "results", version: "1" }).resource(
@@ -96,10 +96,10 @@ describe("modern MCP result validation", () => {
     }
   );
 
-  it("rejects invalid resource cache scope", async () => {
+  it.each(["shared", null])("rejects invalid resource cache scope %s", async (cacheScope) => {
     const server = createServer({ name: "results", version: "1" }).resource(
       { uri: "memo://hello", name: "hello" },
-      () => ({ contents: [{ uri: "memo://hello", text: "hello" }], cacheScope: "shared" })
+      () => ({ contents: [{ uri: "memo://hello", text: "hello" }], cacheScope })
     );
     expect(
       await server.handleMessage("resources/read", { ...params, uri: "memo://hello" })

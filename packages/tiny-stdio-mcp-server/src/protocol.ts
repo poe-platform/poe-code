@@ -1,5 +1,6 @@
+import { isValidMetadata } from "./metadata.js";
 import { JSON_RPC_ERROR_CODES, type HandleResult, type JSONRPCError } from "./types.js";
-import { isJsonValue } from "./json-value.js";
+import { isJsonValue } from "toolcraft-schema";
 import { validateProtocolValue } from "./protocol-validation.js";
 import { inspectSamplingMessages, type SamplingMessage } from "./sampling-messages.js";
 
@@ -38,7 +39,6 @@ export function selectRequestProtocol(
   params: Record<string, unknown> | undefined,
   legacyVersions: ReadonlySet<string>
 ): { modern: boolean; error?: JSONRPCError } {
-  const metadata = params?._meta;
   const invalid = {
     modern: false,
     error: {
@@ -46,9 +46,15 @@ export function selectRequestProtocol(
       message: "Request metadata must include protocolVersion and clientCapabilities"
     }
   };
-  if (!Object.prototype.hasOwnProperty.call(params ?? {}, "_meta"))
+  const property = Object.getOwnPropertyDescriptor(params ?? {}, "_meta");
+  if (property === undefined || property.enumerable !== true)
     return method === "server/discover" ? invalid : { modern: false };
+  if (!("value" in property)) return invalid;
+  const metadata = property.value as unknown;
   if (!isRecord(metadata)) return invalid;
+  if (!isValidMetadata(metadata)) return { modern: false, error: {
+    code: JSON_RPC_ERROR_CODES.INVALID_PARAMS, message: "Invalid MCP metadata keys"
+  } };
   const versionKey = "io.modelcontextprotocol/protocolVersion";
   const capabilitiesKey = "io.modelcontextprotocol/clientCapabilities";
   if (!(versionKey in metadata) && !(capabilitiesKey in metadata) && method !== "server/discover") {
@@ -170,6 +176,17 @@ export function validateInputRequiredResult(
   }
 }
 
+export function validateCacheMetadata(method: string, value: Record<string, unknown>): string | undefined {
+  if (!cacheableMethods.has(method)) return undefined;
+  if (!Number.isSafeInteger(value.ttlMs) || (value.ttlMs as number) < 0) {
+    return "MCP cache ttlMs must be a nonnegative safe integer";
+  }
+  if (value.cacheScope !== "public" && value.cacheScope !== "private") {
+    return "MCP cacheScope must be public or private";
+  }
+  return undefined;
+}
+
 export function decorateModernResult(
   method: string,
   handled: HandleResult,
@@ -212,34 +229,20 @@ export function decorateModernResult(
     }
   };
   if (cacheableMethods.has(method) && result.resultType === "complete") {
-    if (
-      value.ttlMs !== undefined &&
-      (!Number.isSafeInteger(value.ttlMs) || (value.ttlMs as number) < 0)
-    ) {
-      return {
-        error: {
-          code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-          message: "MCP cache ttlMs must be a nonnegative safe integer"
-        }
-      };
+    const cacheableResult = { ...result, ttlMs: value.ttlMs === undefined ? 0 : value.ttlMs, cacheScope: value.cacheScope === undefined ? "private" : value.cacheScope };
+    const cacheError = validateCacheMetadata(method, cacheableResult);
+    if (cacheError !== undefined) {
+      return { error: { code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR, message: cacheError } };
     }
-    if (
-      value.cacheScope !== undefined &&
-      value.cacheScope !== "public" &&
-      value.cacheScope !== "private"
-    ) {
-      return {
-        error: {
-          code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-          message: "MCP cacheScope must be public or private"
-        }
-      };
-    }
-    return {
-      result: { ...result, ttlMs: value.ttlMs ?? 0, cacheScope: value.cacheScope ?? "private" }
-    };
+    return { result: cacheableResult };
   }
   return { result };
 }
 
-export { validateProtocolValue } from "./protocol-validation.js";
+export { validateProtocolValue, validateServerResult } from "./protocol-validation.js";
+
+export { isJsonValue } from "toolcraft-schema";
+export { isBase64 } from "./base64.js";
+export { isValidUri } from "./uri.js";
+
+export { isValidMetadata } from "./metadata.js";

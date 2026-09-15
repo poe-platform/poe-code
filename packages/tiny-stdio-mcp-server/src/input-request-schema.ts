@@ -220,7 +220,7 @@ the full license text.
 // Derived from the official MCP 2026-07-28 schema; upstream licensing notice above.
 // Source: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/2026-07-28/schema.json
 // Source SHA-256: ef70b61f99b6d2e5e3b46863822eab08dff6a45bedc7a08914e0e5b133f40203
-// Transitive input request/response and capability definitions; descriptions omitted.
+// Transitive input request/response, capability and server result definitions; descriptions omitted.
 // JSONValue and ElicitResult number/null types follow the normative TypeScript definitions,
 // correcting narrower types in the upstream generated JSON artifact.
 export const inputRequestSchema: Record<string, unknown> = {
@@ -314,6 +314,31 @@ export const inputRequestSchema: Record<string, unknown> = {
       ],
       "type": "object"
     },
+    "CallToolResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "content": {
+          "items": {
+            "$ref": "#/$defs/ContentBlock"
+          },
+          "type": "array"
+        },
+        "isError": {
+          "type": "boolean"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "structuredContent": {}
+      },
+      "required": [
+        "content",
+        "resultType"
+      ],
+      "type": "object"
+    },
     "ClientCapabilities": {
       "properties": {
         "elicitation": {
@@ -355,6 +380,42 @@ export const inputRequestSchema: Record<string, unknown> = {
           "type": "object"
         }
       },
+      "type": "object"
+    },
+    "CompleteResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "completion": {
+          "properties": {
+            "hasMore": {
+              "type": "boolean"
+            },
+            "total": {
+              "type": "integer"
+            },
+            "values": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ],
+          "type": "object"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "completion",
+        "resultType"
+      ],
       "type": "object"
     },
     "ContentBlock": {
@@ -489,6 +550,47 @@ export const inputRequestSchema: Record<string, unknown> = {
         "content",
         "model",
         "role"
+      ],
+      "type": "object"
+    },
+    "DiscoverResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ServerCapabilities"
+        },
+        "instructions": {
+          "type": "string"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "supportedVersions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "capabilities",
+        "resultType",
+        "supportedVersions",
+        "ttlMs"
       ],
       "type": "object"
     },
@@ -648,6 +750,30 @@ export const inputRequestSchema: Record<string, unknown> = {
       ],
       "type": "object"
     },
+    "GetPromptResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "description": {
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/PromptMessage"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messages",
+        "resultType"
+      ],
+      "type": "object"
+    },
     "Icon": {
       "properties": {
         "mimeType": {
@@ -700,6 +826,37 @@ export const inputRequestSchema: Record<string, unknown> = {
         "data",
         "mimeType",
         "type"
+      ],
+      "type": "object"
+    },
+    "Implementation": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "websiteUrl": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
       ],
       "type": "object"
     },
@@ -793,6 +950,117 @@ export const inputRequestSchema: Record<string, unknown> = {
       ],
       "type": "object"
     },
+    "ListPromptsResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "prompts": {
+          "items": {
+            "$ref": "#/$defs/Prompt"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "prompts",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ListResourcesResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resources": {
+          "items": {
+            "$ref": "#/$defs/Resource"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resources",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ListResourceTemplatesResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resourceTemplates": {
+          "items": {
+            "$ref": "#/$defs/ResourceTemplate"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resourceTemplates",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
     "ListRootsRequest": {
       "properties": {
         "method": {
@@ -824,6 +1092,43 @@ export const inputRequestSchema: Record<string, unknown> = {
       },
       "required": [
         "roots"
+      ],
+      "type": "object"
+    },
+    "ListToolsResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/Tool"
+          },
+          "type": "array"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resultType",
+        "tools",
+        "ttlMs"
       ],
       "type": "object"
     },
@@ -919,6 +1224,154 @@ export const inputRequestSchema: Record<string, unknown> = {
         }
       ]
     },
+    "Prompt": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "arguments": {
+          "items": {
+            "$ref": "#/$defs/PromptArgument"
+          },
+          "type": "array"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "PromptArgument": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "PromptMessage": {
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentBlock"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        }
+      },
+      "required": [
+        "content",
+        "role"
+      ],
+      "type": "object"
+    },
+    "ReadResourceResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "contents": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextResourceContents"
+              },
+              {
+                "$ref": "#/$defs/BlobResourceContents"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "contents",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "Resource": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "uri"
+      ],
+      "type": "object"
+    },
     "ResourceLink": {
       "properties": {
         "_meta": {
@@ -959,6 +1412,66 @@ export const inputRequestSchema: Record<string, unknown> = {
         "type",
         "uri"
       ],
+      "type": "object"
+    },
+    "ResourceTemplate": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "uriTemplate": {
+          "format": "uri-template",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "uriTemplate"
+      ],
+      "type": "object"
+    },
+    "Result": {
+      "additionalProperties": {},
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "resultType"
+      ],
+      "type": "object"
+    },
+    "ResultMetaObject": {
+      "properties": {
+        "io.modelcontextprotocol/serverInfo": {
+          "$ref": "#/$defs/Implementation"
+        }
+      },
       "type": "object"
     },
     "Role": {
@@ -1044,6 +1557,56 @@ export const inputRequestSchema: Record<string, unknown> = {
           "$ref": "#/$defs/ToolResultContent"
         }
       ]
+    },
+    "ServerCapabilities": {
+      "properties": {
+        "completions": {
+          "$ref": "#/$defs/JSONObject"
+        },
+        "experimental": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object"
+        },
+        "logging": {
+          "$ref": "#/$defs/JSONObject"
+        },
+        "prompts": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            },
+            "subscribe": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "tools": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
     },
     "StringSchema": {
       "properties": {

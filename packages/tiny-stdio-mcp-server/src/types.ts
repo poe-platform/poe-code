@@ -59,17 +59,24 @@ export interface ResourcesCapability {
   listChanged?: boolean;
 }
 
+export interface Implementation {
+  name: string;
+  title?: string;
+  version: string;
+  description?: string;
+  websiteUrl?: string;
+  icons?: Icon[];
+}
+
 export interface InitializeResult {
   protocolVersion: string;
   capabilities: {
+    extensions?: Record<string, Record<string, unknown>>;
     tools?: ToolsCapability;
     prompts?: PromptsCapability;
     resources?: ResourcesCapability;
   };
-  serverInfo: {
-    name: string;
-    version: string;
-  };
+  serverInfo: Implementation;
 }
 
 export interface DiscoverResult {
@@ -126,19 +133,13 @@ export interface ContentAnnotations {
   lastModified?: string;
 }
 
-export interface ResourceLink {
+export interface ResourceLink extends Resource {
   type: "resource_link";
-  uri: string;
-  name: string;
-  title?: string;
-  description?: string;
-  mimeType?: string;
-  size?: number;
-  annotations?: ContentAnnotations;
 }
 
 export interface PromptArgument {
   name: string;
+  title?: string;
   description?: string;
   required?: boolean;
 }
@@ -154,7 +155,7 @@ export interface Prompt {
 
 export interface PromptMessage {
   role: "user" | "assistant";
-  content: PromptContentItem;
+  content: ContentItem;
 }
 
 export interface GetPromptResult {
@@ -195,8 +196,8 @@ export interface ResourceTemplate {
 }
 
 export type ResourceContents =
-  | { uri: string; mimeType?: string; text: string }
-  | { uri: string; mimeType?: string; blob: string };
+  | { uri: string; mimeType?: string; text: string; _meta?: Record<string, unknown> }
+  | { uri: string; mimeType?: string; blob: string; _meta?: Record<string, unknown> };
 
 export interface ReadResourceResult {
   contents: ResourceContents[];
@@ -221,25 +222,28 @@ export interface HandleResult {
 }
 
 export type PromptContentItem =
-  | { type: "text"; text: string; annotations?: ContentAnnotations }
+  | { type: "text"; text: string; annotations?: ContentAnnotations; _meta?: Record<string, unknown> }
   | {
       type: "image";
       data: string;
       mimeType: string;
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
     }
   | {
       type: "audio";
       data: string;
       mimeType: string;
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
     }
   | {
       type: "resource";
       annotations?: ContentAnnotations;
+      _meta?: Record<string, unknown>;
       resource:
-        | { uri: string; mimeType?: string; text: string }
-        | { uri: string; mimeType?: string; blob: string };
+        | { uri: string; mimeType?: string; text: string; _meta?: Record<string, unknown> }
+        | { uri: string; mimeType?: string; blob: string; _meta?: Record<string, unknown> };
     };
 
 // ContentItem is a union of all possible tool result content block types.

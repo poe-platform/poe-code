@@ -449,6 +449,23 @@ describe("prompts and resources protocol conformance", () => {
     ).resolves.toMatchObject({ error: { code: -32602 } });
   });
 
+  it.each(["tool", "registerTool"] as const)("%s advertises standard nullable schemas and accepts null inputs and outputs", async (registration) => {
+    const inputSchema = { type: "object" as const, properties: { note: { type: "string" as const, nullable: true, description: "Optional note" } }, required: ["note"] };
+    const outputSchema = { type: "string" as const, nullable: true, description: "Returned note" };
+    const server = createServer({ name: "nullable-contract", version: "1" });
+    if (registration === "tool") server.tool("note", "Echo note", inputSchema, ({ note }) => note, outputSchema);
+    else server.registerTool({ name: "note", inputSchema, outputSchema }, ({ note }) => note);
+    const metadata = { _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } };
+    await expect(server.handleMessage("tools/list", metadata)).resolves.toMatchObject({ result: { tools: [{
+      inputSchema: { type: "object", properties: { note: { description: "Optional note", anyOf: [{ type: "string" }, { type: "null" }] } } },
+      outputSchema: { description: "Returned note", anyOf: [{ type: "string" }, { type: "null" }] }
+    }] } });
+    await expect(server.handleMessage("tools/call", { ...metadata, name: "note", arguments: { note: null } })).resolves.toMatchObject({ result: { structuredContent: null } });
+    await expect(server.handleMessage("tools/call", { ...metadata, name: "note", arguments: { note: 1 } })).resolves.toMatchObject({ error: { code: -32602 } });
+    expect(inputSchema.properties.note.nullable).toBe(true);
+    expect(outputSchema.nullable).toBe(true);
+  });
+
   it("registers and validates composed and conditional schemas", async () => {
     const schema = {
       type: "object" as const,
@@ -969,7 +986,7 @@ describe("prompts and resources protocol conformance", () => {
     ).resolves.toMatchObject({ result: {} });
   });
 
-  it("rejects out-of-spec prompt and resource results", async () => {
+  it("rejects unsupported 2025-03-26 prompt links and malformed resource results", async () => {
     const server = createServer({ name: "invalid-results", version: "1.0.0" })
       .prompt({ name: "link" }, () => ({
         messages: [
@@ -986,7 +1003,7 @@ describe("prompts and resources protocol conformance", () => {
       .resource({ uri: "memory://bad", name: "bad" }, () => ({
         contents: [{ uri: "not a uri", text: "bad" }],
       }));
-    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+    await server.handleMessage("initialize", { protocolVersion: "2025-03-26" });
 
     await expect(
       server.handleMessage("prompts/get", { name: "link" }),

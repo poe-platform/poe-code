@@ -1,3 +1,4 @@
+import { isValidUri } from "./uri.js";
 import { JSON_RPC_ERROR_CODES, type HandleResult, type JSONRPCNotification } from "./types.js";
 
 const listNotifications = {
@@ -64,7 +65,7 @@ export class SubscriptionRegistry {
     if (uris !== undefined) {
       if (!Array.isArray(uris) || uris.length > 1024 || !uris.every((uri) => {
         if (typeof uri !== "string" || uri.length > 8192) return false;
-        try { new URL(uri); return true; } catch { return false; }
+        return isValidUri(uri);
       })) {
         return {
           error: {

@@ -1,5 +1,5 @@
 import * as readline from "readline";
-import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "toolcraft-schema";
+import { compileJsonSchema, formatIssues, normalizeLegacyNullability, type CompiledJsonSchema } from "toolcraft-schema";
 import type {
   ServerOptions,
   ToolDefinition,
@@ -41,10 +41,12 @@ import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
 import { StdioOutput } from "./stdio-output.js";
 import { StdioInput } from "./stdio-input.js";
+import { isBase64 } from "./base64.js";
 import { selectRequestProtocol, decorateModernResult, MODERN_PROTOCOL_VERSION } from "./protocol.js";
 import { SubscriptionRegistry } from "./subscriptions.js";
 import { waitForRequest } from "./request-cancellation.js";
-import { isJsonValue } from "./json-value.js";
+import { isJsonValue } from "toolcraft-schema";
+import { isValidUri } from "./uri.js";
 import { getParameterHeaders, validateParameterHeaders, type ParameterHeader } from "./headers.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
@@ -117,6 +119,7 @@ export interface MessageSession {
 
 interface LifecycleState {
   initialized: boolean;
+  protocolVersion: string;
   initializeAccepted: boolean;
   notificationReady: boolean;
   resourceSubscriptions: Set<string>;
@@ -147,6 +150,7 @@ function createLifecycleState(
   );
   return {
     initialized: false,
+    protocolVersion: PROTOCOL_VERSION,
     initializeAccepted: false,
     notificationReady: false,
     resourceSubscriptions: new Set(),
@@ -172,7 +176,7 @@ interface RegisteredResourceTemplateDefinition extends ResourceTemplateDefinitio
   template: UriTemplate;
 }
 
-function compileToolSchema(schema: OutputSchema): CompiledJsonSchema {
+function compileToolSchema(schema: unknown): CompiledJsonSchema {
   try {
     return compileJsonSchema(schema);
   } catch (error) {
@@ -307,6 +311,7 @@ export function createServer(options: ServerOptions): Server {
           version: options.version
         }
       };
+      lifecycle.protocolVersion = result.protocolVersion;
       return { result };
     }
 
@@ -478,7 +483,7 @@ export function createServer(options: ServerOptions): Server {
     if (method === "prompts/list") {
       return {
         result: {
-          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => prompt)
+          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => structuredClone(prompt))
         }
       };
     }
@@ -502,7 +507,7 @@ export function createServer(options: ServerOptions): Server {
       try {
         const result = await prompt.handler(args, handlerContext);
         if (modern && isInputRequiredResult(result)) return { result };
-        if (!isGetPromptResult(result)) {
+        if (!isGetPromptResult(result, modern || lifecycle.protocolVersion === PROTOCOL_VERSION)) {
           return internalError("Invalid prompt result");
         }
         return { result };
@@ -514,7 +519,7 @@ export function createServer(options: ServerOptions): Server {
     if (method === "resources/list") {
       return {
         result: {
-          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => resource)
+          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => structuredClone(resource))
         }
       };
     }
@@ -523,7 +528,7 @@ export function createServer(options: ServerOptions): Server {
       return {
         result: {
           resourceTemplates: [...resourceTemplates.values()].map(
-            ({ handler: _handler, template: _template, ...resourceTemplate }) => resourceTemplate
+            ({ handler: _handler, template: _template, ...resourceTemplate }) => structuredClone(resourceTemplate)
           )
         }
       };
@@ -859,8 +864,8 @@ export function createServer(options: ServerOptions): Server {
       if (tools.has(name)) {
         throw new Error(`Tool already registered: ${name}`);
       }
-      const inputSchemaSnapshot = structuredClone(inputSchema);
-      const outputSchemaSnapshot = outputSchema === undefined ? undefined : structuredClone(outputSchema);
+      const inputSchemaSnapshot = normalizeLegacyNullability(inputSchema);
+      const outputSchemaSnapshot = outputSchema === undefined ? undefined : normalizeLegacyNullability(outputSchema) as OutputSchema;
       const inputValidator = compileToolSchema(inputSchemaSnapshot);
       assertObjectRootSchema(inputSchemaSnapshot, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
@@ -890,18 +895,21 @@ export function createServer(options: ServerOptions): Server {
         throw new Error(`Tool already registered: ${definition.name}`);
       }
       const descriptor = structuredClone(definition);
-      const inputValidator = compileToolSchema(descriptor.inputSchema);
-      assertObjectRootSchema(descriptor.inputSchema, "inputSchema");
+      const inputSchema = normalizeLegacyNullability(descriptor.inputSchema);
+      const inputValidator = compileToolSchema(inputSchema);
+      assertObjectRootSchema(inputSchema, "inputSchema");
       let outputValidator: CompiledJsonSchema | undefined;
       if (descriptor.outputSchema !== undefined) {
+        descriptor.outputSchema = normalizeLegacyNullability(descriptor.outputSchema) as OutputSchema;
         assertOutputSchema(descriptor.outputSchema);
         outputValidator = compileToolSchema(descriptor.outputSchema);
       }
       tools.set(definition.name, {
         ...descriptor,
+        inputSchema,
         handler: handler as ToolHandler,
         inputValidator,
-        parameterHeaders: getParameterHeaders(descriptor.inputSchema),
+        parameterHeaders: getParameterHeaders(inputSchema),
         ...(outputValidator === undefined ? {} : { outputValidator })
       });
       return server;
@@ -912,7 +920,7 @@ export function createServer(options: ServerOptions): Server {
       if (prompts.has(definition.name)) {
         throw new Error(`Prompt already registered: ${definition.name}`);
       }
-      prompts.set(definition.name, { ...definition, handler });
+      prompts.set(definition.name, { ...structuredClone(definition), handler });
       return server;
     },
 
@@ -923,7 +931,7 @@ export function createServer(options: ServerOptions): Server {
       if (resources.has(definition.uri)) {
         throw new Error(`Resource already registered: ${definition.uri}`);
       }
-      resources.set(definition.uri, { ...definition, handler });
+      resources.set(definition.uri, { ...structuredClone(definition), handler });
       return server;
     },
 
@@ -932,7 +940,7 @@ export function createServer(options: ServerOptions): Server {
       if (resourceTemplates.has(definition.uriTemplate)) {
         throw new Error(`Resource template already registered: ${definition.uriTemplate}`);
       }
-      resourceTemplates.set(definition.uriTemplate, { ...definition, handler, template });
+      resourceTemplates.set(definition.uriTemplate, { ...structuredClone(definition), handler, template });
       return server;
     },
 
@@ -1231,15 +1239,6 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function isValidUri(uri: string): boolean {
-  try {
-    new URL(uri);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function assertNonEmptyName(name: string, message: string): void {
   if (name.length === 0) {
     throw new Error(message);
@@ -1333,7 +1332,9 @@ function normalizeToolResult(
     const { structuredContent, ...legacyResult } = result;
     return {
       ...legacyResult,
-      content: legacyResult.content.length > 0 || structuredContent === undefined
+      content: typeof handlerResult === "string"
+        ? [{ type: "text", text: handlerResult }]
+        : legacyResult.content.length > 0 || structuredContent === undefined
         ? legacyResult.content
         : [{ type: "text", text: JSON.stringify(structuredContent) }]
     };
@@ -1378,8 +1379,8 @@ function normalizeToolResult(
   };
 }
 
-function assertObjectRootSchema(schema: JSONSchema, path: string): void {
-  if (schema.type !== "object") {
+function assertObjectRootSchema(schema: unknown, path: string): asserts schema is JSONSchema {
+  if (typeof schema !== "object" || schema === null || !("type" in schema) || schema.type !== "object") {
     throw new Error(`${path} root type must be "object"`);
   }
 }
@@ -1394,7 +1395,7 @@ function isJsonObject(value: unknown): value is Record<string, unknown> {
 }
 
 
-function isGetPromptResult(value: unknown): boolean {
+function isGetPromptResult(value: unknown, modern = false): boolean {
   if (typeof value !== "object" || value === null || !hasOwnProperty(value, "messages")) {
     return false;
   }
@@ -1411,7 +1412,7 @@ function isGetPromptResult(value: unknown): boolean {
         hasOwnProperty(message, "role") &&
         (message.role === "user" || message.role === "assistant") &&
         hasOwnProperty(message, "content") &&
-        isPromptContentItem(message.content)
+        (modern ? isContentItem(message.content) : isPromptContentItem(message.content))
     )
   );
 }
@@ -1531,29 +1532,6 @@ function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
     (priority === undefined || typeof priority === "number") &&
     (lastModified === undefined || typeof lastModified === "string")
   );
-}
-
-function isBase64(value: string): boolean {
-  if (value.length === 0) {
-    return true;
-  }
-
-  if (value.length % 4 !== 0) {
-    return false;
-  }
-
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  const paddingStart = value.indexOf("=");
-  const encoded = paddingStart === -1 ? value : value.slice(0, paddingStart);
-  const padding = paddingStart === -1 ? "" : value.slice(paddingStart);
-  if (padding.length > 2 || [...padding].some((character) => character !== "=")) {
-    return false;
-  }
-  if ([...encoded].some((character) => !alphabet.includes(character))) {
-    return false;
-  }
-
-  return Buffer.from(value, "base64").toString("base64") === value;
 }
 
 function isPromptContentItem(value: unknown): boolean {

@@ -60,3 +60,9 @@ Two new failing render regressions proved that a three-row stats pane hid the cu
 All 150 dashboard tests, all 1,724 design package tests, maintained design lint/typecheck, and 89 pipeline/shared-dashboard command tests passed. Real terminal-pilot failure scenario shrank/grew through 80x10, 80x6, 50x10, 140x40, and 100x24; task context stayed visible and all frames remained intact. q exited 0. `/tmp/pipeline-context-80x6.png` was visually inspected and showed both failed task and `(implement)` despite the two-row content area. Design documentation generation completed successfully and produced no additional tracked changes.
 
 Remaining: narrow width allocation, honest empty fixture state, real pipeline fake executions/cancellation, pathological output/memory measurements, and completion audit.
+
+## Clear stale context after thrown execution
+
+A command-level failing test drove the real CLI callback orchestration with a fake SDK execution: task start set the action, then execution threw. Error status updated, but the previously displayed task action remained because `syncStats` omitted `currentAction` when undefined. The stats store merges partial updates, so omission cannot clear an earlier value. Pipeline now sends the field explicitly, including undefined. The regression checks merged displayed state and stop/destroy cleanup.
+
+All 240 focused pipeline/shared-dashboard/dashboard tests passed. Focused ESLint and root build typecheck passed. Added `execution-error` fake visual scenario; real terminal-pilot verified error status with no stale Current section, captured `/tmp/pipeline-execution-error.png`, and q exited 0. Screenshot visually inspected. This covers thrown-error state updates; full real fake-agent pipeline PTY cancellation remains pending.

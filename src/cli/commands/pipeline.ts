@@ -613,7 +613,7 @@ async function runPipelineWithDashboard(
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
-      ...(currentAction ? { currentAction } : {})
+      currentAction
     };
     dashboard.updateStats(stats);
   };

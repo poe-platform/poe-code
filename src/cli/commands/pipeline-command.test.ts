@@ -1622,6 +1622,58 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("clears stale task context and restores the dashboard when execution throws", async () => {
+    const dashboardMock = createDashboardMock();
+    const displayedStats: Record<string, unknown> = {};
+    dashboardMock.updateStats.mockImplementation((partial) =>
+      Object.assign(displayedStats, partial)
+    );
+    vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onTaskStart?.({
+        taskId: "auth-hardening",
+        taskTitle: "Auth hardening",
+        taskIndex: 1,
+        totalTasks: 1,
+        stepName: "implement",
+        stepIndex: 1,
+        totalSteps: 1
+      });
+      expect(displayedStats.currentAction).toBeDefined();
+      throw new Error("fake execution failed");
+    });
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await expect(
+      withMockedTerminal(() =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "--yes",
+          "pipeline",
+          "run",
+          "--tui",
+          "--agent",
+          "codex",
+          "--plan",
+          "custom-plan.yaml"
+        ])
+      )
+    ).rejects.toThrow();
+    expect(displayedStats.status).toBe("error");
+    expect(displayedStats.currentAction).toBeUndefined();
+    expect(dashboardMock.stop).toHaveBeenCalledTimes(1);
+    expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
   it("aborts the pipeline when the dashboard quit command is used", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));

@@ -42,6 +42,9 @@ append("status", "Task 2/8 · Improve streaming output (implement)");
 if (scenario === "empty") {
   dashboard.updateStats({ status: "done", iterations: 0, currentAction: "Nothing to run" });
   append("info", "All tasks are already complete.");
+} else if (scenario === "execution-error") {
+  append("error", "Fake execution threw before producing a task result");
+  dashboard.updateStats({ status: "error", currentAction: undefined });
 } else if (scenario === "failure") {
   append("tool", "npm test · checking streaming output");
   append(

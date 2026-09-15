@@ -1,6 +1,7 @@
 import { getTheme } from "../../internal/theme-detect.js";
 import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import { ScreenBuffer } from "../buffer.js";
+import { plainTerminalText } from "../ansi.js";
 import type { CellStyle, Rect } from "../types.js";
 
 export type FooterHint = {
@@ -16,6 +17,7 @@ export function renderFooter(buffer: ScreenBuffer, rect: Rect, hints: FooterHint
   }
 
   const fitted: FooterHint[] = [];
+  hints = hints.map(hint => ({ key: plainTerminalText(hint.key), label: plainTerminalText(hint.label) }));
   let width = 0;
   for (const hint of hints) {
     const nextWidth = displayWidth(`${hint.key} ${hint.label}`) + (fitted.length > 0 ? 2 : 0);

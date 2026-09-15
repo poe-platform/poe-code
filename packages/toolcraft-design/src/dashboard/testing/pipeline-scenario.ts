@@ -4,12 +4,13 @@ import type { OutputItemKind } from "../types.js";
 
 // Fake output only: no agent, credentials, repository writes, or network requests.
 const scenario = process.argv[2] ?? "streaming";
+const labelControl = scenario === "label-controls" ? "\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007" : "";
 const dashboard = createDashboard({
-  title: `Pipeline · ${scenario}`,
-  statsTitle: "Run",
+  title: `Pipeline · ${scenario}${labelControl}`,
+  statsTitle: `Run${labelControl}`,
   rightPaneWidth: 32,
   hints: [
-    { key: "q", label: "Quit" },
+    { key: "q", label: `Quit${labelControl}` },
     { key: "↑↓", label: "Scroll" },
     { key: "F", label: "Follow" }
   ]
@@ -31,7 +32,7 @@ process.once("SIGTERM", shutdown);
 dashboard.start();
 if (scenario !== "empty") dashboard.updateStats({
   status: "running",
-  iterationsLabel: "Tasks",
+  iterationsLabel: `Tasks${labelControl}`,
   iterations: 1,
   tokensIn: 24000,
   tokensOut: 7000,
@@ -75,6 +76,8 @@ if (scenario === "empty") {
     "\u001b[31merror\u001b[0m normal \u001b[1;32msuccess\u001b[0m\nindented\tcolumn\nprogress 10%\rprogress 100%"
   );
   append("success", "Unicode and ANSI fixture ready");
+} else if (scenario === "label-controls") {
+  append("success", "Label control fixture ready");
 } else if (scenario === "cursor-controls") {
   append("tool", "\u001b[32m界界\rA\u001b[0m\n😀\bX\n👩‍💻\bX\né\bX\na\tB\rX");
   append("tool", "\u001b]52;c;HIDDEN_OSC_PAYLOAD\u0007Visible OSC result");

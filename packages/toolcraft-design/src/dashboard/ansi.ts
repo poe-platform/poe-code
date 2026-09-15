@@ -13,6 +13,17 @@ export interface StyledLine {
 
 const ESC = "\u001b";
 
+/** Visible text for a plain screen row; styles are supplied by the caller. */
+export function plainTerminalText(text: string): string {
+  for (let index = 0; index < text.length; index++) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) {
+      return parseAnsi(text).map(line => line.segments.map(segment => segment.text).join("")).join(" ");
+    }
+  }
+  return text;
+}
+
 export function hasAnsi(text: string): boolean {
   return text.includes(ESC);
 }

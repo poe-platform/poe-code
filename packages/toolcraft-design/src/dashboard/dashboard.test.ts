@@ -26,6 +26,55 @@ function readRow(buffer: ScreenBuffer, y: number): string {
   return Array.from({ length: buffer.width }, (_, x) => buffer.get(x, y).ch).join("");
 }
 
+it.each(["put", "putInRect"] as const)("keeps terminal controls out of plain screen cells written with %s", (method) => {
+  const buffer = new ScreenBuffer(40, 2);
+  const text = "left\u001b[2Jright\u001bP HIDDEN_PAYLOAD\u001b\\ok\n";
+  if (method === "put") buffer.put(0, 0, text);
+  else buffer.putInRect({ x: 0, y: 0, width: 40, height: 1 }, 0, text);
+  expect(readRow(buffer, 0).trim()).toBe("leftrightok");
+  expect(readRow(buffer, 1).trim()).toBe("");
+});
+
+it.each(["put", "putInRect"] as const)("preserves parsed styles in screen cells written with %s", (method) => {
+  const buffer = new ScreenBuffer(20, 1);
+  const text = "\u001b[31mred\u001b[0m plain";
+  if (method === "put") buffer.put(0, 0, text, { bold: true });
+  else buffer.putInRect({ x: 0, y: 0, width: 20, height: 1 }, 0, text, { bold: true });
+  expect(readRow(buffer, 0).trim()).toBe("red plain");
+  expect(buffer.get(0, 0).style).toMatchObject({ fg: "red", bold: true });
+  expect(buffer.get(4, 0).style).toMatchObject({ bold: true });
+  expect(buffer.get(4, 0).style.fg).toBeUndefined();
+});
+
+it("removes terminal strings before clipping a border title", () => {
+  const layout = computeDashboardLayout({ totalWidth: 80, totalHeight: 24, rightPaneWidth: 24 });
+  const buffer = new ScreenBuffer(80, 24);
+  renderBorder(buffer, layout, {
+    leftTitle: "Pipeline\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007 ready",
+    rightTitle: "Run",
+    style: {}
+  });
+  const top = readRow(buffer, 0);
+  expect(top).toContain("Pipeline ready");
+  expect(top).not.toContain("HIDDEN_");
+  expect(top.endsWith("┐")).toBe(true);
+});
+
+it("fits footer hints using their visible text", () => {
+  const buffer = new ScreenBuffer(20, 1);
+  renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+    { key: "q", label: "\u001b]52;c;" + "HIDDEN_".repeat(100) + "\u0007Quit" }
+  ]);
+  expect(readRow(buffer, 0).trim()).toBe("q Quit");
+});
+
+it("fits metrics using the visible iteration label", () => {
+  const lines = statsToLines({ status: "running", iterations: 1, tokensIn: 0, tokensOut: 0, elapsedMs: 0,
+    iterationsLabel: "\u009d" + "HIDDEN_".repeat(100) + "\u009cTasks" }, 20);
+  expect(lines[1]!.prefix + lines[1]!.text).toContain("Tasks");
+  expect(lines[1]!.prefix + lines[1]!.text).not.toContain("HIDDEN_");
+});
+
 function stripTerminalControl(value: string): string {
   return value.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
 }

@@ -1,6 +1,6 @@
 import { getTheme } from "../../internal/theme-detect.js";
 import { ScreenBuffer } from "../buffer.js";
-import { parseAnsi } from "../ansi.js";
+import { plainTerminalText } from "../ansi.js";
 import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
 import { computeVisualLines, type VisualLine } from "./output-pane.js";
@@ -18,11 +18,7 @@ export function renderCompactStatsPane(
   const metrics = `${status} · ${stats.iterationsLabel ?? "Iteration"} ${formatNumber(stats.iterations)} · ${formatElapsed(stats.elapsedMs)} · ${formatNumber(stats.tokensIn + stats.tokensOut)} tokens`;
   const firstLine =
     rect.height === 1 && stats.currentAction ? `${status} · ${stats.currentAction}` : metrics;
-  const messages = [firstLine, stats.currentAction ?? ""].map((text) =>
-    parseAnsi(text)
-      .map((line) => line.segments.map((segment) => segment.text).join(""))
-      .join(" ")
-  );
+  const messages = [firstLine, stats.currentAction ?? ""].map(plainTerminalText);
   buffer.putInRect(
     rect,
     0,
@@ -104,7 +100,7 @@ export function statsToLines(stats: DashboardStats, width: number): VisualLine[]
 
   const mutedStyle = getToneStyle("muted");
   const totalTokens = stats.tokensIn + stats.tokensOut;
-  const iterationsLabel = stats.iterationsLabel ?? "Iteration";
+  const iterationsLabel = plainTerminalText(stats.iterationsLabel ?? "Iteration");
   const lines: VisualLine[] = [
     createKeyValueLine("Status", formatStatus(stats.status), width, getStatusStyle(stats.status)),
     createKeyValueLine(iterationsLabel, formatNumber(stats.iterations), width),

@@ -1,4 +1,5 @@
 import { ScreenBuffer } from "../buffer.js";
+import { plainTerminalText } from "../ansi.js";
 import type { DashboardLayout } from "../layout.js";
 import type { CellStyle } from "../types.js";
 
@@ -177,6 +178,7 @@ function renderFooterDivider(
 }
 
 function renderTopSegment(width: number, title?: string): string {
+  if (title !== undefined) title = plainTerminalText(title);
   if (width <= 0) {
     return "";
   }

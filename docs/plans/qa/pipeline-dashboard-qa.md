@@ -36,3 +36,20 @@ Inspection found clipped current actions and an overly wide sidebar at 50 column
 Short-height follow-up: terminal-pilot failure fixture now keeps failed task/stage visible through 80x10, 80x6, 50x10, 140x40, and 100x24 shrink/grow. Complete frames verified at every size; q exit 0. Visually inspected `/tmp/pipeline-context-80x6.png`. This validates the shared panel's height prioritization, not pipeline SDK execution or cancellation.
 
 Additional scenario: `execution-error` represents an exception after task start, with error status and explicitly cleared current action. Real terminal-pilot capture `/tmp/pipeline-execution-error.png` showed no stale Current section; q exit 0. CLI regression independently drives task-start then a thrown SDK execution and verifies merged stats plus dashboard cleanup.
+
+## Real engine with fake agent
+
+Launch `tests/fixtures/pipeline-tui/engine-scenario.mts` through terminal-pilot using the repository tsx binary and cwd. The fixture runs the real workspace pipeline engine, uses memfs for plans/locks/logs, feeds engine callbacks into the current dashboard, and uses the actual shared quit-command handler. It does not invoke the root CLI's SDK wrapper or an external agent process.
+
+Scenarios: `completed`, `failed`, `max_runs`, `nothing_to_run`, `cancelled`.
+
+1. For terminal outcomes, wait for `Engine result: <scenario>` on the visible screen. Capture and inspect screenshots.
+2. For `cancelled`, wait for `Fake agent streaming`, then press q while execution is awaiting more fake output.
+3. Check exit codes: completed/max_runs/nothing_to_run = 0, failed = 1, cancelled = 130.
+4. Inspect primary-screen output after exit. It reports actual persisted plan statuses with `TASK_STATUS` markers and actual `ENGINE_RESULT` / `ENGINE_RUNS` values.
+5. Expected statuses for tasks 1–3: completed and nothing_to_run = done/done/done; failed = failed/open/open; max_runs = done/open/open; cancelled = open/open/open.
+6. Repeat cancellation with SIGINT. Expect engine cancelled outcome, exit 130, all tasks open, and restored primary terminal.
+7. Repeat with Control+c. This invokes immediate forceQuit via the actual shared handler. Expect exit 130 and restored primary terminal; no graceful engine result is required for immediate termination.
+8. Completed/error outcomes intentionally stay on screen until q for review. q closes the fixture after the engine is terminal; it does not rewrite the completed engine result.
+
+Executed 2026-09-14: all five scenarios matched outcome, exit code, and persisted statuses. SIGINT returned 130 and restored the screen; Ctrl+C returned 130 and restored the screen. Single observed samples: SIGINT 80ms and Ctrl+C 14ms including the capture work in that driver, so these are observational timings rather than calibrated input latencies. Captures `/tmp/pipeline-engine-{scenario}.png` and `/tmp/pipeline-engine-{SIGINT,Control-c}-restored.png`. Inspected completed and SIGINT-restored images visually. Maintained pipeline package tests: 233 passed; fixture ESLint passed.

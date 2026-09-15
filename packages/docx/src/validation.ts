@@ -40,7 +40,7 @@ export const documentValidationProfile = Object.freeze({
   checks: Object.freeze(["container", "part-names", "content-types", "relationships", "xml", "mce", "structure", "references", "protection", "signatures", "extension-coverage"])
 });
 
-type Node = { element: CompatibilityElement; part: string; location: string; story: string };
+type Node = { element: CompatibilityElement; part: string; location: string; story: string; fieldStory: string };
 const wordType = "application/vnd.openxmlformats-officedocument.wordprocessingml.";
 function integer(value: string | undefined, min = 0, max = 2147483647): string | undefined {
   if (value === undefined || !value.length) return undefined;
@@ -179,18 +179,19 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const partRoot = roots.get(part.partname);
     if (!partRoot || !semanticParts.has(part.partname) || !part.content_type.toLowerCase().startsWith(wordType)) continue;
     const view = new MarkupCompatibility(partRoot, documentCompatibilityProfile, budget);
-    const visit = (content: typeof view.content, location: string, story: string) => {
+    const visit = (content: typeof view.content, location: string, story: string, fieldStory: string) => {
       for (let i = 0; i < content.length; i++) {
         const element = content[i]!;
         if (!("source" in element) || element.disposition !== "understood") continue;
         const path = `${location}/${element.source.localName}[${i + 1}]`;
         const local = element.source.localName;
         const scope = element.source.namespace === w && ["footnote", "endnote", "comment", "txbxContent"].includes(local) ? path : story;
-        nodes.push({ element, part: part.partname, location: path, story: part.partname + scope });
-        visit(element.content, path, scope);
+        const fieldScope = scope !== story || element.source.namespace === w && local === "fldSimple" ? path : fieldStory;
+        nodes.push({ element, part: part.partname, location: path, story: part.partname + scope, fieldStory: part.partname + fieldScope });
+        visit(element.content, path, scope, fieldScope);
       }
     };
-    visit(view.content, "", "/");
+    visit(view.content, "", "/", "/");
   }
   const definitions = new Map<string, Map<string, Node>>();
   const definitionNames: Record<string, string> = { style: "styleId", num: "numId", abstractNum: "abstractNumId", footnote: "id", endnote: "id", comment: "id" };
@@ -382,14 +383,21 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
         revisionRanges.set(key, node);
       } else if (id === undefined || !revisionRanges.delete(key)) issue(node, "revision-id", "Tracked range end has no matching preceding start.");
     }
+    if (name === "fldSimple" && attr(node, "instr") === undefined)
+      issue(node, "field-instruction", "Simple fields require a native instruction attribute.");
+    if (name === "instrText") {
+      const field = fields.get(node.fieldStory)?.at(-1);
+      if (!field || field.separated || node.element.source.children.length)
+        issue(node, "field-instruction", "Instruction text requires an open instruction region without child elements.");
+    }
     if (name === "fldChar") {
-      const stack = fields.get(node.story) ?? [];
+      const stack = fields.get(node.fieldStory) ?? [];
       const kind = attr(node, "fldCharType");
       if (kind === "begin") stack.push({ node, separated: false });
       else if (kind === "end" && stack.length) stack.pop();
       else if (kind === "separate" && stack.length && !stack.at(-1)!.separated) stack.at(-1)!.separated = true;
       else issue(node, "field-balance", "Unmatched or repeated field delimiter.");
-      fields.set(node.story, stack);
+      fields.set(node.fieldStory, stack);
     }
     if (name === "tbl") {
       const grids = children(node, "tblGrid");

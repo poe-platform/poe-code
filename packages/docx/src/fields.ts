@@ -16,6 +16,7 @@ import { paragraphTextRun } from "./paragraph-content.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { textMarkup } from "./text-replace.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { SemanticValidationError } from "./validation.js";
 
 export interface FieldListData {
   readonly items: readonly { readonly location: Location<"field">; readonly form: "simple" | "complex"; readonly kind: string; readonly instruction: string; readonly result: string; readonly update: boolean; readonly locked: boolean; readonly nested: readonly Location<"field">[] }[];
@@ -30,7 +31,11 @@ export interface FieldEditData {
 }
 
 async function openFields(input: Uint8Array, invocation: DocxInvocation, context: ArchiveContext) {
-  const document = await openDocumentLocations(input, context);
+  const document = await openDocumentLocations(input, context).catch((error: unknown) => {
+    if (error instanceof SemanticValidationError && error.diagnostics.every(diagnostic => diagnostic.code === "field-instruction"))
+      throw new UnsupportedEditError("Malformed field boundaries or instruction text.");
+    throw error;
+  });
   const selected = resolveDocxSelection(document, invocation);
   const settings = archiveSettings(context), archive = document.snapshot();
   settings.budget.check("matches", selected.length);

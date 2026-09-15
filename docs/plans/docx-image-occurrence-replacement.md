@@ -123,4 +123,9 @@ entries settled before final root guarded lint. That gate passes exit0, complete
 12628/12628 subjects,0 errors/12 existing warnings,25 receipts/0 gaps in
 /tmp/docx70-root-final-guarded-lint.log. No guarded policy or historical seal
 changed. Atomic product commits and only task70 implement/test completion remain
-pending local delivery.
+recorded alongside local delivery. Contract reconciliation is7827fec04; cohesive
+bounded SDK/CLI replacement and its original tests/reduced QA are4be0cfa99.
+The final documentation commit stages only task70 implement/test completion
+from parsed HEAD scalar ranges, preserving unrelated task48–59 working hunks.
+Proof is /tmp/docx70-root-pipeline-stage-proof.json. No push/release; task71 may
+begin only after this final task70 commit and preservation verification.

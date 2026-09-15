@@ -118,4 +118,7 @@ InlineShape APIs, generic replacement batch or native/SVG fallback conversion
 is qualified. Final guarded root lint passes exit 0, complete 12,628/12,628
 subjects, zero errors, 12 existing warnings, 25 receipts and zero gaps in
 /tmp/docx70-root-final-guarded-lint.log. No guard policy or historical seal was
-relaxed. Atomic local product delivery remains pending.
+relaxed. Atomic local product delivery is 4be0cfa99 (bounded SDK/CLI replacement,
+original tests, exact registration and reduced QA). Contract reconciliation is
+7827fec04. These are local main commits, with no push or release. The final
+documentation commit records only verified task70 implement/test completion.

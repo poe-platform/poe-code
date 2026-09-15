@@ -1,0 +1,9 @@
+# Modern incoming server result validation
+
+Seven red client cases reproduced malformed prompt containers/argument metadata, tool annotations/output-schema containers, resource annotations/template icons, and 101 completion values exposed to callers. Extend the owning MCP protocol schema with transitive latest 2026-07-28 server-result definitions, retaining the upstream license/source hash and existing normative number/null corrections. Descriptions remain omitted. Validate known modern complete results through the cached shared compiler, preserving explicit cache-metadata diagnostics before general schema checks. Extensions remain permitted; three red inherited-name cases fixed definition lookup for __proto__/constructor/toString.
+
+Two further red client checks reproduced valid resource links rejected in tools/call and prompts/get. Include the shared ResourceLink type/content variant, accept it in modern server prompts, and preserve legacy prompt restrictions. A maintained Poe-agent multimodal check reproduced resource links converted to undefined; retain title/name and URI as text. Core/Toolcraft rich-block conversion also had a red link-fidelity check and now preserves resource-link blocks.
+
+Four red client checks reproduced invalid base64 accepted in image/audio/direct/embedded blob results. Share canonical base64 validation with the server. The focused content/protocol/client gate passed 179 cases before subsequent helper safety work; the resource-link/conversion/cache-diagnostic gate passed 157 cases. A full client checkpoint had six cache-diagnostic ordering failures, subsequently fixed with the maintained cache suite passing all 12 cases. Full current client verification is still required.
+
+The broad maintained npm test and repository ESLint gates are running against this checkpoint. An earlier full Toolcraft native-runtime checkpoint passed 7,672 tests. No README additions, commits, remote-main delivery or release claims are made.

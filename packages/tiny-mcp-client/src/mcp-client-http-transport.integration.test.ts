@@ -163,7 +163,7 @@ describe("McpClient HTTP transport integration", () => {
       throw new Error(`Unexpected JSON-RPC method: ${request.method}`);
     });
 
-    const client = new McpClient({
+    const client = new McpClient({ protocolVersion: "2025-03-26",
       clientInfo: {
         name: "http-integration-test-client",
         version: "1.0.0",

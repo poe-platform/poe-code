@@ -39,7 +39,7 @@ it("excludes invalid header annotations without losing valid tools", async () =>
       });
     }
   });
-  const client = new McpClient({ clientInfo: { name: "filter", version: "1" } });
+  const client = new McpClient({ protocolVersion: "2025-03-26", clientInfo: { name: "filter", version: "1" } });
   try {
     await client.connect(transport);
     expect((await client.listTools()).tools.map((tool) => tool.name)).toEqual(["good"]);
@@ -151,7 +151,7 @@ it.each([null, "tool", { inputSchema: { type: "object" } }])(
         });
       }
     });
-    const client = new McpClient({ clientInfo: { name: "validation", version: "1" } });
+    const client = new McpClient({ protocolVersion: "2025-03-26", clientInfo: { name: "validation", version: "1" } });
     try {
       await client.connect(transport);
       expect(await client.listTools().catch((error) => error)).toMatchObject({ code: -32600 });

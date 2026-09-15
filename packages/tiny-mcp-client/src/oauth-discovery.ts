@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+import { readBoundedResponseText } from "./http-response.js";
 import type {
   OAuthAuthorizationServerMetadata,
   OAuthDiscoveryResult,
@@ -5,7 +7,7 @@ import type {
   OAuthProtectedResourceMetadata,
   OAuthUnauthorizedChallenge,
 } from "mcp-oauth";
-import { canonicalizeResourceIndicator } from "mcp-oauth";
+import { canonicalizeResourceIndicator, fetchMcpResponse } from "mcp-oauth";
 
 export type {
   OAuthAuthorizationServerMetadata,
@@ -53,10 +55,14 @@ function isLoopbackHostname(hostname: string): boolean {
 
   return normalizedHostname === "localhost"
     || normalizedHostname === "::1"
-    || normalizedHostname.startsWith("127.");
+    || normalizedHostname === "[::1]"
+    || (isIP(normalizedHostname) === 4 && normalizedHostname.startsWith("127."));
 }
 
 function assertSecureUrl(url: URL, label: string): void {
+  if (url.username !== "" || url.password !== "" || url.hash !== "") {
+    throw new Error(`${label} must not include credentials or fragment`);
+  }
   if (url.protocol === "https:") {
     return;
   }
@@ -171,17 +177,27 @@ function validateAuthorizationServerMetadata(
   return value as OAuthAuthorizationServerMetadata;
 }
 
-async function readJsonResponse(response: Response, label: string): Promise<unknown> {
+async function readJsonResponse(response: Response, label: string, signal: AbortSignal): Promise<unknown> {
   if (!response.ok) {
+    await response.body?.cancel().catch(() => undefined);
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     throw new Error(`${label} request failed (${statusDescriptor})`);
   }
 
+  const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
   try {
-    return await response.json();
+    return JSON.parse(text);
   } catch {
     throw new Error(`${label} response must be valid JSON`);
   }
+}
+
+async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, label: string): Promise<unknown> {
+  const signal = AbortSignal.timeout(10_000);
+  const response = await fetchMcpResponse(fetch, location, {
+    method: "GET", headers: { Accept: "application/json" }, signal
+  });
+  return readJsonResponse(response, label, signal);
 }
 
 function resolveWellKnownMetadataUrl(inputUrl: string | URL, suffix: string): string {
@@ -319,12 +335,8 @@ export class OAuthMetadataDiscovery {
     let lastError: unknown;
     for (const location of locations) {
       try {
-        const response = await this.fetchImpl(location, {
-          method: "GET",
-          headers: { Accept: "application/json" }
-        });
         const metadata = validateProtectedResourceMetadata(
-          await readJsonResponse(response, "Protected resource metadata"),
+          await fetchMetadata(this.fetchImpl, location, "Protected resource metadata"),
           resource
         );
         return { location, metadata };
@@ -372,14 +384,8 @@ export class OAuthMetadataDiscovery {
 
       for (const authorizationServerMetadataUrl of metadataLocations) {
         try {
-          const authorizationServerResponse = await this.fetchImpl(authorizationServerMetadataUrl, {
-            method: "GET",
-            headers: {
-              Accept: "application/json"
-            }
-          });
           const authorizationServerMetadata = validateAuthorizationServerMetadata(
-            await readJsonResponse(authorizationServerResponse, "Authorization server metadata"),
+            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "Authorization server metadata"),
             normalizedAuthorizationServer
           );
 

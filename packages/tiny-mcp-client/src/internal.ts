@@ -2,15 +2,23 @@ import { spawn } from "node:child_process";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import { PassThrough } from "node:stream";
 import type { Readable, Writable } from "node:stream";
+import { HttpResponseMessages } from "./http-message-validation.js";
+import { SubscriptionManager, type NotificationFilter, type SubscriptionOptions, type McpSubscription } from "./subscriptions.js";
+export type { NotificationFilter, SubscriptionOptions, McpSubscription } from "./subscriptions.js";
+import { isBase64, isJsonValue, isValidUri, isValidMetadata, validateCacheMetadata, validateProtocolValue, validateServerResult, validateInputRequiredResult } from "tiny-stdio-mcp-server/protocol";
 import { readBoundedResponseText } from "./http-response.js";
 import type { JSONRPCMessage as SdkJsonRpcMessage } from "@modelcontextprotocol/sdk/types.js";
 import {
   createOAuthClientProvider,
+  fetchMcpResponse,
   OAuthError,
   type OAuthClientProvider,
   type OAuthClientProviderOptions,
 } from "mcp-oauth";
-import type { Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
+export { fetchMcpResponse } from "mcp-oauth";
+import type { Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents, Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
+export type { Implementation, ResourceLink, Resource, ResourceTemplate, Prompt, PromptArgument, ToolAnnotations, Icon, ContentAnnotations, ToolExecution } from "tiny-stdio-mcp-server";
+import type { Implementation, Resource, ResourceTemplate, Prompt } from "tiny-stdio-mcp-server";
 import {
   encodeHeaderValue,
   getParameterHeaders,
@@ -48,14 +56,24 @@ export type {
   StoredOAuthSession,
 } from "mcp-oauth";
 
-export type RequestId = number | string;
-
-export interface Implementation {
-  name: string;
-  version: string;
+function isValidParamsMetadata(params: unknown): boolean {
+  const property = isObjectRecord(params) ? Object.getOwnPropertyDescriptor(params, "_meta") : undefined;
+  return property === undefined || property.enumerable !== true ||
+    ("value" in property && isValidMetadata(property.value));
 }
 
+export type RequestId = number | string;
+
+const inputResponseTypes = {
+  "roots/list": "ListRootsResult",
+  "sampling/createMessage": "CreateMessageResult",
+  "elicitation/create": "ElicitResult"
+} as const;
+
+
 export interface ClientCapabilities {
+  extensions?: Record<string, Record<string, unknown>>;
+  elicitation?: { form?: Record<string, unknown>; url?: Record<string, unknown> };
   roots?: {
     listChanged?: boolean;
     [key: string]: unknown;
@@ -67,6 +85,7 @@ export interface ClientCapabilities {
 }
 
 export interface ServerCapabilities {
+  extensions?: Record<string, Record<string, unknown>>;
   prompts?: {
     listChanged?: boolean;
     [key: string]: unknown;
@@ -102,9 +121,28 @@ export interface InitializeResult {
   instructions?: string;
 }
 
+export interface ConnectResult {
+  protocolVersion: string;
+  capabilities: ServerCapabilities;
+  serverInfo?: Implementation;
+  instructions?: string;
+}
+
+export type ElicitationParams =
+  | { mode?: "form"; message: string; requestedSchema: Record<string, unknown> }
+  | { mode: "url"; message: string; url: string; elicitationId: string };
+
+export interface ElicitationResult {
+  _meta?: Record<string, unknown>;
+  action: "accept" | "decline" | "cancel";
+  content?: Record<string, string | number | boolean | string[]>;
+}
+
 export interface McpClientOptions {
   clientInfo: Implementation;
   requestTimeoutMs?: number;
+  maxConcurrentRequests?: number;
+  protocolVersion?: "2025-03-26" | "2026-07-28";
   capabilities?: ClientCapabilities;
   onToolsChanged?: () => void | Promise<void>;
   onResourcesChanged?: () => void | Promise<void>;
@@ -113,9 +151,11 @@ export interface McpClientOptions {
   onLog?: (message: LogMessage) => void | Promise<void>;
   onProgress?: (params: ProgressParams) => void | Promise<void>;
   onSamplingRequest?: (
-    params: CreateMessageParams
+    params: CreateMessageParams,
+    context: McpRequestContext
   ) => CreateMessageResult | Promise<CreateMessageResult>;
-  onRootsList?: () => Root[] | Promise<Root[]>;
+  onRootsList?: (context: McpRequestContext) => Root[] | Promise<Root[]>;
+  onElicitationRequest?: (params: ElicitationParams, context: McpRequestContext) => ElicitationResult | Promise<ElicitationResult>;
 }
 
 const MCP_PROTOCOL_VERSION = "2025-03-26";
@@ -131,6 +171,8 @@ export class McpClient {
   private readonly options: McpClientOptions;
   private transport: McpTransport | null = null;
   private messageLayer: JsonRpcMessageLayer | null = null;
+  private subscriptions: SubscriptionManager | null = null;
+  private readonly resourceSubscriptions = new Map<string, { controller: AbortController; subscription: Promise<McpSubscription> }>();
 
   constructor(options: McpClientOptions) {
     this.options = options;
@@ -147,7 +189,7 @@ export class McpClient {
   }
 
   get serverInfo(): Implementation | null {
-    return this.currentServerInfo;
+    return this.currentServerInfo === null ? null : structuredClone(this.currentServerInfo);
   }
 
   get instructions(): string | undefined {
@@ -170,7 +212,8 @@ export class McpClient {
     return this.messageLayer;
   }
 
-  async connect(transport: McpTransport): Promise<InitializeResult> {
+  async connect(transport: McpTransport, options: { signal?: AbortSignal } = {}): Promise<ConnectResult> {
+    options.signal?.throwIfAborted();
     if (this.currentState !== "disconnected" && this.currentState !== "closed") {
       throw new Error("MCP client is already connected");
     }
@@ -191,8 +234,11 @@ export class McpClient {
       transport.readable,
       transport.writable,
       this.options.requestTimeoutMs,
-      transportClosedReason
+      transportClosedReason,
+      this.options.maxConcurrentRequests
     );
+    this.subscriptions = null;
+    this.resourceSubscriptions.clear();
     const {
       onSamplingRequest,
       onRootsList,
@@ -207,26 +253,23 @@ export class McpClient {
     messageLayer.onRequest("ping", () => ({}));
 
     if (onSamplingRequest !== undefined) {
-      messageLayer.onRequest("sampling/createMessage", (params) =>
-        onSamplingRequest(params as CreateMessageParams)
+      messageLayer.onRequest("sampling/createMessage", (params, context) =>
+        onSamplingRequest(params as CreateMessageParams, context)
       );
     }
 
-    messageLayer.onNotification("notifications/tools/list_changed", async () => {
-      if (onToolsChanged === undefined || this.currentServerCapabilities?.tools?.listChanged !== true) {
-        return;
-      }
-
+    messageLayer.onNotification("notifications/tools/list_changed", async (params) => {
+      if (onToolsChanged === undefined) return;
+      if (messageLayer.requestMetadata !== undefined) {
+        if (!this.subscriptions?.accepts("notifications/tools/list_changed", params)) return;
+      } else if (this.currentServerCapabilities?.tools?.listChanged !== true) return;
       await onToolsChanged();
     });
-    messageLayer.onNotification("notifications/resources/list_changed", async () => {
-      if (
-        onResourcesChanged === undefined
-        || this.currentServerCapabilities?.resources?.listChanged !== true
-      ) {
-        return;
-      }
-
+    messageLayer.onNotification("notifications/resources/list_changed", async (params) => {
+      if (onResourcesChanged === undefined) return;
+      if (messageLayer.requestMetadata !== undefined) {
+        if (!this.subscriptions?.accepts("notifications/resources/list_changed", params)) return;
+      } else if (this.currentServerCapabilities?.resources?.listChanged !== true) return;
       await onResourcesChanged();
     });
     messageLayer.onNotification("notifications/resources/updated", async (params) => {
@@ -238,21 +281,19 @@ export class McpClient {
         return;
       }
 
+      if (messageLayer.requestMetadata !== undefined && !this.subscriptions?.accepts("notifications/resources/updated", params)) return;
       const { uri } = params as { uri?: unknown };
-      if (typeof uri !== "string" || !this.subscribedResourceUris.has(uri)) {
+      if (typeof uri !== "string" || (messageLayer.requestMetadata === undefined && !this.subscribedResourceUris.has(uri))) {
         return;
       }
 
       await onResourceUpdated(uri);
     });
-    messageLayer.onNotification("notifications/prompts/list_changed", async () => {
-      if (
-        onPromptsChanged === undefined
-        || this.currentServerCapabilities?.prompts?.listChanged !== true
-      ) {
-        return;
-      }
-
+    messageLayer.onNotification("notifications/prompts/list_changed", async (params) => {
+      if (onPromptsChanged === undefined) return;
+      if (messageLayer.requestMetadata !== undefined) {
+        if (!this.subscriptions?.accepts("notifications/prompts/list_changed", params)) return;
+      } else if (this.currentServerCapabilities?.prompts?.listChanged !== true) return;
       await onPromptsChanged();
     });
     messageLayer.onNotification("notifications/message", async (params) => {
@@ -360,14 +401,82 @@ export class McpClient {
       };
     }
 
+    if (this.options.onElicitationRequest !== undefined && capabilities.elicitation === undefined) capabilities.elicitation = {};
     this.currentClientCapabilities = structuredClone(capabilities);
+    if (this.options.onElicitationRequest !== undefined) messageLayer.onInputRequest("elicitation/create", async (params, context) => {
+      return await this.options.onElicitationRequest!(params as ElicitationParams, context);
+    });
+    if (onRootsList !== undefined) messageLayer.onInputRequest("roots/list", async (_params, context) => ({ roots: await onRootsList(context) }));
+    if (onSamplingRequest !== undefined) messageLayer.onInputRequest("sampling/createMessage", async (params, context) => {
+      return await onSamplingRequest(params as CreateMessageParams, context);
+    });
 
     try {
+      if (!validateProtocolValue("ClientCapabilities", capabilities)) {
+        throw new McpError(ERROR_INVALID_PARAMS, "Invalid client capabilities");
+      }
+      let discovery: unknown;
+      try {
+        if (this.options.protocolVersion !== "2025-03-26") discovery = await messageLayer.sendRequest("server/discover", {
+          _meta: {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientCapabilities": capabilities
+          }
+        }, { signal: options.signal, timeoutMs: this.options.protocolVersion === "2026-07-28"
+          ? this.options.requestTimeoutMs ?? 30_000
+          : Math.min(this.options.requestTimeoutMs ?? 30_000, 1000) });
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        if (error instanceof McpError && [-32020, -32021, -32022].includes(error.code)) throw error;
+      }
+      if (discovery !== undefined) {
+        if (!isObjectRecord(discovery) || discovery.resultType !== "complete" ||
+            !Array.isArray(discovery.supportedVersions) ||
+            !discovery.supportedVersions.every((version) => typeof version === "string") ||
+            !isServerCapabilities(discovery.capabilities)) {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid server/discover result");
+        }
+        const cacheError = validateCacheMetadata("server/discover", discovery);
+        if (cacheError !== undefined) throw new McpError(ERROR_INVALID_REQUEST, cacheError);
+        if (!validateServerResult("server/discover", discovery)) throw new McpError(ERROR_INVALID_REQUEST, "Invalid server/discover result");
+        if (!discovery.supportedVersions.includes("2026-07-28")) {
+          throw new McpError(-32022, "No mutually supported modern protocol version");
+        }
+        const metadata = discovery._meta;
+        const identity = isObjectRecord(metadata) ? metadata["io.modelcontextprotocol/serverInfo"] : undefined;
+        if (identity !== undefined && (!isObjectRecord(identity) ||
+            typeof identity.name !== "string" || typeof identity.version !== "string")) {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid discovery serverInfo");
+        }
+        if (discovery.instructions !== undefined && typeof discovery.instructions !== "string") {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid discovery instructions");
+        }
+        this.currentInstructions = discovery.instructions;
+        this.currentServerCapabilities = structuredClone(discovery.capabilities);
+        this.currentServerInfo = identity === undefined ? null : structuredClone(identity as unknown as Implementation);
+        messageLayer.requestMetadata = {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientCapabilities": structuredClone(capabilities)
+        };
+        this.subscriptions = new SubscriptionManager(messageLayer);
+        this.currentState = "ready";
+        const notificationFilter: NotificationFilter = {
+          ...(onToolsChanged === undefined ? {} : { toolsListChanged: true }),
+          ...(onPromptsChanged === undefined ? {} : { promptsListChanged: true }),
+          ...(onResourcesChanged === undefined ? {} : { resourcesListChanged: true })
+        };
+        if (Object.keys(notificationFilter).length > 0) await this.subscriptions.listen(notificationFilter, options);
+        return {
+          protocolVersion: "2026-07-28", capabilities: structuredClone(discovery.capabilities),
+          ...(this.currentInstructions === undefined ? {} : { instructions: this.currentInstructions }),
+          ...(this.currentServerInfo === null ? {} : { serverInfo: structuredClone(this.currentServerInfo) })
+        };
+      }
       const initializeResultValue = await messageLayer.sendRequest("initialize", {
         protocolVersion: MCP_PROTOCOL_VERSION,
         clientInfo: this.options.clientInfo,
         capabilities,
-      });
+      }, { signal: options.signal });
 
       if (!isInitializeResult(initializeResultValue)) {
         throw new McpError(ERROR_INVALID_REQUEST, "Invalid initialize result");
@@ -383,12 +492,17 @@ export class McpClient {
       }
 
       this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
-      this.currentServerInfo = { ...initializeResult.serverInfo };
+      this.currentServerInfo = structuredClone(initializeResult.serverInfo);
       this.currentInstructions = initializeResult.instructions;
       if (onRootsList !== undefined) {
-        messageLayer.onRequest("roots/list", async () => ({
-          roots: await onRootsList(),
+        messageLayer.onRequest("roots/list", async (_params, context) => ({
+          roots: await onRootsList(context),
         }));
+      }
+      if (this.options.onElicitationRequest !== undefined) {
+        messageLayer.onRequest("elicitation/create", async (params, context) =>
+          this.options.onElicitationRequest!(params as ElicitationParams, context)
+        );
       }
       messageLayer.sendNotification("notifications/initialized");
       this.currentState = "ready";
@@ -416,7 +530,7 @@ export class McpClient {
     return this.currentServerCapabilities;
   }
 
-  async listTools(params: PaginatedParams = {}): Promise<{ tools: Tool[]; nextCursor?: string }> {
+  async listTools(params: PaginatedParams = {}, options: { signal?: AbortSignal } = {}): Promise<PaginatedResult & { tools: Tool[] }> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.tools === undefined) {
@@ -424,7 +538,7 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    const result = await messageLayer.sendRequest("tools/list", requestParams);
+    const result = await messageLayer.sendRequest("tools/list", requestParams, options);
     if (!isToolsListResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid tools/list result");
     }
@@ -475,12 +589,13 @@ export class McpClient {
         messageLayer.sendNotification("notifications/cancelled", { requestId });
       };
       const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
+        signal: options.signal,
         onRequestId: (nextRequestId) => {
           requestId = nextRequestId;
         },
         onTimeout: sendCancellationNotification,
       }).then((result) => {
-        if (!isCallToolResult(result)) {
+        if (!isCallToolResult(result, messageLayer.requestMetadata !== undefined)) {
           throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
         }
 
@@ -529,8 +644,8 @@ export class McpClient {
   }
 
   async listResources(
-    params: PaginatedParams = {}
-  ): Promise<{ resources: Resource[]; nextCursor?: string }> {
+    params: PaginatedParams = {}, options: { signal?: AbortSignal } = {}
+  ): Promise<PaginatedResult & { resources: Resource[] }> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.resources === undefined) {
@@ -538,7 +653,7 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    const result = await messageLayer.sendRequest("resources/list", requestParams);
+    const result = await messageLayer.sendRequest("resources/list", requestParams, options);
     if (!isResourcesListResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/list result");
     }
@@ -547,8 +662,8 @@ export class McpClient {
   }
 
   async listResourceTemplates(
-    params: PaginatedParams = {}
-  ): Promise<{ resourceTemplates: ResourceTemplate[]; nextCursor?: string }> {
+    params: PaginatedParams = {}, options: { signal?: AbortSignal } = {}
+  ): Promise<PaginatedResult & { resourceTemplates: ResourceTemplate[] }> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.resources === undefined) {
@@ -556,7 +671,7 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    const result = await messageLayer.sendRequest("resources/templates/list", requestParams);
+    const result = await messageLayer.sendRequest("resources/templates/list", requestParams, options);
     if (!isResourceTemplatesListResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/templates/list result");
     }
@@ -564,14 +679,14 @@ export class McpClient {
     return result;
   }
 
-  async readResource(params: ReadResourceParams): Promise<{ contents: ResourceContents[] }> {
+  async readResource(params: ReadResourceParams, options: { signal?: AbortSignal } = {}): Promise<CacheableResultMetadata & { contents: ResourceContents[] }> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.resources === undefined) {
       throw new Error("Server does not support resources");
     }
 
-    const result = await messageLayer.sendRequest("resources/read", params);
+    const result = await messageLayer.sendRequest("resources/read", params, options);
     if (!isReadResourceResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/read result");
     }
@@ -579,29 +694,106 @@ export class McpClient {
     return result;
   }
 
-  async subscribe(uri: string): Promise<void> {
+  async listenNotifications(
+    filter: NotificationFilter,
+    options: SubscriptionOptions = {}
+  ): Promise<McpSubscription> {
+    const layer = this.getMessageLayerOrThrow();
+    if (layer.requestMetadata === undefined || this.subscriptions === null)
+      throw new Error("Notification streams require modern MCP");
+    return await this.subscriptions.listen(filter, options);
+  }
+
+  async subscribe(uri: string, options: { signal?: AbortSignal } = {}): Promise<void> {
+    options.signal?.throwIfAborted();
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
+    if (messageLayer.requestMetadata !== undefined) {
+      if (serverCapabilities.resources === undefined)
+        throw new Error("Server does not support resources");
+      const existing = this.resourceSubscriptions.get(uri);
+      if (existing !== undefined) {
+        const signal = options.signal;
+        if (signal === undefined) await existing.subscription;
+        else {
+          let abort: () => void;
+          const canceled = new Promise<never>((_resolve, reject) => {
+            abort = () => reject(signal.reason);
+            signal.addEventListener("abort", abort, { once: true });
+          });
+          try {
+            signal.throwIfAborted();
+            await Promise.race([existing.subscription, canceled]);
+          } finally { signal.removeEventListener("abort", abort!); }
+        }
+        return;
+      }
+      const controller = new AbortController();
+      const abortSetup = () => controller.abort(options.signal?.reason);
+      options.signal?.addEventListener("abort", abortSetup, { once: true });
+      const subscribing = this.subscriptions!.listen(
+        { resourceSubscriptions: [uri] },
+        { signal: controller.signal }
+      ).then((listening) => {
+        if (this.resourceSubscriptions.get(uri)?.subscription !== subscribing) {
+          listening.cancel();
+          throw new Error("Resource subscription canceled");
+        }
+        if (!listening.notifications.resourceSubscriptions?.includes(uri)) {
+          listening.cancel();
+          throw new Error("Server declined the resource subscription");
+        }
+        this.subscribedResourceUris.add(uri);
+        void listening.closed
+          .finally(() => {
+            if (this.resourceSubscriptions.get(uri)?.subscription === subscribing) {
+              this.resourceSubscriptions.delete(uri);
+              this.subscribedResourceUris.delete(uri);
+            }
+          })
+          .catch(() => undefined);
+        return listening;
+      }).finally(() => options.signal?.removeEventListener("abort", abortSetup));
+      this.resourceSubscriptions.set(uri, { controller, subscription: subscribing });
+      try {
+        await subscribing;
+      } catch (error) {
+        if (this.resourceSubscriptions.get(uri)?.subscription === subscribing)
+          this.resourceSubscriptions.delete(uri);
+        throw error;
+      }
+      return;
+    }
     if (serverCapabilities.resources?.subscribe !== true) {
       throw new Error("Server does not support resource subscriptions");
     }
 
-    await messageLayer.sendRequest("resources/subscribe", { uri });
+    await messageLayer.sendRequest("resources/subscribe", { uri }, options);
     this.subscribedResourceUris.add(uri);
   }
 
-  async unsubscribe(uri: string): Promise<void> {
+  async unsubscribe(uri: string, options: { signal?: AbortSignal } = {}): Promise<void> {
+    options.signal?.throwIfAborted();
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
+    if (messageLayer.requestMetadata !== undefined) {
+      if (serverCapabilities.resources === undefined)
+        throw new Error("Server does not support resources");
+      const pending = this.resourceSubscriptions.get(uri);
+      this.resourceSubscriptions.delete(uri);
+      this.subscribedResourceUris.delete(uri);
+      pending?.controller.abort(new Error("Resource subscription canceled"));
+      return;
+    }
     if (serverCapabilities.resources?.subscribe !== true) {
       throw new Error("Server does not support resource subscriptions");
     }
 
-    await messageLayer.sendRequest("resources/unsubscribe", { uri });
+    await messageLayer.sendRequest("resources/unsubscribe", { uri }, options);
     this.subscribedResourceUris.delete(uri);
   }
 
-  async listPrompts(params: PaginatedParams = {}): Promise<{ prompts: Prompt[]; nextCursor?: string }> {
+  async listPrompts(params: PaginatedParams = {}, options: { signal?: AbortSignal } = {}): Promise<PaginatedResult & { prompts: Prompt[] }> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.prompts === undefined) {
@@ -609,20 +801,20 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    return (await messageLayer.sendRequest("prompts/list", requestParams)) as {
+    return (await messageLayer.sendRequest("prompts/list", requestParams, options)) as {
       prompts: Prompt[];
       nextCursor?: string;
     };
   }
 
-  async getPrompt(params: GetPromptParams): Promise<GetPromptResult> {
+  async getPrompt(params: GetPromptParams, options: { signal?: AbortSignal } = {}): Promise<GetPromptResult> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.prompts === undefined) {
       throw new Error("Server does not support prompts");
     }
 
-    const result = await messageLayer.sendRequest("prompts/get", params);
+    const result = await messageLayer.sendRequest("prompts/get", params, options);
     if (!isGetPromptResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid prompts/get result");
     }
@@ -630,14 +822,14 @@ export class McpClient {
     return result;
   }
 
-  async complete(params: CompleteParams): Promise<CompleteResult> {
+  async complete(params: CompleteParams, options: { signal?: AbortSignal } = {}): Promise<CompleteResult> {
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.completions === undefined) {
       throw new Error("Server does not support completions");
     }
 
-    const result = await messageLayer.sendRequest("completion/complete", params);
+    const result = await messageLayer.sendRequest("completion/complete", params, options);
     if (!isCompleteResult(result)) {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid completion/complete result");
     }
@@ -645,14 +837,16 @@ export class McpClient {
     return result;
   }
 
-  async setLogLevel(level: LogLevel): Promise<void> {
+  async setLogLevel(level: LogLevel, options: { signal?: AbortSignal } = {}): Promise<void> {
+    options.signal?.throwIfAborted();
     const messageLayer = this.getMessageLayerOrThrow();
+    if (messageLayer.requestMetadata !== undefined) throw new Error("Log level changes require legacy MCP");
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.logging === undefined) {
       throw new Error("Server does not support logging");
     }
 
-    await messageLayer.sendRequest("logging/setLevel", { level });
+    await messageLayer.sendRequest("logging/setLevel", { level }, options);
   }
 
   async cancel(requestId: RequestId, reason?: string): Promise<void> {
@@ -675,9 +869,9 @@ export class McpClient {
     messageLayer.sendNotification("notifications/roots/list_changed");
   }
 
-  async ping(): Promise<void> {
+  async ping(options: { signal?: AbortSignal } = {}): Promise<void> {
     const messageLayer = this.getMessageLayerOrThrow();
-    await messageLayer.sendRequest("ping");
+    await messageLayer.sendRequest(messageLayer.requestMetadata === undefined ? "ping" : "server/discover", undefined, options);
   }
 
   async close(): Promise<void> {
@@ -686,6 +880,9 @@ export class McpClient {
     }
 
     const closeError = new Error("MCP client closed");
+    this.subscriptions?.close();
+    this.subscriptions = null;
+    this.resourceSubscriptions.clear();
     this.messageLayer?.dispose(closeError);
     this.transport?.dispose(closeError);
     this.messageLayer = null;
@@ -700,21 +897,9 @@ export class McpClient {
   }
 }
 
-export interface Tool {
-  name: string;
-  title?: string;
-  description?: string;
+export interface Tool extends Omit<CoreTool, "inputSchema" | "outputSchema"> {
   inputSchema: Record<string, unknown>;
   outputSchema?: Record<string, unknown>;
-  annotations?: ToolAnnotations;
-}
-
-export interface ToolAnnotations {
-  title?: string;
-  readOnlyHint?: boolean;
-  destructiveHint?: boolean;
-  idempotentHint?: boolean;
-  openWorldHint?: boolean;
 }
 
 export interface CallToolParams {
@@ -731,85 +916,39 @@ export interface ReadResourceParams {
   uri: string;
 }
 
-export interface Resource {
-  uri: string;
-  name: string;
-  description?: string;
-  mimeType?: string;
-  size?: number;
-}
-
-export interface ResourceTemplate {
-  uriTemplate: string;
-  name: string;
-  description?: string;
-  mimeType?: string;
-}
-
 export interface PaginatedParams {
   cursor?: string;
 }
 
-export interface PaginatedResult {
+export interface ResultMetadata {
+  resultType?: "complete";
+  _meta?: Record<string, unknown>;
+}
+
+export interface CacheableResultMetadata extends ResultMetadata {
+  ttlMs?: number;
+  cacheScope?: "public" | "private";
+}
+
+export interface PaginatedResult extends CacheableResultMetadata {
   nextCursor?: string;
 }
 
-export interface TextResourceContents {
-  uri: string;
-  mimeType?: string;
-  text: string;
-}
-
-export interface BlobResourceContents {
-  uri: string;
-  mimeType?: string;
-  blob: string;
-}
-
-export type ResourceContents = TextResourceContents | BlobResourceContents;
-
-export interface TextContent {
-  type: "text";
-  text: string;
-}
-
-export interface ImageContent {
-  type: "image";
-  data: string;
-  mimeType: string;
-}
-
-export interface AudioContent {
-  type: "audio";
-  data: string;
-  mimeType: string;
-}
-
-export interface EmbeddedResource {
-  type: "resource";
-  resource: ResourceContents;
-}
-
-export type ContentItem = TextContent | ImageContent | AudioContent | EmbeddedResource;
-
-export interface Prompt {
-  name: string;
-  description?: string;
-  arguments?: PromptArgument[];
-}
-
-export interface PromptArgument {
-  name: string;
-  description?: string;
-  required?: boolean;
-}
+export type TextResourceContents = Extract<CoreResourceContents, { text: string }>;
+export type BlobResourceContents = Extract<CoreResourceContents, { blob: string }>;
+export type ResourceContents = CoreResourceContents;
+export type TextContent = Extract<CoreContentItem, { type: "text" }>;
+export type ImageContent = Extract<CoreContentItem, { type: "image" }>;
+export type AudioContent = Extract<CoreContentItem, { type: "audio" }>;
+export type EmbeddedResource = Extract<CoreContentItem, { type: "resource" }>;
+export type ContentItem = CoreContentItem;
 
 export interface PromptMessage {
   role: "user" | "assistant";
   content: ContentItem;
 }
 
-export interface GetPromptResult {
+export interface GetPromptResult extends ResultMetadata {
   description?: string;
   messages: PromptMessage[];
 }
@@ -819,13 +958,14 @@ export interface GetPromptParams {
   arguments?: Record<string, string>;
 }
 
-export interface CallToolResult {
+export interface CallToolResult extends ResultMetadata {
   content: ContentItem[];
-  structuredContent?: Record<string, unknown>;
+  structuredContent?: unknown;
   isError?: boolean;
 }
 
 export interface Root {
+  _meta?: Record<string, unknown>;
   uri: string;
   name?: string;
 }
@@ -866,9 +1006,29 @@ export interface ModelPreferences {
   intelligencePriority?: number;
 }
 
+export interface ToolUseContent {
+  _meta?: Record<string, unknown>;
+  type: "tool_use";
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+export interface ToolResultContent {
+  _meta?: Record<string, unknown>;
+  type: "tool_result";
+  toolUseId: string;
+  content: ContentItem[];
+  structuredContent?: unknown;
+  isError?: boolean;
+}
+
+export type SamplingContent = TextContent | ImageContent | AudioContent | ToolUseContent | ToolResultContent;
+
 export interface SamplingMessage {
+  _meta?: Record<string, unknown>;
   role: "user" | "assistant";
-  content: ContentItem | ContentItem[];
+  content: SamplingContent | SamplingContent[];
 }
 
 export type IncludeContext = "none" | "thisServer" | "allServers";
@@ -880,15 +1040,18 @@ export interface CreateMessageParams {
   includeContext?: IncludeContext;
   temperature?: number;
   maxTokens: number;
+  tools?: Tool[];
+  toolChoice?: { mode: "auto" | "required" | "none" };
   stopSequences?: string[];
   metadata?: Record<string, unknown>;
 }
 
 export interface CreateMessageResult {
+  _meta?: Record<string, unknown>;
   model: string;
-  content: ContentItem | ContentItem[];
+  content: SamplingContent | SamplingContent[];
   role: "user" | "assistant";
-  stopReason: string;
+  stopReason?: string;
 }
 
 export interface PromptReference {
@@ -907,6 +1070,7 @@ export interface CompleteArgument {
 }
 
 export interface CompleteParams {
+  context?: { arguments?: Record<string, string> };
   ref: PromptReference | ResourceReference;
   argument: CompleteArgument;
 }
@@ -917,7 +1081,7 @@ export interface Completion {
   total?: number;
 }
 
-export interface CompleteResult {
+export interface CompleteResult extends ResultMetadata {
   completion: Completion;
 }
 
@@ -2406,6 +2570,7 @@ export class StdioTransport implements McpTransport {
     });
     this.closed = new Promise((resolve) => {
       let settled = false;
+      let streamError: Error | undefined;
       const resolveClosed = (event: McpTransportClosedEvent) => {
         if (settled) {
           return;
@@ -2415,9 +2580,16 @@ export class StdioTransport implements McpTransport {
         resolve(event);
       };
 
+      for (const stream of [child.stdin, child.stdout, child.stderr]) {
+        stream.once("error", (reason: Error) => {
+          streamError ??= reason;
+          this.dispose(reason);
+        });
+      }
+
       child.once("exit", (code, signal) => {
         const closedEvent: McpTransportClosedEvent = {
-          reason: new Error("Stdio transport process exited"),
+          reason: streamError ?? new Error("Stdio transport process exited"),
         };
 
         if (code !== null) {
@@ -2503,6 +2675,8 @@ export class HttpTransport implements McpTransport {
   private readonly oauthMetadataDiscovery: OAuthMetadataDiscovery | undefined;
   private readonly inFlightFetchAbortControllers = new Set<AbortController>();
   private readonly openResponseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
+  private readonly modernRequests = new Map<RequestId, AbortController>();
+  private modernMode = false;
   private readonly maxResponseBytes: number;
   private readonly toolParameterHeaders = new Map<string, ParameterHeader[]>();
   private readonly onWarning: ((message: string) => void) | undefined;
@@ -2593,11 +2767,20 @@ export class HttpTransport implements McpTransport {
     if (this.sessionId !== undefined) {
       const sessionId = this.sessionId;
       this.sessionId = undefined;
+      const controller = new AbortController();
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      const expired = new Promise<never>((_resolve, reject) => {
+        timeout = setTimeout(() => {
+          const error = new Error("HTTP transport session termination timed out");
+          controller.abort(error);
+          reject(error);
+        }, 1000);
+      });
       try {
-        await this.sendSessionTerminationRequest(sessionId);
+        await Promise.race([this.sendSessionTerminationRequest(sessionId, controller.signal), expired]);
       } catch (error) {
         closeReason = error instanceof Error ? error : new Error(String(error));
-      }
+      } finally { clearTimeout(timeout); }
     }
 
     const resolveClosed = this.resolveClosed;
@@ -2606,6 +2789,8 @@ export class HttpTransport implements McpTransport {
   }
 
   private abortInFlightFetches(): void {
+    for (const controller of this.modernRequests.values()) controller.abort();
+    this.modernRequests.clear();
     for (const abortController of this.inFlightFetchAbortControllers) {
       abortController.abort();
     }
@@ -2621,18 +2806,26 @@ export class HttpTransport implements McpTransport {
     this.openResponseReaders.clear();
   }
 
-  private async fetchWithAbort(input: string | URL, init: RequestInit): Promise<Response> {
+  private async fetchWithAbort(
+    input: string | URL,
+    init: RequestInit,
+    controller?: AbortController
+  ): Promise<Response> {
     if (this.disposed) {
       throw new Error("HTTP transport disposed");
     }
 
-    const abortController = new AbortController();
+    const abortController = controller ?? new AbortController();
+    abortController.signal.throwIfAborted();
+    const signal = init.signal == null ? abortController.signal
+      : AbortSignal.any([init.signal, abortController.signal]);
+    signal.throwIfAborted();
     this.inFlightFetchAbortControllers.add(abortController);
 
     try {
-      return await this.fetchImpl(input, {
+      return await fetchMcpResponse(this.fetchImpl, input, {
         ...init,
-        signal: abortController.signal,
+        signal
       });
     } finally {
       this.inFlightFetchAbortControllers.delete(abortController);
@@ -2668,42 +2861,72 @@ export class HttpTransport implements McpTransport {
     const modern =
       isObjectRecord(metadata) &&
       typeof metadata["io.modelcontextprotocol/protocolVersion"] === "string";
-    const hasSessionId = !modern && this.sessionId !== undefined;
-    const response = await this.fetchWithOAuthRetry({
-      method: "POST",
-      createHeaders: () => this.createPostHeaders(message, modern),
-      body: line
-    });
-
-    if (this.disposed) {
-      await response.body?.cancel();
-      return;
-    }
-
-    if (hasSessionId && response.status === 404) {
-      this.sessionId = undefined;
-      this.dispose(new Error("HTTP transport session expired (404 response)"));
-      return;
-    }
-
+    if (modern) this.modernMode = true;
+    if (parsed.type === "request" && parsed.message.method === "initialize")
+      this.modernMode = false;
     if (
-      await this.throwForPostHttpError(
-        response,
-        modern && parsed.type === "request" ? parsed.message : undefined
+      this.modernMode &&
+      parsed.type === "notification" &&
+      parsed.message.method === "notifications/cancelled"
+    ) {
+      const requestId = isObjectRecord(parsed.message.params)
+        ? parsed.message.params.requestId
+        : undefined;
+      if (typeof requestId === "string" || typeof requestId === "number")
+        this.modernRequests.get(requestId)?.abort();
+      return;
+    }
+    const controller = modern && parsed.type === "request" ? new AbortController() : undefined;
+    const id = parsed.type === "request" ? parsed.message.id : undefined;
+    if (controller !== undefined && id !== undefined) this.modernRequests.set(id, controller);
+    try {
+      const hasSessionId = !modern && this.sessionId !== undefined;
+      const response = await this.fetchWithOAuthRetry({
+        method: "POST",
+        createHeaders: () => this.createPostHeaders(message, modern),
+        body: line,
+        controller
+      });
+
+      if (this.disposed || controller?.signal.aborted) {
+        void response.body?.cancel().catch(() => undefined);
+        return;
+      }
+
+      if (hasSessionId && response.status === 404) {
+        void response.body?.cancel().catch(() => undefined);
+        this.sessionId = undefined;
+        this.dispose(new Error("HTTP transport session expired (404 response)"));
+        return;
+      }
+
+      if (
+        await this.throwForPostHttpError(
+          response,
+          modern && parsed.type === "request" ? parsed.message : undefined,
+          controller?.signal
+        )
       )
-    )
-      return;
-    if (this.disposed) {
-      await response.body?.cancel();
-      return;
+        return;
+      if (this.disposed || controller?.signal.aborted) {
+        void response.body?.cancel().catch(() => undefined);
+        return;
+      }
+      if (!modern) {
+        this.captureSessionId(response);
+        this.maybeOpenGetSseStream();
+      }
+      if (controller !== undefined) await this.forwardResponseMessages(response, controller.signal, parsed.type === "request" ? new HttpResponseMessages(parsed.message) : undefined);
+      else
+        void this.forwardResponseMessages(response).catch((error) => {
+          this.dispose(error instanceof Error ? error : new Error(String(error)));
+        });
+    } catch (error) {
+      if (!controller?.signal.aborted) throw error;
+    } finally {
+      if (id !== undefined && this.modernRequests.get(id) === controller)
+        this.modernRequests.delete(id);
     }
-    if (!modern) {
-      this.captureSessionId(response);
-      this.maybeOpenGetSseStream();
-    }
-    void this.forwardResponseMessages(response).catch((error) => {
-      this.dispose(error instanceof Error ? error : new Error(String(error)));
-    });
   }
 
   private async createPostHeaders(
@@ -2809,17 +3032,24 @@ export class HttpTransport implements McpTransport {
     });
   }
 
-  private async sendSessionTerminationRequest(sessionId: string): Promise<void> {
-    const response = await this.fetchImpl(this.url, {
+  private async sendSessionTerminationRequest(sessionId: string, signal: AbortSignal): Promise<void> {
+    const headers = await this.createDeleteHeaders(sessionId);
+    signal.throwIfAborted();
+    const response = await fetchMcpResponse(this.fetchImpl, this.url, {
       method: "DELETE",
-      headers: await this.createDeleteHeaders(sessionId),
+      headers, signal,
     });
+    if (signal.aborted) {
+      void response.body?.cancel().catch(() => undefined);
+      signal.throwIfAborted();
+    }
 
     if (response.status === 405 || response.ok) {
+      void response.body?.cancel().catch(() => undefined);
       return;
     }
 
-    const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders)).trim();
+    const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders, signal)).trim();
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     const message = responseBody.length === 0
       ? `HTTP transport DELETE failed (${statusDescriptor})`
@@ -2832,12 +3062,18 @@ export class HttpTransport implements McpTransport {
       method: "GET",
       createHeaders: () => this.createGetHeaders(),
     });
+    if (this.disposed) {
+      void response.body?.cancel().catch(() => undefined);
+      return;
+    }
 
     if (response.status === 405) {
+      void response.body?.cancel().catch(() => undefined);
       throw new HttpTransportGetSseNotSupportedError();
     }
 
     if (response.status === 404) {
+      void response.body?.cancel().catch(() => undefined);
       this.sessionId = undefined;
       throw new Error("HTTP transport session expired (GET 404 response)");
     }
@@ -2853,10 +3089,11 @@ export class HttpTransport implements McpTransport {
 
     const contentType = response.headers.get("Content-Type");
     if (contentType === null) {
+      void response.body?.cancel().catch(() => undefined);
       return;
     }
 
-    if (contentType.toLowerCase().includes("text/event-stream")) {
+    if (contentType.split(";")[0]?.trim().toLowerCase() === "text/event-stream") {
       await this.forwardSseResponseMessages(response);
       this.getSseStreamStarted = false;
       if (!this.disposed && this.sessionId !== undefined && this.lastEventId !== undefined) {
@@ -2865,28 +3102,63 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
-    return;
+    void response.body?.cancel().catch(() => undefined);
   }
 
   private async throwForPostHttpError(
     response: Response,
-    request?: JsonRpcRequest
+    request?: JsonRpcRequest,
+    signal?: AbortSignal
   ): Promise<boolean> {
     if (response.status < 400) {
       return false;
     }
 
-    const responseBody = (await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders)).trim();
+    const responseBody = (
+      await readBoundedResponseText(
+        response,
+        this.maxResponseBytes,
+        this.openResponseReaders,
+        signal
+      )
+    ).trim();
     if (request !== undefined && responseBody.length > 0) {
-      const parsed = parseJsonRpcMessage(responseBody);
+      let parsed = parseJsonRpcMessage(responseBody);
+      if (parsed.type === "invalid") {
+        try {
+          const raw: unknown = JSON.parse(responseBody);
+          if (
+            isObjectRecord(raw) &&
+            raw.jsonrpc === "2.0" &&
+            (!hasOwn(raw, "id") || raw.id === null) &&
+            !hasOwn(raw, "method") &&
+            !hasOwn(raw, "result") &&
+            isJsonRpcErrorObject(raw.error)
+          ) {
+            parsed = parseJsonRpcMessage(JSON.stringify({ ...raw, id: request.id }));
+          }
+        } catch {
+          /* Unrecognized HTTP error bodies use normal fallback rules. */
+        }
+      }
       if (
         parsed.type === "response" &&
         "error" in parsed.message &&
         parsed.message.id === request.id
       ) {
-        this.writeReadableLine(responseBody);
+        this.writeReadableLine(serializeJsonRpcMessage(parsed.message));
         return true;
       }
+    }
+    if (request?.method === "server/discover" && response.status >= 400 && response.status < 500) {
+      this.writeReadableLine(
+        serializeJsonRpcMessage({
+          jsonrpc: "2.0",
+          id: request.id,
+          error: { code: ERROR_METHOD_NOT_FOUND, message: "Modern discovery unavailable" }
+        })
+      );
+      return true;
     }
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     const message =
@@ -2908,68 +3180,81 @@ export class HttpTransport implements McpTransport {
 
     const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
     const resourceMetadataUrl = challenge?.params.resource_metadata;
-    const discovery = await discoveryClient.discover(this.url, {
-      resourceMetadataUrl,
-    });
-    const result = await this.oauthProvider.handleUnauthorized({
-      requestUrl: new URL(this.url),
-      response: response.clone(),
-      challenge,
-      discovery,
-      fetch: this.fetchImpl,
-    });
-
-    if (result.action === "retry") {
-      return true;
+    try {
+      const discovery = await discoveryClient.discover(this.url, { resourceMetadataUrl });
+      const providerResponse = response.clone();
+      let result;
+      try {
+        result = await this.oauthProvider.handleUnauthorized({
+          requestUrl: new URL(this.url), response: providerResponse, challenge, discovery,
+          fetch: this.fetchImpl,
+        });
+      } finally {
+        // Cancel both tee branches without awaiting adapter cleanup.
+        void providerResponse.body?.cancel().catch(() => undefined);
+      }
+      if (result.action === "retry") {
+        void response.body?.cancel().catch(() => undefined);
+        return true;
+      }
+      if (result.error !== undefined) throw result.error;
+      return false;
+    } catch (error) {
+      void response.body?.cancel().catch(() => undefined);
+      throw error;
     }
-
-    if (result.error !== undefined) {
-      throw result.error;
-    }
-
-    return false;
   }
 
-  private async forwardResponseMessages(response: Response): Promise<void> {
+  private async forwardResponseMessages(response: Response, signal?: AbortSignal, context?: HttpResponseMessages): Promise<void> {
     if (response.status === 202) {
-      await response.body?.cancel();
+      void response.body?.cancel().catch(() => undefined);
       return;
     }
 
     const contentType = response.headers.get("Content-Type");
     if (contentType === null) {
-      await response.body?.cancel();
+      void response.body?.cancel().catch(() => undefined);
       return;
     }
 
-    const normalizedContentType = contentType.toLowerCase();
-    if (normalizedContentType.includes("text/event-stream")) {
-      await this.forwardSseResponseMessages(response);
+    const normalizedContentType = contentType.split(";")[0]?.trim().toLowerCase();
+    if (normalizedContentType === "text/event-stream") {
+      await this.forwardSseResponseMessages(response, signal, context);
       return;
     }
 
-    if (normalizedContentType.includes("application/json")) {
-      await this.forwardJsonResponseMessage(response);
+    if (normalizedContentType === "application/json") {
+      await this.forwardJsonResponseMessage(response, signal, context);
       return;
     }
 
-    await response.body?.cancel();
+    void response.body?.cancel().catch(() => undefined);
     throw new Error("HTTP transport POST returned an unsupported response content type");
   }
 
-  private async forwardSseResponseMessages(response: Response): Promise<void> {
+  private async forwardSseResponseMessages(
+    response: Response,
+    signal?: AbortSignal,
+    context?: HttpResponseMessages
+  ): Promise<void> {
     if (response.body === null) {
       return;
     }
 
     const parser = new SseParser(this.maxResponseBytes);
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
     const reader = response.body.getReader();
     this.openResponseReaders.add(reader);
+    const abort = (): void => {
+      void reader.cancel().catch(() => undefined);
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
 
     try {
       while (true) {
         const { done, value } = await reader.read();
+        signal?.throwIfAborted();
         if (done) {
           break;
         }
@@ -2979,40 +3264,55 @@ export class HttpTransport implements McpTransport {
         }
 
         const messages = parser.push(decoder.decode(value, { stream: true }));
-        this.writeSseMessages(messages);
+        this.writeSseMessages(messages, context);
+        if (context?.completed) { void reader.cancel().catch(() => undefined); return; }
         this.lastEventId = parser.lastEventId;
       }
 
       const trailingChunk = decoder.decode();
       if (trailingChunk.length > 0) {
-        this.writeSseMessages(parser.push(trailingChunk));
+        this.writeSseMessages(parser.push(trailingChunk), context);
         this.lastEventId = parser.lastEventId;
       }
 
-      this.writeSseMessages(parser.flush());
+      this.writeSseMessages(parser.flush(), context);
       this.lastEventId = parser.lastEventId;
+      if (context !== undefined && !context.completed) throw new Error("MCP HTTP stream ended before its final response");
     } catch (error) {
-      await reader.cancel().catch(() => undefined);
+      void reader.cancel().catch(() => undefined);
       throw error;
     } finally {
+      signal?.removeEventListener("abort", abort);
       this.openResponseReaders.delete(reader);
       reader.releaseLock();
     }
   }
 
-  private async forwardJsonResponseMessage(response: Response): Promise<void> {
-    const payload = await readBoundedResponseText(response, this.maxResponseBytes, this.openResponseReaders);
+  private async forwardJsonResponseMessage(
+    response: Response,
+    signal?: AbortSignal,
+    context?: HttpResponseMessages
+  ): Promise<void> {
+    const payload = await readBoundedResponseText(
+      response,
+      this.maxResponseBytes,
+      this.openResponseReaders,
+      signal
+    );
     if (payload.length === 0) {
+      if (context !== undefined) throw new Error("MCP HTTP response body is empty");
       return;
     }
 
+    if (context !== undefined) { this.writeReadableLine(context.validate(payload, false)); return; }
     const parsedPayload = JSON.parse(payload) as unknown;
     this.writeReadableLine(JSON.stringify(parsedPayload));
   }
 
-  private writeSseMessages(messages: ParsedSseMessage[]): void {
+  private writeSseMessages(messages: ParsedSseMessage[], context?: HttpResponseMessages): void {
     for (const message of messages) {
-      this.writeReadableLine(message.data);
+      this.writeReadableLine(context?.validate(message.data, true) ?? message.data);
+      if (context?.completed) return;
     }
   }
 
@@ -3028,23 +3328,28 @@ export class HttpTransport implements McpTransport {
     method: "GET" | "POST";
     createHeaders: () => Promise<Headers>;
     body?: BodyInit;
+    controller?: AbortController;
   }): Promise<Response> {
     const request = async (): Promise<Response> =>
-      this.fetchWithAbort(this.url, {
-        method: input.method,
-        headers: await input.createHeaders(),
-        body: input.body,
-      });
+      this.fetchWithAbort(
+        this.url,
+        {
+          method: input.method,
+          headers: await input.createHeaders(),
+          body: input.body
+        },
+        input.controller
+      );
 
     let response = await request();
     if (await this.maybeHandleUnauthorizedResponse(response)) {
       response = await request();
     }
 
-    const oauthError = this.oauthProvider === undefined
-      ? null
-      : this.readOAuthChallengeError(response);
+    const oauthError =
+      this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
     if (oauthError !== null) {
+      void response.body?.cancel().catch(() => undefined);
       throw oauthError;
     }
 
@@ -3147,6 +3452,12 @@ export type ParsedJsonRpcMessage =
     };
 
 export function serializeJsonRpcMessage(message: JsonRpcMessage): string {
+  if ("result" in message && !isJsonValue(message.result)) {
+    throw new McpError(ERROR_INTERNAL, "Response result must contain only JSON values");
+  }
+  if ("params" in message && message.params !== undefined && !isJsonValue(message.params)) {
+    throw new McpError(ERROR_INVALID_PARAMS, "Message params must contain only JSON values");
+  }
   return `${JSON.stringify(message)}\n`;
 }
 
@@ -3154,33 +3465,37 @@ function normalizeLine(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
-export async function* readLines(stream: Readable): AsyncGenerator<string> {
-  let buffer = "";
-  const decoder = new TextDecoder();
+export async function* readLines(stream: Readable, maxLineBytes = 16 * 1024 * 1024): AsyncGenerator<string> {
+  if (!Number.isSafeInteger(maxLineBytes) || maxLineBytes < 1) {
+    throw new Error("Stdio line byte limit must be a positive safe integer");
+  }
+  let parts: string[] = [];
+  let bytes = 0;
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const append = (part: string): void => {
+    bytes += Buffer.byteLength(part, "utf8");
+    if (bytes > maxLineBytes) throw new Error(`Stdio input line byte limit exceeded (${maxLineBytes} bytes)`);
+    if (part.length > 0) parts.push(part);
+  };
 
   for await (const chunk of stream as AsyncIterable<unknown>) {
-    buffer +=
-      chunk instanceof Uint8Array
-        ? decoder.decode(chunk, { stream: true })
-        : decoder.decode() + String(chunk);
-
-    while (true) {
-      const newlineIndex = buffer.indexOf("\n");
-      if (newlineIndex === -1) {
-        break;
-      }
-
-      const line = buffer.slice(0, newlineIndex);
-      buffer = buffer.slice(newlineIndex + 1);
-      yield normalizeLine(line);
+    const text = chunk instanceof Uint8Array
+      ? decoder.decode(chunk, { stream: true })
+      : decoder.decode() + String(chunk);
+    let start = 0;
+    let newline = text.indexOf("\n", start);
+    while (newline !== -1) {
+      append(text.slice(start, newline));
+      yield normalizeLine(parts.join(""));
+      parts = [];
+      bytes = 0;
+      start = newline + 1;
+      newline = text.indexOf("\n", start);
     }
+    append(text.slice(start));
   }
-
-  buffer += decoder.decode();
-
-  if (buffer.length > 0) {
-    yield normalizeLine(buffer);
-  }
+  append(decoder.decode());
+  if (parts.length > 0) yield normalizeLine(parts.join(""));
 }
 
 export interface ParsedSseMessage {
@@ -3325,27 +3640,29 @@ export class SseParser {
 interface PendingRequest {
   resolve: (result: unknown) => void;
   reject: (error: unknown) => void;
-  timeout: ReturnType<typeof setTimeout>;
+  timeout: ReturnType<typeof setTimeout> | undefined;
 }
 
 interface ActiveIncomingRequest {
-  cancelled: boolean;
+  controller: AbortController;
 }
 
 export interface JsonRpcRequestOptions {
-  timeoutMs?: number;
+  signal?: AbortSignal;
+  timeoutMs?: number | null;
   onRequestId?: (requestId: RequestId) => void;
   onTimeout?: (requestId: RequestId) => void;
 }
 
-interface JsonRpcRequestContext {
-  id: RequestId;
-  method: string;
+export interface McpRequestContext {
+  readonly id: RequestId;
+  readonly method: string;
+  readonly signal: AbortSignal;
 }
 
 type JsonRpcRequestHandler = (
   params: unknown,
-  context: JsonRpcRequestContext
+  context: McpRequestContext
 ) => unknown | Promise<unknown>;
 
 interface JsonRpcNotificationContext {
@@ -3358,37 +3675,56 @@ type JsonRpcNotificationHandler = (
 ) => unknown | Promise<unknown>;
 
 export class JsonRpcMessageLayer {
+  requestMetadata?: Record<string, unknown>;
   readonly requestTimeoutMs: number;
   private readonly input: Readable;
   private readonly output: Writable;
   private readonly inputClosedReason: Promise<Error> | undefined;
   private nextRequestId = 1;
+  private readonly exchangeControllers = new Set<AbortController>();
   private disposedError: Error | undefined;
   private readonly pendingRequests = new Map<RequestId, PendingRequest>();
   private readonly activeIncomingRequests = new Map<RequestId, ActiveIncomingRequest>();
   private readonly requestHandlers = new Map<string, JsonRpcRequestHandler>();
+  private readonly inputRequestHandlers = new Map<string, JsonRpcRequestHandler>();
   private readonly notificationHandlers = new Map<string, JsonRpcNotificationHandler>();
 
   constructor(
     input: Readable,
     output: Writable,
     requestTimeoutMs = 30_000,
-    inputClosedReason?: Promise<Error>
+    inputClosedReason?: Promise<Error>,
+    private readonly maxConcurrentRequests = 128
   ) {
     if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 0) {
       throw new Error("requestTimeoutMs must be a non-negative finite number");
     }
+    if (!Number.isSafeInteger(maxConcurrentRequests) || maxConcurrentRequests < 1)
+      throw new Error("maxConcurrentRequests must be a positive safe integer");
 
     this.input = input;
     this.output = output;
     this.inputClosedReason = inputClosedReason;
     this.requestTimeoutMs = requestTimeoutMs;
+    output.once("error", (reason: Error) => this.dispose(reason));
+    output.once("close", () => {
+      if (this.disposedError !== undefined) return;
+      void this.resolveInputStreamClosedReason(new Error("JSON-RPC output closed"))
+        .then((reason) => this.dispose(reason));
+    });
     this.consumeInput().catch(() => undefined);
   }
 
   sendNotification(method: string, params?: unknown): void {
     if (this.disposedError !== undefined) {
       throw this.disposedError;
+    }
+
+    if (params !== undefined && !isJsonValue(params)) {
+      throw new McpError(ERROR_INVALID_PARAMS, "Notification params must contain only JSON values");
+    }
+    if (!isValidParamsMetadata(params)) {
+      throw new McpError(ERROR_INVALID_PARAMS, "Invalid notification metadata");
     }
 
     const message: JsonRpcNotification = {
@@ -3411,7 +3747,134 @@ export class JsonRpcMessageLayer {
     this.notificationHandlers.set(method, handler);
   }
 
+  onInputRequest(method: string, handler: JsonRpcRequestHandler): void {
+    this.inputRequestHandlers.set(method, handler);
+  }
+
   sendRequest(
+    method: string,
+    params?: unknown,
+    options: JsonRpcRequestOptions = {}
+  ): Promise<unknown> {
+    if (this.disposedError !== undefined) throw this.disposedError;
+    const timeoutMs =
+      options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
+    if (timeoutMs !== null && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
+      throw new Error("timeoutMs must be a non-negative finite number");
+    }
+    if (this.exchangeControllers.size >= this.maxConcurrentRequests)
+      throw new Error("JSON-RPC request capacity exceeded");
+    if (params !== undefined && !isJsonValue(params)) {
+      return Promise.reject(new McpError(ERROR_INVALID_PARAMS, "Request params must contain only JSON values"));
+    }
+    if (!isValidParamsMetadata(params) ||
+        (this.requestMetadata !== undefined && !isValidMetadata(this.requestMetadata))) {
+      return Promise.reject(new McpError(ERROR_INVALID_PARAMS, "Invalid request metadata"));
+    }
+    const originalParams = this.requestMetadata === undefined ? params : structuredClone(params);
+    const controller = new AbortController();
+    const callerSignal = options.signal;
+    const onRequestId = options.onRequestId;
+    let currentRequestId: RequestId | undefined;
+    let rejectAbort: (reason: unknown) => void;
+    const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject; });
+    const cancel = () => {
+      if (currentRequestId !== undefined) this.cancelRequest(currentRequestId, controller.signal.reason);
+      rejectAbort(controller.signal.reason);
+    };
+    const forwardAbort = () => controller.abort(callerSignal?.reason);
+    controller.signal.addEventListener("abort", cancel, { once: true });
+    callerSignal?.addEventListener("abort", forwardAbort, { once: true });
+    this.exchangeControllers.add(controller);
+    options = { ...options, signal: controller.signal, onRequestId: (id) => {
+      currentRequestId = id;
+      onRequestId?.(id);
+    } };
+    if (callerSignal?.aborted) forwardAbort();
+    const work = (async () => {
+      let retryParams = originalParams;
+      for (let round = 0; round <= 64; round += 1) {
+        if (this.disposedError !== undefined) throw this.disposedError;
+        if (options.signal?.aborted) throw options.signal.reason;
+        const result = await this.sendRequestOnce(method, retryParams, options);
+        if (this.requestMetadata === undefined) return result;
+        if (
+          !isObjectRecord(result) ||
+          (result.resultType !== "complete" && result.resultType !== "input_required")
+        ) {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid modern resultType");
+        }
+        if (result.resultType === "complete") {
+          const cacheError = validateCacheMetadata(method, result);
+          if (cacheError !== undefined) throw new McpError(ERROR_INVALID_REQUEST, cacheError);
+          if (!validateServerResult(method, result)) throw new McpError(ERROR_INVALID_REQUEST, `Invalid ${method} result`);
+          return result;
+        }
+        const validation = validateInputRequiredResult(
+          method,
+          result,
+          this.requestMetadata["io.modelcontextprotocol/clientCapabilities"] as Record<
+            string,
+            unknown
+          >
+        );
+        if (validation?.error !== undefined) {
+          const error = validation.error;
+          throw new McpError(
+            error.code === ERROR_INTERNAL ? ERROR_INVALID_REQUEST : error.code,
+            error.message,
+            error.data
+          );
+        }
+        if (round === 64)
+          throw new McpError(ERROR_INVALID_REQUEST, "MCP input round limit exceeded");
+        const inputs = Object.entries(result.inputRequests ?? {});
+        if (inputs.length > 64)
+          throw new McpError(ERROR_INVALID_REQUEST, "MCP input request limit exceeded");
+        for (const [, input] of inputs) {
+          if (!this.inputRequestHandlers.has((input as { method: string }).method)) {
+            throw new McpError(-32021, "Unsupported MCP input request");
+          }
+        }
+        const inputResponses: Record<string, unknown> = Object.create(null);
+        for (const [key, input] of inputs) {
+          if (this.disposedError !== undefined) throw this.disposedError;
+          if (options.signal?.aborted) throw options.signal.reason;
+          const request = input as { method: keyof typeof inputResponseTypes; params?: unknown };
+          const response = await this.inputRequestHandlers.get(request.method)!(request.params, {
+            id: key,
+            method: request.method,
+            signal: controller.signal
+          });
+          if (!validateProtocolValue(inputResponseTypes[request.method], response)) {
+            throw new McpError(ERROR_INVALID_REQUEST, "Invalid MCP input response");
+          }
+          inputResponses[key] = response;
+        }
+        if (this.disposedError !== undefined) throw this.disposedError;
+        if (options.signal?.aborted) throw options.signal.reason;
+        const original = isObjectRecord(originalParams) ? originalParams : {};
+        const {
+          requestState: ignoredState,
+          inputResponses: ignoredResponses,
+          ...baseParams
+        } = original;
+        retryParams = {
+          ...baseParams,
+          ...(result.requestState === undefined ? {} : { requestState: result.requestState }),
+          ...(result.inputRequests === undefined ? {} : { inputResponses })
+        };
+      }
+      throw new McpError(ERROR_INTERNAL, "Unreachable MCP retry state");
+    })();
+    return Promise.race([work, aborted]).finally(() => {
+      callerSignal?.removeEventListener("abort", forwardAbort);
+      controller.signal.removeEventListener("abort", cancel);
+      this.exchangeControllers.delete(controller);
+    });
+  }
+
+  private sendRequestOnce(
     method: string,
     params?: unknown,
     options: JsonRpcRequestOptions = {}
@@ -3422,31 +3885,45 @@ export class JsonRpcMessageLayer {
 
     const id = this.nextRequestId;
     this.nextRequestId += 1;
-    const timeoutMs = options.timeoutMs ?? this.requestTimeoutMs;
+    const timeoutMs =
+      options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
 
-    if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    if (timeoutMs !== null && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
       throw new Error("timeoutMs must be a non-negative finite number");
     }
     if (options.onRequestId !== undefined) {
       options.onRequestId(id);
     }
+    options.signal?.throwIfAborted();
 
     const message: JsonRpcRequest = {
       jsonrpc: "2.0",
       id,
-      method,
+      method
     };
 
-    if (params !== undefined) {
+    if (this.requestMetadata !== undefined) {
+      if (params !== undefined && !isObjectRecord(params)) {
+        throw new McpError(ERROR_INVALID_PARAMS, "Modern request params must be an object");
+      }
+      const supplied = isObjectRecord(params) && isObjectRecord(params._meta) ? params._meta : {};
+      message.params = {
+        ...(params ?? {}),
+        _meta: { ...supplied, ...structuredClone(this.requestMetadata) }
+      };
+    } else if (params !== undefined) {
       message.params = params;
     }
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        options.onTimeout?.(id);
-        reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
+      const timeout =
+        timeoutMs === null
+          ? undefined
+          : setTimeout(() => {
+              this.pendingRequests.delete(id);
+              options.onTimeout?.(id);
+              reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
 
       this.pendingRequests.set(id, { resolve, reject, timeout });
 
@@ -3478,6 +3955,7 @@ export class JsonRpcMessageLayer {
     }
 
     this.disposedError = reason;
+    for (const controller of this.exchangeControllers) controller.abort(reason);
 
     for (const pending of this.pendingRequests.values()) {
       clearTimeout(pending.timeout);
@@ -3485,6 +3963,7 @@ export class JsonRpcMessageLayer {
     }
 
     this.pendingRequests.clear();
+    for (const request of this.activeIncomingRequests.values()) request.controller.abort(reason);
     this.activeIncomingRequests.clear();
   }
 
@@ -3543,8 +4022,9 @@ export class JsonRpcMessageLayer {
     }
   }
 
-  private async resolveInputStreamClosedReason(): Promise<Error> {
-    const streamClosedError = new Error("JSON-RPC input stream closed");
+  private async resolveInputStreamClosedReason(
+    streamClosedError = new Error("JSON-RPC input stream closed")
+  ): Promise<Error> {
     if (this.inputClosedReason === undefined) {
       return streamClosedError;
     }
@@ -3565,6 +4045,13 @@ export class JsonRpcMessageLayer {
 
   private async processParsedMessage(parsed: ParsedJsonRpcMessage): Promise<void> {
     if (parsed.type === "request") {
+      if (this.requestMetadata !== undefined) {
+        this.output.write(serializeJsonRpcMessage({
+          jsonrpc: "2.0", id: parsed.message.id,
+          error: { code: ERROR_INVALID_REQUEST, message: "Modern MCP servers cannot initiate JSON-RPC requests" }
+        }));
+        return;
+      }
       const handler = this.requestHandlers.get(parsed.message.method);
       if (handler === undefined) {
         this.output.write(
@@ -3652,22 +4139,42 @@ export class JsonRpcMessageLayer {
   }
 
   private handleIncomingRequest(message: JsonRpcRequest, handler: JsonRpcRequestHandler): void {
+    if (this.activeIncomingRequests.has(message.id) || this.activeIncomingRequests.size >= this.maxConcurrentRequests) {
+      const duplicate = this.activeIncomingRequests.has(message.id);
+      this.output.write(serializeJsonRpcMessage({
+        jsonrpc: "2.0", id: message.id,
+        error: { code: duplicate ? ERROR_INVALID_REQUEST : -32000,
+          message: duplicate ? "Duplicate active server request ID" : "Server request capacity exceeded" }
+      }));
+      return;
+    }
     const activeRequest: ActiveIncomingRequest = {
-      cancelled: false,
+      controller: new AbortController(),
     };
     this.activeIncomingRequests.set(message.id, activeRequest);
 
     void (async () => {
       try {
+        const responseType = inputResponseTypes[message.method as keyof typeof inputResponseTypes];
+        if (responseType !== undefined && !validateProtocolValue("InputRequest", {
+          method: message.method,
+          ...(message.params === undefined ? {} : { params: message.params })
+        })) {
+          throw new McpError(ERROR_INVALID_PARAMS, "Invalid client input request");
+        }
         const result = await handler(message.params, {
           id: message.id,
           method: message.method,
+          signal: activeRequest.controller.signal,
         });
 
-        if (this.disposedError !== undefined || activeRequest.cancelled) {
+        if (this.disposedError !== undefined || activeRequest.controller.signal.aborted) {
           return;
         }
 
+        if (responseType !== undefined && !validateProtocolValue(responseType, result)) {
+          throw new McpError(ERROR_INTERNAL, "Invalid client input response");
+        }
         this.output.write(
           serializeJsonRpcMessage({
             jsonrpc: "2.0",
@@ -3676,7 +4183,7 @@ export class JsonRpcMessageLayer {
           })
         );
       } catch (error) {
-        if (this.disposedError !== undefined || activeRequest.cancelled) {
+        if (this.disposedError !== undefined || activeRequest.controller.signal.aborted) {
           return;
         }
 
@@ -3686,7 +4193,7 @@ export class JsonRpcMessageLayer {
             jsonrpc: "2.0",
             id: message.id,
             error: {
-              code: ERROR_INTERNAL,
+              code: error instanceof McpError ? error.code : ERROR_INTERNAL,
               message: errorMessage,
             },
           })
@@ -3715,8 +4222,7 @@ export class JsonRpcMessageLayer {
       return;
     }
 
-    activeRequest.cancelled = true;
-    this.activeIncomingRequests.delete(requestId);
+    activeRequest.controller.abort(new Error(typeof params.reason === "string" ? params.reason : "Server request cancelled"));
   }
 }
 
@@ -3760,12 +4266,12 @@ function isServerCapabilities(value: unknown): value is ServerCapabilities {
   return true;
 }
 
-function isCallToolResult(value: unknown): value is CallToolResult {
+function isCallToolResult(value: unknown, modern = false): value is CallToolResult {
   if (!isObjectRecord(value) || !Array.isArray(value.content)) {
     return false;
   }
 
-  if (value.structuredContent !== undefined && !isObjectRecord(value.structuredContent)) {
+  if (!modern && value.structuredContent !== undefined && !isObjectRecord(value.structuredContent)) {
     return false;
   }
 
@@ -3832,6 +4338,7 @@ function isCompleteResult(value: unknown): value is CompleteResult {
 function isResource(value: unknown): value is Resource {
   return isObjectRecord(value)
     && typeof value.uri === "string"
+    && isValidUri(value.uri)
     && typeof value.name === "string"
     && (value.description === undefined || typeof value.description === "string")
     && (value.mimeType === undefined || typeof value.mimeType === "string")
@@ -3847,7 +4354,7 @@ function isResourceTemplate(value: unknown): value is ResourceTemplate {
 }
 
 function isResourceContents(value: unknown): value is ResourceContents {
-  if (!isObjectRecord(value) || typeof value.uri !== "string") {
+  if (!isObjectRecord(value) || typeof value.uri !== "string" || !isValidUri(value.uri)) {
     return false;
   }
 
@@ -3863,7 +4370,7 @@ function isResourceContents(value: unknown): value is ResourceContents {
   }
 
   return (!hasText || typeof value.text === "string")
-    && (!hasBlob || typeof value.blob === "string");
+    && (!hasBlob || (typeof value.blob === "string" && isBase64(value.blob)));
 }
 
 function isPromptMessage(value: unknown): value is PromptMessage {
@@ -3882,8 +4389,10 @@ function isContentItem(value: unknown): value is ContentItem {
   }
 
   if (value.type === "image" || value.type === "audio") {
-    return typeof value.data === "string" && typeof value.mimeType === "string";
+    return typeof value.data === "string" && isBase64(value.data) && typeof value.mimeType === "string";
   }
+
+  if (value.type === "resource_link") return isResource(value);
 
   if (value.type !== "resource" || !isObjectRecord(value.resource)) {
     return false;

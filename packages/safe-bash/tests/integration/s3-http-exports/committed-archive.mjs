@@ -550,7 +550,10 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");
       for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
         for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
-          assert.deepEqual(lock.packages?.[key]?.[field], expected[field], `workspace lock drift: ${key || "root"} ${field}`);
+          const actual = lock.packages?.[key]?.[field];
+          assert.deepEqual(field === "dependencies" ? actual ?? {} : actual,
+            field === "dependencies" ? expected[field] ?? {} : expected[field],
+            `workspace lock drift: ${key || "root"} ${field}`);
         }
       }
       assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");

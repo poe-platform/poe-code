@@ -24,3 +24,11 @@ focused budget tests pass after retaining the local bound.
 Finalize a local merge commit, restore pending edits, compare their file hashes
 with the inventory, and verify both original histories are ancestors of main.
 No push or release is requested.
+
+## Empty dependency maps in the packed-revision gate
+
+After the merge commit, the packed-revision test reproduced another comparison
+of omitted lockfile dependencies against the manifest's empty object. npm
+omits that empty map. Normalize only the dependency-map comparison; preserve
+strict checks of every populated dependency and all other workspace fields.
+The same packed-revision test passes after this correction.

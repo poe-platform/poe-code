@@ -641,3 +641,15 @@ explicit junk paths, negation and invalid values. Six valid cases failed before
 the parser change; all 763 focused ZIP/unzip tests and scoped ESLint now pass.
 The full workspace check in delivery session 9534 remains live; this option
 and the move follow-up have not yet been delivered to remote main.
+
+## BZIP2 stream boundary prerequisite
+
+Current source already contains a bounded generated libbzip2 codec; no new
+runtime dependency is needed to reuse it. Its default concatenated-member
+decoding consumes bytes ZIP needs to inspect as trailing compressed data. Six
+failing fake-codec cases reproduce this for same-chunk and next-chunk input
+across bzip2/xz/zstd. Added optional singleMember decoding to restore unread
+bytes without pulling the next frame or stripping XZ padding. Three independent
+Python BZIP2 fixture cases verify real decoding with 1/7/65536-byte chunks and
+exact trailing-byte preservation. All 31 bounded-codec tests pass. This is a
+prerequisite; ZIP method 12 parsing, headers, encoding and decoding remain open.

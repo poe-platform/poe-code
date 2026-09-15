@@ -3002,7 +3002,7 @@ test("alternate typecheck emission guards output before compilation and preserve
   await buildForTypecheck("/package", (label, args) => {
     compilations++;
     assert.equal(label, "build");
-    assert.deepEqual(args, ["-p", "tsconfig.build.json"]);
+    assert.deepEqual(args, ["/package/scripts/build.mjs"]);
     return { status: 0 };
   }, fileSystem);
   assert.equal(compilations, 1);

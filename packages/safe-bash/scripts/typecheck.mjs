@@ -19,7 +19,7 @@ const temporary = mkdtempSync(join(tmpdir(), "safe-bash-typecheck-"));
 const compiler = createRequire(import.meta.url).resolve("typescript/bin/tsc");
 const historicalCompiler = fileURLToPath(new URL("./historical-type-models.mjs", import.meta.url));
 const compile = (label, compilerArgs) => {
-  const result = spawnSync(process.execPath, [label === "source-and-tests" ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 180000, maxBuffer: 32 * 1024 * 1024 });
+  const result = spawnSync(process.execPath, label === "build" ? compilerArgs : [label === "source-and-tests" ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 180000, maxBuffer: 32 * 1024 * 1024 });
   assert.equal(result.error, undefined); assert.equal(result.signal, null);
   const record = { label, status: result.status, stdout: result.stdout, stderr: result.stderr }; report.phases.push(record);
   if (!label.startsWith("resolution-")) {

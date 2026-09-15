@@ -119,5 +119,5 @@ export function requireBuiltPackage(root, fileSystem = fs) {
 
 export async function buildForTypecheck(root, compile, fileSystem) {
   await assertSafeOutputDirectory(root, join(root, "dist"), fileSystem);
-  if (compile("build", ["-p", "tsconfig.build.json"]).status !== 0) throw new Error("Production build failed; stale declarations will not be used for consumer checks.");
+  if (compile("build", [join(root, "scripts/build.mjs")]).status !== 0) throw new Error("Production build failed; stale declarations will not be used for consumer checks.");
 }

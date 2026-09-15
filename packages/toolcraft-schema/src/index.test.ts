@@ -240,8 +240,7 @@ describe("toolcraft-schema", () => {
         })
       )
     ).toEqual({
-      type: "string",
-      nullable: true,
+      type: ["string", "null"],
       minLength: 3,
       maxLength: 40,
       pattern: "^[a-z]+$",
@@ -330,9 +329,8 @@ describe("toolcraft-schema", () => {
         })
       )
     ).toEqual({
-      type: "string",
+      type: ["string", "null"],
       enum: ["off", "auto", "forced", null],
-      nullable: true
     } satisfies JsonSchema);
   });
 

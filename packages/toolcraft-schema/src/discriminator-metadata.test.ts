@@ -53,7 +53,7 @@ describe.each(["oneOf", "union"])("%s branch nullability", (kind) => {
       }
       expect(generated.oneOf).toHaveLength(count + (nullable ? 1 : 0));
       if (nullable) expect(generated.oneOf?.at(-1)).toEqual({ enum: [null] });
-      expect(toJsonSchema(branch)).toMatchObject({ nullable: true, default: null });
+      expect(toJsonSchema(branch)).toMatchObject({ type: ["object", "null"], default: null });
     });
   });
 });

@@ -1,7 +1,9 @@
 import type { AnySchema, ObjectSchema, OptionalSchema, Static } from "./index.js";
 import { cloneDefaultValue } from "./clone-default.js";
-import { unicodeLength } from "./json-schema/utils.js";
+import { isJsonValue, type JsonValueSchema } from "./json.js";
+import { deepEqual, unicodeLength } from "./json-schema/utils.js";
 import { getRequiredKeyFingerprint } from "./union.js";
+import { nativeJsonSchema, type NativeSchema } from "./native-json-schema.js";
 
 export type SchemaDescriptor = AnySchema;
 
@@ -70,6 +72,17 @@ function walkSchema(
     return { present: false };
   }
 
+  const native = (schema as NativeSchema)[nativeJsonSchema];
+  if (native !== undefined) {
+    if (!isJsonValue(value)) {
+      addExpectedIssue(state, path, "JSON value", value);
+    } else {
+      const result = native.validator.validate(value);
+      if (!result.ok) state.issues.push(...result.issues.map((issue) => ({ ...issue, path: [...path, ...issue.path] })));
+    }
+    return { present: true, value };
+  }
+
   if (value === null && schema.nullable === true) {
     return { present: true, value };
   }
@@ -103,7 +116,7 @@ function walkSchema(
       return walkRecord(schema, value, path, state);
 
     case "json":
-      return walkJson(value, path, state);
+      return walkJson(schema, value, path, state);
   }
 }
 
@@ -462,8 +475,14 @@ function walkRecord(
   return { present: true, value: nextValue };
 }
 
-function walkJson(value: unknown, path: readonly string[], state: ValidationState): WalkResult {
+function walkJson(schema: JsonValueSchema, value: unknown, path: readonly string[], state: ValidationState): WalkResult {
   if (isJsonValue(value)) {
+    if (schema.const !== undefined && !deepEqual(value, schema.const)) {
+      addExpectedIssue(state, path, "declared JSON constant", value);
+    }
+    if (schema.enum !== undefined && !schema.enum.some((candidate) => deepEqual(value, candidate))) {
+      addExpectedIssue(state, path, "declared JSON enum value", value);
+    }
     return { present: true, value };
   }
 
@@ -491,46 +510,6 @@ export function isPlainRecord(value: unknown): value is Record<string, unknown> 
   const prototype = Object.getPrototypeOf(value);
 
   return prototype === Object.prototype || prototype === null;
-}
-
-function isJsonValue(value: unknown, ancestors: Set<object> = new Set()): boolean {
-  if (
-    value === null ||
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return typeof value !== "number" || Number.isFinite(value);
-  }
-
-  if (Array.isArray(value)) {
-    if (ancestors.has(value)) {
-      return false;
-    }
-    ancestors.add(value);
-    let result = true;
-    const length = value.length;
-    for (let index = 0; index < length; index += 1) {
-      if (!isJsonValue(value[index], ancestors)) {
-        result = false;
-        break;
-      }
-    }
-    ancestors.delete(value);
-    return result;
-  }
-
-  if (isPlainRecord(value)) {
-    if (ancestors.has(value)) {
-      return false;
-    }
-    ancestors.add(value);
-    const result = Object.values(value).every((item) => isJsonValue(item, ancestors));
-    ancestors.delete(value);
-    return result;
-  }
-
-  return false;
 }
 
 

@@ -713,3 +713,11 @@ historical source-model subprocess timeout (180000ms); it reported no
 TypeScript diagnostic and never started full unit or lint. Rechecking that
 exact maintained historical-model route separately in session 86237; full
 delivery gates remain unproven.
+
+## Historical typecheck ZIP64 test correction
+
+Separate historical-model session 86237 terminated with TS2532 at
+zip-format.test.ts:568: indexed Buffer mutation was possibly undefined under
+noUncheckedIndexedAccess. Corrected the known allocated-byte access without
+changing the corruption scenario. All 132 format tests pass; source/test
+historical type verification must be repeated after integrating this correction.

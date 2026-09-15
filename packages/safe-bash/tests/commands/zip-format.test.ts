@@ -565,7 +565,7 @@ for (const signed of [false, true]) {
     assert.deepEqual(Buffer.from(body), Buffer.from(zip64Oracle.cases[0]!.unzipStdout, "base64"));
     for (const position of [base, base + 4, base + 12]) {
       const invalid = Buffer.from(bytes);
-      invalid[central + position] ^= 1;
+      invalid[central + position] = invalid[central + position]! ^ 1;
       await assert.rejects(readZipArchive(invalid, limits, signal));
     }
   });

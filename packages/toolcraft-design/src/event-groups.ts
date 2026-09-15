@@ -1,3 +1,4 @@
+import { plainTerminalText } from "./dashboard/ansi.js";
 import { fitToWidth } from "./explorer/render/text.js";
 import { limitOutputPreview } from "./dashboard/output-preview.js";
 
@@ -33,5 +34,5 @@ export function createEventGroups({ capacity, children }: { capacity: number; ch
 }
 
 export function renderEventGroupRows(rows: readonly EventGroupRow[], width: number): string[] {
-  return rows.map(row => fitToWidth(`${row.header ? row.expanded ? "▾" : "▸" : row.error ? "  ■" : "  │"} ${row.text}`, width));
+  return rows.map(row => fitToWidth(`${row.header ? row.expanded ? "▾" : "▸" : row.error ? "  ■" : "  │"} ${plainTerminalText(row.text)}`, width));
 }

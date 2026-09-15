@@ -18,3 +18,8 @@ it("renders collapse and error markers", async () => {
   const { renderEventGroupRows } = await import("./event-groups.js");
   expect(renderEventGroupRows([{ id: "a", groupId: "a", text: "Tools", header: true, expanded: false }, { id: "b", groupId: "a", text: "Failed", error: true }], 40)).toEqual(["▸ Tools", "  ■ Failed"]);
 });
+
+it("keeps output previews on one safe terminal row", async () => {
+  const { renderEventGroupRows } = await import("./event-groups.js");
+  expect(renderEventGroupRows([{ id: "a", groupId: "a", text: "First\nSecond\x1b[2J" }], 40)).toEqual(["  │ First Second"]);
+});

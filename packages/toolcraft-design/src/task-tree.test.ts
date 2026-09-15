@@ -24,3 +24,8 @@ it("renders hierarchy, status and duration within terminal width", async () => {
   const { renderTaskRows } = await import("./task-tree.js");
   expect(renderTaskRows([{ id: "a", label: "Test", status: "success", depth: 1, collapsed: false, durationMs: 20 }], 40)[0]).toBe("  ▾ ✓ Test · 20ms");
 });
+
+it("keeps task labels on one safe terminal row", async () => {
+  const { renderTaskRows } = await import("./task-tree.js");
+  expect(renderTaskRows([{ id: "a", label: "First\nSecond\x1b[2J", status: "pending", depth: 0, collapsed: false }], 40)).toEqual(["▾ ○ First Second"]);
+});

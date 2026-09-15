@@ -1,3 +1,4 @@
+import { plainTerminalText } from "./dashboard/ansi.js";
 import { fitToWidth } from "./explorer/render/text.js";
 export interface TaskNode { id: string; parentId?: string; label: string; status: "pending" | "running" | "success" | "error"; durationMs?: number }
 export function createTaskTree({ capacity = 10000 }: { capacity?: number } = {}) {
@@ -52,6 +53,6 @@ export function renderTaskRows(rows: readonly (TaskNode & { depth: number; colla
   return rows.map(row => {
     const indent = " ".repeat(Math.min(Math.max(0, width), Math.max(0, row.depth) * 2));
     const duration = row.durationMs !== undefined && Number.isFinite(row.durationMs) ? ` · ${Math.max(0, Math.round(row.durationMs))}ms` : "";
-    return fitToWidth(`${indent}${row.collapsed ? "▸" : "▾"} ${markers[row.status]} ${row.label}${duration}`, width);
+    return fitToWidth(`${indent}${row.collapsed ? "▸" : "▾"} ${markers[row.status]} ${plainTerminalText(row.label)}${duration}`, width);
   });
 }

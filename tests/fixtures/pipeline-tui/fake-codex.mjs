@@ -18,7 +18,10 @@ emit({
 });
 let count = 0;
 let timer;
-if (scenario === "finite-burst" || scenario === "finite-burst-immediate") {
+if (scenario === "activity-timeout") {
+  process.stderr.write("first attempt warning\u001b]HIDDEN_UNFINISHED_OSC");
+  timer = setInterval(() => {}, 1000);
+} else if (scenario === "finite-burst" || scenario === "finite-burst-immediate") {
   timer = setTimeout(() => {
     for (let index = 0; index < 60_000; index++) {
       emit({ type: "item.completed", item: { id: `message-${index}`, type: "agent_message", text: `Burst response ${index}\n` } });

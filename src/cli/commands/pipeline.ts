@@ -421,14 +421,14 @@ function createPipelineDashboardRunAgent(options: {
   return async (input) => {
     const spawnConfig = getSpawnConfig(input.agent);
     const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
-    const toolBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
-    });
-    const errorBuffer = createDashboardLineBuffer((line) => {
-      options.appendOutput("error", `[${options.activeStage()}] ${line}`);
-    });
     let lastError: unknown;
     for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
+      const toolBuffer = createDashboardLineBuffer((line) => {
+        options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+      });
+      const errorBuffer = createDashboardLineBuffer((line) => {
+        options.appendOutput("error", `[${options.activeStage()}] ${line}`);
+      });
       let sawStdout = false;
       let sawStderr = false;
 
@@ -490,17 +490,15 @@ function createPipelineDashboardRunAgent(options: {
         errorBuffer.flush();
         return spawnResult;
       } catch (error) {
+        toolBuffer.flush();
+        errorBuffer.flush();
         if (!isActivityTimeoutError(error)) {
-          toolBuffer.flush();
-          errorBuffer.flush();
           throw error;
         }
         lastError = error;
       }
     }
 
-    toolBuffer.flush();
-    errorBuffer.flush();
     throw lastError;
   };
 }

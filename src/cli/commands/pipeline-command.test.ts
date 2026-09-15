@@ -2006,7 +2006,8 @@ describe("pipeline run command", () => {
 
     vi.mocked(sdkSpawn)
       .mockImplementationOnce((_agent, input) => {
-        input.tee?.stdout?.write("first attempt output\n");
+        input.tee?.stdout?.write("first attempt output");
+        input.tee?.stderr?.write("first attempt warning\u001b]HIDDEN_UNFINISHED_OSC");
 
         return {
           events: (async function* () {})(),
@@ -2017,7 +2018,7 @@ describe("pipeline run command", () => {
         events: (async function* () {})(),
         result: Promise.resolve({
           stdout: "retry fallback output",
-          stderr: "",
+          stderr: "retry fallback warning",
           exitCode: 0,
           usage: {
             inputTokens: 120,
@@ -2109,6 +2110,9 @@ describe("pipeline run command", () => {
     expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(2);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
+    expect(outputs.some(item => item.kind === "error" && item.text.includes("retry fallback warning"))).toBe(true);
+    expect(outputs.filter(item => item.kind === "tool" && item.text.includes("attempt output"))[0]!.text)
+      .not.toContain("retry fallback output");
     expect(
       outputs.some(
         (item) =>

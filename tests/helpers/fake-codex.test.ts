@@ -6,6 +6,29 @@ const fixture = readFileSync(new URL("../fixtures/pipeline-tui/fake-codex.mjs", 
 
 afterEach(() => vi.useRealTimers());
 
+it("stays silent with an unfinished diagnostic until activity-timeout termination", async () => {
+  vi.useFakeTimers();
+  const stdout = vi.fn();
+  const stderr = vi.fn();
+  const exit = vi.fn();
+  let terminate: (() => void) | undefined;
+  runInNewContext(fixture, {
+    process: {
+      env: { PIPELINE_FAKE_SCENARIO: "activity-timeout" }, pid: 1234,
+      stdout: { write: stdout }, stderr: { write: stderr }, exit,
+      on(_signal: string, handler: () => void) { terminate = handler; }
+    },
+    setInterval, clearInterval, setTimeout, clearTimeout
+  });
+  expect(stderr).toHaveBeenCalledWith("first attempt warning\u001b]HIDDEN_UNFINISHED_OSC");
+  await vi.advanceTimersByTimeAsync(600_000);
+  expect(stdout).toHaveBeenCalledTimes(3);
+  expect(exit).not.toHaveBeenCalled();
+  terminate!();
+  expect(exit).toHaveBeenCalledWith(143);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
 it("publishes a finite dense burst and holds completion for cancellation QA", async () => {
   vi.useFakeTimers();
   const events: Array<{ type: string; item?: { text?: string }; usage?: unknown }> = [];

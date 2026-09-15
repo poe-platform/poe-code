@@ -633,7 +633,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   const bytes = originalBytes && !changed && !editComment && !editEntries ? originalBytes
     : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
-  if (parsed.test && parsed.archive !== "-") {
+  if (parsed.test && parsed.archive !== "-" && !(parsed.filesync && !changed)) {
     for (const message of progress) await budget.output(message);
     progress.length = 0;
     progressBytes = 0;

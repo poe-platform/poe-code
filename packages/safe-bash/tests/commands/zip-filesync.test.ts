@@ -122,3 +122,19 @@ test("zip filesync same DOS two-second time and size remains current", async () 
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout.toString(), "Archive is current\n");
 });
+
+for (const latest of [false, true]) {
+  test(`zip current filesync skips integrity test while retaining latest-time behavior (${latest})`, async () => {
+    const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }], entries => { entries[0]!.crc32 = 1; }));
+    await fs.writeFile("/work/binary", Buffer.from("old"));
+    await fs.utimes!("/work/binary", modified.getTime(), modified.getTime());
+    const priorTime = modified.getTime() - 60000;
+    await fs.utimes!("/work/sample.zip", priorTime, priorTime);
+    const before = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-FS", latest ? "-oT" : "-T", "sample.zip", "binary"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.toString(), "Archive is current\n");
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+    assert.equal((await fs.stat("/work/sample.zip")).mtimeMs, latest ? modified.getTime() : priorTime);
+  });
+}

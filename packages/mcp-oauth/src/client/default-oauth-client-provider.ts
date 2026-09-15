@@ -112,6 +112,19 @@ export function createDefaultOAuthClientProvider(
   ): Promise<StoredOAuthSession | null> {
     const canonicalResource = canonicalizeResourceIndicator(resource);
     let session = await loadSession(canonicalResource);
+    if (discovery !== undefined && getOwnString(
+      discovery.authorizationServerMetadata, "issuer"
+    ) !== discovery.authorizationServer) {
+      throw new Error("OAuth discovery authorization-server issuer mismatch");
+    }
+    if (session !== null && (
+      canonicalizeResourceIndicator(session.resource) !== canonicalResource
+      || getOwnString(session.discovery.authorizationServerMetadata, "issuer") !== session.authorizationServer
+      || (discovery !== undefined && discovery.authorizationServer !== session.authorizationServer)
+    )) {
+      await clearSession(canonicalResource);
+      session = null;
+    }
     const sessionDiscovery = resolveDiscovery(discovery, session);
 
     if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
